@@ -1,2 +1,2 @@
 # Markovian
-Haskell and Categorical Exploration of Focused on markov processes and decision frameworks.
+A categorical exploration of Markov processes and decision frameworks in Haskell.
