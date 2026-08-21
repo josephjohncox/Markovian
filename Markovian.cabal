@@ -1,4 +1,5 @@
 cabal-version:      3.4
+
 -- The cabal-version field refers to the version of the .cabal specification,
 -- and can be different from the cabal-install (the tool) version and the
 -- Cabal (the library) version you are using. As such, the Cabal (the library)
@@ -23,11 +24,14 @@ name:               Markovian
 version:            0.1.0.0
 
 -- A short (one-line) description of the package.
-synopsis:
-    Haskell and Categorical Exploration of Focused on markov processes and decision frameworks.
+synopsis:           Categorical Markov processes and decision models
 
 -- A longer description of the package.
--- description:
+description:
+  Experimental Haskell interfaces for finite stochastic kernels, Markov reward
+  processes, Markov decision processes, and decision-model interpreters.
+
+category:           Math
 
 -- URL for the project homepage or repository.
 homepage:           https://codensity.io/projects/markovian.html
@@ -49,123 +53,150 @@ maintainer:         joseph@codensity.io
 build-type:         Simple
 
 -- Extra doc files to be distributed with the package, such as a CHANGELOG or a README.
-extra-doc-files:    CHANGELOG.md
+extra-doc-files:
+  CHANGELOG.md
+  docs/ARCHITECTURE.md
+  docs/CONTEXT.md
+  docs/DECISIONS.md
+  docs/WORKFLOWS.md
+  README.md
+  TODO.md
 
 -- Extra source files to be distributed with the package, such as examples, or a tutorial module.
--- extra-source-files:
+extra-source-files:
+  .envrc
+  .github/workflows/ci.yml
+  cabal.project
+  cabal.project.ci
+  scripts/bootstrap-tools
+  toolchain.env
+
+source-repository head
+  type:     git
+  location: https://github.com/josephjohncox/Markovian.git
 
 common warnings
-    ghc-options: -Wall
+  ghc-options: -Wall
 
 library
-    -- Import common warning flags.
-    import:           warnings
+  -- Import common warning flags.
+  import:           warnings
 
-    -- Modules exported by the library.
-    exposed-modules:  Markovian, QLearning
+  -- Modules exported by the library.
+  exposed-modules:
+    Markovian
+    Markovian.Kernel
+    Markovian.MDP
+    Markovian.MRP
+    Markovian.Policy
+    Markovian.Probability
+    Markovian.Reward
+    QLearning
 
-    -- Modules included in this library but not exported.
-    -- other-modules:
+  -- Modules included in this library but not exported.
+  -- other-modules:
 
-    -- LANGUAGE extensions used by modules in this package.
-    -- other-extensions:
+  -- LANGUAGE extensions used by modules in this package.
+  -- other-extensions:
 
-    -- Other library packages from which modules are imported.
-    build-depends:    base ^>=4.17.2.1,
-                      monad-bayes ^>=1.3.0.4,
-                      vector ==0.13.*,
-                      containers ==0.6.*,
-                      MonadRandom ==0.6.*,
-                      mtl ==2.3.*,
-                      random ==1.2.*
-    -- Directories containing source files.
-    hs-source-dirs:   src
+  -- Other library packages from which modules are imported.
+  build-depends:
+    , base         >=4.17.2.1 && <4.20
+    , containers   >=0.6      && <0.7
+    , monad-bayes  ^>=1.3.0.4
+    , MonadRandom  >=0.6      && <0.7
+    , mtl          >=2.3      && <2.4
+    , random       >=1.2      && <1.3
+    , vector       >=0.13     && <0.14
 
-    -- Base language which the package is written in.
-    default-language: GHC2021
+  -- Directories containing source files.
+  hs-source-dirs:   src
+
+  -- Base language which the package is written in.
+  default-language: GHC2021
 
 executable Sample
-    -- Import common warning flags.
-    import:           warnings
+  -- Import common warning flags.
+  import:           warnings
 
-    -- .hs or .lhs file containing the Main module.
-    main-is:          Main.hs
+  -- .hs or .lhs file containing the Main module.
+  main-is:          Main.hs
 
-    -- Modules included in this executable, other than Main.
-    -- other-modules:
+  -- Modules included in this executable, other than Main.
+  -- other-modules:
 
-    -- LANGUAGE extensions used by modules in this package.
-    -- other-extensions:
+  -- LANGUAGE extensions used by modules in this package.
+  -- other-extensions:
 
-    -- Other library packages from which modules are imported.
-    build-depends:
-        base ^>=4.17.2.1,
-        Markovian,
-        monad-bayes ^>=1.3.0.4,
-        vector ==0.13.*,
-        containers ==0.6.*,
-        random ==1.2.*
+  -- Other library packages from which modules are imported.
+  build-depends:
+    , base         >=4.17.2.1 && <4.20
+    , containers   >=0.6      && <0.7
+    , Markovian
+    , monad-bayes  ^>=1.3.0.4
+    , random       >=1.2      && <1.3
+    , vector       >=0.13     && <0.14
 
-    -- Directories containing source files.
-    hs-source-dirs:   app/Sample
+  -- Directories containing source files.
+  hs-source-dirs:   app/Sample
 
-    -- Base language which the package is written in.
-    default-language: GHC2021
+  -- Base language which the package is written in.
+  default-language: GHC2021
 
 executable QLearning
-    -- Import common warning flags.
-    import:           warnings
+  -- Import common warning flags.
+  import:           warnings
 
-    -- .hs or .lhs file containing the Main module.
-    main-is:          Main.hs
+  -- .hs or .lhs file containing the Main module.
+  main-is:          Main.hs
 
-    -- Modules included in this executable, other than Main.
-    -- other-modules:
+  -- Modules included in this executable, other than Main.
+  -- other-modules:
 
-    -- LANGUAGE extensions used by modules in this package.
-    -- other-extensions:
+  -- LANGUAGE extensions used by modules in this package.
+  -- other-extensions:
 
-    -- Other library packages from which modules are imported.
-    build-depends:
-        base ^>=4.17.2.1,
-        Markovian,
-        monad-bayes ^>=1.3.0.4,
-        vector ==0.13.*,
-        random ==1.2.*,
-        containers ==0.6.*,
-        transformers ==0.5.*,
-        MonadRandom ==0.6.*,
-        mtl ==2.3.*
+  -- Other library packages from which modules are imported.
+  build-depends:
+    , base          >=4.17.2.1 && <4.20
+    , containers    >=0.6      && <0.7
+    , Markovian
+    , monad-bayes   ^>=1.3.0.4
+    , MonadRandom   >=0.6      && <0.7
+    , mtl           >=2.3      && <2.4
+    , random        >=1.2      && <1.3
+    , transformers  >=0.5      && <0.7
+    , vector        >=0.13     && <0.14
 
-    -- Directories containing source files.
-    hs-source-dirs:   app/QLearning
+  -- Directories containing source files.
+  hs-source-dirs:   app/QLearning
 
-    -- Base language which the package is written in.
-    default-language: GHC2021
+  -- Base language which the package is written in.
+  default-language: GHC2021
 
 test-suite Markovian-test
-    -- Import common warning flags.
-    import:           warnings
+  -- Import common warning flags.
+  import:           warnings
 
-    -- Base language which the package is written in.
-    default-language: GHC2021
+  -- Base language which the package is written in.
+  default-language: GHC2021
 
-    -- Modules included in this executable, other than Main.
-    -- other-modules:
+  -- Modules included in this executable, other than Main.
+  -- other-modules:
 
-    -- LANGUAGE extensions used by modules in this package.
-    -- other-extensions:
+  -- LANGUAGE extensions used by modules in this package.
+  -- other-extensions:
 
-    -- The interface type and version of the test suite.
-    type:             exitcode-stdio-1.0
+  -- The interface type and version of the test suite.
+  type:             exitcode-stdio-1.0
 
-    -- Directories containing source files.
-    hs-source-dirs:   test
+  -- Directories containing source files.
+  hs-source-dirs:   test
 
-    -- The entrypoint to the test suite.
-    main-is:          Main.lhs
+  -- The entrypoint to the test suite.
+  main-is:          Main.hs
 
-    -- Test dependencies.
-    build-depends:
-        base ^>=4.17.2.1,
-        Markovian,
+  -- Test dependencies.
+  build-depends:
+    , base       >=4.17.2.1 && <4.20
+    , Markovian

@@ -1,0 +1,69 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+project_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd -P)"
+# shellcheck source=../toolchain.env
+source "$project_root/toolchain.env"
+
+ghcup_bin="${GHCUP_BIN:-$HOME/.ghcup/bin/ghcup}"
+toolchain_bin="$project_root/.direnv/ghcup/bin"
+local_bin="$project_root/.direnv/bin"
+local_lib="$project_root/.direnv/lib"
+
+if [[ ! -x "$ghcup_bin" ]]; then
+  echo "GHCup is missing at $ghcup_bin" >&2
+  exit 1
+fi
+
+mkdir -p "$toolchain_bin" "$local_bin" "$local_lib"
+
+# Some Linux systems have the GMP runtime but not the unversioned linker name.
+if [[ ! -e "$local_lib/libgmp.so" ]]; then
+  for candidate in /usr/lib/*/libgmp.so.10 /lib/*/libgmp.so.10; do
+    if [[ -e "$candidate" ]]; then
+      ln -s "$candidate" "$local_lib/libgmp.so"
+      break
+    fi
+  done
+fi
+
+export LIBRARY_PATH="$local_lib${LIBRARY_PATH:+:$LIBRARY_PATH}"
+
+"$ghcup_bin" run \
+  --ghc "$MARKOVIAN_GHC_VERSION" \
+  --cabal "$MARKOVIAN_CABAL_VERSION" \
+  --hls "$MARKOVIAN_HLS_VERSION" \
+  --tool "fourmolu,$MARKOVIAN_FOURMOLU_VERSION" \
+  --install \
+  --bindir "$toolchain_bin" >/dev/null
+
+export PATH="$toolchain_bin:$local_bin:$PATH"
+
+hlint_ok=false
+if [[ -x "$local_bin/hlint" ]] && "$local_bin/hlint" --version | grep -Fq "v$MARKOVIAN_HLINT_VERSION"; then
+  hlint_ok=true
+fi
+
+cabal_fmt_ok=false
+if [[ -x "$local_bin/cabal-fmt" ]] && [[ "$("$local_bin/cabal-fmt" --version)" == "$MARKOVIAN_CABAL_FMT_VERSION" ]]; then
+  cabal_fmt_ok=true
+fi
+
+if [[ "$hlint_ok" != true || "$cabal_fmt_ok" != true ]]; then
+  cabal install \
+    "hlint-$MARKOVIAN_HLINT_VERSION" \
+    "cabal-fmt-$MARKOVIAN_CABAL_FMT_VERSION" \
+    --installdir="$local_bin" \
+    --install-method=copy \
+    --overwrite-policy=always
+fi
+
+printf 'GHC:       '; ghc --version
+printf 'Cabal:     '; cabal --version | head -1
+printf 'HLS:       '; haskell-language-server-wrapper --version | head -1
+printf 'Fourmolu:  '; fourmolu --version | head -1
+printf 'HLint:     '; hlint --version
+printf 'cabal-fmt: '; cabal-fmt --version
+
+echo
+echo "Run: direnv allow $project_root"

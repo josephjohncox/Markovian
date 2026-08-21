@@ -1,0 +1,152 @@
+---
+name: CI
+
+"on":
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: GHC ${{ matrix.ghc }}
+    runs-on: ubuntu-22.04
+    strategy:
+      fail-fast: false
+      matrix:
+        ghc:
+          - "9.4.8"
+          - "9.8.4"
+
+    steps:
+      - name: Check out the repository
+        # actions/checkout v7.0.1
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+
+      - name: Read pinned tool versions
+        id: toolchain
+        run: |
+          set -euo pipefail
+          source toolchain.env
+          echo "cabal=${MARKOVIAN_CABAL_VERSION}" >> "${GITHUB_OUTPUT}"
+
+      - name: Set up Haskell
+        # haskell-actions/setup v2.12.0
+        uses: haskell-actions/setup@6037f33647c3f17758a2356c80fc4a53d7e0685d
+        with:
+          ghc-version: ${{ matrix.ghc }}
+          cabal-version: ${{ steps.toolchain.outputs.cabal }}
+
+      - name: Report compiler versions
+        run: |
+          ghc --version
+          cabal --version
+
+      - name: Check package metadata
+        run: cabal check
+
+      - name: Build without compiler warnings
+        run: |
+          cabal build all \
+            --project-file=cabal.project.ci \
+            --ghc-options=-Werror
+
+      - name: Run tests
+        run: |
+          cabal test all \
+            --project-file=cabal.project.ci \
+            --test-show-details=direct
+
+      - name: Build warning-free Haddocks
+        run: |
+          set -euo pipefail
+          cabal haddock all \
+            --project-file=cabal.project.ci \
+            --haddock-all \
+            --haddock-hyperlink-source 2>&1 | tee haddock.log
+          if grep -nE '(^|[[:space:]])Warning:' haddock.log; then
+            echo "Haddock emitted warnings." >&2
+            exit 1
+          fi
+
+      - name: Create the source distribution
+        run: |
+          set -euo pipefail
+          rm -rf sdist
+          mkdir sdist
+          cabal sdist --output-directory=sdist
+          tarball_count="$(
+            find sdist -maxdepth 1 -type f -name '*.tar.gz' | wc -l
+          )"
+          test "${tarball_count}" -eq 1
+
+  format:
+    name: Format
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Check out the repository
+        # actions/checkout v7.0.1
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+
+      - name: Read pinned tool versions
+        id: toolchain
+        run: |
+          set -euo pipefail
+          source toolchain.env
+          {
+            echo "ghc=${MARKOVIAN_GHC_VERSION}"
+            echo "cabal=${MARKOVIAN_CABAL_VERSION}"
+          } >> "${GITHUB_OUTPUT}"
+
+      - name: Set up Haskell
+        # haskell-actions/setup v2.12.0
+        uses: haskell-actions/setup@6037f33647c3f17758a2356c80fc4a53d7e0685d
+        with:
+          ghc-version: ${{ steps.toolchain.outputs.ghc }}
+          cabal-version: ${{ steps.toolchain.outputs.cabal }}
+
+      - name: Install pinned formatters
+        run: |
+          set -euo pipefail
+          source toolchain.env
+          mkdir -p "${HOME}/.local/bin"
+          ghcup --url-source 3rdparty install fourmolu \
+            "${MARKOVIAN_FOURMOLU_VERSION}"
+          ghcup --url-source 3rdparty run --quick \
+            --tool "fourmolu,${MARKOVIAN_FOURMOLU_VERSION}" \
+            --bindir "${HOME}/.local/bin"
+          cabal install \
+            "cabal-fmt-${MARKOVIAN_CABAL_FMT_VERSION}" \
+            --ignore-project \
+            --install-method=copy \
+            --installdir="${HOME}/.local/bin" \
+            --overwrite-policy=always
+          echo "${HOME}/.local/bin" >> "${GITHUB_PATH}"
+
+      - name: Check formatting
+        run: |
+          set -euo pipefail
+          source toolchain.env
+          actual_fourmolu_version="$(
+            fourmolu --version | head -1 | awk '{print $2}'
+          )"
+          test "${actual_fourmolu_version}" = \
+            "${MARKOVIAN_FOURMOLU_VERSION}"
+          actual_cabal_fmt_version="$(cabal-fmt --version)"
+          test "${actual_cabal_fmt_version}" = \
+            "${MARKOVIAN_CABAL_FMT_VERSION}"
+          find src app test -type f -name '*.hs' -print0 \
+            | sort -z \
+            | xargs -0 fourmolu --mode check
+          cabal-fmt --check Markovian.cabal

@@ -1,0 +1,313 @@
+# Work plan
+
+This file is the authority for priority, status, dependencies, risks, and acceptance criteria.
+
+## Status legend
+
+- `[ ] PLANNED`: the item is queued behind normal priority gates.
+- `[-] ACTIVE`: one assigned writer owns the item.
+- `[!] BLOCKED`: the next eligible item lacks a required external dependency or accepted decision.
+- `[x] DONE`: the acceptance criteria have current, linked evidence.
+
+Do not mark an item `DONE` from static inspection when its criteria require commands.
+
+## Priority rules
+
+P0 is the highest priority. Complete each priority gate before work starts on the next priority.
+
+A user can authorize an exception. Record the exception in `docs/DECISIONS.md` and list its risk here.
+
+## Foundation Kickoff exception
+
+D-022 records the user's authorization to implement one bounded, additive semantic-foundation slice while the P0 toolchain gate was blocked.
+
+- [x] **FK.1 Add validated floating values.**
+  - Added opaque `Prob`, `Weight`, `FiniteDist`, and `Reward` values with fail-fast structured errors.
+  - Added scaled normalization, removal of zero and rounded-zero masses, and labeled duplicate preservation.
+  - Source evidence: `src/Markovian/Probability.hs` and `src/Markovian/Reward.hs`.
+  - GHC 9.8.4 builds the modules, and the related contract tests pass.
+  - Completion evidence: FK.4 passed the final warning-free verification run.
+- [x] **FK.2 Add one-layer semantic interfaces.**
+  - Added `Kernel`, `Policy`, typed terminal state and transition outcomes, and one-step MRP and MDP interfaces.
+  - Action IDs and transition outcomes have separate types and operations.
+  - Terminal steps do not run transition kernels. Model construction does not unfold successor states.
+  - Source evidence: `src/Markovian/Kernel.hs`, `src/Markovian/MRP.hs`, `src/Markovian/MDP.hs`, and `src/Markovian/Policy.hs`.
+  - GHC 9.8.4 builds the modules, and the related contract tests pass.
+  - Completion evidence: FK.4 passed the final warning-free verification run.
+- [x] **FK.3 Add deterministic contract tests and package declarations.**
+  - Added tests for value validation, terminal reward timing, one-layer self-loops, action-versus-transition separation, overflow-safe normalization, rounded-zero mass removal, and empty distribution and action support.
+  - Exposed the new modules and added durable documents to `extra-doc-files` in `Markovian.cabal`.
+  - Command evidence: the GHC 9.8.4 build and seven deterministic contract tests pass.
+  - Cabal package, Haddock, format, and source-distribution commands pass.
+  - Completion evidence: FK.4 passed the final warning-free verification run.
+- [x] **FK.4 Verify the Foundation Kickoff slice.**
+  - The pinned direnv toolchain and local project files reproduce the environment.
+  - `cabal check` reports no package warnings.
+  - The GHC 9.8.4 `-Werror` build and seven deterministic tests pass.
+  - Haddock completes without warning lines.
+  - Fourmolu, cabal-fmt, and source-distribution commands pass.
+
+Remaining after FK.4: exact-reference probability and law tests; `Discount` and `Horizon`; duplicate-action validation; policy support validation and closure; bounded evaluators; legacy adapters; and all later TODO priorities.
+
+Reviewer revision: normalization removes entries whose normalized mass rounds to zero. The passing extreme finite-weight regression checks that `outcomes` contains only positive masses.
+
+Risk: the implementation has evidence from one compiler only. CI and additional compiler versions can expose compatibility defects.
+
+## P0: Trustworthy baseline
+
+Dependencies: a supported GHC and Cabal toolchain.
+
+Risks: the current package might not parse or compile. Characterization tests can expose undocumented legacy behavior.
+
+- [-] **P0.1 `ACTIVE` Add the local project and CI baseline.**
+  - D-023 defines the pinned GHCup and direnv development environment.
+  - `cabal.project` and `cabal.project.ci` pass the local gates on GHC 9.8.4.
+  - `.github/workflows/ci.yml` pins every action by commit SHA and tests GHC 9.4.8 and 9.8.4 on Ubuntu 22.04.
+  - The workflow keeps `-Werror` out of downstream library defaults and uses the formatter versions from `toolchain.env`.
+  - Local simulation evidence: package check, `-Werror` build, seven tests, warning-free Haddock, and source distribution pass on GHC 9.4.8 with Cabal 3.16.1.0.
+  - Local simulation evidence: GHCup Fourmolu installation, separate Cabal cabal-fmt installation, version assertions, and both format checks pass.
+  - Verified action pins: `actions/checkout` v7.0.1 at `3d3c42e5aac5ba805825da76410c181273ba90b1`; `haskell-actions/setup` v2.12.0 at peeled commit `6037f33647c3f17758a2356c80fc4a53d7e0685d`.
+  - Acceptance passed locally: `cabal check` exits zero.
+  - Acceptance passed locally: `cabal build all --project-file=cabal.project.ci` exits zero on both required compiler versions.
+  - Completion blocker: commit or push the workflow and record a successful durable CI URL. Local simulation is not CI evidence.
+- [ ] **P0.2 Replace the placeholder with legacy characterization tests.**
+  - Add terminal value, deterministic chain, expected value `12.5`, and sample-support tests.
+  - Confirm sampled results belong to `{10, 15}` without a frequency assertion.
+  - Add zero-episode and terminal-initial-state Q-table identity tests.
+  - Acceptance: the tests run against the unchanged legacy API.
+  - Acceptance: `cabal test all --project-file=cabal.project.ci --test-show-details=direct` exits zero.
+  - Dependency: P0.1.
+- [ ] **P0.3 Audit package metadata and direct dependencies.**
+  - Implemented under FK.3 by static inspection: durable documents are listed in source distribution metadata.
+  - Completed locally: corrected package metadata, widened the tested `base` range through 4.19, and verified `cabal check` and `cabal sdist` on GHC 9.8.4.
+  - Remove unused component dependencies only after a compiler confirms imports.
+  - Replace wildcard constraints with tested PVP bounds.
+  - Add a compiler matrix only after each `base` range passes.
+  - Acceptance: `cabal check`, the normal build, tests, and `--prefer-oldest` build all exit zero.
+  - Dependency: P0.1 and P0.2.
+- [ ] **P0.4 Add format, Haddock, and source-distribution gates.**
+  - Preliminary local evidence: pinned Fourmolu and `cabal-fmt` checks pass, Haddock builds, and Cabal creates the source tarball.
+  - Acceptance: Fourmolu and `cabal-fmt` checks exit zero with pinned versions.
+  - Acceptance: `cabal haddock all` exits zero with source links enabled.
+  - Acceptance: the unpacked source distribution builds and tests.
+  - Dependency: P0.3.
+
+P0 gate: all four baseline items are `DONE`. D-022 permits the additive Foundation Kickoff files but does not waive any baseline command or evidence requirement.
+
+## P1: Valid finite semantic core
+
+Dependencies: P0 and accepted decisions D-001 through D-007, D-010, D-011, D-015, D-017, and D-022.
+
+D-022 supersedes D-012 and D-013 for the initial floating, fail-fast constructors. The Foundation Kickoff exception covers only FK.1 through FK.4. The rest of P1 remains behind P0 and FK.4.
+
+Risks: a premature public API can lock in weak names or the wrong numeric representation.
+
+- [ ] **P1.1 Complete validated probability and objective values.**
+  - Implemented under FK.1: opaque floating `Prob`, `Weight`, `FiniteDist`, and `Reward` types; fail-fast errors; scaled normalization; and tests added but not run.
+  - Remaining: add separate exact-reference values, `Discount`, and `Horizon`.
+  - Reject empty support, negative mass, non-finite mass, zero total mass, and non-finite rewards.
+  - Normalize floating weights with the scaled algorithm from D-017.
+  - Reject a non-finite or non-positive scaled total.
+  - Keep exact-reference and floating-runtime representations distinct.
+  - Acceptance: each rejection case has a deterministic unit test.
+  - Acceptance: normalization of weights `1` and `3` returns `0.25` and `0.75` under the floating interpreter.
+  - Acceptance: two maximum finite `Double` weights normalize to `0.5` and `0.5` without overflow.
+  - Acceptance: a non-finite scaled total returns the named normalization error.
+  - Acceptance: constructors are not exported.
+- [ ] **P1.2 Verify and complete stochastic kernels and one-layer MRP and MDP interfaces.**
+  - Implemented under FK.2 by static inspection: action IDs are separate from stochastic outcomes; one model step returns one layer; and an empty available-action list returns `EmptyActionSupport`.
+  - Remaining: compile and run the FK tests, then add Kleisli composition and exact-reference functor and kernel law tests.
+  - Acceptance: a self-loop step terminates without recursive expansion.
+  - Acceptance: functor identity and composition laws pass in the exact reference tests.
+  - Dependency: P1.1.
+- [ ] **P1.3 Add explicit policy closure.**
+  - Implemented under FK.2: the minimal opaque `Policy` kernel interface.
+  - Remaining: validate policy support against available action IDs and implement closure.
+  - Close the MDP into a joint kernel over transition reward and successor state.
+  - Preserve the reward and state trace distribution defined in D-015.
+  - Return `ZeroMassTransition` when code requests a conditional reward for a zero-mass successor.
+  - Acceptance: unavailable and duplicate action IDs return structured errors.
+  - Acceptance: deterministic and randomized closure examples match exact joint outcome distributions.
+  - Acceptance: two actions with one successor and different rewards remain two reward outcomes after closure.
+  - Acceptance: bounded reward-and-state trace observables match direct MDP execution in the exact reference interpreter.
+  - Acceptance: a zero-mass conditional-reward request returns `ZeroMassTransition`.
+  - Dependency: P1.2 and accepted D-015.
+- [ ] **P1.4 Keep the new core additive.**
+  - Do not change or remove current exports in the first slice.
+  - Add Haddock for all new exports and include invariants and totality.
+  - Acceptance: all P0 characterization tests and all P1 tests pass together.
+  - Dependency: P1.1 through P1.3.
+
+P1 gate: the semantic core is additive, validated, documented, and tested.
+
+## P2: Bounded interpreters
+
+Dependencies: P1.
+
+Risks: reward timing, horizon boundaries, and discount placement can silently disagree.
+
+- [ ] **P2.1 Add exact finite-support expectation.**
+  - Require an explicit policy and objective.
+  - Apply transition reward once and terminal payoff once.
+  - Stop every path at the finite horizon.
+  - Acceptance: tests cover terminal, deterministic, weighted, discount, horizon-zero, and self-loop cases.
+- [ ] **P2.2 Add seeded finite-support sampling.**
+  - Receive an explicit generator or seed.
+  - Never select zero-mass outcomes.
+  - Acceptance: equal seeds produce equal traces and returns.
+  - Acceptance: exact support tests replace statistical frequency gates.
+- [ ] **P2.3 Add structured traces and errors.**
+  - Make action IDs, outcomes, rewards, and stop reasons visible in trace values.
+  - Acceptance: no interpreter uses partial vector indexing or partial maximum functions.
+  - Acceptance: model, policy, and objective errors have separate constructors.
+
+P2 gate: exact and sampling interpreters implement the same documented objective.
+
+## P3: Migration and package cleanup
+
+Dependencies: P2 and accepted D-010.
+
+Risks: the legacy `Action` has two incompatible meanings. One generic adapter would hide data loss.
+
+- [ ] **P3.1 Add explicit legacy adapters.**
+  - Add `fromLegacyMarkovProcess` for branch weights as transition probabilities.
+  - Add `fromLegacyDeterministicMDP` for each legacy branch as a deterministic action.
+  - Do not add a generic `fromLegacy` function.
+  - Acceptance: the evaluation adapter preserves expected value `12.5`.
+  - Acceptance: the deterministic adapter creates two action IDs for the first sample state.
+- [ ] **P3.2 Migrate the sampling application.**
+  - Migrate `app/Sample/Main.hs` to explicit policy and objective inputs.
+  - Acceptance: the sampling application compile fixture passes.
+  - Dependency: P3.1.
+- [ ] **P3.3 Define compatibility and release policy.**
+  - Move old definitions to `Markovian.Legacy` during the 0.2 series.
+  - Keep deprecated shims for at least 90 days after a verified 0.2 release.
+  - Remove shims only in a PVP-major 0.3 release.
+  - Acceptance: a migration guide maps each old export to its replacement.
+- [ ] **P3.4 Replace generated package documents.**
+  - Replace `CHANGELOG.md` placeholders only when release evidence exists.
+  - Add installation, guarantees, limitations, and a compiled example to `README.md`.
+  - Acceptance: README examples compile in `test/compile`.
+  - Acceptance: the source distribution includes all durable documents.
+
+P3 gate: users have tested adapters, deprecations, and a compiled sampling migration path.
+
+## P4: Learning interpreters
+
+Dependencies: P3, the MDP action identity contract from P1, and accepted D-019.
+
+D-019 is still `Proposed`. P4 cannot start until reviewers accept it or accept a superseding decision.
+
+Risks: statistical tests can be flaky. Hidden schedules can invalidate convergence claims.
+
+- [ ] **P4.1 Add validated Q-learning configuration.**
+  - Make learning rate, discount, exploration, episode count, and maximum episode steps explicit.
+  - Use natural numbers for counts.
+  - Acceptance: invalid rates and discounts return structured errors.
+- [ ] **P4.2 Implement and test one pure Q update.**
+  - Include the transition reward and terminal successor payoff in the target.
+  - Key the table by stable state identity and action ID.
+  - Acceptance: one update matches a hand-calculated numeric result.
+  - Acceptance: zero episodes preserve the table.
+  - Acceptance: a self-loop stops at the configured step limit.
+- [ ] **P4.3 Add a seeded training interpreter.**
+  - Sample the transition outcome kernel after the learner selects an action ID.
+  - Acceptance: equal seeds produce equal Q-tables.
+  - Acceptance: a scripted two-action model prefers the higher return.
+  - Do not require statistical convergence in CI.
+- [ ] **P4.4 Migrate the Q-learning application.**
+  - Migrate `app/QLearning/Main.hs` to the validated learner and explicit configuration.
+  - Acceptance: the Q-learning application compile fixture passes.
+  - Acceptance: the application has no import of the legacy `QLearning` module.
+  - Dependency: P4.1 through P4.3.
+
+P4 gate: one coherent Q-learning algorithm replaces both experimental paths, and the learning application uses it.
+
+## P5: Cyclic, POMDP, and continuous models
+
+Dependencies: P4 and stable P1 and P2 semantics.
+
+P5.1 depends on accepted D-016. P5.2 depends on accepted D-020. P5.3 depends on accepted D-021.
+
+Risks: convergence assumptions and zero-evidence behavior can make APIs partial.
+
+- [ ] **P5.1 Add discounted Bellman fixed-point solvers.**
+  - Dependency: accepted D-016.
+  - Require bounded rewards and a discount below one.
+  - Report residual, tolerance, iteration count, and stop reason.
+  - Acceptance: tests compare finite models with an exact linear reference.
+  - Acceptance: a nonterminal transition into a nonzero terminal payoff matches the terminal-aware linear equation.
+  - Acceptance: the result includes a documented residual-based error bound.
+- [ ] **P5.2 Add finite POMDP interfaces.**
+  - Dependency: accepted D-020.
+  - Add latent state, observation, observation kernel, and belief update types.
+  - Define impossible-observation behavior as a structured zero-evidence error.
+  - Acceptance: normalization and zero-evidence tests pass.
+- [ ] **P5.3 Add a continuous-kernel experiment outside the finite core.**
+  - Dependency: accepted D-021.
+  - Record measurability and integrability preconditions.
+  - Use sampling or quadrature through an interpreter.
+  - Acceptance: an accepted use-case decision names supported operations and error semantics.
+- [ ] **P5.4 Evaluate other MDP variants.**
+  - Assess average-reward, constrained, semi-Markov, and multi-agent variants separately.
+  - Acceptance: each admitted variant has an objective, laws, and interpreter plan.
+
+P5 gate: every unbounded or conditioned operation has explicit mathematical preconditions and errors.
+
+## P6: Compiler, GPU, neural, and research backends
+
+Dependencies: P5, stable core semantics, and a measured use case for each backend.
+
+D-009 remains `Deferred`. Compiler or optimizer work requires the accepted superseding decisions named below.
+
+Risks: performance abstractions can change stochastic sharing or floating results.
+
+- [ ] **P6.1 Define the categorical compiler IR.**
+  - Dependency: D-018 must be `Accepted` and supersede D-009 for compiler IR work.
+  - Represent identity, composition, tensor, copy, discard, and explicit sample bindings.
+  - Acceptance: law tests preserve structure and distinguish one shared draw from two draws.
+- [ ] **P6.2 Admit recursion, Kan, Codensity, Cayley, or NBE only through their proof gates.**
+  - Dependency: each feature needs an accepted feature-specific decision that supersedes D-009 for that feature.
+  - Acceptance: each feature has the proof obligation listed in `docs/DECISIONS.md`.
+  - Acceptance: each optimization has equivalence tests and a representative benchmark.
+- [ ] **P6.3 Evaluate tensor and GPU backends outside the core.**
+  - Dependency: D-007 and D-008, plus an accepted backend-specific admission decision.
+  - Evaluate Hasktorch first for neural GPU work.
+  - Evaluate Accelerate for batched finite array work.
+  - Evaluate horde-ad only as a research autodiff backend.
+  - Acceptance: CPU and backend differential tests meet a written numerical-error policy.
+  - Acceptance: benchmarks include data transfer and compilation costs.
+- [ ] **P6.4 Add neural model denotations before training APIs.**
+  - Dependency: an accepted neural-backend admission decision.
+  - Treat a deterministic network as a Dirac kernel.
+  - Validate stochastic network logits and support.
+  - Acceptance: the approximation relation, calibration metric, and gradient-estimator assumptions are documented and tested.
+- [ ] **P6.5 Consider `monad-bayes` only as an optional sampling interpreter.**
+  - Dependency: an accepted sampling-adapter admission decision.
+  - Acceptance: the core dependency graph stays free of `monad-bayes`.
+  - Acceptance: interpreter tests define seed and distributional reproducibility contracts.
+
+P6 gate: no backend changes the public denotation or enters the semantic core.
+
+## Repository file coverage
+
+This table includes every file tracked at the start of the documentation phase.
+
+| File | Required work | Priority |
+| --- | --- | --- |
+| `.gitignore` | Review entries after CI and formatter tools create artifacts. Keep local project files ignored. | P0 |
+| `CHANGELOG.md` | Replace the generated release placeholder only with verified release facts. | P3 |
+| `LICENSE` | Review the copyright year and owner before a release. Change only with owner approval. | P3 |
+| `Markovian.cabal` | Fix metadata, component dependencies, bounds, exposed modules, and distributed documents. | P0-P3 |
+| `README.md` | Keep the maturity warning current. Add only compiled examples and verified installation steps. | P0-P3 |
+| `app/QLearning/Main.hs` | Migrate to the validated learner and explicit configuration. | P4 |
+| `app/Sample/Main.hs` | Migrate to policy, objective, and seeded sampling inputs. | P3 |
+| `src/Markovian.hs` | Characterize, deprecate, and move legacy semantics. Add the new core in separate modules. | P0-P3 |
+| `src/QLearning.hs` | Characterize and replace the two inconsistent learning paths. | P0-P4 |
+| `test/Main.hs` | Extend the deterministic core contracts with legacy characterization tests. | P0 |
+
+Maintain `TODO.md`, `docs/CONTEXT.md`, `docs/ARCHITECTURE.md`, `docs/WORKFLOWS.md`, and `docs/DECISIONS.md` with every triggered change.
+
+## Next-task marker
+
+**NEXT BLOCKER RESOLUTION: provide a supported GHC and Cabal toolchain or an authorized CI execution environment. Complete the P0.1 project bootstrap, use its commands to verify FK.4, and fix only bounded-slice defects. Do not start another semantic slice.**
