@@ -4,7 +4,7 @@ Markovian is an early Haskell prototype for stochastic processes and decision mo
 
 The current API is experimental and has known semantic defects. Do not use it for production decisions or numerical claims.
 
-The first additive core slice defines validated floating probabilities, weights, finite distributions, and rewards. It also defines finite kernels, policies, and one-step MRP and MDP interfaces. The pinned GHC 9.8.4 environment builds this slice and runs its contract tests. Objectives, interpreters, policy closure, exact-reference values, and migration adapters are not implemented.
+The first additive core slice defines validated floating probabilities, weights, finite distributions, and rewards. It also defines finite kernels, policies, and one-step MRP and MDP interfaces. GHC 9.4.8 and 9.8.4 build the slice and run its core and legacy characterization tests. Objectives, interpreters, policy closure, exact-reference values, and migration adapters are not implemented.
 
 ## Project documents
 
@@ -32,8 +32,8 @@ After approval, direnv loads GHC 9.8.4 when you enter this directory. `toolchain
 - `src/Markovian/Kernel.hs`, `src/Markovian/MRP.hs`, `src/Markovian/MDP.hs`, and `src/Markovian/Policy.hs` contain the additive one-layer core interfaces.
 - `src/Markovian.hs` and `src/QLearning.hs` remain the unchanged legacy API.
 - `app/Sample/Main.hs` and `app/QLearning/Main.hs` remain legacy demonstrations.
-- `test/Main.hs` contains deterministic core contract tests.
+- `test/Main.hs` contains deterministic core contracts and legacy characterization tests.
 
-The pinned environment passes Cabal package, build, test, Haddock, formatting, and source-distribution commands. CI and the legacy characterization suite remain incomplete.
+The pinned environment and hosted CI pass package, build, test, Haddock, formatting, lower-bound, and source-distribution gates on the P0 baseline.
 
 Read [docs/CONTEXT.md](docs/CONTEXT.md) before you change the source.

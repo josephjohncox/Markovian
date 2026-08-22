@@ -59,38 +59,24 @@ Dependencies: a supported GHC and Cabal toolchain.
 
 Risks: the current package might not parse or compile. Characterization tests can expose undocumented legacy behavior.
 
-- [-] **P0.1 `ACTIVE` Add the local project and CI baseline.**
-  - D-023 defines the pinned GHCup and direnv development environment.
-  - `cabal.project` and `cabal.project.ci` pass the local gates on GHC 9.8.4.
-  - `.github/workflows/ci.yml` pins every action by commit SHA and tests GHC 9.4.8 and 9.8.4 on Ubuntu 22.04.
-  - The workflow keeps `-Werror` out of downstream library defaults and uses the formatter versions from `toolchain.env`.
-  - Local simulation evidence: package check, `-Werror` build, seven tests, warning-free Haddock, and source distribution pass on GHC 9.4.8 with Cabal 3.16.1.0.
-  - Local simulation evidence: GHCup Fourmolu installation, separate Cabal cabal-fmt installation, version assertions, and both format checks pass.
-  - Verified action pins: `actions/checkout` v7.0.1 at `3d3c42e5aac5ba805825da76410c181273ba90b1`; `haskell-actions/setup` v2.12.0 at peeled commit `6037f33647c3f17758a2356c80fc4a53d7e0685d`.
-  - Acceptance passed locally: `cabal check` exits zero.
-  - Acceptance passed locally: `cabal build all --project-file=cabal.project.ci` exits zero on both required compiler versions.
-  - Completion blocker: commit or push the workflow and record a successful durable CI URL. Local simulation is not CI evidence.
-- [ ] **P0.2 Replace the placeholder with legacy characterization tests.**
-  - Add terminal value, deterministic chain, expected value `12.5`, and sample-support tests.
-  - Confirm sampled results belong to `{10, 15}` without a frequency assertion.
-  - Add zero-episode and terminal-initial-state Q-table identity tests.
-  - Acceptance: the tests run against the unchanged legacy API.
-  - Acceptance: `cabal test all --project-file=cabal.project.ci --test-show-details=direct` exits zero.
-  - Dependency: P0.1.
-- [ ] **P0.3 Audit package metadata and direct dependencies.**
-  - Implemented under FK.3 by static inspection: durable documents are listed in source distribution metadata.
-  - Completed locally: corrected package metadata, widened the tested `base` range through 4.19, and verified `cabal check` and `cabal sdist` on GHC 9.8.4.
-  - Remove unused component dependencies only after a compiler confirms imports.
-  - Replace wildcard constraints with tested PVP bounds.
-  - Add a compiler matrix only after each `base` range passes.
-  - Acceptance: `cabal check`, the normal build, tests, and `--prefer-oldest` build all exit zero.
-  - Dependency: P0.1 and P0.2.
-- [ ] **P0.4 Add format, Haddock, and source-distribution gates.**
-  - Preliminary local evidence: pinned Fourmolu and `cabal-fmt` checks pass, Haddock builds, and Cabal creates the source tarball.
-  - Acceptance: Fourmolu and `cabal-fmt` checks exit zero with pinned versions.
-  - Acceptance: `cabal haddock all` exits zero with source links enabled.
-  - Acceptance: the unpacked source distribution builds and tests.
-  - Dependency: P0.3.
+- [x] **P0.1 Add the local project and CI baseline.**
+  - D-023 defines the pinned development environment. D-024 defines the two-compiler CI baseline.
+  - `.github/workflows/ci.yml` pins each action by commit SHA and tests GHC 9.4.8 and 9.8.4 on Ubuntu 22.04.
+  - Hosted evidence: the Format, GHC 9.4.8, and GHC 9.8.4 jobs passed at <https://github.com/josephjohncox/Markovian/actions/runs/32537958654> for commit `d7bf03df40cfb6486d53ed77e1c8b0a711b405c1`.
+- [x] **P0.2 Replace the placeholder with legacy characterization tests.**
+  - Added terminal value, deterministic chain, exact expected value `12.5`, and sample-support characterization tests against the legacy API.
+  - Added zero-episode and terminal-initial-state Q-table identity tests.
+  - Eleven tests pass on GHC 9.4.8 and 9.8.4 with `--test-show-details=direct`.
+- [x] **P0.3 Audit package metadata and direct dependencies.**
+  - Corrected package metadata, distributed every durable file, and verified `cabal check` and `cabal sdist`.
+  - Removed unused direct component dependencies and retained PVP bounds for every dependency.
+  - D-025 scopes `-Werror` to project code and records the tested transitive lower-bound corrections.
+  - Normal and `--prefer-oldest` builds and all eleven tests pass.
+- [x] **P0.4 Add format, Haddock, and source-distribution gates.**
+  - Pinned Fourmolu and cabal-fmt checks pass.
+  - Haddock completes with source links and no warning lines.
+  - The source tarball unpacks, builds, and passes all eleven tests.
+  - CI now runs every P0.4 gate.
 
 P0 gate: all four baseline items are `DONE`. D-022 permits the additive Foundation Kickoff files but does not waive any baseline command or evidence requirement.
 
@@ -102,8 +88,8 @@ D-022 supersedes D-012 and D-013 for the initial floating, fail-fast constructor
 
 Risks: a premature public API can lock in weak names or the wrong numeric representation.
 
-- [ ] **P1.1 Complete validated probability and objective values.**
-  - Implemented under FK.1: opaque floating `Prob`, `Weight`, `FiniteDist`, and `Reward` types; fail-fast errors; scaled normalization; and tests added but not run.
+- [ ] **P1.1 `NEXT` Complete validated probability and objective values.**
+  - Implemented and verified under FK.1: opaque floating `Prob`, `Weight`, `FiniteDist`, and `Reward` types; fail-fast errors; scaled normalization; and deterministic tests.
   - Remaining: add separate exact-reference values, `Discount`, and `Horizon`.
   - Reject empty support, negative mass, non-finite mass, zero total mass, and non-finite rewards.
   - Normalize floating weights with the scaled algorithm from D-017.

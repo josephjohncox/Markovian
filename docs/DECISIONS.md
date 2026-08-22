@@ -252,9 +252,21 @@ The slice can add `Reward`, `Kernel`, `Policy`, and one-step MRP and MDP interfa
 
 **Rationale:** GHC 9.4.8 tests the declared `base-4.17` lower boundary. GHC 9.8.4 matches the development environment. Commit pins prevent mutable action tags from changing executable CI code. Fourmolu and cabal-fmt require separate installation plans because their `Cabal-syntax` constraints conflict when Cabal solves them together.
 
-**Consequences:** The build matrix runs package checks, `-Werror` builds, tests, warning-free Haddocks, and source-distribution creation. The format job installs Fourmolu from GHCup's third-party channel and installs cabal-fmt separately through Cabal. The source distribution includes the workflow.
+**Consequences:** The build matrix runs package checks, project-scoped `-Werror` builds, tests, warning-free Haddocks, and source-distribution builds. The format job installs Fourmolu from GHCup's third-party channel and installs cabal-fmt separately through Cabal. The first hosted matrix passed at <https://github.com/josephjohncox/Markovian/actions/runs/32537958654>.
 
-**Risk:** Local simulation cannot prove that GitHub's hosted image, network, or action runtime works. P0.1 remains active until a successful workflow run has a durable URL.
+**Risk:** A successful run does not freeze GitHub's hosted image, network, or action runtime. Exact action commits and tool versions limit change but cannot remove external service risk.
+
+### D-025: Scope warning failures and lower-bound workarounds to CI
+
+**Status:** Accepted
+
+**Decision:** `cabal.project.ci` applies `-Werror` only to the local Markovian package. The package requires monad-bayes 1.3.0.5 or later within the 1.3 series. CI constrains mwc-random to 0.15 or later and unix-compat to 0.7 or later for the `--prefer-oldest` plan.
+
+**Rationale:** A command-line `--ghc-options=-Werror` also changes dependency builds and makes third-party warnings fail the project. monad-bayes 1.3.0.4 permits vty 6.1 and 6.2, whose package metadata omits a required utf8-string dependency. monad-bayes 1.3.0.5 fixes that range but permits mwc-random 0.13.6, which does not type-check its sampler implementation, and unix-compat 0.1.2, which fails to link on the development Linux system. The selected constraints are the smallest tested corrections.
+
+**Consequences:** Normal and `--prefer-oldest` plans retain `-Werror` for project code without imposing it on dependencies. The tested lower plan uses monad-bayes 1.3.0.5, mwc-random 0.15.0.1, unix-compat 0.7, MonadRandom 0.6, and vector 0.13.0.0. Unused direct dependencies were removed from each component.
+
+**Risk:** These are project-level corrections for upstream lower-bound defects. A future upstream revision can make them redundant. Remove them only after an unconstrained lower-bound plan builds and tests.
 
 ## Proof obligations for advanced work
 

@@ -1,6 +1,18 @@
 module Main (main) where
 
+import Control.Monad (replicateM)
+import Control.Monad.Bayes.Sampler.Strict (sampleIO)
+import Control.Monad.Random (evalRandIO)
 import Data.List.NonEmpty qualified as NonEmpty
+import Data.Map.Strict qualified as Map
+import Data.Vector qualified as Vector
+import Markovian (
+    Action (..),
+    Process (..),
+    buildMDPF,
+    evaluateMDPExpect,
+    evaluateMDPSample,
+ )
 import Markovian.Kernel (kernel)
 import Markovian.MDP (
     Decision (..),
@@ -37,6 +49,7 @@ import Markovian.Reward (
     mkReward,
     rewardValue,
  )
+import QLearning (qLearning)
 import System.Exit (exitFailure)
 
 main :: IO ()
@@ -48,6 +61,10 @@ main = do
     run "terminal reward timing" testTerminalRewardTiming
     run "self-loop step remains one layer" testSelfLoop
     run "actions are separate from transition outcomes" testActionOutcomeSeparation
+    run "legacy terminal value" testLegacyTerminalValue
+    run "legacy deterministic chain" testLegacyDeterministicChain
+    run "legacy expectation and sample support" testLegacyExpectationAndSampleSupport
+    run "legacy Q-learning identity boundaries" testLegacyQLearningIdentity
 
 run :: String -> IO () -> IO ()
 run name test = do
@@ -246,6 +263,95 @@ testActionOutcomeSeparation = do
         Left (ActionRequestedAtTerminal payoff) ->
             assert "terminal action error must retain terminal payoff" (rewardValue payoff == 5)
         result -> failTest ("terminal transition request was not rejected: " ++ show result)
+
+testLegacyTerminalValue :: IO ()
+testLegacyTerminalValue = do
+    expectedValue <- sampleIO (evaluateMDPExpect legacyTerminalProcess)
+    sampledValue <- sampleIO (evaluateMDPSample legacyTerminalProcess)
+    assert "legacy expectation must retain the terminal reward" (expectedValue == 7)
+    assert "legacy sampling must retain the terminal reward" (sampledValue == 7)
+
+testLegacyDeterministicChain :: IO ()
+testLegacyDeterministicChain = do
+    expectedValue <- sampleIO (evaluateMDPExpect legacyChainProcess)
+    sampledValue <- sampleIO (evaluateMDPSample legacyChainProcess)
+    assert "legacy expectation must sum deterministic state rewards" (expectedValue == 6)
+    assert "legacy sampling must sum deterministic state rewards" (sampledValue == 6)
+
+testLegacyExpectationAndSampleSupport :: IO ()
+testLegacyExpectationAndSampleSupport = do
+    expectedValue <- sampleIO (evaluateMDPExpect legacyChoiceProcess)
+    sampledValues <- replicateM 64 (sampleIO (evaluateMDPSample legacyChoiceProcess))
+    assert "legacy expectation must normalize to 12.5" (expectedValue == 12.5)
+    assert
+        "legacy samples must remain in the declared support"
+        (all (`elem` [10, 15]) sampledValues)
+
+testLegacyQLearningIdentity :: IO ()
+testLegacyQLearningIdentity = do
+    let initialTable = Map.singleton (LegacyChainStart, "next") 3.5
+        chainTree = buildMDPF legacyChainProcess LegacyChainStart
+        terminalTree = buildMDPF legacyTerminalProcess LegacyTerminal
+    zeroEpisodeTable <- evalRandIO (qLearning chainTree 0 initialTable)
+    terminalTable <- evalRandIO (qLearning terminalTree 5 initialTable)
+    assert "zero Q-learning episodes must preserve the table" (zeroEpisodeTable == initialTable)
+    assert "a terminal initial state must preserve the table" (terminalTable == initialTable)
+
+legacyTerminalProcess :: Process LegacyState
+legacyTerminalProcess =
+    Process
+        { initialState = LegacyTerminal
+        , isTerminal = const True
+        , processReward = const 7
+        , processActions = const Vector.empty
+        }
+
+legacyChainProcess :: Process LegacyState
+legacyChainProcess =
+    Process
+        { initialState = LegacyChainStart
+        , isTerminal = (== LegacyTerminal)
+        , processReward = chainReward
+        , processActions = chainActions
+        }
+  where
+    chainReward LegacyChainStart = 1
+    chainReward LegacyChainMiddle = 2
+    chainReward LegacyTerminal = 3
+    chainReward _ = 0
+
+    chainActions LegacyChainStart = Vector.singleton (Action "next" 1 LegacyChainMiddle)
+    chainActions LegacyChainMiddle = Vector.singleton (Action "finish" 1 LegacyTerminal)
+    chainActions _ = Vector.empty
+
+legacyChoiceProcess :: Process LegacyState
+legacyChoiceProcess =
+    Process
+        { initialState = LegacyChoice
+        , isTerminal = (`elem` [LegacyLow, LegacyHigh])
+        , processReward = choiceReward
+        , processActions = choiceActions
+        }
+  where
+    choiceReward LegacyLow = 10
+    choiceReward LegacyHigh = 15
+    choiceReward _ = 0
+
+    choiceActions LegacyChoice =
+        Vector.fromList
+            [ Action "low" 0.5 LegacyLow
+            , Action "high" 0.5 LegacyHigh
+            ]
+    choiceActions _ = Vector.empty
+
+data LegacyState
+    = LegacyTerminal
+    | LegacyChainStart
+    | LegacyChainMiddle
+    | LegacyChoice
+    | LegacyLow
+    | LegacyHigh
+    deriving (Eq, Ord, Show)
 
 data TestState = Start | End
     deriving (Eq, Show)

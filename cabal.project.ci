@@ -1,2 +1,8 @@
 import: cabal.project
 optimization: False
+constraints:
+  mwc-random >=0.15,
+  unix-compat >=0.7
+
+package Markovian
+  ghc-options: -Werror

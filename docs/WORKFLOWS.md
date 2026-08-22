@@ -339,17 +339,17 @@ Do not use architecture text to hide an unresolved decision. Mark the uncertaint
 
 ## 10. Exact next workflow
 
-FK.4 is `DONE`. D-023 defines the local environment, and D-024 defines the pinned CI baseline. Local simulations pass on GHC 9.4.8 and 9.8.4. `.github/workflows/ci.yml` exists, but P0.1 remains `ACTIVE` because no hosted run has durable evidence.
+P0 and FK.4 are `DONE`. D-023 through D-025 define the local toolchain, pinned CI baseline, and lower-bound plan. Eleven tests and all package, warning, Haddock, format, lower-bound, and source-distribution gates pass. P1.1 is `NEXT`.
 
 The next writer must use this sequence:
 
-1. Complete the start gate.
-2. Confirm that the action commits still identify the release tags recorded in D-024.
-3. Commit or push the workflow without discarding the existing foundation changes.
-4. Inspect every job in the hosted workflow run.
-5. Fix CI-only defects without weakening package, `-Werror`, test, Haddock, format, or source-distribution gates.
-6. Record the successful durable CI URL in `TODO.md` and `docs/CONTEXT.md`.
-7. Mark P0.1 `DONE` only after the pinned CI jobs pass.
-8. Continue with P0.2 only after P0.1 is `DONE`.
+1. Complete the start gate and read the P1 numeric decisions.
+2. Define separate exact-reference probability values without changing the floating runtime representation.
+3. Add validated `Discount` and `Horizon` types with named construction errors.
+4. Add deterministic rejection, boundary, and exact arithmetic tests.
+5. Run normal and lower-bound builds, all tests, Haddock, format, and source-distribution gates.
+6. Update architecture, decisions, context, and TODO evidence for every accepted contract.
+7. Keep constructors opaque and keep exact arithmetic out of low-level runtime types.
+8. Start P1.2 only after P1.1 is `DONE`.
 
-Do not treat local simulation as hosted CI evidence.
+Do not weaken completed P0 gates or merge exact and floating numeric representations.
