@@ -16,7 +16,7 @@ D-022 authorized the additive Foundation Kickoff slice. The core now defines opa
 
 D-023 defines the local toolchain. GHCup supplies GHC 9.8.4, Cabal 3.16.1.0, HLS 2.14.0.0, and Fourmolu 0.20.0.0. The project stores HLint 3.10 and cabal-fmt 0.1.12 under the ignored `.direnv/` directory. `toolchain.env`, `.envrc`, and `scripts/bootstrap-tools` reproduce this environment. `cabal.project` and `cabal.project.ci` define the local build.
 
-P0, P1.1, and P1.2 are `DONE`. The core has separate exact and floating values plus a law-bearing exact kernel. Package checks, project-scoped `-Werror` builds, tests, warning-free Haddocks, format checks, normal and lower-bound plans, and unpacked source-distribution builds pass locally. GHC 9.4.8 and 9.8.4 are verified. The complete P0 hosted run passed at <https://github.com/josephjohncox/Markovian/actions/runs/32540102997>.
+P0, P1.1, and P1.2 are `DONE`. The core has separate exact and floating values plus a law-bearing exact kernel. Package checks, project-scoped `-Werror` builds, seventeen tests, warning-free Haddocks, format checks, normal and lower-bound plans, and unpacked source-distribution builds pass. GHC 9.4.8 and 9.8.4 are verified. The complete hosted run passed at <https://github.com/josephjohncox/Markovian/actions/runs/32784091295>.
 
 `README.md` was already modified before this slice. `TODO.md` and the `docs/*.md` files were already untracked. The current writer retained and extended those changes.
 

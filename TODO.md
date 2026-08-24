@@ -103,6 +103,7 @@ Risks: a premature public API can lock in weak names or the wrong numeric repres
   - D-027 limits literal Kleisli claims to the exact reference domain.
   - Exact functor identity and composition plus kernel left identity, right identity, and associativity pass literally.
   - Seventeen deterministic tests pass under GHC 9.4.8, GHC 9.8.4, the lower-bound plan, and the unpacked source distribution.
+  - Hosted evidence: all four CI jobs passed at <https://github.com/josephjohncox/Markovian/actions/runs/32784091295> for commit `4050d20d6bc84c1eb93b6c44ea1b5d365d33e44d`.
 - [ ] **P1.3 `NEXT` Add explicit policy closure.**
   - Implemented under FK.2: the minimal opaque `Policy` kernel interface.
   - Remaining: validate policy support against available action IDs and implement closure.
