@@ -20,6 +20,7 @@ data RewardError
 mkReward :: Double -> Either RewardError Reward
 mkReward value
     | isNaN value || isInfinite value = Left (NonFiniteReward value)
+    | value == 0 = Right (Reward 0)
     | otherwise = Right (Reward value)
 
 -- | Read the validated floating reward.

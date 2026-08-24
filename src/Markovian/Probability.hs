@@ -40,7 +40,7 @@ mkProb :: Double -> Either ProbabilityError Prob
 mkProb value
     | not (finite value) = Left (NonFiniteProbability value)
     | value < 0 || value > 1 = Left (ProbabilityOutOfRange value)
-    | otherwise = Right (Prob value)
+    | otherwise = Right (Prob (canonicalZero value))
 
 -- | Read the validated floating probability.
 probability :: Prob -> Double
@@ -63,7 +63,7 @@ mkWeight :: Double -> Either WeightError Weight
 mkWeight value
     | not (finite value) = Left (NonFiniteWeight value)
     | value < 0 = Left (NegativeWeight value)
-    | otherwise = Right (Weight value)
+    | otherwise = Right (Weight (canonicalZero value))
 
 -- | Read the validated floating weight.
 weight :: Weight -> Double
@@ -136,3 +136,8 @@ outcomes (UnsafeFiniteDist entries) = entries
 
 finite :: Double -> Bool
 finite value = not (isNaN value || isInfinite value)
+
+canonicalZero :: Double -> Double
+canonicalZero value
+    | value == 0 = 0
+    | otherwise = value

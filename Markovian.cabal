@@ -66,6 +66,7 @@ extra-doc-files:
 extra-source-files:
   .envrc
   .github/workflows/ci.yml
+  .gitleaks.toml
   cabal.project
   cabal.project.ci
   scripts/bootstrap-tools
@@ -86,11 +87,16 @@ library
   exposed-modules:
     Markovian
     Markovian.Kernel
+    Markovian.Kernel.Exact
     Markovian.MDP
     Markovian.MRP
+    Markovian.Objective
+    Markovian.Objective.Exact
     Markovian.Policy
     Markovian.Probability
+    Markovian.Probability.Exact
     Markovian.Reward
+    Markovian.Reward.Exact
     QLearning
 
   -- Modules included in this library but not exported.

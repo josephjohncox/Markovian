@@ -5,6 +5,7 @@ import Control.Monad.Bayes.Sampler.Strict (sampleIO)
 import Control.Monad.Random (evalRandIO)
 import Data.List.NonEmpty qualified as NonEmpty
 import Data.Map.Strict qualified as Map
+import Data.Ratio ((%))
 import Data.Vector qualified as Vector
 import Markovian (
     Action (..),
@@ -14,6 +15,12 @@ import Markovian (
     evaluateMDPSample,
  )
 import Markovian.Kernel (kernel)
+import Markovian.Kernel.Exact (
+    composeExactKernel,
+    exactDeterministic,
+    exactKernel,
+    runExactKernel,
+ )
 import Markovian.MDP (
     Decision (..),
     MDP,
@@ -32,6 +39,25 @@ import Markovian.MRP (
     transitionOutcome,
     transitionReward,
  )
+import Markovian.Objective (
+    DiscountError (..),
+    HorizonError (..),
+    asContractionDiscount,
+    contractionDiscountValue,
+    discountValue,
+    horizonValue,
+    mkContractionDiscount,
+    mkDiscount,
+    mkHorizon,
+ )
+import Markovian.Objective.Exact (
+    ExactDiscountError (..),
+    asExactContractionDiscount,
+    exactContractionDiscountValue,
+    exactDiscountValue,
+    mkExactContractionDiscount,
+    mkExactDiscount,
+ )
 import Markovian.Policy (policy, policyActions)
 import Markovian.Probability (
     DistributionError (..),
@@ -43,12 +69,26 @@ import Markovian.Probability (
     mkWeight,
     outcomes,
     probability,
+    weight,
+ )
+import Markovian.Probability.Exact (
+    ExactDistributionError (..),
+    ExactProbabilityError (..),
+    ExactWeightError (..),
+    exactDirac,
+    exactFiniteDist,
+    exactOutcomes,
+    exactProbability,
+    exactWeight,
+    mkExactProb,
+    mkExactWeight,
  )
 import Markovian.Reward (
     RewardError (..),
     mkReward,
     rewardValue,
  )
+import Markovian.Reward.Exact (exactReward, exactRewardValue)
 import QLearning (qLearning)
 import System.Exit (exitFailure)
 
@@ -65,6 +105,12 @@ main = do
     run "legacy deterministic chain" testLegacyDeterministicChain
     run "legacy expectation and sample support" testLegacyExpectationAndSampleSupport
     run "legacy Q-learning identity boundaries" testLegacyQLearningIdentity
+    run "exact probability and reward values" testExactValues
+    run "exact finite distribution functor laws" testExactFunctorLaws
+    run "exact kernel Kleisli laws" testExactKernelLaws
+    run "floating objective values" testFloatingObjectives
+    run "exact objective values" testExactObjectives
+    run "horizon values" testHorizons
 
 run :: String -> IO () -> IO ()
 run name test = do
@@ -88,6 +134,13 @@ testValidation :: IO ()
 testValidation = do
     validProbability <- requireRight "valid probability" (mkProb 0.25)
     assert "mkProb must preserve a valid value" (probability validProbability == 0.25)
+
+    zeroProbability <- requireRight "negative-zero probability" (mkProb (-0.0))
+    zeroWeight <- requireRight "negative-zero weight" (mkWeight (-0.0))
+    zeroReward <- requireRight "negative-zero reward" (mkReward (-0.0))
+    assert "probability must canonicalize negative zero" (not (isNegativeZero (probability zeroProbability)))
+    assert "weight must canonicalize negative zero" (not (isNegativeZero (weight zeroWeight)))
+    assert "reward must canonicalize negative zero" (not (isNegativeZero (rewardValue zeroReward)))
 
     case mkProb (0 / 0) of
         Left (NonFiniteProbability _) -> pure ()
@@ -263,6 +316,159 @@ testActionOutcomeSeparation = do
         Left (ActionRequestedAtTerminal payoff) ->
             assert "terminal action error must retain terminal payoff" (rewardValue payoff == 5)
         result -> failTest ("terminal transition request was not rejected: " ++ show result)
+
+testExactValues :: IO ()
+testExactValues = do
+    exactThird <- requireRight "exact probability" (mkExactProb (1 % 3))
+    assert "exact probability must preserve one third" (exactProbability exactThird == 1 % 3)
+
+    case mkExactProb ((-1) % 10) of
+        Left (ExactProbabilityOutOfRange value) ->
+            assert "exact probability error must retain its input" (value == (-1) % 10)
+        result -> failTest ("negative exact probability was not rejected: " ++ show result)
+
+    case mkExactProb (11 % 10) of
+        Left (ExactProbabilityOutOfRange _) -> pure ()
+        result -> failTest ("large exact probability was not rejected: " ++ show result)
+
+    exactWeightValue <- requireRight "exact weight" (mkExactWeight (7 % 5))
+    assert "exact weight must preserve its rational" (exactWeight exactWeightValue == 7 % 5)
+
+    case mkExactWeight ((-1) % 5) of
+        Left (NegativeExactWeight _) -> pure ()
+        result -> failTest ("negative exact weight was not rejected: " ++ show result)
+
+    case exactFiniteDist ([] :: [(Char, Rational)]) of
+        Left EmptyExactSupport -> pure ()
+        result -> failTest ("empty exact support was not rejected: " ++ show result)
+
+    case exactFiniteDist [('a', 1), ('b', (-1) % 2)] of
+        Left (InvalidExactWeight 1 (NegativeExactWeight _)) -> pure ()
+        result -> failTest ("invalid exact weight index changed: " ++ show result)
+
+    case exactFiniteDist [('a', 0), ('b', 0)] of
+        Left ZeroExactTotalWeight -> pure ()
+        result -> failTest ("zero exact total was not rejected: " ++ show result)
+
+    distribution <- requireRight "exact weights 1 and 3" (exactFiniteDist [('a', 1), ('b', 3)])
+    let masses = fmap (exactProbability . snd) (NonEmpty.toList (exactOutcomes distribution))
+    assert "exact weights 1 and 3 must normalize literally" (masses == [1 % 4, 3 % 4])
+
+    filtered <- requireRight "exact zero removal" (exactFiniteDist [('z', 0), ('p', 2)])
+    assert "zero exact weights must leave support" (fmap fst (NonEmpty.toList (exactOutcomes filtered)) == ['p'])
+
+    duplicates <- requireRight "exact duplicate labels" (exactFiniteDist [('a', 1), ('a', 1)])
+    let duplicateOutcomes = NonEmpty.toList (exactOutcomes duplicates)
+    assert "exact duplicate labels must remain distinct" (fmap fst duplicateOutcomes == ['a', 'a'])
+    assert "exact duplicate masses must remain literal" (fmap (exactProbability . snd) duplicateOutcomes == [1 % 2, 1 % 2])
+
+    let certain = fmap (exactProbability . snd) (NonEmpty.toList (exactOutcomes (exactDirac 'x')))
+    assert "exact Dirac mass must equal one" (certain == [1])
+    assert "exact rewards must preserve rational values" (exactRewardValue (exactReward ((-7) % 3)) == (-7) % 3)
+
+testExactFunctorLaws :: IO ()
+testExactFunctorLaws = do
+    distribution <-
+        requireRight
+            "exact functor distribution"
+            (exactFiniteDist ([(-2, 1), (3, 2)] :: [(Integer, Rational)]))
+    assert "exact distribution must satisfy functor identity" (fmap id distribution == distribution)
+    let addThree value = value + 3
+        double value = value * 2
+    assert
+        "exact distribution must satisfy functor composition"
+        (fmap (double . addThree) distribution == (fmap double . fmap addThree) distribution)
+
+testExactKernelLaws :: IO ()
+testExactKernelLaws = do
+    coin <-
+        requireRight
+            "exact kernel coin"
+            (exactFiniteDist ([(0, 1), (1, 1)] :: [(Integer, Rational)]))
+    weighted <-
+        requireRight
+            "exact kernel weighted branch"
+            (exactFiniteDist ([(2, 1), (5, 3)] :: [(Integer, Rational)]))
+    let first = exactKernel (\input -> fmap (+ input) coin)
+        second = exactKernel (\input -> fmap (* input) weighted)
+        third = exactKernel (\input -> fmap (subtract input) coin)
+        identityKernel = exactDeterministic id
+        leftIdentity = composeExactKernel identityKernel first
+        rightIdentity = composeExactKernel first identityKernel
+        leftAssociated = composeExactKernel (composeExactKernel first second) third
+        rightAssociated = composeExactKernel first (composeExactKernel second third)
+        inputs = [-2, 0, 5]
+        agrees left right input = runExactKernel left input == runExactKernel right input
+    assert "exact kernel left identity must hold literally" (all (agrees leftIdentity first) inputs)
+    assert "exact kernel right identity must hold literally" (all (agrees rightIdentity first) inputs)
+    assert
+        "exact kernel associativity must hold literally"
+        (all (agrees leftAssociated rightAssociated) inputs)
+
+testFloatingObjectives :: IO ()
+testFloatingObjectives = do
+    case mkDiscount (0 / 0) of
+        Left (NonFiniteDiscount _) -> pure ()
+        result -> failTest ("NaN discount was not rejected: " ++ show result)
+
+    case mkDiscount (1 / 0) of
+        Left (NonFiniteDiscount _) -> pure ()
+        result -> failTest ("infinite discount was not rejected: " ++ show result)
+
+    case mkDiscount (-0.1) of
+        Left (DiscountOutOfRange _) -> pure ()
+        result -> failTest ("negative discount was not rejected: " ++ show result)
+
+    case mkDiscount 1.1 of
+        Left (DiscountOutOfRange _) -> pure ()
+        result -> failTest ("large discount was not rejected: " ++ show result)
+
+    zeroDiscount <- requireRight "zero discount" (mkDiscount 0)
+    negativeZeroDiscount <- requireRight "negative-zero discount" (mkDiscount (-0.0))
+    unitDiscount <- requireRight "unit discount" (mkDiscount 1)
+    assert "zero finite-horizon discount must be valid" (discountValue zeroDiscount == 0)
+    assert "discount must canonicalize negative zero" (not (isNegativeZero (discountValue negativeZeroDiscount)))
+    assert "unit finite-horizon discount must be valid" (discountValue unitDiscount == 1)
+
+    case asContractionDiscount unitDiscount of
+        Left (DiscountNotContractive 1) -> pure ()
+        result -> failTest ("unit discount was accepted as contractive: " ++ show result)
+
+    contraction <- requireRight "floating contraction discount" (mkContractionDiscount 0.9)
+    assert "floating contraction discount changed" (contractionDiscountValue contraction == 0.9)
+
+testExactObjectives :: IO ()
+testExactObjectives = do
+    case mkExactDiscount ((-1) % 10) of
+        Left (ExactDiscountOutOfRange _) -> pure ()
+        result -> failTest ("negative exact discount was not rejected: " ++ show result)
+
+    case mkExactDiscount (11 % 10) of
+        Left (ExactDiscountOutOfRange _) -> pure ()
+        result -> failTest ("large exact discount was not rejected: " ++ show result)
+
+    unitDiscount <- requireRight "exact unit discount" (mkExactDiscount 1)
+    assert "exact unit discount must be valid" (exactDiscountValue unitDiscount == 1)
+
+    case asExactContractionDiscount unitDiscount of
+        Left (ExactDiscountNotContractive 1) -> pure ()
+        result -> failTest ("exact unit discount was accepted as contractive: " ++ show result)
+
+    contraction <- requireRight "exact contraction discount" (mkExactContractionDiscount (9 % 10))
+    assert "exact contraction discount changed" (exactContractionDiscountValue contraction == 9 % 10)
+
+testHorizons :: IO ()
+testHorizons = do
+    case mkHorizon (-1) of
+        Left (NegativeHorizon (-1)) -> pure ()
+        result -> failTest ("negative horizon was not rejected: " ++ show result)
+
+    zeroHorizon <- requireRight "zero horizon" (mkHorizon 0)
+    assert "zero horizon must be valid" (horizonValue zeroHorizon == 0)
+
+    let largeValue = 10 ^ (30 :: Int)
+    largeHorizon <- requireRight "large horizon" (mkHorizon largeValue)
+    assert "horizon must not impose a machine-sized bound" (horizonValue largeHorizon == fromInteger largeValue)
 
 testLegacyTerminalValue :: IO ()
 testLegacyTerminalValue = do

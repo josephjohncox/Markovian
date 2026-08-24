@@ -62,7 +62,7 @@ Risks: the current package might not parse or compile. Characterization tests ca
 - [x] **P0.1 Add the local project and CI baseline.**
   - D-023 defines the pinned development environment. D-024 defines the two-compiler CI baseline.
   - `.github/workflows/ci.yml` pins each action by commit SHA and tests GHC 9.4.8 and 9.8.4 on Ubuntu 22.04.
-  - Hosted evidence: the Format, GHC 9.4.8, and GHC 9.8.4 jobs passed at <https://github.com/josephjohncox/Markovian/actions/runs/32537958654> for commit `d7bf03df40cfb6486d53ed77e1c8b0a711b405c1`.
+  - Hosted evidence: the Format, Lower bounds, GHC 9.4.8, and GHC 9.8.4 jobs passed at <https://github.com/josephjohncox/Markovian/actions/runs/32540102997> for commit `28296970083358438c93a11dda51c59d89e90a68`.
 - [x] **P0.2 Replace the placeholder with legacy characterization tests.**
   - Added terminal value, deterministic chain, exact expected value `12.5`, and sample-support characterization tests against the legacy API.
   - Added zero-episode and terminal-initial-state Q-table identity tests.
@@ -88,25 +88,22 @@ D-022 supersedes D-012 and D-013 for the initial floating, fail-fast constructor
 
 Risks: a premature public API can lock in weak names or the wrong numeric representation.
 
-- [ ] **P1.1 `NEXT` Complete validated probability and objective values.**
-  - Implemented and verified under FK.1: opaque floating `Prob`, `Weight`, `FiniteDist`, and `Reward` types; fail-fast errors; scaled normalization; and deterministic tests.
-  - Remaining: add separate exact-reference values, `Discount`, and `Horizon`.
-  - Reject empty support, negative mass, non-finite mass, zero total mass, and non-finite rewards.
-  - Normalize floating weights with the scaled algorithm from D-017.
-  - Reject a non-finite or non-positive scaled total.
-  - Keep exact-reference and floating-runtime representations distinct.
-  - Acceptance: each rejection case has a deterministic unit test.
-  - Acceptance: normalization of weights `1` and `3` returns `0.25` and `0.75` under the floating interpreter.
-  - Acceptance: two maximum finite `Double` weights normalize to `0.5` and `0.5` without overflow.
-  - Acceptance: a non-finite scaled total returns the named normalization error.
-  - Acceptance: constructors are not exported.
-- [ ] **P1.2 Verify and complete stochastic kernels and one-layer MRP and MDP interfaces.**
-  - Implemented under FK.2 by static inspection: action IDs are separate from stochastic outcomes; one model step returns one layer; and an empty available-action list returns `EmptyActionSupport`.
-  - Remaining: compile and run the FK tests, then add Kleisli composition and exact-reference functor and kernel law tests.
-  - Acceptance: a self-loop step terminates without recursive expansion.
-  - Acceptance: functor identity and composition laws pass in the exact reference tests.
-  - Dependency: P1.1.
-- [ ] **P1.3 Add explicit policy closure.**
+- [x] **P1.1 Complete validated probability and objective values.**
+  - Floating `Prob`, `Weight`, `FiniteDist`, and `Reward` values remain opaque and use D-017 normalization.
+  - Added separate rational exact probability, distribution, reward, and discount modules.
+  - Added closed finite-horizon discounts, strict contraction discounts, and unbounded natural-number horizons.
+  - Floating constructors reject invalid values and canonicalize negative zero.
+  - D-026 proves the scaled-total invariant and explains why the defensive non-finite branch has no feasible public test input.
+  - Exact weights `1` and `3` normalize literally to `1/4` and `3/4`; floating maximum weights normalize to `0.5` and `0.5`.
+  - Fifteen deterministic tests pass under GHC 9.4.8, GHC 9.8.4, and the tested lower-bound plan.
+  - All constructors remain hidden.
+- [x] **P1.2 Verify and complete stochastic kernels and one-layer MRP and MDP interfaces.**
+  - Action IDs remain separate from outcomes, one model step returns one layer, empty action support returns `EmptyActionSupport`, and the self-loop contract terminates.
+  - Added exact finite-distribution bind and exact left-to-right kernel composition.
+  - D-027 limits literal Kleisli claims to the exact reference domain.
+  - Exact functor identity and composition plus kernel left identity, right identity, and associativity pass literally.
+  - Seventeen deterministic tests pass under GHC 9.4.8, GHC 9.8.4, the lower-bound plan, and the unpacked source distribution.
+- [ ] **P1.3 `NEXT` Add explicit policy closure.**
   - Implemented under FK.2: the minimal opaque `Policy` kernel interface.
   - Remaining: validate policy support against available action IDs and implement closure.
   - Close the MDP into a joint kernel over transition reward and successor state.

@@ -339,17 +339,17 @@ Do not use architecture text to hide an unresolved decision. Mark the uncertaint
 
 ## 10. Exact next workflow
 
-P0 and FK.4 are `DONE`. D-023 through D-025 define the local toolchain, pinned CI baseline, and lower-bound plan. Eleven tests and all package, warning, Haddock, format, lower-bound, and source-distribution gates pass. P1.1 is `NEXT`.
+P0 through P1.2 are `DONE`. D-023 through D-027 define the verified environment, exact numeric domain, and exact Kleisli laws. Seventeen tests and all completed gates pass. P1.3 is `NEXT`.
 
 The next writer must use this sequence:
 
-1. Complete the start gate and read the P1 numeric decisions.
-2. Define separate exact-reference probability values without changing the floating runtime representation.
-3. Add validated `Discount` and `Horizon` types with named construction errors.
-4. Add deterministic rejection, boundary, and exact arithmetic tests.
-5. Run normal and lower-bound builds, all tests, Haddock, format, and source-distribution gates.
-6. Update architecture, decisions, context, and TODO evidence for every accepted contract.
-7. Keep constructors opaque and keep exact arithmetic out of low-level runtime types.
-8. Start P1.2 only after P1.1 is `DONE`.
+1. Complete the start gate and read D-002, D-015, and the policy-closure equations.
+2. Define structured duplicate-action, unavailable-action, and zero-mass errors.
+3. Validate policy support against each nonterminal state's available action IDs.
+4. Close policy and MDP kernels over joint reward and successor outcomes.
+5. Preserve distinct rewards when actions reach the same successor.
+6. Add exact closure equalities before any floating observational checks.
+7. Add bounded trace-observable and zero-mass conditional-reward tests.
+8. Run both compiler versions and every completed package gate.
 
-Do not weaken completed P0 gates or merge exact and floating numeric representations.
+Do not average rewards before closure or request a policy at terminal states.

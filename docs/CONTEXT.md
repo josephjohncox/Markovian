@@ -10,13 +10,13 @@ The source lazily embeds recursive process children in `MDPF`. Evaluators force 
 
 The examples remain legacy demonstrations. The legacy `Markovian` and `QLearning` semantics remain unchanged.
 
-D-022 authorizes one additive Foundation Kickoff slice. New modules define opaque floating probabilities, weights, finite distributions, rewards, one-layer kernels, policies, and one-step MRP and MDP interfaces. Action IDs and stochastic transition outcomes are separate types. Terminal state inspection returns a terminal payoff without running a transition kernel. Finite normalization removes every mass that rounds to zero before it exposes support.
+D-022 authorized the additive Foundation Kickoff slice. The core now defines opaque floating and separate exact rational probability, distribution, reward, and discount values. It also defines horizons, one-layer kernels, policies, and one-step MRP and MDP interfaces. Action IDs and stochastic transition outcomes are separate types. Terminal state inspection returns a terminal payoff without running a transition kernel. Floating normalization removes every mass that rounds to zero before it exposes support.
 
-`test/Main.hs` contains seven deterministic core contracts and four legacy characterization tests. `Markovian.cabal` exposes the new modules and lists all durable documents in `extra-doc-files`.
+`test/Main.hs` contains seventeen named deterministic contracts, including four legacy characterization tests and exact functor and kernel laws. `Markovian.cabal` exposes the new modules and lists all durable documents in `extra-doc-files`.
 
 D-023 defines the local toolchain. GHCup supplies GHC 9.8.4, Cabal 3.16.1.0, HLS 2.14.0.0, and Fourmolu 0.20.0.0. The project stores HLint 3.10 and cabal-fmt 0.1.12 under the ignored `.direnv/` directory. `toolchain.env`, `.envrc`, and `scripts/bootstrap-tools` reproduce this environment. `cabal.project` and `cabal.project.ci` define the local build.
 
-P0 is `DONE`. Package checks, project-scoped `-Werror` builds, eleven tests, warning-free Haddocks, format checks, normal and lower-bound plans, and unpacked source-distribution builds pass locally. GHC 9.4.8 and 9.8.4 are verified. The first pinned hosted run passed at <https://github.com/josephjohncox/Markovian/actions/runs/32537958654>. D-024 defines CI, and D-025 records lower-bound workarounds.
+P0, P1.1, and P1.2 are `DONE`. The core has separate exact and floating values plus a law-bearing exact kernel. Package checks, project-scoped `-Werror` builds, tests, warning-free Haddocks, format checks, normal and lower-bound plans, and unpacked source-distribution builds pass locally. GHC 9.4.8 and 9.8.4 are verified. The complete P0 hosted run passed at <https://github.com/josephjohncox/Markovian/actions/runs/32540102997>.
 
 `README.md` was already modified before this slice. `TODO.md` and the `docs/*.md` files were already untracked. The current writer retained and extended those changes.
 
@@ -90,6 +90,8 @@ Use **MRP**, **MDP**, and **POMDP** only for the explicit interfaces in the targ
 - D-023 defines the reproducible GHCup and direnv development toolchain.
 - D-024 defines the pinned two-compiler GitHub CI baseline.
 - D-025 scopes warning failures and records lower-bound workarounds.
+- D-026 separates exact reference values and objective domains.
+- D-027 limits literal Kleisli laws to the exact kernel domain.
 - D-012 and D-013 are superseded for the initial constructors. D-019 through D-021 remain proposed and block their named implementation phases.
 - D-018 remains proposed. D-009 still defers categorical compiler work.
 
@@ -112,7 +114,7 @@ Do not resolve these questions only in code. Add or update a decision entry firs
 
 1. Read this file, `TODO.md`, `docs/DECISIONS.md`, and the relevant architecture section.
 2. Follow `docs/WORKFLOWS.md`.
-3. Start P1.1, the task marked `NEXT` in `TODO.md`. Preserve every completed P0 gate.
+3. Start P1.3, the task marked `NEXT` in `TODO.md`. Preserve every completed P0 through P1.2 gate.
 4. Keep one writer for each branch and worktree.
 5. Do not change legacy behavior without characterization tests and an accepted decision.
 6. Do not claim a command passed without command output from the current revision.

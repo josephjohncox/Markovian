@@ -268,6 +268,32 @@ The slice can add `Reward`, `Kernel`, `Policy`, and one-step MRP and MDP interfa
 
 **Risk:** These are project-level corrections for upstream lower-bound defects. A future upstream revision can make them redundant. Remove them only after an unconstrained lower-bound plan builds and tests.
 
+### D-026: Separate exact reference values and objective domains
+
+**Status:** Accepted
+
+**Decision:** Exact reference probabilities, weights, finite distributions, rewards, and discounts use opaque `Rational`-backed types in separate modules. Floating finite-horizon `Discount` accepts the closed interval from zero to one. `ContractionDiscount` and its exact counterpart accept the half-open interval from zero to one. `Horizon` stores an unbounded `Natural` and validates an `Integer` input.
+
+**Rationale:** Exact law tests need literal equality and cannot inherit floating rounding. Finite-horizon evaluation permits a unit discount, while Bellman contraction arguments require a discount below one. A machine-sized horizon would add an unrelated overflow boundary. Separate types make each proof obligation visible in signatures.
+
+**Floating normalization proof:** After validation and zero removal, the largest weight `m` is positive and finite. Every scaled term `w_i / m` lies in the interval from zero to one, and at least one term equals one. Therefore the scaled total is positive. It can become infinite only after more than `maxFiniteDouble` positive terms, which no executable finite list can materialize. The defensive `InvalidScaledTotal` check remains, but a public deterministic unit test cannot reach it without an infeasible list. Tests instead cover invalid inputs, direct-sum overflow, rounded-zero removal, and positive exposed mass.
+
+**Consequences:** `Markovian.Probability.Exact`, `Markovian.Reward.Exact`, `Markovian.Objective`, and `Markovian.Objective.Exact` are semantic-core modules. Exact distributions preserve duplicate labeled entries and remove zero weights. Floating probability, weight, reward, and discount constructors canonicalize negative zero to positive zero.
+
+**Risk:** `Rational` is a reference representation, not a low-level runtime format. Large numerators and denominators can consume unbounded memory. Optimized interpreters must remain observationally related to exact results without importing this representation into GPU or tensor storage.
+
+### D-027: Prove Kleisli laws in the exact kernel domain
+
+**Status:** Accepted
+
+**Decision:** `ExactFiniteDist` has an explicit bind operation, and `ExactKernel` composes from left to right with that operation. The API does not add a `Monad` instance or claim literal floating-kernel laws.
+
+**Rationale:** Rational mass multiplication preserves positivity and normalization exactly. Nonempty support remains nonempty, duplicate labels remain distinct, and `NonEmpty` bind preserves deterministic support order. These properties make left identity, right identity, and associativity literal equalities. Floating multiplication can underflow and any renormalization changes rounding, so it needs a checked numeric contract instead of an unqualified law claim.
+
+**Consequences:** `Markovian.Kernel.Exact` is the law-bearing reference kernel. Tests check exact distribution functor identity and composition plus all three exact Kleisli laws. `Markovian.Kernel` remains a one-layer floating runtime interface; later floating composition must state its error and observational-equivalence contract.
+
+**Risk:** Exact bind multiplies support sizes and can grow exponentially across repeated composition. It is a reference operation for finite laws and bounded examples, not an optimized execution strategy.
+
 ## Proof obligations for advanced work
 
 | Feature | Proof obligation before implementation | Evidence before acceptance |

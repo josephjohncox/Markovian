@@ -1,0 +1,8 @@
+title = "Markovian gitleaks configuration"
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Ignore generated local codebase-index ownership metadata"
+paths = ['''(^|/)\.codebase-index/''']

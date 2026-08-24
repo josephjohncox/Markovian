@@ -19,13 +19,15 @@ The project does not put tensors, devices, autodiff, neural networks, or samplin
 The additive core currently contains:
 
 - Opaque `Double`-backed `Prob`, `Weight`, `FiniteDist`, and `Reward` values.
+- Separate `Rational`-backed exact probability, distribution, reward, and discount values.
+- Validated finite and contraction discounts plus an unbounded natural-number horizon.
 - Fail-fast structured construction errors and scaled floating normalization.
-- A one-layer finite `Kernel`.
+- A one-layer floating `Kernel` and a law-bearing composable `ExactKernel`.
 - Typed terminal status and joint transition reward and successor outcomes.
 - One-step MRP and MDP interfaces with separate action IDs and transition outcomes.
 - A minimal policy kernel interface.
 
-The current `FiniteDist` constructor preserves labeled duplicate entries. It removes input zero weights and positive weights whose normalized `Double` mass rounds to zero. Policy closure, policy support validation, exact-reference numeric types, objectives, evaluators, solvers, adapters, and backends remain unimplemented. D-022 limits this exception to the listed boundary.
+The current `FiniteDist` constructor preserves labeled duplicate entries. It removes input zero weights and positive weights whose normalized `Double` mass rounds to zero. Floating constructors canonicalize negative zero. Policy closure, policy support validation, objective evaluators, solvers, adapters, and backends remain unimplemented.
 
 ## 2. Architecture principles
 
@@ -70,6 +72,8 @@ The exact reference interpreter uses exact arithmetic where practical. It tests 
 
 A floating interpreter uses an explicit tolerance and observational equivalence. It must not claim literal floating-point associativity.
 
+`ExactFiniteDist` bind and `ExactKernel` composition implement the exact equations. They preserve labeled duplicates and deterministic support order. The floating kernel remains one-layer only until a checked composition contract defines underflow, renormalization, and observational error.
+
 ### 3.3 Expectation
 
 For a finite distribution `d` and finite-valued function `f`, expectation is:
@@ -110,7 +114,7 @@ All constructors in this section are opaque outside their defining module.
 
 `Prob` represents finite mass in the closed interval from zero to one.
 
-A smart constructor rejects negative, greater-than-one, NaN, and infinite values. Exact and floating representations remain distinct when their equality contracts differ.
+A smart constructor rejects negative, greater-than-one, NaN, and infinite values. It canonicalizes negative zero to positive zero. `ExactProb` uses a separate rational representation and literal equality.
 
 ### 4.2 `FiniteDist a`
 
@@ -146,17 +150,15 @@ Its total mass is at most one. Every interpreter must explain the meaning of mis
 
 `Reward` is a finite real-valued quantity. The first floating implementation rejects NaN and infinity.
 
-The exact reference interpreter can use rational rewards for law and example tests. Public code must not compare floating rewards as exact mathematical reals.
+`ExactReward` provides rational rewards for law and example tests. Public code must not compare floating rewards as exact mathematical reals. Floating rewards canonicalize negative zero.
 
 ### 4.5 `Discount`
 
-A finite-horizon objective permits a discount in the closed interval from zero to one.
-
-A discounted infinite-horizon objective requires a discount below one. The type or constructor must enforce this stronger condition.
+`Discount` permits a finite floating value in the closed interval from zero to one. `ContractionDiscount` requires a value below one for discounted infinite-horizon objectives. Separate rational types provide the same domains for exact interpreters.
 
 ### 4.6 `Horizon`
 
-`Horizon` is a natural number. It counts the maximum number of transitions.
+`Horizon` stores an unbounded natural number. Its constructor accepts an `Integer` and rejects negative inputs. It counts the maximum number of transitions without adding a machine-sized overflow boundary.
 
 A horizon of zero returns the terminal payoff for a terminal state. It returns zero for a nonterminal state.
 
@@ -434,10 +436,14 @@ An interpreter can cache or compile a model. The cache and compiler are not part
 The additive implementation uses these boundaries. Entries marked "later" are not implemented:
 
 ```text
-Markovian.Probability       opaque probability and finite distribution types
-Markovian.Reward            reward and terminal-payoff values
-Markovian.Objective         horizon and discount objectives (later)
-Markovian.Kernel            finite stochastic kernel interface; composition (later)
+Markovian.Probability       opaque floating probability and distribution types
+Markovian.Probability.Exact exact rational probability and distribution types
+Markovian.Reward            floating reward and terminal-payoff values
+Markovian.Reward.Exact      exact rational reward values
+Markovian.Objective         floating horizon and discount objective values
+Markovian.Objective.Exact   exact rational discount values
+Markovian.Kernel            one-layer floating stochastic kernel interface
+Markovian.Kernel.Exact      exact rational kernel and Kleisli composition
 Markovian.MRP               MRP interface
 Markovian.MDP               MDP, action ID, and outcome interfaces
 Markovian.Policy            policy interface; validation and closure (later)
