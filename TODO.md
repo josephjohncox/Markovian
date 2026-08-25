@@ -132,6 +132,7 @@ Risks: reward timing, horizon boundaries, and discount placement can silently di
   - Terminal payoff, horizon zero, deterministic reward timing, weighted support, discount zero, structured errors, and bounded self-loops have exact tests.
   - D-029 records bounded state recursion and the exponential reference-interpreter cost.
   - Twenty-three test groups pass under both compilers, the lower-bound plan, and the unpacked source distribution.
+  - Hosted evidence: all four CI jobs passed at <https://github.com/josephjohncox/Markovian/actions/runs/32907754545> for commit `b8fb9f96829d42fba158d012206d1f8513cede1b`.
 - [ ] **P2.2 `NEXT` Add seeded finite-support sampling.**
   - Receive an explicit generator or seed.
   - Never select zero-mass outcomes.
