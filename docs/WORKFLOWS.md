@@ -339,17 +339,17 @@ Do not use architecture text to hide an unresolved decision. Mark the uncertaint
 
 ## 10. Exact next workflow
 
-P0 through P1.2 are `DONE`. D-023 through D-027 define the verified environment, exact numeric domain, and exact Kleisli laws. Seventeen tests and all completed gates pass. P1.3 is `NEXT`.
+P0 and P1 are `DONE`. D-023 through D-028 define the verified environment, exact laws, and validated policy closure. Nineteen tests and all completed local gates pass. P2.1 is `NEXT`.
 
 The next writer must use this sequence:
 
-1. Complete the start gate and read D-002, D-015, and the policy-closure equations.
-2. Define structured duplicate-action, unavailable-action, and zero-mass errors.
-3. Validate policy support against each nonterminal state's available action IDs.
-4. Close policy and MDP kernels over joint reward and successor outcomes.
-5. Preserve distinct rewards when actions reach the same successor.
-6. Add exact closure equalities before any floating observational checks.
-7. Add bounded trace-observable and zero-mass conditional-reward tests.
+1. Complete the start gate and read D-004, D-011, D-016, and the objective equations.
+2. Record the exact evaluator's model, policy, objective, and error boundary before implementation.
+3. Implement finite-horizon exact expectation without unfolding a recursive tree.
+4. Apply each transition reward once and each reached terminal payoff once.
+5. Make horizon zero, discount placement, and continuing-state cutoff explicit.
+6. Add terminal, deterministic, weighted, discounted, horizon-zero, and self-loop tests.
+7. Compare exact evaluator results with direct finite sums.
 8. Run both compiler versions and every completed package gate.
 
-Do not average rewards before closure or request a policy at terminal states.
+Do not reuse the legacy evaluator or infer an objective from hidden defaults.

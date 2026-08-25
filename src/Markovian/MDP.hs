@@ -41,6 +41,7 @@ data Decision action
 -- | Errors from the one-step MDP boundary.
 data ModelError action
     = EmptyActionSupport
+    | DuplicateAvailableAction !(ActionId action)
     | ActionRequestedAtTerminal !Reward
     | UnavailableAction !(ActionId action)
     deriving (Eq, Show)
@@ -74,7 +75,10 @@ mdp initial status available transition = MDP initial status inspect step
             Continuing ->
                 case available state of
                     [] -> Left EmptyActionSupport
-                    first : rest -> Right (ActionDecision (first :| rest))
+                    choices@(first : rest) ->
+                        case firstDuplicate choices of
+                            Just duplicate -> Left (DuplicateAvailableAction duplicate)
+                            Nothing -> Right (ActionDecision (first :| rest))
 
     step state selected =
         case inspect state of
@@ -83,6 +87,11 @@ mdp initial status available transition = MDP initial status inspect step
             Right (ActionDecision choices)
                 | selected `elem` choices -> Right (runKernel transition (state, selected))
                 | otherwise -> Left (UnavailableAction selected)
+
+    firstDuplicate [] = Nothing
+    firstDuplicate (choice : remaining)
+        | choice `elem` remaining = Just choice
+        | otherwise = firstDuplicate remaining
 
 -- | Read the initial state.
 mdpInitialState :: MDP state action -> state

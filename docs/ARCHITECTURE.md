@@ -25,9 +25,9 @@ The additive core currently contains:
 - A one-layer floating `Kernel` and a law-bearing composable `ExactKernel`.
 - Typed terminal status and joint transition reward and successor outcomes.
 - One-step MRP and MDP interfaces with separate action IDs and transition outcomes.
-- A minimal policy kernel interface.
+- Validated floating policy closure and exact reference closure.
 
-The current `FiniteDist` constructor preserves labeled duplicate entries. It removes input zero weights and positive weights whose normalized `Double` mass rounds to zero. Floating constructors canonicalize negative zero. Policy closure, policy support validation, objective evaluators, solvers, adapters, and backends remain unimplemented.
+The current `FiniteDist` constructor preserves labeled duplicate entries. It removes input zero weights and positive weights whose normalized `Double` mass rounds to zero. Floating constructors canonicalize negative zero. Objective evaluators, solvers, adapters, and backends remain unimplemented.
 
 ## 2. Architecture principles
 
@@ -303,6 +303,8 @@ Closure intentionally removes the selected action ID from an MRP trace. Code tha
 
 Closure validates policy support before composition.
 
+The floating implementation returns a fallible `PolicyMRP`. It validates the requested state because an arbitrary state type cannot be exhaustively checked when closure is constructed. It reports duplicate model actions, duplicate policy actions, unavailable policy actions, and floating normalization failures. The exact implementation closes one state's policy and transition distributions for literal joint-outcome and trace laws. Neither implementation evaluates a policy at a terminal state.
+
 Policy closure is the only standard path from MDP evaluation to MRP evaluation. An evaluator must not treat stochastic outcomes as selectable actions.
 
 ### 6.4 Partially observable Markov decision process
@@ -445,8 +447,9 @@ Markovian.Objective.Exact   exact rational discount values
 Markovian.Kernel            one-layer floating stochastic kernel interface
 Markovian.Kernel.Exact      exact rational kernel and Kleisli composition
 Markovian.MRP               MRP interface
-Markovian.MDP               MDP, action ID, and outcome interfaces
-Markovian.Policy            policy interface; validation and closure (later)
+Markovian.MDP               MDP, unique action ID, and outcome interfaces
+Markovian.Policy            floating policy validation and fallible closure
+Markovian.Policy.Exact      exact support validation and joint-outcome closure
 Markovian.POMDP             later finite POMDP interface
 Markovian.Interpreter.Exact bounded exact finite expectation (later)
 Markovian.Interpreter.Sample seeded finite sampling and traces (later)

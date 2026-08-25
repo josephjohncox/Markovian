@@ -104,25 +104,19 @@ Risks: a premature public API can lock in weak names or the wrong numeric repres
   - Exact functor identity and composition plus kernel left identity, right identity, and associativity pass literally.
   - Seventeen deterministic tests pass under GHC 9.4.8, GHC 9.8.4, the lower-bound plan, and the unpacked source distribution.
   - Hosted evidence: all four CI jobs passed at <https://github.com/josephjohncox/Markovian/actions/runs/32784091295> for commit `4050d20d6bc84c1eb93b6c44ea1b5d365d33e44d`.
-- [ ] **P1.3 `NEXT` Add explicit policy closure.**
-  - Implemented under FK.2: the minimal opaque `Policy` kernel interface.
-  - Remaining: validate policy support against available action IDs and implement closure.
-  - Close the MDP into a joint kernel over transition reward and successor state.
-  - Preserve the reward and state trace distribution defined in D-015.
-  - Return `ZeroMassTransition` when code requests a conditional reward for a zero-mass successor.
-  - Acceptance: unavailable and duplicate action IDs return structured errors.
-  - Acceptance: deterministic and randomized closure examples match exact joint outcome distributions.
-  - Acceptance: two actions with one successor and different rewards remain two reward outcomes after closure.
-  - Acceptance: bounded reward-and-state trace observables match direct MDP execution in the exact reference interpreter.
-  - Acceptance: a zero-mass conditional-reward request returns `ZeroMassTransition`.
-  - Dependency: P1.2 and accepted D-015.
-- [ ] **P1.4 Keep the new core additive.**
-  - Do not change or remove current exports in the first slice.
-  - Add Haddock for all new exports and include invariants and totality.
-  - Acceptance: all P0 characterization tests and all P1 tests pass together.
-  - Dependency: P1.1 through P1.3.
+- [x] **P1.3 Add explicit policy closure.**
+  - Added per-state floating closure with separate model, duplicate-policy, unavailable-policy, and normalization errors.
+  - Added exact support validation and joint-outcome closure for literal reference laws.
+  - Terminal closure returns its payoff without evaluating the policy.
+  - Distinct rewards to one successor remain distinct, and exact closed traces match direct policy-and-MDP traces.
+  - Conditional reward queries return `ZeroMassTransition` for absent successor mass.
+  - D-028 records why arbitrary state types require a fallible per-state closure interface.
+- [x] **P1.4 Keep the new core additive.**
+  - No legacy export was removed or changed.
+  - New policy closure exports have Haddock contracts and opaque representations.
+  - All nineteen P0 and P1 test groups pass under both compilers, the lower-bound plan, and the unpacked source distribution.
 
-P1 gate: the semantic core is additive, validated, documented, and tested.
+P1 gate: `DONE`. The semantic core is additive, validated, documented, and tested.
 
 ## P2: Bounded interpreters
 
@@ -130,7 +124,7 @@ Dependencies: P1.
 
 Risks: reward timing, horizon boundaries, and discount placement can silently disagree.
 
-- [ ] **P2.1 Add exact finite-support expectation.**
+- [ ] **P2.1 `NEXT` Add exact finite-support expectation.**
   - Require an explicit policy and objective.
   - Apply transition reward once and terminal payoff once.
   - Stop every path at the finite horizon.

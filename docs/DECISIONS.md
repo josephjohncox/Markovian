@@ -294,6 +294,18 @@ The slice can add `Reward`, `Kernel`, `Policy`, and one-step MRP and MDP interfa
 
 **Risk:** Exact bind multiplies support sizes and can grow exponentially across repeated composition. It is a reference operation for finite laws and bounded examples, not an optimized execution strategy.
 
+### D-028: Make policy closure validated and fallible at each requested state
+
+**Status:** Accepted
+
+**Decision:** Policy closure validates model and policy action supports before it combines action and transition mass. Duplicate available action IDs, duplicate policy action IDs, and unavailable policy actions are distinct structured errors. A terminal state returns its payoff without evaluating the policy. Floating closure returns a fallible `PolicyMRP`; exact one-state closure returns an exact joint outcome distribution.
+
+**Rationale:** An arbitrary state type cannot be exhaustively validated when closure is constructed. Returning the existing total `MRP` would either hide an error, assume an unproved global invariant, or require partial code. Per-state validation is explicit and total. Exact closure proves the joint-outcome equation literally. Floating closure multiplies masses and revalidates them, so underflow or normalization failure remains visible.
+
+**Consequences:** Closure removes action IDs but preserves every reward and successor label. Two actions that reach the same successor with different rewards remain separate outcomes. Conditional reward queries divide only by positive successor mass and return `ZeroMassTransition` otherwise. Exact two-step traces and bounded trace observables match direct policy-and-MDP execution.
+
+**Risk:** Validation repeats when the same state is stepped more than once. Exact and floating support can grow by the product of policy and transition support sizes. A later finite-state compiler can validate once and cache a closed representation, but it must preserve these errors and joint-outcome semantics.
+
 ## Proof obligations for advanced work
 
 | Feature | Proof obligation before implementation | Evidence before acceptance |

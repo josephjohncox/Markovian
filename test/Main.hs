@@ -26,6 +26,7 @@ import Markovian.MDP (
     MDP,
     ModelError (..),
     actionId,
+    actionValue,
     inspectMDP,
     mdp,
     stepMDP,
@@ -58,7 +59,20 @@ import Markovian.Objective.Exact (
     mkExactContractionDiscount,
     mkExactDiscount,
  )
-import Markovian.Policy (policy, policyActions)
+import Markovian.Policy (
+    ConditionalRewardError (..),
+    PolicyError (..),
+    closePolicy,
+    conditionalExpectedReward,
+    policy,
+    policyActions,
+    stepPolicyMRP,
+ )
+import Markovian.Policy.Exact (
+    ExactPolicyError (..),
+    closeExactPolicy,
+    exactConditionalExpectedReward,
+ )
 import Markovian.Probability (
     DistributionError (..),
     ProbabilityError (..),
@@ -75,6 +89,7 @@ import Markovian.Probability.Exact (
     ExactDistributionError (..),
     ExactProbabilityError (..),
     ExactWeightError (..),
+    bindExactFiniteDist,
     exactDirac,
     exactFiniteDist,
     exactOutcomes,
@@ -101,6 +116,8 @@ main = do
     run "terminal reward timing" testTerminalRewardTiming
     run "self-loop step remains one layer" testSelfLoop
     run "actions are separate from transition outcomes" testActionOutcomeSeparation
+    run "floating policy closure and validation" testFloatingPolicyClosure
+    run "exact policy closure and observables" testExactPolicyClosure
     run "legacy terminal value" testLegacyTerminalValue
     run "legacy deterministic chain" testLegacyDeterministicChain
     run "legacy expectation and sample support" testLegacyExpectationAndSampleSupport
@@ -316,6 +333,155 @@ testActionOutcomeSeparation = do
         Left (ActionRequestedAtTerminal payoff) ->
             assert "terminal action error must retain terminal payoff" (rewardValue payoff == 5)
         result -> failTest ("terminal transition request was not rejected: " ++ show result)
+
+testFloatingPolicyClosure :: IO ()
+testFloatingPolicyClosure = do
+    lowReward <- requireRight "closure low reward" (mkReward 2)
+    highReward <- requireRight "closure high reward" (mkReward 8)
+    terminalPayoff <- requireRight "closure terminal payoff" (mkReward 11)
+    selectedActions <- requireRight "floating policy actions" (finiteDist [(lowAction, 1), (highAction, 3)])
+    duplicateActions <- requireRight "duplicate floating policy actions" (finiteDist [(lowAction, 1), (lowAction, 1)])
+    let status ClosureStart = Continuing
+        status ClosureMiddle = Continuing
+        status ClosureEnd = Terminal terminalPayoff
+        status ClosureMissing = Continuing
+        transition =
+            kernel
+                ( \(_, selected) ->
+                    case actionValue selected of
+                        LowAction -> dirac (transitionOutcome lowReward ClosureEnd)
+                        HighAction -> dirac (transitionOutcome highReward ClosureEnd)
+                        MissingAction -> error "unavailable action reached transition kernel"
+                )
+        model =
+            mdp
+                ClosureStart
+                status
+                ( \state -> case state of
+                    ClosureStart -> [lowAction, highAction]
+                    ClosureMiddle -> [lowAction, highAction]
+                    ClosureEnd -> []
+                    ClosureMissing -> [lowAction]
+                )
+                transition
+        closed = closePolicy model (policy (kernel (const selectedActions)))
+
+    case stepPolicyMRP closed ClosureStart of
+        Left err -> failTest ("floating policy closure failed: " ++ show err)
+        Right (TerminalStep _) -> failTest "continuing closure returned a terminal step"
+        Right (TransitionStep distribution) -> do
+            let closedOutcomes = NonEmpty.toList (outcomes distribution)
+            assert "closure must preserve two reward outcomes" (length closedOutcomes == 2)
+            assert "closure must preserve the common successor" (all ((== ClosureEnd) . successorState . fst) closedOutcomes)
+            assert "closure reward labels changed" (fmap (rewardValue . transitionReward . fst) closedOutcomes == [2, 8])
+            assert "closure masses changed" (fmap (probability . snd) closedOutcomes == [0.25, 0.75])
+            conditional <- requireRight "conditional closure reward" (conditionalExpectedReward distribution ClosureEnd)
+            assert "conditional closure reward changed" (rewardValue conditional == 6.5)
+            case conditionalExpectedReward distribution ClosureMissing of
+                Left ZeroMassTransition -> pure ()
+                result -> failTest ("zero-mass conditional reward was not rejected: " ++ show result)
+
+    let terminalClosed = closePolicy model (policy (kernel (\_ -> error "terminal policy was evaluated")))
+    case stepPolicyMRP terminalClosed ClosureEnd of
+        Right (TerminalStep payoff) -> assert "terminal closure payoff changed" (rewardValue payoff == 11)
+        result -> failTest ("terminal closure requested a policy: " ++ show result)
+
+    let duplicateModel = mdp ClosureStart status (const [lowAction, lowAction]) transition
+    case inspectMDP duplicateModel ClosureStart of
+        Left (DuplicateAvailableAction duplicate) -> assert "duplicate model action changed" (duplicate == lowAction)
+        result -> failTest ("duplicate available action was not rejected: " ++ show result)
+
+    case stepPolicyMRP (closePolicy model (policy (kernel (const duplicateActions)))) ClosureStart of
+        Left (DuplicatePolicyAction duplicate) -> assert "duplicate policy action changed" (duplicate == lowAction)
+        result -> failTest ("duplicate policy action was not rejected: " ++ show result)
+
+    case stepPolicyMRP (closePolicy model (policy (kernel (const (dirac missingAction))))) ClosureStart of
+        Left (PolicyUnavailableAction unavailable) -> assert "unavailable policy action changed" (unavailable == missingAction)
+        result -> failTest ("unavailable policy action was not rejected: " ++ show result)
+  where
+    lowAction = actionId LowAction
+    highAction = actionId HighAction
+    missingAction = actionId MissingAction
+
+testExactPolicyClosure :: IO ()
+testExactPolicyClosure = do
+    selected <-
+        requireRight
+            "exact closure policy"
+            (exactFiniteDist [(lowAction, 1), (highAction, 3)])
+    duplicateSelected <-
+        requireRight
+            "duplicate exact closure policy"
+            (exactFiniteDist [(lowAction, 1), (lowAction, 1)])
+    let available = lowAction NonEmpty.:| [highAction]
+        transition selectedAction =
+            case actionValue selectedAction of
+                LowAction -> exactDirac (exactReward 2, ClosureMiddle)
+                HighAction -> exactDirac (exactReward 8, ClosureMiddle)
+                MissingAction -> error "unavailable exact action reached transition"
+        secondTransition selectedAction =
+            case actionValue selectedAction of
+                LowAction -> exactDirac (exactReward 1, ClosureEnd)
+                HighAction -> exactDirac (exactReward 3, ClosureEnd)
+                MissingAction -> error "unavailable exact action reached second transition"
+    closed <- requireRight "exact policy closure" (closeExactPolicy available selected transition)
+    secondClosed <- requireRight "second exact policy closure" (closeExactPolicy available selected secondTransition)
+    let closedOutcomes = NonEmpty.toList (exactOutcomes closed)
+        closedMasses = fmap (exactProbability . snd) closedOutcomes
+        closedRewards = fmap (exactRewardValue . fst . fst) closedOutcomes
+        observable (reward, successor) = exactRewardValue reward + if successor == ClosureMiddle then 10 else 0
+        expectation distribution f =
+            sum
+                [ exactProbability mass * f outcome
+                | (outcome, mass) <- NonEmpty.toList (exactOutcomes distribution)
+                ]
+        directExpectation =
+            sum
+                [ exactProbability policyMass * expectation (transition selectedAction) observable
+                | (selectedAction, policyMass) <- NonEmpty.toList (exactOutcomes selected)
+                ]
+        closedTraces =
+            bindExactFiniteDist closed $ \(firstReward, firstState) ->
+                fmap
+                    (\(secondReward, secondState) -> (firstReward, firstState, secondReward, secondState))
+                    secondClosed
+        directTraces =
+            bindExactFiniteDist selected $ \firstAction ->
+                bindExactFiniteDist (transition firstAction) $ \(firstReward, firstState) ->
+                    bindExactFiniteDist selected $ \secondAction ->
+                        fmap
+                            (\(secondReward, secondState) -> (firstReward, firstState, secondReward, secondState))
+                            (secondTransition secondAction)
+        traceObservable (firstReward, _, secondReward, secondState) =
+            exactRewardValue firstReward
+                + exactRewardValue secondReward
+                + if secondState == ClosureEnd then 100 else 0
+    assert "exact closure must preserve distinct reward outcomes" (closedRewards == [2, 8])
+    assert "exact closure must preserve literal masses" (closedMasses == [1 % 4, 3 % 4])
+    assert "exact closure observable must match direct execution" (expectation closed observable == directExpectation)
+    assert "exact closed traces must match direct MDP traces" (closedTraces == directTraces)
+    assert
+        "bounded exact trace observables must match direct execution"
+        (expectation closedTraces traceObservable == expectation directTraces traceObservable)
+    conditional <- requireRight "exact conditional reward" (exactConditionalExpectedReward closed ClosureMiddle)
+    assert "exact conditional reward changed" (exactRewardValue conditional == 13 % 2)
+    case exactConditionalExpectedReward closed ClosureMissing of
+        Left ZeroMassTransition -> pure ()
+        result -> failTest ("exact zero-mass conditional reward was not rejected: " ++ show result)
+
+    case closeExactPolicy (lowAction NonEmpty.:| [lowAction]) selected transition of
+        Left (DuplicateExactAvailableAction duplicate) -> assert "duplicate exact available action changed" (duplicate == lowAction)
+        result -> failTest ("duplicate exact available action was not rejected: " ++ show result)
+    case closeExactPolicy available duplicateSelected transition of
+        Left (DuplicateExactPolicyAction duplicate) -> assert "duplicate exact policy action changed" (duplicate == lowAction)
+        result -> failTest ("duplicate exact policy action was not rejected: " ++ show result)
+    case closeExactPolicy available (exactDirac missingAction) transition of
+        Left (ExactPolicyUnavailableAction unavailable) -> assert "unavailable exact action changed" (unavailable == missingAction)
+        result -> failTest ("unavailable exact action was not rejected: " ++ show result)
+  where
+    lowAction = actionId LowAction
+    highAction = actionId HighAction
+    missingAction = actionId MissingAction
 
 testExactValues :: IO ()
 testExactValues = do
@@ -563,6 +729,12 @@ data TestState = Start | End
     deriving (Eq, Show)
 
 data TestAction = Finish
+    deriving (Eq, Show)
+
+data ClosureState = ClosureStart | ClosureMiddle | ClosureEnd | ClosureMissing
+    deriving (Eq, Show)
+
+data ClosureAction = LowAction | HighAction | MissingAction
     deriving (Eq, Show)
 
 minimumPositiveDouble :: Double

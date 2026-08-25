@@ -93,6 +93,7 @@ library
     Markovian.Objective
     Markovian.Objective.Exact
     Markovian.Policy
+    Markovian.Policy.Exact
     Markovian.Probability
     Markovian.Probability.Exact
     Markovian.Reward

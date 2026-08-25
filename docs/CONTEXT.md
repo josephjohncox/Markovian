@@ -10,15 +10,13 @@ The source lazily embeds recursive process children in `MDPF`. Evaluators force 
 
 The examples remain legacy demonstrations. The legacy `Markovian` and `QLearning` semantics remain unchanged.
 
-D-022 authorized the additive Foundation Kickoff slice. The core now defines opaque floating and separate exact rational probability, distribution, reward, and discount values. It also defines horizons, one-layer kernels, policies, and one-step MRP and MDP interfaces. Action IDs and stochastic transition outcomes are separate types. Terminal state inspection returns a terminal payoff without running a transition kernel. Floating normalization removes every mass that rounds to zero before it exposes support.
+The core defines opaque floating and separate exact rational probability, distribution, reward, and discount values. It also defines horizons, one-layer kernels, policies, one-step MRP and MDP interfaces, and validated policy closure. Action IDs and stochastic transition outcomes are separate types. Terminal inspection and closure return a payoff without running a transition or policy kernel. Floating normalization removes every mass that rounds to zero before it exposes support.
 
-`test/Main.hs` contains seventeen named deterministic contracts, including four legacy characterization tests and exact functor and kernel laws. `Markovian.cabal` exposes the new modules and lists all durable documents in `extra-doc-files`.
+`test/Main.hs` contains nineteen named deterministic contracts, including four legacy characterization tests, exact functor and kernel laws, and floating and exact policy-closure tests. `Markovian.cabal` exposes the new modules and lists all durable documents in `extra-doc-files`.
 
 D-023 defines the local toolchain. GHCup supplies GHC 9.8.4, Cabal 3.16.1.0, HLS 2.14.0.0, and Fourmolu 0.20.0.0. The project stores HLint 3.10 and cabal-fmt 0.1.12 under the ignored `.direnv/` directory. `toolchain.env`, `.envrc`, and `scripts/bootstrap-tools` reproduce this environment. `cabal.project` and `cabal.project.ci` define the local build.
 
-P0, P1.1, and P1.2 are `DONE`. The core has separate exact and floating values plus a law-bearing exact kernel. Package checks, project-scoped `-Werror` builds, seventeen tests, warning-free Haddocks, format checks, normal and lower-bound plans, and unpacked source-distribution builds pass. GHC 9.4.8 and 9.8.4 are verified. The complete hosted run passed at <https://github.com/josephjohncox/Markovian/actions/runs/32784091295>.
-
-`README.md` was already modified before this slice. `TODO.md` and the `docs/*.md` files were already untracked. The current writer retained and extended those changes.
+P0 and P1 are `DONE`. The core has separate exact and floating values, a law-bearing exact kernel, and validated policy closure. Package checks, project-scoped `-Werror` builds, nineteen tests, warning-free Haddocks, format checks, normal and lower-bound plans, and unpacked source-distribution builds pass locally. GHC 9.4.8 and 9.8.4 are verified. The latest completed hosted run passed at <https://github.com/josephjohncox/Markovian/actions/runs/32784091295>; the P1.3 revision still requires hosted evidence.
 
 ## Known defects
 
@@ -33,7 +31,7 @@ P0, P1.1, and P1.2 are `DONE`. The core has separate exact and floating values p
 | K-007 | `src/QLearning.hs:33-64` | Learning ignores transition weights and uses partial vector operations. Terminal rewards do not enter the Q target. |
 | K-008 | `src/QLearning.hs:71-98` | The stateful path recurses before it updates. It differs from online Q-learning and bypasses the recursion argument. |
 | K-009 | `src/QLearning.hs:13,38,91` | Q-table keys use state identity and action names. Duplicate action names collide. |
-| K-010 | `test/Main.hs` | Resolved: seven core contracts and four legacy characterization tests pass on GHC 9.4.8 and 9.8.4. |
+| K-010 | `test/Main.hs` | Resolved: fifteen core and law contracts plus four legacy characterization tests pass on GHC 9.4.8 and 9.8.4. |
 | K-011 | `Markovian.cabal` and `cabal.project.ci` | Resolved: direct imports are declared per component, normal and `--prefer-oldest` plans pass, and D-025 records required transitive corrections. |
 | K-012 | `Markovian.cabal` | Resolved: package metadata passes `cabal check`, all durable files enter the source tarball, and the unpacked tarball builds and tests. |
 | K-013 | `CHANGELOG.md:1-5` | The release date and entry are generated placeholders. No release evidence exists. |
@@ -92,6 +90,7 @@ Use **MRP**, **MDP**, and **POMDP** only for the explicit interfaces in the targ
 - D-025 scopes warning failures and records lower-bound workarounds.
 - D-026 separates exact reference values and objective domains.
 - D-027 limits literal Kleisli laws to the exact kernel domain.
+- D-028 makes policy closure fallible and validates each requested state.
 - D-012 and D-013 are superseded for the initial constructors. D-019 through D-021 remain proposed and block their named implementation phases.
 - D-018 remains proposed. D-009 still defers categorical compiler work.
 
@@ -99,9 +98,8 @@ See `docs/DECISIONS.md` for rationale and consequences.
 
 ## Open questions
 
-- What separate exact-reference value representation should accompany the floating runtime values?
 - Should a later finite-distribution constructor combine equal support, and under which equality contract?
-- Which policy representation best reports unavailable or duplicate action IDs?
+- When should a finite-state compiler cache globally validated policy closure?
 - What public names should replace the legacy `Process`, `Action`, and `MDPF` names?
 - Which test framework should the package adopt?
 - Which additional GHC versions and lower dependency bounds pass CI beyond the verified GHC 9.8.4 development baseline?
@@ -114,7 +112,7 @@ Do not resolve these questions only in code. Add or update a decision entry firs
 
 1. Read this file, `TODO.md`, `docs/DECISIONS.md`, and the relevant architecture section.
 2. Follow `docs/WORKFLOWS.md`.
-3. Start P1.3, the task marked `NEXT` in `TODO.md`. Preserve every completed P0 through P1.2 gate.
+3. Start P2.1, the task marked `NEXT` in `TODO.md`. Preserve every completed P0 and P1 gate.
 4. Keep one writer for each branch and worktree.
 5. Do not change legacy behavior without characterization tests and an accepted decision.
 6. Do not claim a command passed without command output from the current revision.
