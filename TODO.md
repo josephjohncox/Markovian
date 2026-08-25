@@ -115,6 +115,7 @@ Risks: a premature public API can lock in weak names or the wrong numeric repres
   - No legacy export was removed or changed.
   - New policy closure exports have Haddock contracts and opaque representations.
   - All nineteen P0 and P1 test groups pass under both compilers, the lower-bound plan, and the unpacked source distribution.
+  - Hosted evidence: all four CI jobs passed at <https://github.com/josephjohncox/Markovian/actions/runs/32905919708> for commit `2875b2664aba670e9178a6a7012455875e34e955`.
 
 P1 gate: `DONE`. The semantic core is additive, validated, documented, and tested.
 

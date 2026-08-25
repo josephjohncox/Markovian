@@ -16,7 +16,7 @@ The core defines opaque floating and separate exact rational probability, distri
 
 D-023 defines the local toolchain. GHCup supplies GHC 9.8.4, Cabal 3.16.1.0, HLS 2.14.0.0, and Fourmolu 0.20.0.0. The project stores HLint 3.10 and cabal-fmt 0.1.12 under the ignored `.direnv/` directory. `toolchain.env`, `.envrc`, and `scripts/bootstrap-tools` reproduce this environment. `cabal.project` and `cabal.project.ci` define the local build.
 
-P0 and P1 are `DONE`. The core has separate exact and floating values, a law-bearing exact kernel, and validated policy closure. Package checks, project-scoped `-Werror` builds, nineteen tests, warning-free Haddocks, format checks, normal and lower-bound plans, and unpacked source-distribution builds pass locally. GHC 9.4.8 and 9.8.4 are verified. The latest completed hosted run passed at <https://github.com/josephjohncox/Markovian/actions/runs/32784091295>; the P1.3 revision still requires hosted evidence.
+P0 and P1 are `DONE`. The core has separate exact and floating values, a law-bearing exact kernel, and validated policy closure. Package checks, project-scoped `-Werror` builds, nineteen tests, warning-free Haddocks, format checks, normal and lower-bound plans, and unpacked source-distribution builds pass locally and in hosted CI. GHC 9.4.8 and 9.8.4 are verified. The complete hosted run passed at <https://github.com/josephjohncox/Markovian/actions/runs/32905919708>.
 
 ## Known defects
 
