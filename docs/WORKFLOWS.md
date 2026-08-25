@@ -339,17 +339,17 @@ Do not use architecture text to hide an unresolved decision. Mark the uncertaint
 
 ## 10. Exact next workflow
 
-P0 and P1 are `DONE`. D-023 through D-028 define the verified environment, exact laws, and validated policy closure. Nineteen tests and all completed local gates pass. P2.1 is `NEXT`.
+P0, P1, and P2.1 are `DONE`. D-023 through D-029 define the verified environment, exact closure, and finite expectation. Twenty-three tests and all completed local gates pass. P2.2 is `NEXT`.
 
 The next writer must use this sequence:
 
-1. Complete the start gate and read D-004, D-011, D-016, and the objective equations.
-2. Record the exact evaluator's model, policy, objective, and error boundary before implementation.
-3. Implement finite-horizon exact expectation without unfolding a recursive tree.
-4. Apply each transition reward once and each reached terminal payoff once.
-5. Make horizon zero, discount placement, and continuing-state cutoff explicit.
-6. Add terminal, deterministic, weighted, discounted, horizon-zero, and self-loop tests.
-7. Compare exact evaluator results with direct finite sums.
+1. Complete the start gate and read D-003, D-004, D-011, and the sampling contracts.
+2. Record the sampler's generator ownership, result, and error types before implementation.
+3. Use an explicit seed or generator and return updated generator state when applicable.
+4. Sample only the positive support exposed by `FiniteDist`.
+5. Preserve transition reward, terminal payoff, horizon, and discount timing from the exact evaluator.
+6. Add equal-seed trace equality and exact support-membership tests.
+7. Add terminal, horizon-zero, weighted, and self-loop sampling tests without frequency thresholds.
 8. Run both compiler versions and every completed package gate.
 
-Do not reuse the legacy evaluator or infer an objective from hidden defaults.
+Do not use global randomness or statistical frequency assertions as correctness gates.

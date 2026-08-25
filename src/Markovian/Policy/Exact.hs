@@ -1,12 +1,17 @@
 -- | Exact policy closure for literal support and observable laws.
 module Markovian.Policy.Exact (
+    ExactPolicy,
+    exactPolicy,
+    exactPolicyActions,
     ExactPolicyError (..),
+    validateExactPolicySupport,
     closeExactPolicy,
     exactConditionalExpectedReward,
 ) where
 
 import Data.List.NonEmpty (NonEmpty)
 import Data.List.NonEmpty qualified as NonEmpty
+import Markovian.Kernel.Exact (ExactKernel, runExactKernel)
 import Markovian.MDP (ActionId)
 import Markovian.Policy (ConditionalRewardError (..))
 import Markovian.Probability.Exact (
@@ -20,6 +25,17 @@ import Markovian.Reward.Exact (
     exactReward,
     exactRewardValue,
  )
+
+-- | An exact policy kernel over action IDs.
+newtype ExactPolicy state action = ExactPolicy (ExactKernel state (ActionId action))
+
+-- | Construct an exact policy from a validated exact kernel.
+exactPolicy :: ExactKernel state (ActionId action) -> ExactPolicy state action
+exactPolicy = ExactPolicy
+
+-- | Get an exact policy's action distribution for one state.
+exactPolicyActions :: ExactPolicy state action -> state -> ExactFiniteDist (ActionId action)
+exactPolicyActions (ExactPolicy actionKernel) = runExactKernel actionKernel
 
 -- | Exact policy-support validation errors.
 data ExactPolicyError action
@@ -43,6 +59,16 @@ closeExactPolicy ::
     (ActionId action -> ExactFiniteDist output) ->
     Either (ExactPolicyError action) (ExactFiniteDist output)
 closeExactPolicy available selected transition = do
+    validateExactPolicySupport available selected
+    pure (bindExactFiniteDist selected transition)
+
+-- | Validate one exact policy distribution against available action IDs.
+validateExactPolicySupport ::
+    (Eq action) =>
+    NonEmpty (ActionId action) ->
+    ExactFiniteDist (ActionId action) ->
+    Either (ExactPolicyError action) ()
+validateExactPolicySupport available selected = do
     case firstDuplicate (NonEmpty.toList available) of
         Just duplicate -> Left (DuplicateExactAvailableAction duplicate)
         Nothing -> pure ()
@@ -53,7 +79,6 @@ closeExactPolicy available selected transition = do
     case firstUnavailable (NonEmpty.toList available) selectedIds of
         Just unavailable -> Left (ExactPolicyUnavailableAction unavailable)
         Nothing -> pure ()
-    pure (bindExactFiniteDist selected transition)
 
 {- | Compute an exact expected reward conditional on one successor state.
 

@@ -86,9 +86,11 @@ library
   -- Modules exported by the library.
   exposed-modules:
     Markovian
+    Markovian.Interpreter.Exact
     Markovian.Kernel
     Markovian.Kernel.Exact
     Markovian.MDP
+    Markovian.MDP.Exact
     Markovian.MRP
     Markovian.Objective
     Markovian.Objective.Exact

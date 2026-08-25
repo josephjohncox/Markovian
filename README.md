@@ -4,7 +4,7 @@ Markovian is an early Haskell prototype for stochastic processes and decision mo
 
 The current API is experimental and has known semantic defects. Do not use it for production decisions or numerical claims.
 
-The additive core defines validated floating values, separate exact rational reference values, discounts, horizons, finite kernels, policies, one-step MRP and MDP interfaces, and validated policy closure. Exact tests cover functor, Kleisli, joint-outcome, and bounded trace laws. GHC 9.4.8 and 9.8.4 build the core and run its contracts. Objective evaluators, migration adapters, and replacement learning interpreters are not implemented.
+The additive core defines validated floating values, separate exact rational reference values, objectives, finite kernels, policies, one-step MDP interfaces, and validated policy closure. The exact reference interpreter computes finite-horizon expected return by bounded state recursion. Exact tests cover functor, Kleisli, joint-outcome, trace, reward-timing, and horizon laws. GHC 9.4.8 and 9.8.4 build the core and run its contracts. Seeded sampling, migration adapters, and replacement learning interpreters are not implemented.
 
 ## Project documents
 
@@ -30,10 +30,11 @@ After approval, direnv loads GHC 9.8.4 when you enter this directory. `toolchain
 
 - `src/Markovian/Probability*` and `src/Markovian/Reward*` contain separate floating and exact validated values.
 - `src/Markovian/Objective*` contains floating and exact discounts plus transition horizons.
-- `src/Markovian/Kernel*`, `src/Markovian/MRP.hs`, `src/Markovian/MDP.hs`, and `src/Markovian/Policy*` contain the floating one-layer, exact composable, and validated policy-closure interfaces.
+- `src/Markovian/Kernel*`, `src/Markovian/MRP.hs`, `src/Markovian/MDP*`, and `src/Markovian/Policy*` contain the floating one-layer, exact composable, and validated policy-closure interfaces.
+- `src/Markovian/Interpreter/Exact.hs` contains exact finite-horizon expectation.
 - `src/Markovian.hs` and `src/QLearning.hs` remain the legacy API.
 - `app/Sample/Main.hs` and `app/QLearning/Main.hs` remain legacy demonstrations.
-- `test/Main.hs` contains nineteen deterministic core, law, closure, and legacy contracts.
+- `test/Main.hs` contains twenty-three deterministic core, law, interpreter, and legacy contracts.
 
 The pinned environment and hosted CI pass package, build, test, Haddock, formatting, lower-bound, and source-distribution gates on the P0 baseline.
 

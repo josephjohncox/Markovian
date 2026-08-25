@@ -14,6 +14,11 @@ import Markovian (
     evaluateMDPExpect,
     evaluateMDPSample,
  )
+import Markovian.Interpreter.Exact (
+    ExactEvaluationError (..),
+    expectedExactReturn,
+    expectedExactReturnFrom,
+ )
 import Markovian.Kernel (kernel)
 import Markovian.Kernel.Exact (
     composeExactKernel,
@@ -30,6 +35,13 @@ import Markovian.MDP (
     inspectMDP,
     mdp,
     stepMDP,
+ )
+import Markovian.MDP.Exact (
+    ExactMDP,
+    ExactModelError (..),
+    ExactStateStatus (..),
+    exactMDP,
+    exactTransitionOutcome,
  )
 import Markovian.MRP (
     MRPStep (..),
@@ -53,9 +65,11 @@ import Markovian.Objective (
  )
 import Markovian.Objective.Exact (
     ExactDiscountError (..),
+    ExactFiniteObjective,
     asExactContractionDiscount,
     exactContractionDiscountValue,
     exactDiscountValue,
+    exactFiniteObjective,
     mkExactContractionDiscount,
     mkExactDiscount,
  )
@@ -72,6 +86,7 @@ import Markovian.Policy.Exact (
     ExactPolicyError (..),
     closeExactPolicy,
     exactConditionalExpectedReward,
+    exactPolicy,
  )
 import Markovian.Probability (
     DistributionError (..),
@@ -118,6 +133,10 @@ main = do
     run "actions are separate from transition outcomes" testActionOutcomeSeparation
     run "floating policy closure and validation" testFloatingPolicyClosure
     run "exact policy closure and observables" testExactPolicyClosure
+    run "exact evaluator terminal and horizon zero" testExactEvaluatorBoundaries
+    run "exact evaluator reward timing and discount" testExactEvaluatorRewardTiming
+    run "exact evaluator weighted support and errors" testExactEvaluatorWeighted
+    run "exact evaluator bounded self-loop" testExactEvaluatorSelfLoop
     run "legacy terminal value" testLegacyTerminalValue
     run "legacy deterministic chain" testLegacyDeterministicChain
     run "legacy expectation and sample support" testLegacyExpectationAndSampleSupport
@@ -333,6 +352,113 @@ testActionOutcomeSeparation = do
         Left (ActionRequestedAtTerminal payoff) ->
             assert "terminal action error must retain terminal payoff" (rewardValue payoff == 5)
         result -> failTest ("terminal transition request was not rejected: " ++ show result)
+
+testExactEvaluatorBoundaries :: IO ()
+testExactEvaluatorBoundaries = do
+    objective <- makeExactObjective 0 (1 % 2)
+    let terminalModel :: ExactMDP EvalState EvalAction
+        terminalModel =
+            exactMDP
+                EvalTerminal
+                (\state -> case state of EvalTerminal -> ExactTerminal (exactReward 9); _ -> ExactContinuing)
+                (\_ -> error "horizon-zero or terminal action support was evaluated")
+                (exactKernel (\_ -> error "horizon-zero or terminal transition was evaluated"))
+        unusedPolicy = exactPolicy (exactKernel (\_ -> error "horizon-zero or terminal policy was evaluated"))
+    terminalValue <- requireRight "exact terminal boundary" (expectedExactReturn objective terminalModel unusedPolicy)
+    assert "terminal payoff must survive horizon zero" (exactRewardValue terminalValue == 9)
+    continuingValue <- requireRight "exact continuing horizon zero" (expectedExactReturnFrom objective terminalModel unusedPolicy EvalStart)
+    assert "continuing horizon zero must return zero" (exactRewardValue continuingValue == 0)
+
+testExactEvaluatorRewardTiming :: IO ()
+testExactEvaluatorRewardTiming = do
+    halfObjective <- makeExactObjective 1 (1 % 2)
+    zeroDiscountObjective <- makeExactObjective 1 0
+    let onlyAction = actionId EvalOnly
+        model :: ExactMDP EvalState EvalAction
+        model =
+            exactMDP
+                EvalStart
+                (\state -> case state of EvalTerminal -> ExactTerminal (exactReward 7); _ -> ExactContinuing)
+                (\state -> case state of EvalTerminal -> []; _ -> [onlyAction])
+                (exactKernel (\_ -> exactDirac (exactTransitionOutcome (exactReward 2) EvalTerminal)))
+        selectedPolicy = exactPolicy (exactKernel (const (exactDirac onlyAction)))
+    discounted <- requireRight "discounted exact return" (expectedExactReturn halfObjective model selectedPolicy)
+    assert "transition and terminal rewards must each occur once" (exactRewardValue discounted == 11 % 2)
+    immediate <- requireRight "zero-discount exact return" (expectedExactReturn zeroDiscountObjective model selectedPolicy)
+    assert "zero discount must retain only immediate reward" (exactRewardValue immediate == 2)
+
+testExactEvaluatorWeighted :: IO ()
+testExactEvaluatorWeighted = do
+    objective <- makeExactObjective 1 1
+    selected <- requireRight "weighted exact evaluator policy" (exactFiniteDist [(lowAction, 1), (highAction, 3)])
+    highOutcomes <-
+        requireRight
+            "weighted exact evaluator transition"
+            ( exactFiniteDist
+                [ (exactTransitionOutcome (exactReward 4) EvalTerminal, 1)
+                , (exactTransitionOutcome (exactReward 8) EvalTerminal, 1)
+                ]
+            )
+    let model :: ExactMDP EvalState EvalAction
+        model =
+            exactMDP
+                EvalStart
+                (\state -> case state of EvalTerminal -> ExactTerminal (exactReward 0); _ -> ExactContinuing)
+                (\state -> case state of EvalTerminal -> []; _ -> [lowAction, highAction])
+                ( exactKernel
+                    ( \(_, selectedAction) ->
+                        case actionValue selectedAction of
+                            EvalLow -> exactDirac (exactTransitionOutcome (exactReward 2) EvalTerminal)
+                            EvalHigh -> highOutcomes
+                            EvalOnly -> error "unavailable exact evaluator action reached transition"
+                            EvalMissing -> error "missing exact evaluator action reached transition"
+                    )
+                )
+        selectedPolicy = exactPolicy (exactKernel (const selected))
+    result <- requireRight "weighted exact expected return" (expectedExactReturn objective model selectedPolicy)
+    assert "weighted exact expected return changed" (exactRewardValue result == 5)
+
+    let missingAction = actionId EvalMissing
+        unavailablePolicy = exactPolicy (exactKernel (const (exactDirac missingAction)))
+    case expectedExactReturn objective model unavailablePolicy of
+        Left (ExactEvaluationPolicyError (ExactPolicyUnavailableAction unavailable)) ->
+            assert "evaluator unavailable action changed" (unavailable == missingAction)
+        unexpected -> failTest ("evaluator did not retain policy error: " ++ show unexpected)
+
+    let duplicateModel =
+            exactMDP
+                EvalStart
+                (const ExactContinuing)
+                (const [lowAction, lowAction])
+                (exactKernel (\_ -> exactDirac (exactTransitionOutcome (exactReward 0) EvalTerminal)))
+    case expectedExactReturn objective duplicateModel selectedPolicy of
+        Left (ExactEvaluationModelError (DuplicateExactModelAction duplicate)) ->
+            assert "evaluator duplicate model action changed" (duplicate == lowAction)
+        unexpected -> failTest ("evaluator did not retain model error: " ++ show unexpected)
+  where
+    lowAction = actionId EvalLow
+    highAction = actionId EvalHigh
+
+testExactEvaluatorSelfLoop :: IO ()
+testExactEvaluatorSelfLoop = do
+    objective <- makeExactObjective 3 (1 % 2)
+    let onlyAction = actionId EvalOnly
+        model :: ExactMDP EvalState EvalAction
+        model =
+            exactMDP
+                EvalLoop
+                (const ExactContinuing)
+                (const [onlyAction])
+                (exactKernel (\_ -> exactDirac (exactTransitionOutcome (exactReward 1) EvalLoop)))
+        selectedPolicy = exactPolicy (exactKernel (const (exactDirac onlyAction)))
+    result <- requireRight "bounded exact self-loop" (expectedExactReturn objective model selectedPolicy)
+    assert "bounded exact self-loop return changed" (exactRewardValue result == 7 % 4)
+
+makeExactObjective :: Integer -> Rational -> IO ExactFiniteObjective
+makeExactObjective rawHorizon rawDiscount = do
+    horizon <- requireRight "exact evaluator horizon" (mkHorizon rawHorizon)
+    discount <- requireRight "exact evaluator discount" (mkExactDiscount rawDiscount)
+    pure (exactFiniteObjective horizon discount)
 
 testFloatingPolicyClosure :: IO ()
 testFloatingPolicyClosure = do
@@ -735,6 +861,12 @@ data ClosureState = ClosureStart | ClosureMiddle | ClosureEnd | ClosureMissing
     deriving (Eq, Show)
 
 data ClosureAction = LowAction | HighAction | MissingAction
+    deriving (Eq, Show)
+
+data EvalState = EvalStart | EvalTerminal | EvalLoop
+    deriving (Eq, Show)
+
+data EvalAction = EvalOnly | EvalLow | EvalHigh | EvalMissing
     deriving (Eq, Show)
 
 minimumPositiveDouble :: Double

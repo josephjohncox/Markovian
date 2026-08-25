@@ -10,13 +10,13 @@ The source lazily embeds recursive process children in `MDPF`. Evaluators force 
 
 The examples remain legacy demonstrations. The legacy `Markovian` and `QLearning` semantics remain unchanged.
 
-The core defines opaque floating and separate exact rational probability, distribution, reward, and discount values. It also defines horizons, one-layer kernels, policies, one-step MRP and MDP interfaces, and validated policy closure. Action IDs and stochastic transition outcomes are separate types. Terminal inspection and closure return a payoff without running a transition or policy kernel. Floating normalization removes every mass that rounds to zero before it exposes support.
+The core defines opaque floating and separate exact rational values, objectives, kernels, policies, one-step MDP interfaces, and validated policy closure. The exact reference evaluator computes finite-horizon expected return by bounded state recursion. Action IDs and stochastic transition outcomes are separate types. Terminal inspection and closure return a payoff without running a transition or policy kernel. Floating normalization removes every mass that rounds to zero before it exposes support.
 
-`test/Main.hs` contains nineteen named deterministic contracts, including four legacy characterization tests, exact functor and kernel laws, and floating and exact policy-closure tests. `Markovian.cabal` exposes the new modules and lists all durable documents in `extra-doc-files`.
+`test/Main.hs` contains twenty-three named deterministic contracts, including four legacy characterization tests, exact laws, policy closure, and finite-horizon evaluation. `Markovian.cabal` exposes the new modules and lists all durable documents in `extra-doc-files`.
 
 D-023 defines the local toolchain. GHCup supplies GHC 9.8.4, Cabal 3.16.1.0, HLS 2.14.0.0, and Fourmolu 0.20.0.0. The project stores HLint 3.10 and cabal-fmt 0.1.12 under the ignored `.direnv/` directory. `toolchain.env`, `.envrc`, and `scripts/bootstrap-tools` reproduce this environment. `cabal.project` and `cabal.project.ci` define the local build.
 
-P0 and P1 are `DONE`. The core has separate exact and floating values, a law-bearing exact kernel, and validated policy closure. Package checks, project-scoped `-Werror` builds, nineteen tests, warning-free Haddocks, format checks, normal and lower-bound plans, and unpacked source-distribution builds pass locally and in hosted CI. GHC 9.4.8 and 9.8.4 are verified. The complete hosted run passed at <https://github.com/josephjohncox/Markovian/actions/runs/32905919708>.
+P0, P1, and P2.1 are `DONE`. Package checks, project-scoped `-Werror` builds, twenty-three tests, warning-free Haddocks, format checks, normal and lower-bound plans, and unpacked source-distribution builds pass locally. GHC 9.4.8 and 9.8.4 are verified. The P1 hosted run passed at <https://github.com/josephjohncox/Markovian/actions/runs/32905919708>; the P2.1 revision still requires hosted evidence.
 
 ## Known defects
 
@@ -31,7 +31,7 @@ P0 and P1 are `DONE`. The core has separate exact and floating values, a law-bea
 | K-007 | `src/QLearning.hs:33-64` | Learning ignores transition weights and uses partial vector operations. Terminal rewards do not enter the Q target. |
 | K-008 | `src/QLearning.hs:71-98` | The stateful path recurses before it updates. It differs from online Q-learning and bypasses the recursion argument. |
 | K-009 | `src/QLearning.hs:13,38,91` | Q-table keys use state identity and action names. Duplicate action names collide. |
-| K-010 | `test/Main.hs` | Resolved: fifteen core and law contracts plus four legacy characterization tests pass on GHC 9.4.8 and 9.8.4. |
+| K-010 | `test/Main.hs` | Resolved: nineteen core, law, and interpreter contracts plus four legacy characterization tests pass on GHC 9.4.8 and 9.8.4. |
 | K-011 | `Markovian.cabal` and `cabal.project.ci` | Resolved: direct imports are declared per component, normal and `--prefer-oldest` plans pass, and D-025 records required transitive corrections. |
 | K-012 | `Markovian.cabal` | Resolved: package metadata passes `cabal check`, all durable files enter the source tarball, and the unpacked tarball builds and tests. |
 | K-013 | `CHANGELOG.md:1-5` | The release date and entry are generated placeholders. No release evidence exists. |
@@ -91,6 +91,7 @@ Use **MRP**, **MDP**, and **POMDP** only for the explicit interfaces in the targ
 - D-026 separates exact reference values and objective domains.
 - D-027 limits literal Kleisli laws to the exact kernel domain.
 - D-028 makes policy closure fallible and validates each requested state.
+- D-029 defines bounded state recursion for exact finite expectation.
 - D-012 and D-013 are superseded for the initial constructors. D-019 through D-021 remain proposed and block their named implementation phases.
 - D-018 remains proposed. D-009 still defers categorical compiler work.
 
@@ -112,7 +113,7 @@ Do not resolve these questions only in code. Add or update a decision entry firs
 
 1. Read this file, `TODO.md`, `docs/DECISIONS.md`, and the relevant architecture section.
 2. Follow `docs/WORKFLOWS.md`.
-3. Start P2.1, the task marked `NEXT` in `TODO.md`. Preserve every completed P0 and P1 gate.
+3. Start P2.2, the task marked `NEXT` in `TODO.md`. Preserve every completed P0, P1, and P2.1 gate.
 4. Keep one writer for each branch and worktree.
 5. Do not change legacy behavior without characterization tests and an accepted decision.
 6. Do not claim a command passed without command output from the current revision.

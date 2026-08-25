@@ -24,8 +24,9 @@ The additive core currently contains:
 - Fail-fast structured construction errors and scaled floating normalization.
 - A one-layer floating `Kernel` and a law-bearing composable `ExactKernel`.
 - Typed terminal status and joint transition reward and successor outcomes.
-- One-step MRP and MDP interfaces with separate action IDs and transition outcomes.
+- One-step floating and exact MDP interfaces with separate action IDs and transition outcomes.
 - Validated floating policy closure and exact reference closure.
+- Exact finite-horizon expectation with explicit policy and objective values.
 
 The current `FiniteDist` constructor preserves labeled duplicate entries. It removes input zero weights and positive weights whose normalized `Double` mass rounds to zero. Floating constructors canonicalize negative zero. Objective evaluators, solvers, adapters, and backends remain unimplemented.
 
@@ -429,6 +430,8 @@ Interpreters provide:
 
 Each interpreter receives all behavior-changing configuration as an argument. This includes seeds, horizons, discounts, schedules, tolerances, iteration limits, and devices.
 
+The exact reference interpreter implements Section 5.2 by bounded state recursion. It checks terminal status before the horizon boundary, decreases the transition count on every recursive call, and preserves rational arithmetic throughout. It performs no sampling, memoization, or recursive model unfolding.
+
 An interpreter can cache or compile a model. The cache and compiler are not part of the model denotation.
 
 ## 11. Module and package boundaries
@@ -443,15 +446,16 @@ Markovian.Probability.Exact exact rational probability and distribution types
 Markovian.Reward            floating reward and terminal-payoff values
 Markovian.Reward.Exact      exact rational reward values
 Markovian.Objective         floating horizon and discount objective values
-Markovian.Objective.Exact   exact rational discount values
+Markovian.Objective.Exact   exact rational discount and finite objective values
 Markovian.Kernel            one-layer floating stochastic kernel interface
 Markovian.Kernel.Exact      exact rational kernel and Kleisli composition
 Markovian.MRP               MRP interface
 Markovian.MDP               MDP, unique action ID, and outcome interfaces
+Markovian.MDP.Exact         exact MDP, status, outcome, and model errors
 Markovian.Policy            floating policy validation and fallible closure
-Markovian.Policy.Exact      exact support validation and joint-outcome closure
+Markovian.Policy.Exact      exact policy, support validation, and closure
 Markovian.POMDP             later finite POMDP interface
-Markovian.Interpreter.Exact bounded exact finite expectation (later)
+Markovian.Interpreter.Exact bounded exact finite expectation
 Markovian.Interpreter.Sample seeded finite sampling and traces (later)
 Markovian.Interpreter.Bellman cyclic finite solvers (later)
 Markovian.Learning.QLearning validated learning interpreter (later)

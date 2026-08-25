@@ -125,12 +125,14 @@ Dependencies: P1.
 
 Risks: reward timing, horizon boundaries, and discount placement can silently disagree.
 
-- [ ] **P2.1 `NEXT` Add exact finite-support expectation.**
-  - Require an explicit policy and objective.
-  - Apply transition reward once and terminal payoff once.
-  - Stop every path at the finite horizon.
-  - Acceptance: tests cover terminal, deterministic, weighted, discount, horizon-zero, and self-loop cases.
-- [ ] **P2.2 Add seeded finite-support sampling.**
+- [x] **P2.1 Add exact finite-support expectation.**
+  - Added separate exact MDP status, transition outcome, decision, and model-error types.
+  - Added exact policy kernels and named finite objectives.
+  - The evaluator receives an exact model, policy, horizon, and discount with no hidden defaults.
+  - Terminal payoff, horizon zero, deterministic reward timing, weighted support, discount zero, structured errors, and bounded self-loops have exact tests.
+  - D-029 records bounded state recursion and the exponential reference-interpreter cost.
+  - Twenty-three test groups pass under both compilers, the lower-bound plan, and the unpacked source distribution.
+- [ ] **P2.2 `NEXT` Add seeded finite-support sampling.**
   - Receive an explicit generator or seed.
   - Never select zero-mass outcomes.
   - Acceptance: equal seeds produce equal traces and returns.

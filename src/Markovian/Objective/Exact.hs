@@ -12,7 +12,13 @@ module Markovian.Objective.Exact (
     asExactContractionDiscount,
     exactDiscountValue,
     exactContractionDiscountValue,
+    ExactFiniteObjective,
+    exactFiniteObjective,
+    exactObjectiveHorizon,
+    exactObjectiveDiscount,
 ) where
+
+import Markovian.Objective (Horizon)
 
 -- | An exact rational discount in the closed interval @[0, 1]@.
 newtype ExactDiscount = ExactDiscount Rational
@@ -53,3 +59,19 @@ exactDiscountValue (ExactDiscount value) = value
 -- | Read an exact contraction discount.
 exactContractionDiscountValue :: ExactContractionDiscount -> Rational
 exactContractionDiscountValue (ExactContractionDiscount value) = value
+
+-- | A finite transition horizon paired with an exact discount.
+data ExactFiniteObjective = UnsafeExactFiniteObjective !Horizon !ExactDiscount
+    deriving (Eq, Show)
+
+-- | Construct a named exact finite-horizon objective from validated values.
+exactFiniteObjective :: Horizon -> ExactDiscount -> ExactFiniteObjective
+exactFiniteObjective = UnsafeExactFiniteObjective
+
+-- | Read an exact objective's maximum transition count.
+exactObjectiveHorizon :: ExactFiniteObjective -> Horizon
+exactObjectiveHorizon (UnsafeExactFiniteObjective horizon _) = horizon
+
+-- | Read an exact objective's transition discount.
+exactObjectiveDiscount :: ExactFiniteObjective -> ExactDiscount
+exactObjectiveDiscount (UnsafeExactFiniteObjective _ discount) = discount

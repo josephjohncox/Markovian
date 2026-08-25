@@ -306,6 +306,18 @@ The slice can add `Reward`, `Kernel`, `Policy`, and one-step MRP and MDP interfa
 
 **Risk:** Validation repeats when the same state is stepped more than once. Exact and floating support can grow by the product of policy and transition support sizes. A later finite-state compiler can validate once and cache a closed representation, but it must preserve these errors and joint-outcome semantics.
 
+### D-029: Evaluate finite exact objectives by bounded state recursion
+
+**Status:** Accepted
+
+**Decision:** The exact reference evaluator receives an `ExactMDP`, an `ExactPolicy`, and one `ExactFiniteObjective` containing a validated horizon and exact discount. It inspects terminal status before the horizon boundary. A terminal state returns its payoff. A continuing state at horizon zero returns zero. Each other step computes the exact expectation of transition reward plus one discounted recursive value.
+
+**Rationale:** This is the finite-horizon equation in Section 5.2. Recursion decreases an unbounded natural horizon, so a self-loop cannot cause semantic nontermination. Separate exact model and policy types avoid converting floating values and preserve literal law tests. A named objective prevents hidden discount or stopping defaults.
+
+**Consequences:** Exact model, policy, and evaluation errors remain separate and are wrapped by the evaluator. Transition reward and reached terminal payoff each occur once. No policy or transition runs at a terminal state. The evaluator uses direct finite sums without sampling, matrix conversion, memoization, or recursive transition trees.
+
+**Risk:** Direct evaluation can revisit states and grow exponentially with horizon and support size. It is a reference interpreter for bounded examples. Dynamic programming and compiled finite-state evaluators are later implementations that must match it exactly.
+
 ## Proof obligations for advanced work
 
 | Feature | Proof obligation before implementation | Evidence before acceptance |
