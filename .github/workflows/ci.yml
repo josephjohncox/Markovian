@@ -183,6 +183,11 @@ jobs:
             --bindir "${HOME}/.local/bin"
           cabal install \
             "hlint-${MARKOVIAN_HLINT_VERSION}" \
+            --ignore-project \
+            --install-method=copy \
+            --installdir="${HOME}/.local/bin" \
+            --overwrite-policy=always
+          cabal install \
             "cabal-fmt-${MARKOVIAN_CABAL_FMT_VERSION}" \
             --ignore-project \
             --install-method=copy \

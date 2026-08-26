@@ -49,9 +49,16 @@ if [[ -x "$local_bin/cabal-fmt" ]] && [[ "$("$local_bin/cabal-fmt" --version)" =
   cabal_fmt_ok=true
 fi
 
-if [[ "$hlint_ok" != true || "$cabal_fmt_ok" != true ]]; then
+if [[ "$hlint_ok" != true ]]; then
   cabal install \
     "hlint-$MARKOVIAN_HLINT_VERSION" \
+    --installdir="$local_bin" \
+    --install-method=copy \
+    --overwrite-policy=always
+fi
+
+if [[ "$cabal_fmt_ok" != true ]]; then
+  cabal install \
     "cabal-fmt-$MARKOVIAN_CABAL_FMT_VERSION" \
     --installdir="$local_bin" \
     --install-method=copy \

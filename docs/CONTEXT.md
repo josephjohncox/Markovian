@@ -25,6 +25,7 @@ The package does not contain the former branch-weight process, recursive `MDPF`,
 | K-014 | Removed the Q-learning example and rewrote the sample against the exact semantic API. |
 | K-015 | Floating normalization removes every mass that rounds to zero and exposes positive support only. |
 | K-016 | Removed the third-party dependency plan that required `mwc-random` and `unix-compat` constraints. |
+| K-017 | Split HLint and cabal-fmt into separate Cabal installation plans after hosted CI exposed an unsatisfiable combined plan. |
 
 ## Semantic vocabulary
 

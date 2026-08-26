@@ -250,9 +250,9 @@ The slice can add `Reward`, `Kernel`, `Policy`, and one-step MRP and MDP interfa
 
 **Decision:** GitHub CI uses Ubuntu 22.04 and tests GHC 9.4.8 and 9.8.4 with Cabal 3.16.1.0. It pins `actions/checkout` v7.0.1 to commit `3d3c42e5aac5ba805825da76410c181273ba90b1` and `haskell-actions/setup` v2.12.0 to peeled commit `6037f33647c3f17758a2356c80fc4a53d7e0685d`. A separate format job reads exact versions from `toolchain.env`.
 
-**Rationale:** GHC 9.4.8 tests the declared `base-4.17` lower boundary. GHC 9.8.4 matches the development environment. Commit pins prevent mutable action tags from changing executable CI code. Fourmolu and cabal-fmt require separate installation plans because their `Cabal-syntax` constraints conflict when Cabal solves them together.
+**Rationale:** GHC 9.4.8 tests the declared `base-4.17` lower boundary. GHC 9.8.4 matches the development environment. Commit pins prevent mutable action tags from changing executable CI code. Fourmolu uses GHCup's third-party channel. HLint and cabal-fmt require separate Cabal installation plans because a combined plan has incompatible parser and filepath constraints.
 
-**Consequences:** The build matrix runs package checks, project-scoped `-Werror` builds, tests, warning-free Haddocks, and source-distribution builds. The format job installs Fourmolu from GHCup's third-party channel and installs cabal-fmt separately through Cabal. The first hosted matrix passed at <https://github.com/josephjohncox/Markovian/actions/runs/32537958654>.
+**Consequences:** The build matrix runs package checks, project-scoped `-Werror` builds, tests, warning-free Haddocks, and source-distribution builds. The source-check job installs Fourmolu, HLint, and cabal-fmt through their verified separate plans. The first hosted matrix passed at <https://github.com/josephjohncox/Markovian/actions/runs/32537958654>.
 
 **Risk:** A successful run does not freeze GitHub's hosted image, network, or action runtime. Exact action commits and tool versions limit change but cannot remove external service risk.
 
