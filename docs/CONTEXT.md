@@ -10,7 +10,7 @@ The core library exposes validated floating and exact probability, reward, objec
 
 The package does not contain the former branch-weight process, recursive `MDPF`, or defective prototype Q-learning implementation. `app/Sample/Main.hs` demonstrates the exact finite-horizon evaluator.
 
-`test/Main.hs` contains thirty-two deterministic semantic, law, closure, sampling, compilation, solver, learning, POMDP, categorical, CPU-lowering, trace, and interpreter contracts. Separate GPU and neural package tests cover disabled-backend behavior, actual CUDA differential execution, stable softmax, analytic gradients, and approximation error. GHC 9.4.8 and 9.8.4 pass project-scoped `-Werror`, source checks, package checks, warning-free Haddock, lower-bound resolution, and unpacked source-distribution tests. The complete three-package roadmap run passed at <https://github.com/josephjohncox/Markovian/actions/runs/32927616731>.
+`test/Main.hs` contains thirty-two deterministic semantic, law, closure, sampling, compilation, solver, learning, POMDP, categorical, CPU-lowering, trace, and interpreter contracts. Separate GPU and neural package tests cover disabled-backend behavior, actual CUDA differential execution, stable softmax, analytic gradients, and approximation error. GHC 9.4.8 and 9.8.4 pass project-scoped `-Werror`, source checks, package checks, warning-free Haddock, lower-bound resolution, and unpacked source-distribution tests. The complete three-package roadmap run passed at <https://github.com/josephjohncox/Markovian/actions/runs/32998596001>.
 
 ## Resolved defects
 
