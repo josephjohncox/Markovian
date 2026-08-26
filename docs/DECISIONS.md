@@ -402,6 +402,20 @@ The slice can add `Reward`, `Kernel`, `Policy`, and one-step MRP and MDP interfa
 
 **Risk:** The committed PTX targets CUDA compute capability 12.1 and the enabled package currently expects CUDA headers under `/usr/local/cuda/include`. Hosted CI checks the disabled contract only because its runners have no GPU. Any new device architecture, precision, or framework adapter requires fresh differential tests and transfer-inclusive benchmarks.
 
+### D-037: Use standard probability and Kleisli abstractions without hiding finite object witnesses
+
+**Status:** Accepted
+
+**Decision:** `ExactFiniteDist` implements the standard finite probability monad interfaces. `ExactKernel` implements `Category`, `Arrow`, and `ArrowChoice`. The finite IR keeps explicit `FiniteObject` witnesses and adds symmetry, associator, unitor, deterministic, and fanout combinators.
+
+**Rationale:** Standard type classes remove private copies of lawful map, bind, composition, product, and branch operations. The finite IR has a different constraint. Its category identity needs a value-level finite object, which the unconstrained `Category` class cannot provide.
+
+The copy target must be the full tensor square. Diagonal support belongs to the denotation, not to the target object. A diagonal target subobject prevents general fanout and breaks the intended Markov-category typing.
+
+**Consequences:** Exact distributions support `Functor`, `Applicative`, `Monad`, `Foldable`, and `Traversable`. Exact kernels support standard category and arrow combinators. IR tests cover full-tensor copy, symmetry, associator and unitor inverses, deterministic copy naturality, and stochastic shared-draw counterexamples.
+
+**Risk:** The implementation is a finite symmetric monoidal Markov fragment, not a higher-category framework. It does not add a dagger, trace, compact closure, or total Bayesian inverse. Such structures need separate denotations and laws.
+
 ## Proof obligations for advanced work
 
 | Feature | Proof obligation before implementation | Evidence before acceptance |

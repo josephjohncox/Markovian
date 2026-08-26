@@ -21,7 +21,8 @@ The package is greenfield and unreleased. It makes no compatibility promise. Inc
 - seeded bounded epsilon-greedy episodic Q-learning with deterministic traces;
 - canonical exact finite beliefs with post-transition prediction and conditioning;
 - exact bounded belief-state policy evaluation with mixed-termination rejection;
-- typed exact finite categorical IR with explicit copy, discard, composition, and tensor;
+- a finite symmetric monoidal Markov IR with explicit object witnesses, full-tensor copy, fanout, symmetry, associators, and unitors;
+- standard probability-monad, Kleisli `Category`, `Arrow`, and `ArrowChoice` instances;
 - dense rational CPU lowering with denotational differential tests;
 - structured model, policy, sampling, compilation, solver, arithmetic, normalization, and conditioning errors.
 

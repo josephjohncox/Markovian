@@ -13,5 +13,7 @@
 - Added validated pure Q-updates and seeded bounded episodic Q-learning.
 - Added exact finite POMDP prediction, conditioning, filtering, and bounded belief planning.
 - Added typed exact categorical syntax and dense rational CPU lowering.
+- Added standard exact probability and Kleisli instances plus symmetric monoidal coherence and fanout combinators.
+- Corrected categorical copy to target the full tensor square with diagonal denotation.
 - Added separate optional CUDA and framework-independent neural contract packages.
 - Added reproducible toolchain, package, documentation, and CI gates.

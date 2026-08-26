@@ -14,10 +14,19 @@ module Markovian.Category.Finite.Exact (
     ExactIR,
     ExactIRValidationError (..),
     primitiveExactIR,
+    deterministicExactIR,
     identityExactIR,
     composeExactIR,
     tensorExactIR,
+    swapExactIR,
+    associateExactIR,
+    unassociateExactIR,
+    leftUnitorExactIR,
+    leftUnitorInverseExactIR,
+    rightUnitorExactIR,
+    rightUnitorInverseExactIR,
     copyExactIR,
+    fanoutExactIR,
     discardExactIR,
     exactIRSource,
     exactIRTarget,
@@ -88,6 +97,7 @@ data ExactIR source target where
 data ExactIRValidationError value
     = ExactIROutputOutsideTarget !value
     | ExactIRCompositionObjectMismatch
+    | ExactIRFanoutSourceObjectMismatch
     deriving (Eq, Show)
 
 -- | Validate one exact primitive against explicit source and target objects.
@@ -108,6 +118,16 @@ primitiveExactIR source target kernel = do
             )
             (NonEmpty.toList (finiteObjectValues source))
     Right (PrimitiveIR source target rows)
+
+-- | Lift a deterministic function after validating its target object.
+deterministicExactIR ::
+    (Eq source, Eq target) =>
+    FiniteObject source ->
+    FiniteObject target ->
+    (source -> target) ->
+    Either (ExactIRValidationError target) (ExactIR source target)
+deterministicExactIR source target function =
+    primitiveExactIR source target (exactDirac . function)
 
 -- | Categorical identity.
 identityExactIR :: FiniteObject value -> ExactIR value value
@@ -137,9 +157,120 @@ tensorExactIR left right =
         left
         right
 
--- | Copy one value. Stochastic work before this node remains shared.
+-- | Swap two finite factors.
+swapExactIR ::
+    (Eq left, Eq right) =>
+    FiniteObject left ->
+    FiniteObject right ->
+    ExactIR (left, right) (right, left)
+swapExactIR left right =
+    PrimitiveIR source target rows
+  where
+    source = tensorObject left right
+    target = tensorObject right left
+    rows =
+        [ (pair, exactDirac (snd pair, fst pair))
+        | pair <- NonEmpty.toList (finiteObjectValues source)
+        ]
+
+-- | Reassociate a left-nested finite product.
+associateExactIR ::
+    (Eq first, Eq second, Eq third) =>
+    FiniteObject first ->
+    FiniteObject second ->
+    FiniteObject third ->
+    ExactIR ((first, second), third) (first, (second, third))
+associateExactIR first second third =
+    PrimitiveIR source target rows
+  where
+    source = tensorObject (tensorObject first second) third
+    target = tensorObject first (tensorObject second third)
+    rows =
+        [ (nested, exactDirac (associateValue nested))
+        | nested <- NonEmpty.toList (finiteObjectValues source)
+        ]
+
+-- | Reassociate a right-nested finite product.
+unassociateExactIR ::
+    (Eq first, Eq second, Eq third) =>
+    FiniteObject first ->
+    FiniteObject second ->
+    FiniteObject third ->
+    ExactIR (first, (second, third)) ((first, second), third)
+unassociateExactIR first second third =
+    PrimitiveIR source target rows
+  where
+    source = tensorObject first (tensorObject second third)
+    target = tensorObject (tensorObject first second) third
+    rows =
+        [ (nested, exactDirac (unassociateValue nested))
+        | nested <- NonEmpty.toList (finiteObjectValues source)
+        ]
+
+-- | Remove a unit factor on the left.
+leftUnitorExactIR :: (Eq value) => FiniteObject value -> ExactIR ((), value) value
+leftUnitorExactIR object =
+    PrimitiveIR source object rows
+  where
+    source = tensorObject unitObject object
+    rows =
+        [ (pair, exactDirac (snd pair))
+        | pair <- NonEmpty.toList (finiteObjectValues source)
+        ]
+
+-- | Add a unit factor on the left.
+leftUnitorInverseExactIR :: (Eq value) => FiniteObject value -> ExactIR value ((), value)
+leftUnitorInverseExactIR object =
+    PrimitiveIR object target rows
+  where
+    target = tensorObject unitObject object
+    rows =
+        [ (value, exactDirac ((), value))
+        | value <- NonEmpty.toList (finiteObjectValues object)
+        ]
+
+-- | Remove a unit factor on the right.
+rightUnitorExactIR :: (Eq value) => FiniteObject value -> ExactIR (value, ()) value
+rightUnitorExactIR object =
+    PrimitiveIR source object rows
+  where
+    source = tensorObject object unitObject
+    rows =
+        [ (pair, exactDirac (fst pair))
+        | pair <- NonEmpty.toList (finiteObjectValues source)
+        ]
+
+-- | Add a unit factor on the right.
+rightUnitorInverseExactIR :: (Eq value) => FiniteObject value -> ExactIR value (value, ())
+rightUnitorInverseExactIR object =
+    PrimitiveIR object target rows
+  where
+    target = tensorObject object unitObject
+    rows =
+        [ (value, exactDirac (value, ()))
+        | value <- NonEmpty.toList (finiteObjectValues object)
+        ]
+
+-- | Copy one value into the full tensor object. Its denotation has diagonal support.
 copyExactIR :: FiniteObject value -> ExactIR value (value, value)
-copyExactIR source = CopyIR source (diagonalObject source)
+copyExactIR source = CopyIR source (tensorObject source source)
+
+-- | Run two morphisms from one shared input with conditionally independent output draws.
+fanoutExactIR ::
+    (Eq source) =>
+    ExactIR source leftTarget ->
+    ExactIR source rightTarget ->
+    Either
+        (ExactIRValidationError source)
+        (ExactIR source (leftTarget, rightTarget))
+fanoutExactIR left right
+    | source == exactIRSource right =
+        Right (ComposeIR source target (copyExactIR source) parallel)
+    | otherwise = Left ExactIRFanoutSourceObjectMismatch
+  where
+    source = exactIRSource left
+    parallel = tensorExactIR left right
+    target = exactIRTarget parallel
 
 -- | Discard one value into the unit object.
 discardExactIR :: FiniteObject value -> ExactIR value ()
@@ -273,9 +404,11 @@ tensorObject left right =
     firstLeft :| remainingLeft = finiteObjectValues left
     firstRight :| remainingRight = finiteObjectValues right
 
-diagonalObject :: FiniteObject value -> FiniteObject (value, value)
-diagonalObject source =
-    FiniteObject (fmap (\value -> (value, value)) (finiteObjectValues source))
+associateValue :: ((first, second), third) -> (first, (second, third))
+associateValue ((first, second), third) = (first, (second, third))
+
+unassociateValue :: (first, (second, third)) -> ((first, second), third)
+unassociateValue (first, (second, third)) = ((first, second), third)
 
 unitObject :: FiniteObject ()
 unitObject = FiniteObject (() :| [])

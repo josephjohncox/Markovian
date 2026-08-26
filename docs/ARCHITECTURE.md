@@ -105,17 +105,27 @@ Sampling does not define expectation. Sampling is one interpreter for a kernel.
 
 ### 3.4 Markov-category structure
 
-The categorical compiler can use these operations:
+`ExactFiniteDist` is a finite rational probability monad. It has lawful `Functor`, `Applicative`, `Monad`, `Foldable`, and `Traversable` instances. These instances preserve labeled support order and duplicate labels.
+
+`ExactKernel` is the Kleisli category of that monad. Its `Category`, `Arrow`, and `ArrowChoice` instances provide standard composition, product, fanout, and branch combinators.
+
+The finite IR represents a symmetric monoidal Markov fragment with explicit object witnesses:
 
 - Identity returns its input through a Dirac kernel.
 - Composition uses Kleisli composition.
 - Tensor combines independent kernel executions.
-- Copy duplicates one value.
-- Discard removes a value.
+- Swap, associators, and unitors provide product coherence maps.
+- Copy maps an object into its full tensor square with diagonal support.
+- Discard maps an object into the singleton unit object.
+- Fanout copies one input before two conditionally independent kernel executions.
 
-Copying one sampled value is not equal to executing the sampling kernel twice. The compiler IR must preserve this correlation difference.
+The IR cannot use the standard `Category` instance directly. A category identity cannot synthesize the required `FiniteObject` witness. Smart constructors retain these witnesses and reject value-level object mismatches.
 
-Conditioning and Bayesian inversion are not operations of every stochastic kernel category. POMDP belief updates expose their extra normalization and zero-evidence requirements.
+Copy is natural for deterministic morphisms. It is not natural for arbitrary stochastic morphisms. Copying one sampled value differs from executing the sampling kernel twice.
+
+Finite objects do not have `Functor` or `Traversable` instances. An arbitrary value map can introduce duplicates and break their validated invariant.
+
+Conditioning and Bayesian inversion are not total category operations. POMDP belief updates expose their normalization and zero-evidence failures.
 
 ## 4. Core value types
 
@@ -585,18 +595,19 @@ Training APIs come after these denotations and error contracts.
 
 D-035 supersedes the compiler deferral in D-009 and the unaccepted proposal in D-018 for the exact finite fragment.
 
-The implemented source and target category has duplicate-free finite objects and exact finite stochastic kernels. Typed syntax contains identity, primitive kernels, composition, tensor, copy, and discard. Exact denotation canonicalizes output mass in target-object order.
+The implemented category has duplicate-free finite objects and exact finite stochastic kernels. Typed syntax contains identity, primitive kernels, composition, tensor, symmetry, associators, unitors, copy, fanout, and discard. Exact denotation canonicalizes output mass in target-object order.
 
 The typed source syntax preserves:
 
 - Identity.
 - Composition.
 - Tensor product.
-- Copy.
+- Symmetry, associators, and unitors.
+- Copy and shared-input fanout.
 - Discard.
 - Validated exact primitive kernels, including deterministic Dirac kernels.
 
-A stochastic expression followed by `copyExactIR` performs one draw and returns a diagonal pair. Copying the unit input and tensoring two stochastic expressions performs two independent draws. Tests prove these denotations differ.
+`copyExactIR` targets the full tensor square. Its denotation assigns mass only to diagonal pairs. A stochastic expression followed by copy performs one draw. Fanout performs two conditionally independent draws from one shared input. Tests prove that these denotations differ.
 
 The dense CPU backend lowers exact denotation into a source-by-target rational matrix. The optional CUDA package executes floating dense matrices after explicit conversion at the backend boundary. Unsupported future primitives require typed compile errors.
 

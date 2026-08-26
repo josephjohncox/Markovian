@@ -1,3 +1,5 @@
+{-# LANGUAGE TupleSections #-}
+
 {- | Exact finite probabilities for reference interpreters and literal law tests.
 
 This module uses 'Rational'. It does not share representation or equality with
@@ -74,8 +76,27 @@ newtype ExactFiniteDist a = UnsafeExactFiniteDist (NonEmpty (a, ExactProb))
     deriving (Eq, Show)
 
 instance Functor ExactFiniteDist where
-    fmap f (UnsafeExactFiniteDist entries) =
-        UnsafeExactFiniteDist (fmap (\(value, mass) -> (f value, mass)) entries)
+    fmap function (UnsafeExactFiniteDist entries) =
+        UnsafeExactFiniteDist (fmap (\(value, mass) -> (function value, mass)) entries)
+
+instance Applicative ExactFiniteDist where
+    pure = exactDirac
+    functions <*> values =
+        bindExactFiniteDist functions (`fmap` values)
+
+instance Monad ExactFiniteDist where
+    (>>=) = bindExactFiniteDist
+
+instance Foldable ExactFiniteDist where
+    foldMap function (UnsafeExactFiniteDist entries) =
+        foldMap (function . fst) entries
+
+instance Traversable ExactFiniteDist where
+    traverse function (UnsafeExactFiniteDist entries) =
+        UnsafeExactFiniteDist
+            <$> traverse
+                (\(value, mass) -> (,mass) <$> function value)
+                entries
 
 -- | Errors returned by 'exactFiniteDist'.
 data ExactDistributionError

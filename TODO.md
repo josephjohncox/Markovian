@@ -98,7 +98,7 @@ P5 gate: `DONE`. Prediction, post-transition conditioning, impossible observatio
   - Local CUDA evidence on NVIDIA GB10: CPU/GPU differential error `0.000e0`; transfer-inclusive 256-by-256 mean `295.110287 ms` over 20 runs.
   - Hosted three-package evidence: <https://github.com/josephjohncox/Markovian/actions/runs/32927616731>.
 
-P6 gate: `DONE`. Exact IR laws, shared-draw counterexamples, dense CPU differential tests, actual CUDA differential execution, transfer-inclusive benchmarking, and neural normalization and gradient contracts pass.
+P6 gate: `DONE`. Exact IR laws, full-tensor copy, symmetric monoidal coherence maps, deterministic copy naturality, shared-draw counterexamples, dense CPU differential tests, actual CUDA differential execution, transfer-inclusive benchmarking, and neural normalization and gradient contracts pass.
 
 ## Admission gates
 

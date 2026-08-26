@@ -18,7 +18,7 @@ The package does not contain the former branch-weight process, recursive `MDPF`,
 | --- | --- |
 | K-001 to K-004 | Removed the ambiguous branch-weight `Action`, recursive `MDPF`, self-recursing pseudo-Mendler algebras, and unchecked probabilistic evaluators. |
 | K-005 to K-009 | Removed the defective Q-learning implementation, hidden constants, unbounded negative recursion, partial vector operations, incorrect reward timing, and unstable action-name keys. |
-| K-010 | Removed compatibility characterization tests with the deleted API. Nineteen semantic contracts remain. |
+| K-010 | Removed compatibility characterization tests with the deleted API and replaced them with semantic contracts. |
 | K-011 | The library, sample, and tests now depend only on `base` and the local package. Obsolete lower-bound workarounds were removed. |
 | K-012 | Package metadata, source distribution, and direct component dependencies are verified by CI gates. |
 | K-013 | Replaced generated changelog text with an unreleased factual entry. |
@@ -32,6 +32,7 @@ The package does not contain the former branch-weight process, recursive `MDPF`,
 | K-021 | Made observation timing explicit and added structured zero-evidence and mixed-belief errors instead of unchecked belief normalization. |
 | K-022 | Added typed categorical syntax and explicit copy semantics so compiler rewrites cannot equate one shared draw with two independent draws. |
 | K-023 | Added dense CPU, actual CUDA, and neural contract packages outside the semantic core with differential and normalization evidence. |
+| K-024 | Changed copy from a diagonal target subobject to the full tensor square with diagonal denotation. Added standard probability, category, arrow, symmetry, coherence, and fanout combinators. |
 
 ## Semantic vocabulary
 
@@ -59,6 +60,7 @@ The package does not contain the former branch-weight process, recursive `MDPF`,
 | INV-HORIZON | Bounded evaluation decreases the transition horizon on every recursive call. | `Natural` horizon and self-loop tests |
 | INV-RNG | Reproducible stochastic execution receives and returns explicit generator state. | Implemented by P2.2 |
 | INV-CORE | The semantic core has no tensor, GPU, autodiff, neural, or sampling-framework dependency. | Cabal dependency gate |
+| INV-COPY | Copy targets the full tensor square and assigns mass only to diagonal pairs. | Opaque IR constructors and exact law tests |
 
 ## Current decisions
 
@@ -70,6 +72,7 @@ The package does not contain the former branch-weight process, recursive `MDPF`,
 - D-023 and D-024 define the reproducible toolchain and pinned CI matrix.
 - D-026 through D-029 define exact values, exact Kleisli laws, validated policy closure, and exact finite expectation.
 - D-030 supersedes compatibility and migration decisions and authorizes immediate removal of defective experimental APIs.
+- D-031 through D-037 define sampling, compilation, learning, POMDP, backend, and finite Markov-category contracts.
 
 ## Next task
 

@@ -1,5 +1,7 @@
 module Main (main) where
 
+import Control.Arrow (left, (&&&), (***))
+import Control.Category qualified as Category
 import Data.List.NonEmpty qualified as NonEmpty
 import Data.Ratio ((%))
 import Markovian.Backend.CPU.Exact (
@@ -13,14 +15,24 @@ import Markovian.Category.Finite.Exact (
     ExactIRExecutionError (..),
     ExactIRValidationError (..),
     FiniteObjectError (..),
+    associateExactIR,
     composeExactIR,
     copyExactIR,
     denoteExactIR,
+    deterministicExactIR,
     discardExactIR,
+    exactIRTarget,
+    fanoutExactIR,
     finiteObject,
     identityExactIR,
+    leftUnitorExactIR,
+    leftUnitorInverseExactIR,
     primitiveExactIR,
+    rightUnitorExactIR,
+    rightUnitorInverseExactIR,
+    swapExactIR,
     tensorExactIR,
+    unassociateExactIR,
  )
 import Markovian.Compile.Exact (
     CompiledExactOutcome (..),
@@ -261,7 +273,7 @@ main = do
     run "typed exact categorical IR laws and shared draws" testExactCategoricalIR
     run "dense exact CPU lowering" testDenseExactLowering
     run "exact probability and reward values" testExactValues
-    run "exact finite distribution functor laws" testExactFunctorLaws
+    run "exact finite distribution typeclass laws" testExactFunctorLaws
     run "exact kernel Kleisli laws" testExactKernelLaws
     run "floating objective values" testFloatingObjectives
     run "exact objective values" testExactObjectives
@@ -1456,8 +1468,8 @@ testExactCategoricalIR = do
     coin <- requireRight "categorical coin primitive" (primitiveExactIR unitObject boolObject (const coinDistribution))
     booleanNot <-
         requireRight
-            "categorical not primitive"
-            (primitiveExactIR boolObject boolObject (exactDirac . not))
+            "categorical deterministic not"
+            (deterministicExactIR boolObject boolObject not)
 
     case primitiveExactIR unitObject falseObject (const (exactDirac True)) of
         Left (ExactIROutputOutsideTarget True) -> pure ()
@@ -1465,6 +1477,9 @@ testExactCategoricalIR = do
     case composeExactIR (identityExactIR boolObject) (identityExactIR falseObject) of
         Left ExactIRCompositionObjectMismatch -> pure ()
         _ -> failTest "categorical composition accepted mismatched middle objects"
+    case fanoutExactIR (identityExactIR boolObject) (identityExactIR falseObject) of
+        Left ExactIRFanoutSourceObjectMismatch -> pure ()
+        _ -> failTest "categorical fanout accepted mismatched source objects"
     case denoteExactIR (identityExactIR falseObject) True of
         Left ExactIRInputOutsideSource -> pure ()
         _ -> failTest "categorical denotation accepted input outside its source"
@@ -1486,8 +1501,7 @@ testExactCategoricalIR = do
     assert "categorical composition associativity failed" (leftResult == rightResult)
 
     correlatedExpression <- requireRight "shared categorical draw" (composeExactIR coin (copyExactIR boolObject))
-    let independentPair = tensorExactIR coin coin
-    independentExpression <- requireRight "independent categorical draws" (composeExactIR (copyExactIR unitObject) independentPair)
+    independentExpression <- requireRight "independent categorical draws" (fanoutExactIR coin coin)
     correlated <- requireRight "shared-draw denotation" (denoteExactIR correlatedExpression ())
     independent <- requireRight "independent-draw denotation" (denoteExactIR independentExpression ())
     let correlatedLabels = fmap fst (NonEmpty.toList (exactOutcomes correlated))
@@ -1503,6 +1517,59 @@ testExactCategoricalIR = do
     let pairIdentity = tensorExactIR (identityExactIR boolObject) (identityExactIR boolObject)
     pairResult <- requireRight "categorical tensor identity" (denoteExactIR pairIdentity (False, True))
     assert "categorical tensor identity changed its input" (pairResult == exactDirac (False, True))
+    assert
+        "categorical copy target is not the full tensor object"
+        (exactIRTarget (copyExactIR boolObject) == exactIRTarget pairIdentity)
+
+    swapTwice <-
+        requireRight
+            "categorical swap involution"
+            (composeExactIR (swapExactIR boolObject falseObject) (swapExactIR falseObject boolObject))
+    swappedBack <- requireRight "categorical swap involution denotation" (denoteExactIR swapTwice (True, False))
+    assert "categorical swap is not involutive" (swappedBack == exactDirac (True, False))
+
+    reassociated <-
+        requireRight
+            "categorical associator inverse"
+            ( composeExactIR
+                (associateExactIR boolObject falseObject unitObject)
+                (unassociateExactIR boolObject falseObject unitObject)
+            )
+    associatedBack <-
+        requireRight
+            "categorical associator inverse denotation"
+            (denoteExactIR reassociated ((True, False), ()))
+    assert
+        "categorical associator and inverse changed the input"
+        (associatedBack == exactDirac ((True, False), ()))
+
+    leftUnitRoundTrip <-
+        requireRight
+            "categorical left unitor inverse"
+            (composeExactIR (leftUnitorInverseExactIR boolObject) (leftUnitorExactIR boolObject))
+    rightUnitRoundTrip <-
+        requireRight
+            "categorical right unitor inverse"
+            (composeExactIR (rightUnitorInverseExactIR boolObject) (rightUnitorExactIR boolObject))
+    leftUnitValue <- requireRight "categorical left unitor denotation" (denoteExactIR leftUnitRoundTrip True)
+    rightUnitValue <- requireRight "categorical right unitor denotation" (denoteExactIR rightUnitRoundTrip False)
+    assert "categorical left unitor and inverse changed the input" (leftUnitValue == exactDirac True)
+    assert "categorical right unitor and inverse changed the input" (rightUnitValue == exactDirac False)
+
+    deterministicFanout <- requireRight "categorical deterministic fanout" (fanoutExactIR (identityExactIR boolObject) booleanNot)
+    deterministicPair <- requireRight "categorical deterministic fanout denotation" (denoteExactIR deterministicFanout False)
+    assert "categorical deterministic fanout changed" (deterministicPair == exactDirac (False, True))
+
+    deterministicNotThenCopy <- requireRight "categorical not then copy" (composeExactIR booleanNot (copyExactIR boolObject))
+    copyThenNots <-
+        requireRight
+            "categorical copy then two nots"
+            (composeExactIR (copyExactIR boolObject) (tensorExactIR booleanNot booleanNot))
+    notThenCopyResult <- requireRight "categorical not-copy denotation" (denoteExactIR deterministicNotThenCopy False)
+    copyThenNotsResult <- requireRight "categorical copy-two-nots denotation" (denoteExactIR copyThenNots False)
+    assert
+        "categorical copy naturality failed for a deterministic morphism"
+        (notThenCopyResult == copyThenNotsResult)
 
 testDenseExactLowering :: IO ()
 testDenseExactLowering = do
@@ -1513,8 +1580,8 @@ testDenseExactLowering = do
     coin <- requireRight "dense coin primitive" (primitiveExactIR unitObject boolObject (const coinDistribution))
     booleanNot <-
         requireRight
-            "dense not primitive"
-            (primitiveExactIR boolObject boolObject (exactDirac . not))
+            "dense deterministic not"
+            (deterministicExactIR boolObject boolObject not)
 
     identityDense <- requireRight "dense identity lowering" (lowerExactIR (identityExactIR boolObject))
     assert "dense identity shape changed" (denseExactShape identityDense == (2, 2))
@@ -1537,14 +1604,14 @@ testDenseExactLowering = do
     assert "dense lowering differs from exact IR denotation" (denseCoinResult == directCoinResult)
 
     correlatedExpression <- requireRight "dense shared draw" (composeExactIR coin (copyExactIR boolObject))
-    independentExpression <-
-        requireRight
-            "dense independent draws"
-            (composeExactIR (copyExactIR unitObject) (tensorExactIR coin coin))
+    independentExpression <- requireRight "dense independent draws" (fanoutExactIR coin coin)
     correlated <- requireRight "dense shared-draw lowering" (lowerExactIR correlatedExpression)
     independent <- requireRight "dense independent-draw lowering" (lowerExactIR independentExpression)
-    assert "dense shared-draw shape changed" (denseExactShape correlated == (1, 2))
+    assert "dense shared-draw shape changed" (denseExactShape correlated == (1, 4))
     assert "dense independent-draw shape changed" (denseExactShape independent == (1, 4))
+    assert
+        "dense shared-draw row changed"
+        (fmap NonEmpty.toList (NonEmpty.toList (denseExactRows correlated)) == [[1 % 2, 0, 0, 1 % 2]])
     assert
         "dense independent-draw row changed"
         (fmap NonEmpty.toList (NonEmpty.toList (denseExactRows independent)) == [[1 % 4, 1 % 4, 1 % 4, 1 % 4]])
@@ -1771,6 +1838,23 @@ testExactFunctorLaws = do
         "exact distribution must satisfy functor composition"
         (fmap (double . addThree) distribution == (fmap double . fmap addThree) distribution)
 
+    let continuation value = fmap (+ value) distribution
+        applicativePair = (,) <$> distribution <*> distribution
+        monadicPair = distribution >>= \leftValue -> fmap (leftValue,) distribution
+        leftAssociated = (distribution >>= continuation) >>= continuation
+        rightAssociated = distribution >>= (\value -> continuation value >>= continuation)
+    assert "exact distribution pure changed Dirac" (pure 4 == exactDirac (4 :: Integer))
+    assert "exact distribution applicative disagrees with bind" (applicativePair == monadicPair)
+    assert "exact distribution monad left identity failed" ((pure 4 >>= continuation) == continuation 4)
+    assert "exact distribution monad right identity failed" ((distribution >>= pure) == distribution)
+    assert "exact distribution monad associativity failed" (leftAssociated == rightAssociated)
+    assert "exact distribution Foldable order changed" (foldMap (: []) distribution == [-2, 3])
+    traversed <-
+        case traverse (\value -> if value < 0 then Nothing else Just value) distribution of
+            Nothing -> pure Nothing
+            Just value -> pure (Just value)
+    assert "exact distribution Traversable accepted a failed element" (traversed == Nothing)
+
 testExactKernelLaws :: IO ()
 testExactKernelLaws = do
     coin <-
@@ -1789,13 +1873,43 @@ testExactKernelLaws = do
         rightIdentity = composeExactKernel first identityKernel
         leftAssociated = composeExactKernel (composeExactKernel first second) third
         rightAssociated = composeExactKernel first (composeExactKernel second third)
+        categoryLeftIdentity = Category.id Category.>>> first
+        categoryRightIdentity = first Category.>>> Category.id
+        categoryAssociatedLeft = (first Category.>>> second) Category.>>> third
+        categoryAssociatedRight = first Category.>>> (second Category.>>> third)
+        arrowProduct = first *** second
+        arrowFanout = first &&& second
+        arrowChoice = left first
         inputs = [-2, 0, 5]
-        agrees left right input = runExactKernel left input == runExactKernel right input
+        agrees leftKernel rightKernel input = runExactKernel leftKernel input == runExactKernel rightKernel input
     assert "exact kernel left identity must hold literally" (all (agrees leftIdentity first) inputs)
     assert "exact kernel right identity must hold literally" (all (agrees rightIdentity first) inputs)
     assert
         "exact kernel associativity must hold literally"
         (all (agrees leftAssociated rightAssociated) inputs)
+    assert "exact kernel Category left identity failed" (all (agrees categoryLeftIdentity first) inputs)
+    assert "exact kernel Category right identity failed" (all (agrees categoryRightIdentity first) inputs)
+    assert
+        "exact kernel Category associativity failed"
+        (all (agrees categoryAssociatedLeft categoryAssociatedRight) inputs)
+
+    let productInput = (2, 3)
+        expectedProduct = do
+            firstValue <- runExactKernel first (fst productInput)
+            secondValue <- runExactKernel second (snd productInput)
+            pure (firstValue, secondValue)
+        expectedFanout = do
+            firstValue <- runExactKernel first 2
+            secondValue <- runExactKernel second 2
+            pure (firstValue, secondValue)
+    assert "exact kernel Arrow product changed" (runExactKernel arrowProduct productInput == expectedProduct)
+    assert "exact kernel Arrow fanout changed" (runExactKernel arrowFanout 2 == expectedFanout)
+    assert
+        "exact kernel ArrowChoice changed a selected branch"
+        (runExactKernel arrowChoice (Left 2 :: Either Integer Integer) == fmap Left (runExactKernel first 2))
+    assert
+        "exact kernel ArrowChoice changed an unselected branch"
+        (runExactKernel arrowChoice (Right 3 :: Either Integer Integer) == exactDirac (Right 3))
 
 testFloatingObjectives :: IO ()
 testFloatingObjectives = do
