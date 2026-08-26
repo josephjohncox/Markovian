@@ -6,11 +6,11 @@ Read this file, `TODO.md`, and the relevant architecture and decision sections b
 
 Markovian is a greenfield experimental Haskell package for finite stochastic kernels and decision models. It has no compatibility commitment and no external users. Incorrect interfaces are removed rather than preserved.
 
-The library exposes validated floating and exact probability, reward, objective, kernel, MRP, MDP, policy, sampling, trace, finite-compilation, and tabular-learning modules. Exact interpreters provide direct bounded expectation, trace enumeration, finite-horizon dynamic programming, and contraction Bellman policy evaluation. Sampled evaluation and episodic Q-learning receive and return explicit generator state. The semantic core depends only on `base`.
+The core library exposes validated floating and exact probability, reward, objective, kernel, MRP, MDP, policy, sampling, trace, finite-compilation, tabular-learning, exact POMDP, categorical IR, and dense CPU modules. Exact interpreters provide direct bounded expectation, trace enumeration, finite-horizon dynamic programming, contraction Bellman policy evaluation, filtering, and bounded belief planning. Sampled evaluation and episodic Q-learning receive and return explicit generator state. Separate GPU and neural packages depend on no semantic-core runtime framework.
 
 The package does not contain the former branch-weight process, recursive `MDPF`, or Q-learning implementation. `app/Sample/Main.hs` demonstrates the exact finite-horizon evaluator.
 
-`test/Main.hs` contains twenty-eight deterministic semantic, law, closure, sampling, compilation, solver, learning, trace, and interpreter contracts. GHC 9.4.8 and 9.8.4 pass project-scoped `-Werror`, source checks, package checks, warning-free Haddock, lower-bound resolution, and unpacked source-distribution tests. The complete greenfield hosted run passed at <https://github.com/josephjohncox/Markovian/actions/runs/32920753099>.
+`test/Main.hs` contains thirty-two deterministic semantic, law, closure, sampling, compilation, solver, learning, POMDP, categorical, CPU-lowering, trace, and interpreter contracts. Separate GPU and neural package tests cover disabled-backend behavior, actual CUDA differential execution, stable softmax, analytic gradients, and approximation error. GHC 9.4.8 and 9.8.4 pass project-scoped `-Werror`, source checks, package checks, warning-free Haddock, lower-bound resolution, and unpacked source-distribution tests. The complete greenfield hosted run passed at <https://github.com/josephjohncox/Markovian/actions/runs/32920753099>.
 
 ## Resolved defects
 
@@ -29,6 +29,9 @@ The package does not contain the former branch-weight process, recursive `MDPF`,
 | K-018 | Added unbiased rational categorical selection so fixed-width unit-interval sampling cannot make positive exposed support unreachable. |
 | K-019 | Added exhaustive finite compilation so duplicate indexes and transitions to unindexed successors fail before iterative solvers run. |
 | K-020 | Replaced hidden, partial, unbounded learning behavior with validated Q-values, pure terminal-aware updates, bounded episodes, and explicit generator state. |
+| K-021 | Made observation timing explicit and added structured zero-evidence and mixed-belief errors instead of unchecked belief normalization. |
+| K-022 | Added typed categorical syntax and explicit copy semantics so compiler rewrites cannot equate one shared draw with two independent draws. |
+| K-023 | Added dense CPU, actual CUDA, and neural contract packages outside the semantic core with differential and normalization evidence. |
 
 ## Semantic vocabulary
 
@@ -70,7 +73,7 @@ The package does not contain the former branch-weight process, recursive `MDPF`,
 
 ## Next task
 
-P5.1 is `NEXT`: define post-transition observation timing and validated exact finite beliefs with structured zero-evidence errors.
+All roadmap phases P0 through P6 are `DONE`. Further work must enter through an admission gate with a concrete use case, law or approximation contract, and required benchmark evidence.
 
 ## Instructions for future agents
 

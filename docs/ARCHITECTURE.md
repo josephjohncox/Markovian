@@ -16,7 +16,7 @@ The project does not put tensors, devices, autodiff, neural networks, or samplin
 
 ### 1.1 Implemented boundary
 
-The semantic core currently contains:
+The root package currently contains:
 
 - Opaque `Double`-backed `Prob`, `Weight`, `FiniteDist`, and `Reward` values.
 - Separate `Rational`-backed exact probability, distribution, reward, and discount values.
@@ -34,8 +34,11 @@ The semantic core currently contains:
 - Exact finite-horizon dynamic programming over compiled policy models.
 - Exact discounted Bellman policy evaluation with sup-norm stopping bounds.
 - Validated tabular Q-values, schedules, pure updates, and bounded seeded episodes.
+- Canonical exact finite beliefs, post-transition filtering, and bounded belief planning.
+- Typed exact finite categorical syntax with explicit copy and independent tensor.
+- Dense row-major rational CPU lowering with exact denotational differential tests.
 
-The current `FiniteDist` constructor preserves labeled duplicate entries. It removes input zero weights and positive weights whose normalized `Double` mass rounds to zero. Floating constructors canonicalize negative zero. POMDPs, categorical IRs, array lowering, and accelerated backends remain unimplemented.
+The current `FiniteDist` constructor preserves labeled duplicate entries. It removes input zero weights and positive weights whose normalized `Double` mass rounds to zero. Floating constructors canonicalize negative zero. Optional CUDA execution and neural categorical contracts live in separate backend packages.
 
 ## 2. Architecture principles
 
@@ -341,9 +344,11 @@ A POMDP adds:
 
 A belief update conditions the predicted belief on an observation. It returns a structured zero-evidence error when the normalizing mass is zero.
 
-The public POMDP interface must state whether the observation occurs before or after the transition. The target default observes after the transition.
+The public exact POMDP interface observes after the transition. Prediction first marginalizes the latent transition. Conditioning then multiplies the predicted belief by the action-and-successor observation likelihood. An impossible observation returns `ImpossibleExactObservation` rather than normalizing zero evidence.
 
-A belief-state MDP is an interpreter construction. It is not the definition of a POMDP.
+Exact beliefs aggregate duplicate latent states and normalize rational mass. Bounded belief planning requires each positive-mass continuing state to share the selected action. It rejects beliefs mixing terminal and continuing states. Terminal beliefs return the expected terminal payoff before the horizon boundary.
+
+A belief-state planner is an interpreter construction. It is not the definition of a POMDP.
 
 ## 7. Cyclic systems and fixed points
 
@@ -464,6 +469,8 @@ An interpreter can cache or compile a model. The cache and compiler are not part
 The implementation uses these boundaries. Entries marked "later" are not implemented:
 
 ```text
+Markovian.Backend.CPU.Exact dense rational CPU lowering
+Markovian.Category.Finite.Exact typed exact categorical syntax and denotation
 Markovian.Compile.Exact     validated finite indexes and exact policy compilation
 Markovian.Probability       opaque floating probability and distribution types
 Markovian.Probability.Exact exact rational probability and distribution types
@@ -479,7 +486,8 @@ Markovian.MDP               MDP, unique action ID, and outcome interfaces
 Markovian.MDP.Exact         exact MDP, status, outcome, and model errors
 Markovian.Policy            floating policy validation and fallible closure
 Markovian.Policy.Exact      exact policy, support validation, and closure
-Markovian.POMDP             later finite POMDP interface
+Markovian.POMDP.Exact       exact beliefs and post-transition filtering
+Markovian.POMDP.Planning.Exact bounded exact belief-policy evaluation
 Markovian.Sampling          explicit generator and finite categorical sampling
 Markovian.Trace             generic action-labeled bounded traces
 Markovian.Interpreter.Exact bounded exact expectation and trace enumeration
@@ -494,9 +502,9 @@ Internal representations use `Markovian.Internal.*`. The package does not expose
 
 Learning modules depend on model and interpreter modules. Model modules do not depend on learning modules. Applications contain examples only. Tests contain executable contracts.
 
-### 11.2 Future package map
+### 11.2 Package map
 
-Split packages only when dependency or release pressure justifies the cost.
+The semantic implementation remains in the root package while hardware and framework contracts use separate packages.
 
 ```text
 markovian-core              semantic values, finite kernels, models, policies
@@ -505,7 +513,9 @@ markovian-learning          tabular learning algorithms
 markovian-pomdp             POMDP filtering and planning
 markovian-continuous        experimental continuous kernels
 markovian-compiler          typed categorical IR and lowering
-markovian-hasktorch         neural and GPU backend
+markovian-gpu               optional CUDA driver backend (implemented)
+markovian-neural            framework-independent neural contracts (implemented)
+markovian-hasktorch         possible future tensor-framework adapter
 markovian-accelerate        batched finite array backend
 markovian-monad-bayes       optional sampling adapter
 markovian-horde-ad          research autodiff backend
@@ -541,7 +551,7 @@ A backend report must distinguish:
 - Equality in distribution.
 - Approximate numeric agreement.
 
-GPU benchmarks include compilation, host-to-device transfer, device execution, and device-to-host transfer. Reports must not quote kernel time as total application time.
+The optional `markovian-gpu` package lowers row-major `Double` matrices through the CUDA driver API. Its package flag is off by default. The enabled path loads committed PTX, creates a context, transfers inputs, launches a dense kernel, transfers output, and releases resources. The reported duration includes every one of those operations. The local NVIDIA GB10 differential test has zero observed error on the scripted fixture, and the 256-by-256 transfer-inclusive benchmark reports `295.110287 ms` mean over 20 runs.
 
 Autodiff belongs to a backend. A gradient of an expectation needs assumptions that justify differentiation under the expectation.
 
@@ -567,31 +577,28 @@ Every neural backend must define:
 - Device precision and reproducibility.
 - Failure behavior for NaN, infinity, or invalid support.
 
+The `markovian-neural` package implements stable-softmax normalization, the analytic softmax Jacobian, a score-function estimator contract with an explicit baseline flag, and max-norm comparison with exact rational categorical masses. It rejects empty, non-finite, out-of-range, and shape-mismatched values. It selects no tensor or autodiff framework.
+
 Training APIs come after these denotations and error contracts.
 
 ## 14. Categorical compiler IR
 
-D-009 defers compiler implementation. D-018 is only proposed and authorizes no work.
+D-035 supersedes the compiler deferral in D-009 and the unaccepted proposal in D-018 for the exact finite fragment.
 
-An accepted D-018 must supersede D-009 for compiler IR work. The target below applies only after that gate.
+The implemented source and target category has duplicate-free finite objects and exact finite stochastic kernels. Typed syntax contains identity, primitive kernels, composition, tensor, copy, and discard. Exact denotation canonicalizes output mass in target-object order.
 
-A compiler is optional and follows stable model semantics.
-
-The source language should be a typed free syntax with explicit primitives. The IR should preserve:
+The typed source syntax preserves:
 
 - Identity.
 - Composition.
 - Tensor product.
 - Copy.
 - Discard.
-- Deterministic functions.
-- Named kernel application.
-- Explicit sample binding.
-- Reward and trace annotations where required.
+- Validated exact primitive kernels, including deterministic Dirac kernels.
 
-Use an administrative-normal form or typed SSA form to make sample sharing explicit. One binding copied twice means one random draw. Two kernel applications mean two random draws.
+A stochastic expression followed by `copyExactIR` performs one draw and returns a diagonal pair. Copying the unit input and tensoring two stochastic expressions performs two independent draws. Tests prove these denotations differ.
 
-Backends interpret the same IR into exact finite, sampling, matrix, or tensor programs. Unsupported primitives produce typed compile errors.
+The dense CPU backend lowers exact denotation into a source-by-target rational matrix. The optional CUDA package executes floating dense matrices after explicit conversion at the backend boundary. Unsupported future primitives require typed compile errors.
 
 Compiler tests must check structure preservation and observational equivalence. Optimizer tests must include random-sharing counterexamples.
 
@@ -660,7 +667,7 @@ These are candidates, not current dependencies. A recommendation does not author
 
 | Package | Recommendation | Boundary | Source |
 | --- | --- | --- | --- |
-| Hasktorch | Primary neural and GPU candidate | Separate neural backend | [Hackage](https://hackage.haskell.org/package/hasktorch) and [source repository](https://github.com/hasktorch/hasktorch) |
+| Hasktorch | Possible future tensor-framework adapter | Separate neural backend | [Hackage](https://hackage.haskell.org/package/hasktorch) and [source repository](https://github.com/hasktorch/hasktorch) |
 | Accelerate | Candidate for batched finite array work | Separate array backend | [Hackage](https://hackage.haskell.org/package/accelerate) and [source repository](https://github.com/AccelerateHS/accelerate) |
 | monad-bayes | Optional sampling interpreter | Adapter outside the core | [Hackage](https://hackage.haskell.org/package/monad-bayes) and [source repository](https://github.com/tweag/monad-bayes) |
 | horde-ad | Research autodiff backend | Experimental package | [Hackage](https://hackage.haskell.org/package/horde-ad) and [source repository](https://github.com/Mikolaj/horde-ad) |
@@ -726,8 +733,10 @@ CI also needs these gates after bootstrap:
 
 ```sh
 hlint src
-fourmolu --mode check $(git ls-files '*.hs' '*.lhs')
-cabal-fmt --check Markovian.cabal
+fourmolu --mode check $(git ls-files '*.hs')
+cabal-fmt --check Markovian.cabal \
+  backends/markovian-gpu/markovian-gpu.cabal \
+  backends/markovian-neural/markovian-neural.cabal
 cabal build all --prefer-oldest --project-file=cabal.project.ci
 cabal test all --prefer-oldest --project-file=cabal.project.ci
 cabal haddock all --project-file=cabal.project.ci \

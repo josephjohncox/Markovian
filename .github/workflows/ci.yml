@@ -79,26 +79,23 @@ jobs:
           set -euo pipefail
           rm -rf sdist sdist-unpacked
           mkdir sdist sdist-unpacked
-          cabal sdist --output-directory=sdist
+          cabal sdist all --output-directory=sdist
           tarball_count="$(
             find sdist -maxdepth 1 -type f -name '*.tar.gz' | wc -l
           )"
-          test "${tarball_count}" -eq 1
-          tarball="$(
-            find sdist -maxdepth 1 -type f -name '*.tar.gz' -print -quit
-          )"
-          tar -xzf "${tarball}" -C sdist-unpacked
-          source_root="$(
-            find sdist-unpacked -mindepth 1 -maxdepth 1 -type d -print -quit
-          )"
-          test -n "${source_root}"
-          (
-            cd "${source_root}"
-            cabal build all --project-file=cabal.project.ci
-            cabal test all \
-              --project-file=cabal.project.ci \
-              --test-show-details=direct
-          )
+          test "${tarball_count}" -eq 3
+          for tarball in sdist/*.tar.gz; do
+            package_name="$(basename "${tarball}" .tar.gz)"
+            package_root="sdist-unpacked/${package_name}"
+            mkdir -p "${package_root}"
+            tar -xzf "${tarball}" -C "${package_root}" --strip-components=1
+            (
+              cd "${package_root}"
+              rm -f cabal.project cabal.project.local
+              cabal build all
+              cabal test all --test-show-details=direct
+            )
+          done
 
   lower-bounds:
     name: Lower bounds
@@ -209,8 +206,14 @@ jobs:
             "${MARKOVIAN_CABAL_FMT_VERSION}"
           hlint --version | head -1 \
             | grep -F "HLint v${MARKOVIAN_HLINT_VERSION}"
-          hlint src
-          find src app test -type f -name '*.hs' -print0 \
+          hlint src backends/*/src
+          bash -n \
+            scripts/bootstrap-tools \
+            backends/markovian-gpu/scripts/build-ptx
+          find src app test backends -type f -name '*.hs' -print0 \
             | sort -z \
             | xargs -0 fourmolu --mode check
-          cabal-fmt --check Markovian.cabal
+          cabal-fmt --check \
+            Markovian.cabal \
+            backends/markovian-gpu/markovian-gpu.cabal \
+            backends/markovian-neural/markovian-neural.cabal

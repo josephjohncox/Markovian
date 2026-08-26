@@ -76,23 +76,28 @@ P4 gate: `DONE`. Learning behavior is explicit, bounded, seeded, and compared wi
 
 ## P5: POMDPs
 
-- [ ] **P5.1 `NEXT` Define observation timing and exact finite beliefs.**
+- [x] **P5.1 Define observation timing and exact finite beliefs.**
   - Default to observing after transition.
   - Reject zero-evidence conditioning with a structured error.
-- [ ] **P5.2 Add exact finite filtering.**
+- [x] **P5.2 Add exact finite filtering.**
   - Test prediction, conditioning, normalization, and impossible observations.
-- [ ] **P5.3 Add belief-state planning only after filtering laws pass.**
+- [x] **P5.3 Add belief-state planning only after filtering laws pass.**
+
+P5 gate: `DONE`. Prediction, post-transition conditioning, impossible observations, normalization, and bounded belief planning pass exact deterministic fixtures.
 
 ## P6: Compiler and accelerated backends
 
-- [ ] **P6.1 Define a typed finite categorical IR.**
+- [x] **P6.1 Define a typed finite categorical IR.**
   - State source and target categories and preservation laws.
   - Cover shared-draw counterexamples before adding rewrites.
-- [ ] **P6.2 Add CPU array lowering.**
+- [x] **P6.2 Add CPU array lowering.**
   - Define indexing, shapes, precision, sparse/dense policy, and RNG semantics.
-- [ ] **P6.3 Add GPU and neural packages outside the semantic core.**
+- [x] **P6.3 Add GPU and neural packages outside the semantic core.**
   - Require CPU/GPU differential tests and transfer-inclusive benchmarks.
   - Define approximation, normalization, gradient, and estimator assumptions.
+  - Local CUDA evidence on NVIDIA GB10: CPU/GPU differential error `0.000e0`; transfer-inclusive 256-by-256 mean `295.110287 ms` over 20 runs.
+
+P6 gate: `DONE`. Exact IR laws, shared-draw counterexamples, dense CPU differential tests, actual CUDA differential execution, transfer-inclusive benchmarking, and neural normalization and gradient contracts pass.
 
 ## Admission gates
 

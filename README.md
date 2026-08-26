@@ -19,9 +19,23 @@ The package is greenfield and unreleased. It makes no compatibility promise. Inc
 - exact finite-horizon dynamic programming and discounted Bellman policy evaluation;
 - validated tabular Q-values, constant schedules, and pure terminal-aware updates;
 - seeded bounded epsilon-greedy episodic Q-learning with deterministic traces;
+- canonical exact finite beliefs with post-transition prediction and conditioning;
+- exact bounded belief-state policy evaluation with mixed-termination rejection;
+- typed exact finite categorical IR with explicit copy, discard, composition, and tensor;
+- dense rational CPU lowering with denotational differential tests;
 - structured model, policy, sampling, compilation, solver, arithmetic, normalization, and conditioning errors.
 
-The semantic core depends only on `base`. Sampling frameworks, tensors, GPU runtimes, autodiff, and neural libraries remain outside the core.
+The semantic core depends only on `base`. GPU runtimes and neural contracts remain outside it in separate packages:
+
+- `backends/markovian-gpu` provides an optional CUDA 13 driver backend, CPU/GPU differential tests, and a transfer-inclusive benchmark;
+- `backends/markovian-neural` provides stable-softmax normalization, analytic Jacobian, score-function estimator, and approximation contracts without selecting a tensor framework.
+
+The CUDA package flag is disabled by default so ordinary builds require no GPU toolkit. On a CUDA host, run:
+
+```sh
+cabal test markovian-gpu-test --project-file=cabal.project -fcuda --test-show-details=direct
+cabal bench markovian-gpu-bench --project-file=cabal.project -fcuda
+```
 
 ## Example
 
@@ -45,8 +59,10 @@ cabal haddock all --project-file=cabal.project.ci --haddock-all --haddock-hyperl
 cabal build all --project-file=cabal.project.ci --prefer-oldest
 cabal test all --project-file=cabal.project.ci --prefer-oldest
 hlint src
-fourmolu --mode check $(find src app test -type f -name '*.hs')
-cabal-fmt --check Markovian.cabal
+fourmolu --mode check $(find src app test backends -type f -name '*.hs')
+cabal-fmt --check Markovian.cabal \
+  backends/markovian-gpu/markovian-gpu.cabal \
+  backends/markovian-neural/markovian-neural.cabal
 ```
 
 CI also builds and tests the unpacked source distribution.

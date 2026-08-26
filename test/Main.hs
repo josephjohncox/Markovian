@@ -2,6 +2,26 @@ module Main (main) where
 
 import Data.List.NonEmpty qualified as NonEmpty
 import Data.Ratio ((%))
+import Markovian.Backend.CPU.Exact (
+    DenseExactLoweringError (..),
+    denseExactRows,
+    denseExactShape,
+    lowerExactIR,
+    runDenseExactKernel,
+ )
+import Markovian.Category.Finite.Exact (
+    ExactIRExecutionError (..),
+    ExactIRValidationError (..),
+    FiniteObjectError (..),
+    composeExactIR,
+    copyExactIR,
+    denoteExactIR,
+    discardExactIR,
+    finiteObject,
+    identityExactIR,
+    primitiveExactIR,
+    tensorExactIR,
+ )
 import Markovian.Compile.Exact (
     CompiledExactOutcome (..),
     CompiledExactStep (..),
@@ -135,6 +155,23 @@ import Markovian.Objective.Exact (
     mkExactContractionDiscount,
     mkExactDiscount,
  )
+import Markovian.POMDP.Exact (
+    ExactFilteringError (..),
+    ObservationTiming (..),
+    conditionExactBelief,
+    exactBelief,
+    exactBeliefOutcomes,
+    exactObservationTiming,
+    exactPOMDP,
+    filterExactBelief,
+    predictExactBelief,
+ )
+import Markovian.POMDP.Planning.Exact (
+    ExactBeliefPlanningError (..),
+    exactBeliefPolicy,
+    expectedExactBeliefReturn,
+    expectedExactBeliefReturnFrom,
+ )
 import Markovian.Policy (
     ConditionalRewardError (..),
     PolicyError (..),
@@ -219,6 +256,10 @@ main = do
     run "exact discounted Bellman fixed point" testExactBellmanFixedPoint
     run "Q-learning values and pure update" testPureQUpdate
     run "seeded bounded episodic Q-learning" testEpisodicQLearning
+    run "exact POMDP prediction and filtering" testExactPOMDPFiltering
+    run "exact finite-horizon belief planning" testExactBeliefPlanning
+    run "typed exact categorical IR laws and shared draws" testExactCategoricalIR
+    run "dense exact CPU lowering" testDenseExactLowering
     run "exact probability and reward values" testExactValues
     run "exact finite distribution functor laws" testExactFunctorLaws
     run "exact kernel Kleisli laws" testExactKernelLaws
@@ -1226,6 +1267,293 @@ testEpisodicQLearning = do
         Left (EpisodicModelError EmptyActionSupport) -> pure ()
         result -> failTest ("episodic learner did not retain model error: " ++ show result)
 
+testExactPOMDPFiltering :: IO ()
+testExactPOMDPFiltering = do
+    prior <-
+        requireRight
+            "exact duplicate-state belief"
+            (exactBelief [(BeliefLeft, 1), (BeliefLeft, 1), (BeliefRight, 2)])
+    leftTransition <-
+        requireRight
+            "left latent transition"
+            ( exactFiniteDist
+                [ (exactTransitionOutcome (exactReward 0) BeliefLeft, 3)
+                , (exactTransitionOutcome (exactReward 0) BeliefRight, 1)
+                ]
+            )
+    rightTransition <-
+        requireRight
+            "right latent transition"
+            ( exactFiniteDist
+                [ (exactTransitionOutcome (exactReward 0) BeliefLeft, 1)
+                , (exactTransitionOutcome (exactReward 0) BeliefRight, 1)
+                ]
+            )
+    leftObservations <-
+        requireRight "left observations" (exactFiniteDist [(ObservedRed, 4), (ObservedBlue, 1)])
+    rightObservations <-
+        requireRight "right observations" (exactFiniteDist [(ObservedRed, 1), (ObservedBlue, 4)])
+    let observeAction = actionId BeliefObserve
+        missingAction = actionId BeliefMissing
+        model :: ExactMDP BeliefState BeliefAction
+        model =
+            exactMDP
+                BeliefLeft
+                (const ExactContinuing)
+                (const [observeAction])
+                ( exactKernel
+                    ( \(state, _) ->
+                        case state of
+                            BeliefLeft -> leftTransition
+                            BeliefRight -> rightTransition
+                    )
+                )
+        observationKernel _ state =
+            case state of
+                BeliefLeft -> leftObservations
+                BeliefRight -> rightObservations
+        pomdp = exactPOMDP model prior observationKernel
+    assert "exact POMDP observation timing changed" (exactObservationTiming pomdp == ObserveAfterTransition)
+    assert "exact belief did not aggregate duplicate states" (beliefMass BeliefLeft prior == 1 % 2)
+    assert "exact initial belief did not normalize" (sumBelief prior == 1)
+
+    predicted <- requireRight "exact belief prediction" (predictExactBelief pomdp observeAction prior)
+    assert "predicted left mass changed" (beliefMass BeliefLeft predicted == 5 % 8)
+    assert "predicted right mass changed" (beliefMass BeliefRight predicted == 3 % 8)
+    assert "predicted belief did not normalize" (sumBelief predicted == 1)
+
+    conditioned <- requireRight "exact belief conditioning" (conditionExactBelief pomdp observeAction ObservedRed predicted)
+    assert "conditioned left mass changed" (beliefMass BeliefLeft conditioned == 20 % 23)
+    assert "conditioned right mass changed" (beliefMass BeliefRight conditioned == 3 % 23)
+    assert "conditioned belief did not normalize" (sumBelief conditioned == 1)
+    filtered <- requireRight "exact one-step filtering" (filterExactBelief pomdp observeAction ObservedRed prior)
+    assert "filtering differs from prediction followed by conditioning" (filtered == conditioned)
+
+    case conditionExactBelief pomdp observeAction ObservedImpossible predicted of
+        Left (ImpossibleExactObservation ObservedImpossible) -> pure ()
+        result -> failTest ("impossible exact observation was not rejected: " ++ show result)
+    case predictExactBelief pomdp missingAction prior of
+        Left (ExactFilteringModelError BeliefLeft (ExactUnavailableAction unavailable)) ->
+            assert "filtering unavailable action changed" (unavailable == missingAction)
+        result -> failTest ("filtering model error was not retained: " ++ show result)
+  where
+    beliefMass requested belief =
+        sum
+            [ exactProbability mass
+            | (state, mass) <- NonEmpty.toList (exactBeliefOutcomes belief)
+            , state == requested
+            ]
+    sumBelief belief =
+        sum
+            [ exactProbability mass
+            | (_, mass) <- NonEmpty.toList (exactBeliefOutcomes belief)
+            ]
+
+testExactBeliefPlanning :: IO ()
+testExactBeliefPlanning = do
+    objective <- makeExactObjective 1 (1 % 2)
+    zeroObjective <- makeExactObjective 0 (1 % 2)
+    prior <-
+        requireRight
+            "planning initial belief"
+            (exactBelief [(PlanStartLeft, 1), (PlanStartRight, 1)])
+    terminalBelief <-
+        requireRight
+            "planning terminal belief"
+            (exactBelief [(PlanTerminalLeft, 1), (PlanTerminalRight, 1)])
+    mixedBelief <-
+        requireRight
+            "planning mixed belief"
+            (exactBelief [(PlanStartLeft, 1), (PlanTerminalLeft, 1)])
+    let selectedAction = actionId PlanObserve
+        otherAction = actionId PlanOther
+        status state =
+            case state of
+                PlanTerminalLeft -> ExactTerminal (exactReward 6)
+                PlanTerminalRight -> ExactTerminal (exactReward 10)
+                _ -> ExactContinuing
+        available state =
+            case state of
+                PlanStartLeft -> [selectedAction]
+                PlanStartRight -> [selectedAction]
+                _ -> []
+        transition (state, _) =
+            case state of
+                PlanStartLeft -> exactDirac (exactTransitionOutcome (exactReward 2) PlanTerminalLeft)
+                PlanStartRight -> exactDirac (exactTransitionOutcome (exactReward 4) PlanTerminalRight)
+                _ -> error "terminal latent transition was evaluated"
+        model :: ExactMDP PlanningState PlanningAction
+        model = exactMDP PlanStartLeft status available (exactKernel transition)
+        observations _ state =
+            case state of
+                PlanTerminalLeft -> exactDirac ObservedRed
+                PlanTerminalRight -> exactDirac ObservedBlue
+                _ -> exactDirac ObservedImpossible
+        pomdp = exactPOMDP model prior observations
+        selectedPolicy =
+            exactBeliefPolicy
+                (exactKernel (\belief -> if belief == terminalBelief then error "terminal belief policy was evaluated" else exactDirac selectedAction))
+    planned <- requireRight "exact finite-horizon belief planning" (expectedExactBeliefReturn objective pomdp selectedPolicy)
+    assert "exact belief-planning return changed" (exactRewardValue planned == 7)
+    horizonZero <-
+        requireRight
+            "continuing belief horizon zero"
+            (expectedExactBeliefReturnFrom zeroObjective pomdp selectedPolicy prior)
+    assert "continuing belief horizon zero changed" (exactRewardValue horizonZero == 0)
+    let horizonOnlyModel :: ExactMDP PlanningState PlanningAction
+        horizonOnlyModel =
+            exactMDP
+                PlanStartLeft
+                (const ExactContinuing)
+                (\_ -> error "horizon-zero belief action support was evaluated")
+                (exactKernel (\_ -> error "horizon-zero belief transition was evaluated"))
+        horizonOnlyPOMDP = exactPOMDP horizonOnlyModel prior observations
+    horizonOnly <-
+        requireRight
+            "belief horizon zero without action inspection"
+            (expectedExactBeliefReturnFrom zeroObjective horizonOnlyPOMDP selectedPolicy prior)
+    assert "belief horizon zero without actions changed" (exactRewardValue horizonOnly == 0)
+    terminalValue <-
+        requireRight
+            "terminal belief value"
+            (expectedExactBeliefReturnFrom zeroObjective pomdp selectedPolicy terminalBelief)
+    assert "terminal belief payoff expectation changed" (exactRewardValue terminalValue == 8)
+
+    case expectedExactBeliefReturnFrom objective pomdp selectedPolicy mixedBelief of
+        Left MixedBeliefTermination -> pure ()
+        result -> failTest ("mixed terminal and continuing belief was not rejected: " ++ show result)
+
+    let unavailablePolicy = exactBeliefPolicy (exactKernel (const (exactDirac otherAction)))
+    case expectedExactBeliefReturn objective pomdp unavailablePolicy of
+        Left (ExactBeliefPlanningPolicyError (ExactPolicyUnavailableAction unavailable)) ->
+            assert "belief-planning unavailable action changed" (unavailable == otherAction)
+        result -> failTest ("belief-planning policy error was not retained: " ++ show result)
+
+    let disjointAvailable state =
+            case state of
+                PlanStartLeft -> [selectedAction]
+                PlanStartRight -> [otherAction]
+                _ -> []
+        disjointModel = exactMDP PlanStartLeft status disjointAvailable (exactKernel transition)
+        disjointPOMDP = exactPOMDP disjointModel prior observations
+    case expectedExactBeliefReturn objective disjointPOMDP selectedPolicy of
+        Left NoCommonBeliefAction -> pure ()
+        result -> failTest ("belief without a common action was not rejected: " ++ show result)
+
+testExactCategoricalIR :: IO ()
+testExactCategoricalIR = do
+    case finiteObject ([] :: [Bool]) of
+        Left EmptyFiniteObject -> pure ()
+        result -> failTest ("empty categorical object was not rejected: " ++ show result)
+    case finiteObject [False, False] of
+        Left (DuplicateFiniteObjectValue False) -> pure ()
+        result -> failTest ("duplicate categorical object value was not rejected: " ++ show result)
+
+    unitObject <- requireRight "categorical unit object" (finiteObject [()])
+    boolObject <- requireRight "categorical Boolean object" (finiteObject [False, True])
+    falseObject <- requireRight "categorical singleton object" (finiteObject [False])
+    coinDistribution <- requireRight "categorical coin" (exactFiniteDist [(False, 1), (True, 1)])
+    coin <- requireRight "categorical coin primitive" (primitiveExactIR unitObject boolObject (const coinDistribution))
+    booleanNot <-
+        requireRight
+            "categorical not primitive"
+            (primitiveExactIR boolObject boolObject (exactDirac . not))
+
+    case primitiveExactIR unitObject falseObject (const (exactDirac True)) of
+        Left (ExactIROutputOutsideTarget True) -> pure ()
+        _ -> failTest "categorical primitive accepted output outside its target"
+    case composeExactIR (identityExactIR boolObject) (identityExactIR falseObject) of
+        Left ExactIRCompositionObjectMismatch -> pure ()
+        _ -> failTest "categorical composition accepted mismatched middle objects"
+    case denoteExactIR (identityExactIR falseObject) True of
+        Left ExactIRInputOutsideSource -> pure ()
+        _ -> failTest "categorical denotation accepted input outside its source"
+
+    leftIdentity <- requireRight "categorical left identity" (composeExactIR (identityExactIR unitObject) coin)
+    rightIdentity <- requireRight "categorical right identity" (composeExactIR coin (identityExactIR boolObject))
+    directCoin <- requireRight "direct categorical coin" (denoteExactIR coin ())
+    leftCoin <- requireRight "left-identity categorical coin" (denoteExactIR leftIdentity ())
+    rightCoin <- requireRight "right-identity categorical coin" (denoteExactIR rightIdentity ())
+    assert "categorical left identity law failed" (leftCoin == directCoin)
+    assert "categorical right identity law failed" (rightCoin == directCoin)
+
+    coinThenNot <- requireRight "coin then not" (composeExactIR coin booleanNot)
+    leftAssociated <- requireRight "left-associated categorical expression" (composeExactIR coinThenNot (copyExactIR boolObject))
+    notThenCopy <- requireRight "not then copy" (composeExactIR booleanNot (copyExactIR boolObject))
+    rightAssociated <- requireRight "right-associated categorical expression" (composeExactIR coin notThenCopy)
+    leftResult <- requireRight "left-associated denotation" (denoteExactIR leftAssociated ())
+    rightResult <- requireRight "right-associated denotation" (denoteExactIR rightAssociated ())
+    assert "categorical composition associativity failed" (leftResult == rightResult)
+
+    correlatedExpression <- requireRight "shared categorical draw" (composeExactIR coin (copyExactIR boolObject))
+    let independentPair = tensorExactIR coin coin
+    independentExpression <- requireRight "independent categorical draws" (composeExactIR (copyExactIR unitObject) independentPair)
+    correlated <- requireRight "shared-draw denotation" (denoteExactIR correlatedExpression ())
+    independent <- requireRight "independent-draw denotation" (denoteExactIR independentExpression ())
+    let correlatedLabels = fmap fst (NonEmpty.toList (exactOutcomes correlated))
+        independentLabels = fmap fst (NonEmpty.toList (exactOutcomes independent))
+    assert "shared draw must produce only diagonal pairs" (correlatedLabels == [(False, False), (True, True)])
+    assert "independent draws must produce four pairs" (length independentLabels == 4)
+    assert "copying one draw was equated with executing two draws" (correlated /= independent)
+
+    discardedExpression <- requireRight "categorical discard" (composeExactIR coin (discardExactIR boolObject))
+    discarded <- requireRight "categorical discard denotation" (denoteExactIR discardedExpression ())
+    assert "categorical discard did not produce unit" (discarded == exactDirac ())
+
+    let pairIdentity = tensorExactIR (identityExactIR boolObject) (identityExactIR boolObject)
+    pairResult <- requireRight "categorical tensor identity" (denoteExactIR pairIdentity (False, True))
+    assert "categorical tensor identity changed its input" (pairResult == exactDirac (False, True))
+
+testDenseExactLowering :: IO ()
+testDenseExactLowering = do
+    unitObject <- requireRight "dense unit object" (finiteObject [()])
+    boolObject <- requireRight "dense Boolean object" (finiteObject [False, True])
+    falseObject <- requireRight "dense singleton object" (finiteObject [False])
+    coinDistribution <- requireRight "dense coin distribution" (exactFiniteDist [(False, 1), (True, 1)])
+    coin <- requireRight "dense coin primitive" (primitiveExactIR unitObject boolObject (const coinDistribution))
+    booleanNot <-
+        requireRight
+            "dense not primitive"
+            (primitiveExactIR boolObject boolObject (exactDirac . not))
+
+    identityDense <- requireRight "dense identity lowering" (lowerExactIR (identityExactIR boolObject))
+    assert "dense identity shape changed" (denseExactShape identityDense == (2, 2))
+    assert
+        "dense identity rows changed"
+        (fmap NonEmpty.toList (NonEmpty.toList (denseExactRows identityDense)) == [[1, 0], [0, 1]])
+    falseDense <- requireRight "dense identity false" (runDenseExactKernel identityDense False)
+    trueDense <- requireRight "dense identity true" (runDenseExactKernel identityDense True)
+    assert "dense identity false denotation changed" (falseDense == exactDirac False)
+    assert "dense identity true denotation changed" (trueDense == exactDirac True)
+
+    coinThenNot <- requireRight "dense coin composition" (composeExactIR coin booleanNot)
+    denseCoin <- requireRight "dense coin lowering" (lowerExactIR coinThenNot)
+    assert "dense coin shape changed" (denseExactShape denseCoin == (1, 2))
+    assert
+        "dense rational precision changed"
+        (fmap NonEmpty.toList (NonEmpty.toList (denseExactRows denseCoin)) == [[1 % 2, 1 % 2]])
+    denseCoinResult <- requireRight "dense coin execution" (runDenseExactKernel denseCoin ())
+    directCoinResult <- requireRight "direct coin execution" (denoteExactIR coinThenNot ())
+    assert "dense lowering differs from exact IR denotation" (denseCoinResult == directCoinResult)
+
+    correlatedExpression <- requireRight "dense shared draw" (composeExactIR coin (copyExactIR boolObject))
+    independentExpression <-
+        requireRight
+            "dense independent draws"
+            (composeExactIR (copyExactIR unitObject) (tensorExactIR coin coin))
+    correlated <- requireRight "dense shared-draw lowering" (lowerExactIR correlatedExpression)
+    independent <- requireRight "dense independent-draw lowering" (lowerExactIR independentExpression)
+    assert "dense shared-draw shape changed" (denseExactShape correlated == (1, 2))
+    assert "dense independent-draw shape changed" (denseExactShape independent == (1, 4))
+    assert
+        "dense independent-draw row changed"
+        (fmap NonEmpty.toList (NonEmpty.toList (denseExactRows independent)) == [[1 % 4, 1 % 4, 1 % 4, 1 % 4]])
+
+    singletonDense <- requireRight "dense singleton lowering" (lowerExactIR (identityExactIR falseObject))
+    case runDenseExactKernel singletonDense True of
+        Left DenseExactInputOutsideSource -> pure ()
+        result -> failTest ("dense kernel accepted input outside source: " ++ show result)
+
 makeExactObjective :: Integer -> Rational -> IO ExactFiniteObjective
 makeExactObjective rawHorizon rawDiscount = do
     horizon <- requireRight "exact evaluator horizon" (mkHorizon rawHorizon)
@@ -1550,6 +1878,25 @@ data EvalState = EvalStart | EvalTerminal | EvalLoop
     deriving (Eq, Show)
 
 data EvalAction = EvalOnly | EvalLow | EvalHigh | EvalMissing
+    deriving (Eq, Show)
+
+data BeliefState = BeliefLeft | BeliefRight
+    deriving (Eq, Show)
+
+data BeliefAction = BeliefObserve | BeliefMissing
+    deriving (Eq, Show)
+
+data BeliefObservation = ObservedRed | ObservedBlue | ObservedImpossible
+    deriving (Eq, Show)
+
+data PlanningState
+    = PlanStartLeft
+    | PlanStartRight
+    | PlanTerminalLeft
+    | PlanTerminalRight
+    deriving (Eq, Show)
+
+data PlanningAction = PlanObserve | PlanOther
     deriving (Eq, Show)
 
 minimumPositiveDouble :: Double

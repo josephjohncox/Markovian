@@ -366,6 +366,42 @@ The slice can add `Reward`, `Kernel`, `Policy`, and one-step MRP and MDP interfa
 
 **Risk:** List-backed tables and constant schedules are reference implementations. More efficient maps and decaying schedules must preserve key semantics, validation, visit indexing, generator ownership, and deterministic scripted fixtures.
 
+### D-034: Observe after transition and separate exact prediction from conditioning
+
+**Status:** Accepted
+
+**Decision:** The exact POMDP observation kernel maps an action ID and successor latent state to an exact observation distribution. Exact beliefs aggregate duplicate states and normalize rational mass. Filtering predicts the successor belief first and then conditions on the observed value. Zero evidence returns `ImpossibleExactObservation`.
+
+**Rationale:** Observation timing changes the filtering equation and cannot remain implicit. Separate prediction and conditioning permit direct normalization and Bayes-law tests. Canonical belief support prevents duplicate latent labels from making equality and planning depend on representation.
+
+**Consequences:** Bounded belief planning evaluates transition reward before discounted posterior-belief value. Every selected action must be available in all positive-mass continuing states. Beliefs mixing terminal and continuing states are rejected. A fully terminal belief returns its expected terminal payoff before the horizon boundary and without evaluating a policy.
+
+**Risk:** Exact belief recursion can grow exponentially in horizon and observation support. Mixed termination is rejected rather than assigned ad hoc absorbing semantics. Finite belief compilation or approximation requires a separate decision and error contract.
+
+### D-035: Use typed finite exact syntax and distinguish copy from independent tensor
+
+**Status:** Accepted
+
+**Decision:** The implemented categorical fragment has duplicate-free nonempty finite objects and exact finite stochastic kernels. Typed syntax contains identity, validated primitive kernels, composition, tensor, copy, and discard. Denotation canonicalizes equal output labels in target-object order. Tensor samples each side independently; copy duplicates one already-produced value.
+
+**Rationale:** Rewriting one shared stochastic result as two kernel executions changes correlation. Typed source and target objects reject out-of-support primitive outputs and mismatched composition before lowering. Exact rational denotation makes identity, composition, tensor, copy, discard, and shared-draw counterexamples literal tests.
+
+**Consequences:** `Markovian.Category.Finite.Exact` is the accepted exact finite IR. `Markovian.Backend.CPU.Exact` lowers it to a source-by-target row-major rational matrix. Source and target support order defines indexes only; dense execution is differentially tested against exact denotation.
+
+**Risk:** This fragment has no recursive syntax, optimizer, sparse storage, or reward annotations. New primitives require preservation laws and cannot blur shared and independent stochastic execution.
+
+### D-036: Keep CUDA and neural contracts in optional backend packages
+
+**Status:** Accepted
+
+**Decision:** CUDA and neural code live under `backends/` in packages separate from the semantic library. The CUDA flag is disabled by default. When enabled, the package uses the CUDA 13 driver API and committed PTX for dense `Double` execution. The neural package selects no framework; it defines stable softmax, analytic probability gradients, score-function estimator assumptions, and max-norm approximation error.
+
+**Rationale:** Core denotation must not depend on devices, memory transfer, tensor frameworks, autodiff, or estimator choices. A disabled-by-default CUDA flag keeps ordinary and hosted builds portable. Actual GPU evidence must compare with a CPU reference and measure transfers, context setup, kernel execution, and cleanup together.
+
+**Consequences:** The NVIDIA GB10 differential fixture reports zero observed error. A 20-run 256-by-256 benchmark reports a transfer-inclusive mean of `295.110287 ms`; this number is hardware-specific evidence, not a general performance claim. Neural tests cover normalization, logit-shift invariance, analytic Jacobian row sums, explicit estimator choice, invalid values, and exact-reference approximation.
+
+**Risk:** The committed PTX targets CUDA compute capability 12.1 and the enabled package currently expects CUDA headers under `/usr/local/cuda/include`. Hosted CI checks the disabled contract only because its runners have no GPU. Any new device architecture, precision, or framework adapter requires fresh differential tests and transfer-inclusive benchmarks.
+
 ## Proof obligations for advanced work
 
 | Feature | Proof obligation before implementation | Evidence before acceptance |

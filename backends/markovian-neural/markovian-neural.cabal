@@ -1,0 +1,31 @@
+cabal-version: 3.0
+name:          markovian-neural
+version:       0.1.0.0
+synopsis:      Neural categorical contracts for Markovian
+description:
+  Framework-independent softmax, gradient, estimator, and approximation contracts for Markovian adapters.
+
+category:      Math
+license:       BSD-3-Clause
+license-file:  LICENSE
+author:        Joseph Cox
+maintainer:    joseph@codensity.io
+build-type:    Simple
+
+library
+  exposed-modules:  Markovian.Backend.Neural
+  hs-source-dirs:   src
+  build-depends:    base >=4.17.2.1 && <4.20
+  default-language: GHC2021
+  ghc-options:      -Wall
+
+test-suite markovian-neural-test
+  type:             exitcode-stdio-1.0
+  main-is:          Main.lhs
+  hs-source-dirs:   test
+  build-depends:
+    , base              >=4.17.2.1 && <4.20
+    , markovian-neural
+
+  default-language: GHC2021
+  ghc-options:      -Wall

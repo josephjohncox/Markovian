@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+source "${root}/toolchain.env"
+
+actual_version="$(${MARKOVIAN_NVCC} --version | awk '/release/ {gsub(/,/, "", $5); print $5}')"
+if [[ "${actual_version}" != "${MARKOVIAN_CUDA_VERSION}" ]]; then
+  echo "Expected CUDA ${MARKOVIAN_CUDA_VERSION}, found ${actual_version}." >&2
+  exit 1
+fi
+
+"${MARKOVIAN_NVCC}" \
+  -ptx \
+  -arch="compute_${MARKOVIAN_CUDA_COMPUTE_CAPABILITY}" \
+  "${root}/cbits/markovian_dense.cu" \
+  -o "${root}/cbits/markovian_dense.ptx"
+
+python3 - "${root}" <<'PY'
+from pathlib import Path
+import sys
+
+root = Path(sys.argv[1])
+source = (root / "cbits/markovian_dense.ptx").read_text()
+lines = ["static const char markovian_dense_ptx[] ="]
+for line in source.replace("\\", "\\\\").replace('"', '\\"').splitlines():
+    lines.append(f'    "{line}\\n"')
+lines.extend(["    ;", ""])
+(root / "cbits/markovian_dense_ptx.h").write_text("\n".join(lines))
+PY

@@ -157,8 +157,10 @@ Run pinned formatter versions:
 
 ```sh
 hlint src
-fourmolu --mode check $(git ls-files '*.hs' '*.lhs')
-cabal-fmt --check Markovian.cabal
+fourmolu --mode check $(git ls-files '*.hs')
+cabal-fmt --check Markovian.cabal \
+  backends/markovian-gpu/markovian-gpu.cabal \
+  backends/markovian-neural/markovian-neural.cabal
 ```
 
 ### 4.4 Dependency or bounds changes
@@ -338,18 +340,17 @@ Do not use architecture text to hide an unresolved decision. Mark the uncertaint
 3. Correct all affected authorities in one change.
 4. Add a decision when no accepted contract resolves the conflict.
 
-## 10. Exact next workflow
+## 10. Admission workflow
 
-P0 through P4 and the greenfield cleanup are `DONE`. D-023 through D-033 define the verified environment, exact semantics, finite compilation, solvers, and learning contracts. Twenty-eight tests and all completed local gates pass. P5.1 is `NEXT`.
+P0 through P6 and the greenfield cleanup are `DONE`. D-023 through D-036 define the verified semantic, interpreter, solver, learning, POMDP, compiler, CPU, GPU, and neural contracts. Thirty-two core tests and two backend package tests pass. No roadmap item is `NEXT`.
 
-The next writer must use this sequence:
+A new feature must use this sequence:
 
-1. Complete the start gate and read D-008, D-011, D-029, and the POMDP proof obligation.
-2. Define post-transition observation timing in the POMDP interface.
-3. Define exact finite beliefs as validated normalized distributions.
-4. Implement prediction separately from observation conditioning.
-5. Return a structured zero-evidence error for impossible observations.
-6. Test prediction, conditioning, normalization, and filtering laws before planning.
-7. Run both compiler versions and every completed package gate.
+1. Complete the start gate and identify its admission gate in `TODO.md`.
+2. Record the use case, denotation or approximation relation, and failure semantics.
+3. State required laws, differential tests, or estimator assumptions before implementation.
+4. Keep hardware, framework, and runtime dependencies outside the semantic core.
+5. Add deterministic reference evidence before statistical or benchmark evidence.
+6. Run both compiler versions, all three package tests, source distributions, and every applicable backend differential test.
 
-Do not implement belief-state planning until exact filtering laws pass.
+Do not widen the finite semantic core for speculative abstractions without the recorded proof obligation and evidence.
