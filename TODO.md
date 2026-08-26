@@ -21,6 +21,7 @@ Status terms: `DONE`, `NEXT`, `READY`, `BLOCKED`.
   - Removed the ambiguous branch-weight process and defective Q-learning implementation.
   - Removed compatibility adapters, deprecation phases, and third-party dependencies required only by deleted code.
   - Replaced legacy examples and generated changelog text.
+  - Hosted evidence: <https://github.com/josephjohncox/Markovian/actions/runs/32920753099>.
 
 ## P2: Bounded interpreters
 

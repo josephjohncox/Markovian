@@ -10,7 +10,7 @@ The library exposes validated floating and exact probability, reward, objective,
 
 The package does not contain the former branch-weight process, recursive `MDPF`, or Q-learning implementation. `app/Sample/Main.hs` demonstrates the exact finite-horizon evaluator.
 
-`test/Main.hs` contains nineteen deterministic semantic, law, closure, and interpreter contracts. GHC 9.4.8 and 9.8.4 pass project-scoped `-Werror`, package checks, formatting, warning-free Haddock, lower-bound resolution, and unpacked source-distribution tests. The last hosted pre-cleanup run passed at <https://github.com/josephjohncox/Markovian/actions/runs/32907754545>. The greenfield cleanup requires a new hosted run.
+`test/Main.hs` contains nineteen deterministic semantic, law, closure, and interpreter contracts. GHC 9.4.8 and 9.8.4 pass project-scoped `-Werror`, source checks, package checks, warning-free Haddock, lower-bound resolution, and unpacked source-distribution tests. The complete greenfield hosted run passed at <https://github.com/josephjohncox/Markovian/actions/runs/32920753099>.
 
 ## Resolved defects
 
