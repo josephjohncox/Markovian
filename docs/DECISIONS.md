@@ -342,6 +342,30 @@ The slice can add `Reward`, `Kernel`, `Policy`, and one-step MRP and MDP interfa
 
 **Risk:** The package now owns a stable pseudo-random stream contract. Changing the mixing function, rejection-bit order, or deterministic-choice consumption rule is an observable semantic change. Large rational denominators can require large integer draws and must be benchmarked before high-throughput use.
 
+### D-032: Compile exact finite policies before dynamic programming and fixed-point evaluation
+
+**Status:** Accepted
+
+**Decision:** Exact finite compilation receives explicit state and action-ID supports. It rejects duplicate supports, an unindexed initial state, unindexed available or policy actions, and every transition to an unindexed successor. Terminal-only models may use an empty action index. Compiled policy closure is checked against direct per-state closure before solver use.
+
+**Rationale:** Dynamic programming is sound only when every lookup domain is closed and finite. Exhaustive compilation moves model and policy validation ahead of iterative evaluation and removes partial indexing from solver loops. Index order is representation only; decoded semantics must remain unchanged under support reordering.
+
+**Consequences:** Finite-horizon dynamic programming uses exact backward induction and reports its objective, iteration count, value vector, and initial value. Discounted policy evaluation requires an exact contraction discount and positive tolerance, clamps terminal payoffs, uses the sup norm, and reports residual `r` with stopping bound `r / (1 - gamma)`. An iteration limit is a reported stop reason rather than silent convergence.
+
+**Risk:** Compilation traverses every indexed state and available transition eagerly. List-backed indexes are intentionally simple reference structures and have linear lookup cost. CPU array lowering must preserve these semantics while replacing their representation.
+
+### D-033: Make tabular Q-learning pure at the update boundary and bounded at the episode boundary
+
+**Status:** Accepted
+
+**Decision:** A Q-table key is `(state, ActionId)` and an absent key denotes zero. One pure update receives a validated learning rate, discount, model, observed transition, and table. A terminal successor target is transition reward plus discounted terminal payoff. A continuing target uses the maximum only over that state's nonempty validated available actions. Episodic learning uses explicit constant learning-rate and epsilon schedules, episode and step horizons, and generator state.
+
+**Rationale:** The deleted prototype hid learning rate, discount, epsilon, and termination behavior, ignored transition weights, omitted terminal payoff, and used partial vector maxima. Separating the pure algebraic update from seeded sampling makes every parameter and target independently testable. Bounded horizons rule out negative-count and cyclic nontermination.
+
+**Consequences:** `Markovian.Learning.QLearning` owns finite Q-values, duplicate-free tables, schedules, configuration, and pure updates. `Markovian.Learning.QLearning.Episodic` samples the validated MDP, returns structured episode traces and final generator state, and uses deterministic first-action tie-breaking. Equal seeds produce equal updates and final tables. Statistical frequency thresholds are not correctness gates.
+
+**Risk:** List-backed tables and constant schedules are reference implementations. More efficient maps and decaying schedules must preserve key semantics, validation, visit indexing, generator ownership, and deterministic scripted fixtures.
+
 ## Proof obligations for advanced work
 
 | Feature | Proof obligation before implementation | Evidence before acceptance |

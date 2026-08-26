@@ -45,38 +45,38 @@ P2 gate: `DONE`. Exact and sampling interpreters implement the same terminal-bef
 
 ## P3: Finite-state compilation and Bellman solvers
 
-- [ ] **P3.1 `NEXT` Add validated finite state and action indexing.**
+- [x] **P3.1 Add validated finite state and action indexing.**
   - Reject duplicate indexes and transitions to unindexed states.
   - Cache model and policy validation only after proving equivalence with per-state closure.
-- [ ] **P3.2 Add finite-horizon dynamic programming.**
+- [x] **P3.2 Add finite-horizon dynamic programming.**
   - Match the exact reference evaluator on finite examples.
   - Report objective, iteration count, and residual where applicable.
-- [ ] **P3.3 Add discounted Bellman fixed-point solvers.**
+- [x] **P3.3 Add discounted Bellman fixed-point solvers.**
   - Require `ContractionDiscount`.
   - Clamp terminal values to terminal payoffs.
   - State the norm, tolerance, residual, and stopping bound.
 
-P3 gate: compiled and direct exact evaluation agree on every finite reference fixture.
+P3 gate: `DONE`. Compiled closure and finite dynamic programming agree with direct exact evaluation on finite reference fixtures. The exact Bellman solver reports a sup-norm residual and contraction stopping bound.
 
 ## P4: Learning
 
-- [ ] **P4.1 Specify tabular Q-learning before implementation.**
+- [x] **P4.1 Specify tabular Q-learning before implementation.**
   - Define Q-table key, learning-rate schedule, exploration schedule, discount, episode limit, and per-episode step limit.
   - Define terminal targets and generator ownership.
-- [ ] **P4.2 Implement one pure Q-update.**
+- [x] **P4.2 Implement one pure Q-update.**
   - No partial action maximum.
   - No update from an unavailable action.
   - Acceptance: deterministic algebraic tests cover terminal and continuing targets.
-- [ ] **P4.3 Add seeded episodic Q-learning.**
+- [x] **P4.3 Add seeded episodic Q-learning.**
   - Use the validated MDP and sampling interpreter.
   - Return structured traces and final generator state.
   - Acceptance: equal seeds produce equal updates and tables.
 
-P4 gate: learning behavior is explicit, bounded, seeded, and compared with scripted fixtures.
+P4 gate: `DONE`. Learning behavior is explicit, bounded, seeded, and compared with deterministic scripted fixtures.
 
 ## P5: POMDPs
 
-- [ ] **P5.1 Define observation timing and exact finite beliefs.**
+- [ ] **P5.1 `NEXT` Define observation timing and exact finite beliefs.**
   - Default to observing after transition.
   - Reject zero-evidence conditioning with a structured error.
 - [ ] **P5.2 Add exact finite filtering.**

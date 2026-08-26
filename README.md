@@ -15,7 +15,11 @@ The package is greenfield and unreleased. It makes no compatibility promise. Inc
 - explicit seeded finite-support sampling with returned generator state;
 - action-labeled traces with terminal and horizon stop reasons;
 - exact trace enumeration whose expected return matches direct evaluation;
-- structured model, policy, sampling, arithmetic, normalization, and conditioning errors.
+- validated finite state and action compilation with unindexed-successor rejection;
+- exact finite-horizon dynamic programming and discounted Bellman policy evaluation;
+- validated tabular Q-values, constant schedules, and pure terminal-aware updates;
+- seeded bounded epsilon-greedy episodic Q-learning with deterministic traces;
+- structured model, policy, sampling, compilation, solver, arithmetic, normalization, and conditioning errors.
 
 The semantic core depends only on `base`. Sampling frameworks, tensors, GPU runtimes, autodiff, and neural libraries remain outside the core.
 

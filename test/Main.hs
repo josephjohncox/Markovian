@@ -2,10 +2,42 @@ module Main (main) where
 
 import Data.List.NonEmpty qualified as NonEmpty
 import Data.Ratio ((%))
+import Markovian.Compile.Exact (
+    CompiledExactOutcome (..),
+    CompiledExactStep (..),
+    ExactCompileError (..),
+    FiniteIndexError (..),
+    actionIndexValue,
+    compileExactPolicyMDP,
+    compiledActionIndex,
+    compiledInitialState,
+    compiledStateIndex,
+    compiledStates,
+    finiteActionIndex,
+    finiteStateIndex,
+    lookupActionIndex,
+    lookupStateIndex,
+    stateAtIndex,
+    stateIndexValue,
+    stepCompiledExactPolicy,
+ )
 import Markovian.Horizon (
     HorizonError (..),
     horizonValue,
     mkHorizon,
+ )
+import Markovian.Interpreter.Bellman.Exact (
+    BellmanStopReason (..),
+    ExactBellmanReport (..),
+    ExactBellmanToleranceError (..),
+    exactBellmanConfig,
+    exactBellmanToleranceValue,
+    mkExactBellmanTolerance,
+    solveCompiledExactPolicy,
+ )
+import Markovian.Interpreter.DynamicProgramming.Exact (
+    ExactFiniteDPReport (..),
+    evaluateCompiledExactFinite,
  )
 import Markovian.Interpreter.Exact (
     ExactEvaluationError (..),
@@ -26,6 +58,36 @@ import Markovian.Kernel.Exact (
     exactKernel,
     runExactKernel,
  )
+import Markovian.Learning.QLearning (
+    ExplorationRateError (..),
+    ExplorationSchedule (..),
+    LearningRateError (..),
+    LearningRateSchedule (..),
+    ObservedTransition (..),
+    QKey (..),
+    QTableError (..),
+    QUpdateError (..),
+    QUpdateResult (..),
+    QValueError (..),
+    emptyQTable,
+    explorationRateValue,
+    learningRateValue,
+    mkExplorationRate,
+    mkLearningRate,
+    mkQValue,
+    qEntries,
+    qLearningConfig,
+    qTable,
+    qValue,
+    qValueAt,
+    updateQ,
+ )
+import Markovian.Learning.QLearning.Episodic (
+    EpisodicQLearningError (..),
+    QLearningEpisode (..),
+    QLearningResult (..),
+    learnEpisodes,
+ )
 import Markovian.MDP (
     Decision (..),
     MDP,
@@ -41,7 +103,9 @@ import Markovian.MDP.Exact (
     ExactModelError (..),
     ExactStateStatus (..),
     exactMDP,
+    exactSuccessorState,
     exactTransitionOutcome,
+    exactTransitionReward,
  )
 import Markovian.MRP (
     MRPStep (..),
@@ -149,6 +213,12 @@ main = do
     run "seeded finite-support sampling" testFiniteSampling
     run "sampled interpreter boundaries and traces" testSampledInterpreter
     run "exact trace expectation" testExactTraceExpectation
+    run "validated finite indexing" testFiniteIndexing
+    run "exact finite compilation" testExactFiniteCompilation
+    run "exact finite-horizon dynamic programming" testExactFiniteDynamicProgramming
+    run "exact discounted Bellman fixed point" testExactBellmanFixedPoint
+    run "Q-learning values and pure update" testPureQUpdate
+    run "seeded bounded episodic Q-learning" testEpisodicQLearning
     run "exact probability and reward values" testExactValues
     run "exact finite distribution functor laws" testExactFunctorLaws
     run "exact kernel Kleisli laws" testExactKernelLaws
@@ -624,6 +694,537 @@ testExactTraceExpectation = do
   where
     lowAction = actionId EvalLow
     highAction = actionId EvalHigh
+
+testFiniteIndexing :: IO ()
+testFiniteIndexing = do
+    case finiteStateIndex ([] :: [EvalState]) of
+        Left EmptyFiniteIndex -> pure ()
+        result -> failTest ("empty finite state index was not rejected: " ++ showIndexResult result)
+    case finiteStateIndex [EvalStart, EvalStart] of
+        Left (DuplicateFiniteIndexValue EvalStart) -> pure ()
+        result -> failTest ("duplicate finite state index was not rejected: " ++ show result)
+    states <- requireRight "finite state index" (finiteStateIndex [EvalStart, EvalTerminal])
+    startIndex <- maybe (failTest "start state was not indexed") pure (lookupStateIndex states EvalStart)
+    terminalIndex <- maybe (failTest "terminal state was not indexed") pure (lookupStateIndex states EvalTerminal)
+    assert "start state index changed" (stateIndexValue startIndex == 0)
+    assert "terminal state index changed" (stateIndexValue terminalIndex == 1)
+    assert "state index round trip failed" (stateAtIndex states terminalIndex == Just EvalTerminal)
+
+    let lowAction = actionId EvalLow
+        highAction = actionId EvalHigh
+    case finiteActionIndex [lowAction, lowAction] of
+        Left (DuplicateFiniteIndexValue duplicate) -> assert "duplicate action index changed" (duplicate == lowAction)
+        result -> failTest ("duplicate finite action index was not rejected: " ++ show result)
+    _ <- requireRight "empty terminal-only action index" (finiteActionIndex (take 0 [lowAction]))
+    actions <- requireRight "finite action index" (finiteActionIndex [lowAction, highAction])
+    highIndex <- maybe (failTest "high action was not indexed") pure (lookupActionIndex actions highAction)
+    assert "high action index changed" (actionIndexValue highIndex == 1)
+  where
+    showIndexResult (Left _) = "unexpected left"
+    showIndexResult (Right _) = "unexpected right"
+
+testExactFiniteCompilation :: IO ()
+testExactFiniteCompilation = do
+    selected <- requireRight "compiled exact policy" (exactFiniteDist [(lowAction, 1), (highAction, 3)])
+    highOutcomes <-
+        requireRight
+            "compiled high transition"
+            ( exactFiniteDist
+                [ (exactTransitionOutcome (exactReward 4) EvalTerminal, 1)
+                , (exactTransitionOutcome (exactReward 8) EvalTerminal, 1)
+                ]
+            )
+    let transitionFor selectedAction =
+            case actionValue selectedAction of
+                EvalLow -> exactDirac (exactTransitionOutcome (exactReward 2) EvalTerminal)
+                EvalHigh -> highOutcomes
+                EvalOnly -> error "unavailable compiled action"
+                EvalMissing -> error "missing compiled action"
+        model =
+            exactMDP
+                EvalStart
+                (\state -> case state of EvalTerminal -> ExactTerminal (exactReward 0); _ -> ExactContinuing)
+                (\state -> case state of EvalTerminal -> []; _ -> [lowAction, highAction])
+                (exactKernel (\(_, selectedAction) -> transitionFor selectedAction))
+        selectedPolicy =
+            exactPolicy
+                ( exactKernel
+                    (\state -> case state of EvalTerminal -> error "terminal policy was compiled"; _ -> selected)
+                )
+    compiled <-
+        requireRight
+            "exact finite compilation"
+            (compileExactPolicyMDP [EvalStart, EvalTerminal] [lowAction, highAction] model selectedPolicy)
+    assert "compiled initial state changed" (stateIndexValue (compiledInitialState compiled) == 0)
+    assert "compiled state count changed" (length (compiledStates compiled) == 2)
+    compiledLow <-
+        maybe
+            (failTest "compiled low action was not indexed")
+            pure
+            (lookupActionIndex (compiledActionIndex compiled) lowAction)
+    assert "compiled low action index changed" (actionIndexValue compiledLow == 0)
+
+    compiledStep <- requireRight "compiled policy step" (stepCompiledExactPolicy compiled (compiledInitialState compiled))
+    compiledOutcomes <-
+        case compiledStep of
+            CompiledExactTerminalStep _ -> failTest "compiled continuing state became terminal"
+            CompiledExactTransitionStep distribution ->
+                maybe
+                    (failTest "compiled successor index did not decode")
+                    pure
+                    (decodeCompiledOutcomes compiled distribution)
+    direct <-
+        requireRight
+            "direct exact closure for compilation"
+            (closeExactPolicy (lowAction NonEmpty.:| [highAction]) selected transitionFor)
+    let directOutcomes =
+            [ ( exactRewardValue (exactTransitionReward outcome)
+              , exactSuccessorState outcome
+              , exactProbability mass
+              )
+            | (outcome, mass) <- NonEmpty.toList (exactOutcomes direct)
+            ]
+    assert "compiled closure differs from direct per-state closure" (compiledOutcomes == directOutcomes)
+
+    reversed <-
+        requireRight
+            "reordered exact finite compilation"
+            (compileExactPolicyMDP [EvalTerminal, EvalStart] [highAction, lowAction] model selectedPolicy)
+    reversedStep <- requireRight "reordered compiled policy step" (stepCompiledExactPolicy reversed (compiledInitialState reversed))
+    reversedOutcomes <-
+        case reversedStep of
+            CompiledExactTerminalStep _ -> failTest "reordered continuing state became terminal"
+            CompiledExactTransitionStep distribution ->
+                maybe
+                    (failTest "reordered compiled successor did not decode")
+                    pure
+                    (decodeCompiledOutcomes reversed distribution)
+    assert "index order changed compiled semantics" (reversedOutcomes == directOutcomes)
+
+    let terminalOnly :: ExactMDP EvalState EvalAction
+        terminalOnly =
+            exactMDP
+                EvalTerminal
+                (const (ExactTerminal (exactReward 9)))
+                (\_ -> error "terminal-only action support was compiled")
+                (exactKernel (\_ -> error "terminal-only transition was compiled"))
+        terminalPolicy = exactPolicy (exactKernel (\_ -> error "terminal-only policy was compiled"))
+    compiledTerminal <-
+        requireRight
+            "terminal-only finite compilation"
+            (compileExactPolicyMDP [EvalTerminal] [] terminalOnly terminalPolicy)
+    terminalStep <- requireRight "compiled terminal-only step" (stepCompiledExactPolicy compiledTerminal (compiledInitialState compiledTerminal))
+    case terminalStep of
+        CompiledExactTerminalStep payoff -> assert "compiled terminal-only payoff changed" (exactRewardValue payoff == 9)
+        CompiledExactTransitionStep _ -> failTest "compiled terminal-only model became continuing"
+
+    case compileExactPolicyMDP [EvalStart, EvalStart] [lowAction, highAction] model selectedPolicy of
+        Left (StateIndexError (DuplicateFiniteIndexValue EvalStart)) -> pure ()
+        result -> failTest ("compiled duplicate state index was not rejected: " ++ showCompileResult result)
+    case compileExactPolicyMDP [EvalStart, EvalTerminal] [lowAction, lowAction] model selectedPolicy of
+        Left (ActionIndexError (DuplicateFiniteIndexValue duplicate)) ->
+            assert "compiled duplicate action index changed" (duplicate == lowAction)
+        result -> failTest ("compiled duplicate action index was not rejected: " ++ showCompileResult result)
+    case compileExactPolicyMDP [EvalStart, EvalTerminal] [lowAction] model selectedPolicy of
+        Left (UnindexedAvailableAction EvalStart unavailable) ->
+            assert "compiled unindexed available action changed" (unavailable == highAction)
+        result -> failTest ("unindexed available action was not rejected: " ++ showCompileResult result)
+    case compileExactPolicyMDP [EvalStart] [lowAction, highAction] model selectedPolicy of
+        Left (UnindexedSuccessor EvalStart selectedAction EvalTerminal) ->
+            assert "compiled unindexed successor action changed" (selectedAction == lowAction)
+        result -> failTest ("unindexed successor was not rejected: " ++ showCompileResult result)
+  where
+    lowAction = actionId EvalLow
+    highAction = actionId EvalHigh
+
+    decodeCompiledOutcomes compiled distribution =
+        traverse
+            ( \(outcome, mass) -> do
+                successor <- stateAtIndex (compiledStateIndex compiled) (compiledSuccessorState outcome)
+                pure
+                    ( exactRewardValue (compiledTransitionReward outcome)
+                    , successor
+                    , exactProbability mass
+                    )
+            )
+            (NonEmpty.toList (exactOutcomes distribution))
+
+    showCompileResult (Left _) = "unexpected left"
+    showCompileResult (Right _) = "unexpected right"
+
+testExactFiniteDynamicProgramming :: IO ()
+testExactFiniteDynamicProgramming = do
+    objective <- makeExactObjective 1 1
+    zeroObjective <- makeExactObjective 0 1
+    selected <- requireRight "dynamic-programming policy" (exactFiniteDist [(lowAction, 1), (highAction, 3)])
+    highOutcomes <-
+        requireRight
+            "dynamic-programming transition"
+            ( exactFiniteDist
+                [ (exactTransitionOutcome (exactReward 4) EvalTerminal, 1)
+                , (exactTransitionOutcome (exactReward 8) EvalTerminal, 1)
+                ]
+            )
+    let transitionFor selectedAction =
+            case actionValue selectedAction of
+                EvalLow -> exactDirac (exactTransitionOutcome (exactReward 2) EvalTerminal)
+                EvalHigh -> highOutcomes
+                EvalOnly -> error "unavailable dynamic-programming action"
+                EvalMissing -> error "missing dynamic-programming action"
+        model =
+            exactMDP
+                EvalStart
+                (\state -> case state of EvalTerminal -> ExactTerminal (exactReward 0); _ -> ExactContinuing)
+                (\state -> case state of EvalTerminal -> []; _ -> [lowAction, highAction])
+                (exactKernel (\(_, selectedAction) -> transitionFor selectedAction))
+        selectedPolicy = exactPolicy (exactKernel (const selected))
+    compiled <-
+        requireRight
+            "dynamic-programming compilation"
+            (compileExactPolicyMDP [EvalStart, EvalTerminal] [lowAction, highAction] model selectedPolicy)
+    report <- requireRight "exact finite dynamic programming" (evaluateCompiledExactFinite objective compiled)
+    direct <- requireRight "direct value for dynamic programming" (expectedExactReturn objective model selectedPolicy)
+    assert "dynamic-programming objective changed" (exactFiniteDPObjective report == objective)
+    assert "dynamic-programming iteration count changed" (exactFiniteDPIterations report == 1)
+    assert "dynamic-programming state-value count changed" (length (exactFiniteDPValues report) == 2)
+    assert
+        "dynamic programming differs from direct exact evaluation"
+        (exactRewardValue (exactFiniteDPInitialValue report) == exactRewardValue direct)
+    assert "dynamic-programming weighted value changed" (exactRewardValue (exactFiniteDPInitialValue report) == 5)
+
+    zeroReport <- requireRight "zero-horizon dynamic programming" (evaluateCompiledExactFinite zeroObjective compiled)
+    assert "zero-horizon continuing value changed" (exactRewardValue (exactFiniteDPInitialValue zeroReport) == 0)
+    assert "zero-horizon iteration count changed" (exactFiniteDPIterations zeroReport == 0)
+
+    loopObjective <- makeExactObjective 3 (1 % 2)
+    let onlyAction = actionId EvalOnly
+        loopModel =
+            exactMDP
+                EvalLoop
+                (const ExactContinuing)
+                (const [onlyAction])
+                (exactKernel (const (exactDirac (exactTransitionOutcome (exactReward 1) EvalLoop))))
+        loopPolicy = exactPolicy (exactKernel (const (exactDirac onlyAction)))
+    compiledLoop <-
+        requireRight
+            "self-loop dynamic-programming compilation"
+            (compileExactPolicyMDP [EvalLoop] [onlyAction] loopModel loopPolicy)
+    loopReport <- requireRight "self-loop dynamic programming" (evaluateCompiledExactFinite loopObjective compiledLoop)
+    loopDirect <- requireRight "direct self-loop value" (expectedExactReturn loopObjective loopModel loopPolicy)
+    assert
+        "self-loop dynamic programming differs from direct evaluation"
+        (exactFiniteDPInitialValue loopReport == loopDirect)
+    assert "self-loop dynamic-programming value changed" (exactRewardValue (exactFiniteDPInitialValue loopReport) == 7 % 4)
+  where
+    lowAction = actionId EvalLow
+    highAction = actionId EvalHigh
+
+testExactBellmanFixedPoint :: IO ()
+testExactBellmanFixedPoint = do
+    case mkExactBellmanTolerance 0 of
+        Left (NonPositiveExactBellmanTolerance 0) -> pure ()
+        result -> failTest ("zero Bellman tolerance was not rejected: " ++ show result)
+    case mkExactBellmanTolerance ((-1) % 10) of
+        Left (NonPositiveExactBellmanTolerance _) -> pure ()
+        result -> failTest ("negative Bellman tolerance was not rejected: " ++ show result)
+
+    gamma <- requireRight "Bellman contraction discount" (mkExactContractionDiscount (1 % 2))
+    tolerance <- requireRight "Bellman tolerance" (mkExactBellmanTolerance (1 % 100))
+    maximumIterations <- requireRight "Bellman iteration limit" (mkHorizon 100)
+    let config = exactBellmanConfig gamma tolerance maximumIterations
+        onlyAction = actionId EvalOnly
+        loopModel =
+            exactMDP
+                EvalLoop
+                (const ExactContinuing)
+                (const [onlyAction])
+                (exactKernel (const (exactDirac (exactTransitionOutcome (exactReward 1) EvalLoop))))
+        loopPolicy = exactPolicy (exactKernel (const (exactDirac onlyAction)))
+    compiledLoop <-
+        requireRight
+            "Bellman self-loop compilation"
+            (compileExactPolicyMDP [EvalLoop] [onlyAction] loopModel loopPolicy)
+    report <- requireRight "Bellman self-loop solve" (solveCompiledExactPolicy config compiledLoop)
+    let approximate = exactRewardValue (exactBellmanInitialValue report)
+        actualError = abs (2 - approximate)
+    assert "Bellman configuration changed" (exactBellmanConfigUsed report == config)
+    assert "Bellman solver did not converge" (exactBellmanStopReason report == BellmanConverged)
+    assert "Bellman residual must be positive on the finite iterate" (exactBellmanResidual report > 0)
+    assert "Bellman stopping bound exceeds tolerance" (exactBellmanStoppingBound report <= exactBellmanToleranceValue tolerance)
+    assert "Bellman stopping bound is unsound" (actualError <= exactBellmanStoppingBound report)
+    assert "Bellman solver performed no iterations" (exactBellmanIterations report > 0)
+
+    zeroLimit <- requireRight "zero Bellman iteration limit" (mkHorizon 0)
+    let limitedConfig = exactBellmanConfig gamma tolerance zeroLimit
+    limited <- requireRight "Bellman limited solve" (solveCompiledExactPolicy limitedConfig compiledLoop)
+    assert "zero-limit Bellman solve did not report its limit" (exactBellmanStopReason limited == BellmanIterationLimit)
+    assert "zero-limit Bellman iteration count changed" (exactBellmanIterations limited == 0)
+    assert "zero-limit Bellman value changed" (exactRewardValue (exactBellmanInitialValue limited) == 0)
+    assert "zero-limit Bellman residual changed" (exactBellmanResidual limited == 1)
+    assert "zero-limit Bellman bound changed" (exactBellmanStoppingBound limited == 2)
+
+    terminalTolerance <- requireRight "terminal Bellman tolerance" (mkExactBellmanTolerance (1 % 1000000))
+    let terminalConfig = exactBellmanConfig gamma terminalTolerance maximumIterations
+        terminalModel :: ExactMDP EvalState EvalAction
+        terminalModel =
+            exactMDP
+                EvalTerminal
+                (const (ExactTerminal (exactReward 9)))
+                (const [])
+                (exactKernel (\_ -> error "terminal Bellman transition was evaluated"))
+        terminalPolicy = exactPolicy (exactKernel (\_ -> error "terminal Bellman policy was evaluated"))
+    compiledTerminal <-
+        requireRight
+            "terminal Bellman compilation"
+            (compileExactPolicyMDP [EvalTerminal] [] terminalModel terminalPolicy)
+    terminalReport <- requireRight "terminal Bellman solve" (solveCompiledExactPolicy terminalConfig compiledTerminal)
+    assert "Bellman terminal value was not clamped" (exactRewardValue (exactBellmanInitialValue terminalReport) == 9)
+    assert "Bellman terminal residual changed" (exactBellmanResidual terminalReport == 0)
+    assert "Bellman terminal solve did not converge immediately" (exactBellmanIterations terminalReport == 0)
+
+testPureQUpdate :: IO ()
+testPureQUpdate = do
+    case mkQValue (0 / 0) of
+        Left (NonFiniteQValue _) -> pure ()
+        result -> failTest ("NaN Q-value was not rejected: " ++ show result)
+    case mkLearningRate 0 of
+        Left (LearningRateOutOfRange 0) -> pure ()
+        result -> failTest ("zero learning rate was not rejected: " ++ show result)
+    case mkLearningRate (1 / 0) of
+        Left (NonFiniteLearningRate _) -> pure ()
+        result -> failTest ("infinite learning rate was not rejected: " ++ show result)
+    case mkExplorationRate (-0.1) of
+        Left (ExplorationRateOutOfRange _) -> pure ()
+        result -> failTest ("negative exploration rate was not rejected: " ++ show result)
+    case mkExplorationRate (0 / 0) of
+        Left (NonFiniteExplorationRate _) -> pure ()
+        result -> failTest ("NaN exploration rate was not rejected: " ++ show result)
+
+    rate <- requireRight "Q-learning rate" (mkLearningRate 0.5)
+    epsilon <- requireRight "Q-learning exploration" (mkExplorationRate 0.25)
+    discount <- requireRight "Q-learning discount" (mkDiscount 0.5)
+    assert "learning rate changed" (learningRateValue rate == 0.5)
+    assert "exploration rate changed" (explorationRateValue epsilon == 0.25)
+
+    immediate <- requireRight "Q-learning immediate reward" (mkReward 2)
+    terminal <- requireRight "Q-learning terminal payoff" (mkReward 7)
+    zero <- requireRight "Q-learning zero reward" (mkReward 0)
+    let lowAction = actionId LowAction
+        highAction = actionId HighAction
+        missingAction = actionId MissingAction
+        status ClosureStart = Continuing
+        status ClosureMiddle = Continuing
+        status ClosureEnd = Terminal terminal
+        status ClosureMissing = Continuing
+        available ClosureStart = [lowAction]
+        available ClosureMiddle = [lowAction, highAction]
+        available ClosureEnd = []
+        available ClosureMissing = [lowAction]
+        model :: MDP ClosureState ClosureAction
+        model =
+            mdp
+                ClosureStart
+                status
+                available
+                (kernel (const (dirac (transitionOutcome zero ClosureMiddle))))
+        key = QKey ClosureStart lowAction
+    initial <-
+        requireRight
+            "initial Q-table"
+            ( qTable
+                [ (key, 1)
+                , (QKey ClosureMiddle lowAction, 4)
+                , (QKey ClosureMiddle highAction, 6)
+                ]
+            )
+    case qTable [(key, 1), (key, 2)] of
+        Left (DuplicateQKey duplicate) -> assert "duplicate Q-key changed" (duplicate == key)
+        result -> failTest ("duplicate Q-key was not rejected: " ++ show result)
+    case qTable [(key, 1 / 0)] of
+        Left (InvalidInitialQValue 0 (NonFiniteQValue _)) -> pure ()
+        result -> failTest ("invalid initial Q-value was not rejected: " ++ show result)
+
+    terminalUpdate <-
+        requireRight
+            "terminal Q-update"
+            ( updateQ
+                rate
+                discount
+                model
+                (ObservedTransition ClosureStart lowAction immediate ClosureEnd)
+                initial
+            )
+    assert "terminal Q target omitted terminal payoff" (qValue (qUpdateTarget terminalUpdate) == 5.5)
+    assert "terminal Q update changed" (qValue (qUpdateNewValue terminalUpdate) == 3.25)
+    assert
+        "terminal Q table did not store the update"
+        (qValue (qValueAt (qUpdateTable terminalUpdate) ClosureStart lowAction) == 3.25)
+
+    continuingUpdate <-
+        requireRight
+            "continuing Q-update"
+            ( updateQ
+                rate
+                discount
+                model
+                (ObservedTransition ClosureStart lowAction immediate ClosureMiddle)
+                initial
+            )
+    assert "continuing Q target omitted available-action maximum" (qValue (qUpdateTarget continuingUpdate) == 5)
+    assert "continuing Q update changed" (qValue (qUpdateNewValue continuingUpdate) == 3)
+    assert "pure Q update changed unrelated table size" (length (qEntries (qUpdateTable continuingUpdate)) == 3)
+
+    case updateQ rate discount model (ObservedTransition ClosureStart missingAction immediate ClosureMiddle) initial of
+        Left (QUpdateUnavailableAction unavailable) -> assert "Q-update unavailable action changed" (unavailable == missingAction)
+        result -> failTest ("Q-update accepted unavailable action: " ++ show result)
+    case updateQ rate discount model (ObservedTransition ClosureEnd lowAction immediate ClosureMiddle) initial of
+        Left (QUpdateSourceTerminal payoff) -> assert "Q-update terminal source payoff changed" (rewardValue payoff == 7)
+        result -> failTest ("Q-update accepted a terminal source: " ++ show result)
+
+    maximumReward <- requireRight "maximum finite Q reward" (mkReward (encodeFloat ((2 ^ (53 :: Int)) - 1) (1024 - 53)))
+    unitDiscount <- requireRight "unit Q discount" (mkDiscount 1)
+    let overflowModel =
+            mdp
+                ClosureStart
+                (\state -> case state of ClosureEnd -> Terminal maximumReward; _ -> Continuing)
+                available
+                (kernel (const (dirac (transitionOutcome zero ClosureEnd))))
+    case updateQ rate unitDiscount overflowModel (ObservedTransition ClosureStart lowAction maximumReward ClosureEnd) emptyQTable of
+        Left (QUpdateArithmeticError (NonFiniteQValue _)) -> pure ()
+        result -> failTest ("non-finite Q target was not rejected: " ++ show result)
+
+testEpisodicQLearning :: IO ()
+testEpisodicQLearning = do
+    rate <- requireRight "episodic learning rate" (mkLearningRate 1)
+    noExploration <- requireRight "zero exploration" (mkExplorationRate 0)
+    fullExploration <- requireRight "full exploration" (mkExplorationRate 1)
+    discount <- requireRight "episodic discount" (mkDiscount 0.5)
+    threeEpisodes <- requireRight "three episode limit" (mkHorizon 3)
+    tenEpisodes <- requireRight "ten episode limit" (mkHorizon 10)
+    oneStep <- requireRight "one episode step" (mkHorizon 1)
+    zeroLimit <- requireRight "zero learning limit" (mkHorizon 0)
+    low <- requireRight "episodic low reward" (mkReward 2)
+    high <- requireRight "episodic high reward" (mkReward 4)
+    terminal <- requireRight "episodic terminal payoff" (mkReward 7)
+    transitions <-
+        requireRight
+            "episodic weighted transition"
+            ( finiteDist
+                [ (transitionOutcome low End, 1)
+                , (transitionOutcome high End, 1)
+                ]
+            )
+    let finish = actionId Finish
+        status Start = Continuing
+        status End = Terminal terminal
+        model :: MDP TestState TestAction
+        model =
+            mdp
+                Start
+                status
+                (\state -> case state of Start -> [finish]; End -> [])
+                (kernel (const transitions))
+        config =
+            qLearningConfig
+                discount
+                (ConstantLearningRate rate)
+                (ConstantExploration noExploration)
+                threeEpisodes
+                oneStep
+        initialGenerator = generatorFromSeed 2026
+    learned <- requireRight "episodic learning" (learnEpisodes config model initialGenerator)
+    repeated <- requireRight "repeated episodic learning" (learnEpisodes config model initialGenerator)
+    assert "equal seeds must produce equal Q-learning traces and tables" (learned == repeated)
+    assert "episodic learner episode count changed" (length (learnedEpisodes learned) == 3)
+    assert "episodic learner update count changed" (learnedUpdateCount learned == 3)
+    assert
+        "stochastic episodic learning did not advance generator state"
+        (generatorState (learnedGenerator learned) /= generatorState initialGenerator)
+    assert
+        "episodic return left weighted support"
+        ( all
+            (\episode -> rewardValue (qLearningEpisodeReturn episode) `elem` [5.5, 7.5])
+            (learnedEpisodes learned)
+        )
+    assert
+        "episodic traces did not stop terminally after one step"
+        ( all
+            ( \episode ->
+                case qLearningEpisodeTrace episode of
+                    Trace [TraceStep selected _ End] End (TerminalStop payoff) ->
+                        selected == finish && rewardValue payoff == 7
+                    _ -> False
+            )
+            (learnedEpisodes learned)
+        )
+    assert
+        "episodic Q-table omitted the learned key"
+        (qValue (qValueAt (learnedQTable learned) Start finish) `elem` [5.5, 7.5])
+
+    let noEpisodeConfig =
+            qLearningConfig
+                discount
+                (ConstantLearningRate rate)
+                (ConstantExploration noExploration)
+                zeroLimit
+                oneStep
+    noEpisodes <- requireRight "zero-episode learning" (learnEpisodes noEpisodeConfig model initialGenerator)
+    assert "zero-episode learning produced episodes" (null (learnedEpisodes noEpisodes))
+    assert "zero-episode learning changed the table" (null (qEntries (learnedQTable noEpisodes)))
+    assert "zero-episode learning consumed generator state" (learnedGenerator noEpisodes == initialGenerator)
+
+    let noStepConfig =
+            qLearningConfig
+                discount
+                (ConstantLearningRate rate)
+                (ConstantExploration noExploration)
+                threeEpisodes
+                zeroLimit
+    noSteps <- requireRight "zero-step episodic learning" (learnEpisodes noStepConfig model initialGenerator)
+    assert "zero-step episodes performed updates" (learnedUpdateCount noSteps == 0)
+    assert
+        "zero-step episodes did not report horizon stops"
+        (all ((== HorizonStop) . traceStopReason . qLearningEpisodeTrace) (learnedEpisodes noSteps))
+    assert "zero-step learning consumed generator state" (learnedGenerator noSteps == initialGenerator)
+
+    rewardOne <- requireRight "exploration reward one" (mkReward 1)
+    rewardThree <- requireRight "exploration reward three" (mkReward 3)
+    zeroPayoff <- requireRight "exploration terminal payoff" (mkReward 0)
+    let alternate = actionId MissingFinish
+        exploratoryModel :: MDP TestState TestAction
+        exploratoryModel =
+            mdp
+                Start
+                (\state -> case state of Start -> Continuing; End -> Terminal zeroPayoff)
+                (\state -> case state of Start -> [finish, alternate]; End -> [])
+                ( kernel
+                    ( \(_, selected) ->
+                        if selected == finish
+                            then dirac (transitionOutcome rewardOne End)
+                            else dirac (transitionOutcome rewardThree End)
+                    )
+                )
+        explorationConfig =
+            qLearningConfig
+                discount
+                (ConstantLearningRate rate)
+                (ConstantExploration fullExploration)
+                tenEpisodes
+                oneStep
+    explored <- requireRight "fully exploratory learning" (learnEpisodes explorationConfig exploratoryModel initialGenerator)
+    let exploredActions =
+            [ selected
+            | episode <- learnedEpisodes explored
+            , TraceStep selected _ _ <- traceSteps (qLearningEpisodeTrace episode)
+            ]
+    assert "exploratory learner produced the wrong step count" (length exploredActions == 10)
+    assert "exploratory learner selected outside available support" (all (`elem` [finish, alternate]) exploredActions)
+
+    let emptyModel :: MDP TestState TestAction
+        emptyModel = mdp Start (const Continuing) (const []) (kernel (const (dirac (transitionOutcome low End))))
+    case learnEpisodes config emptyModel initialGenerator of
+        Left (EpisodicModelError EmptyActionSupport) -> pure ()
+        result -> failTest ("episodic learner did not retain model error: " ++ show result)
 
 makeExactObjective :: Integer -> Rational -> IO ExactFiniteObjective
 makeExactObjective rawHorizon rawDiscount = do

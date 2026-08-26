@@ -43,11 +43,16 @@ common warnings
 library
   import:           warnings
   exposed-modules:
+    Markovian.Compile.Exact
     Markovian.Horizon
+    Markovian.Interpreter.Bellman.Exact
+    Markovian.Interpreter.DynamicProgramming.Exact
     Markovian.Interpreter.Exact
     Markovian.Interpreter.Sampled
     Markovian.Kernel
     Markovian.Kernel.Exact
+    Markovian.Learning.QLearning
+    Markovian.Learning.QLearning.Episodic
     Markovian.MDP
     Markovian.MDP.Exact
     Markovian.MRP

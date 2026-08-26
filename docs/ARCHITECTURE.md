@@ -30,8 +30,12 @@ The semantic core currently contains:
 - Explicit SplitMix64 generator state and unbiased finite-support sampling.
 - Structured action-labeled traces with terminal and horizon stop reasons.
 - Exact bounded trace enumeration for expectation cross-checks.
+- Duplicate-free finite state and action indexes with exhaustive exact compilation.
+- Exact finite-horizon dynamic programming over compiled policy models.
+- Exact discounted Bellman policy evaluation with sup-norm stopping bounds.
+- Validated tabular Q-values, schedules, pure updates, and bounded seeded episodes.
 
-The current `FiniteDist` constructor preserves labeled duplicate entries. It removes input zero weights and positive weights whose normalized `Double` mass rounds to zero. Floating constructors canonicalize negative zero. Bellman solvers, learning, POMDPs, compilers, and backends remain unimplemented.
+The current `FiniteDist` constructor preserves labeled duplicate entries. It removes input zero weights and positive weights whose normalized `Double` mass rounds to zero. Floating constructors canonicalize negative zero. POMDPs, categorical IRs, array lowering, and accelerated backends remain unimplemented.
 
 ## 2. Architecture principles
 
@@ -309,7 +313,23 @@ The floating implementation returns a fallible `PolicyMRP`. It validates the req
 
 Policy closure is the only standard path from MDP evaluation to MRP evaluation. An evaluator must not treat stochastic outcomes as selectable actions.
 
-### 6.4 Partially observable Markov decision process
+### 6.4 Tabular Q-learning interpreter
+
+The Q-table key is `(state, ActionId)`. Missing keys denote zero. The model remains free of table, schedule, exploration, and generator state.
+
+For one observed transition `(s,a,r,s')`, the pure update is:
+
+```text
+target = r + gamma * terminalPayoff(s')        when s' is terminal
+target = r + gamma * max_a' Q(s',a')           otherwise
+Q'(s,a) = Q(s,a) + alpha * (target - Q(s,a))
+```
+
+The maximum ranges only over validated actions available at `s'`. The source action must be available at `s`. Learning rate, epsilon, discount, episode count, per-episode step count, and generator state are explicit. The current schedules are validated constants. Epsilon-greedy ties choose the first available action; support order therefore defines deterministic tie-breaking, not model semantics.
+
+Each episode checks terminal status before its step limit. Transition and terminal rewards use the bounded-interpreter discount convention. Equal initial generator state produces equal traces, updates, tables, and returned generator state.
+
+### 6.5 Partially observable Markov decision process
 
 A POMDP adds:
 
@@ -444,6 +464,7 @@ An interpreter can cache or compile a model. The cache and compiler are not part
 The implementation uses these boundaries. Entries marked "later" are not implemented:
 
 ```text
+Markovian.Compile.Exact     validated finite indexes and exact policy compilation
 Markovian.Probability       opaque floating probability and distribution types
 Markovian.Probability.Exact exact rational probability and distribution types
 Markovian.Reward            floating reward and terminal-payoff values
@@ -463,8 +484,10 @@ Markovian.Sampling          explicit generator and finite categorical sampling
 Markovian.Trace             generic action-labeled bounded traces
 Markovian.Interpreter.Exact bounded exact expectation and trace enumeration
 Markovian.Interpreter.Sampled seeded floating finite sampling and traces
-Markovian.Interpreter.Bellman cyclic finite solvers (later)
-Markovian.Learning.QLearning validated learning interpreter (later)
+Markovian.Interpreter.DynamicProgramming.Exact exact finite-horizon backups
+Markovian.Interpreter.Bellman.Exact exact contraction policy evaluation
+Markovian.Learning.QLearning validated Q-values, configuration, and pure update
+Markovian.Learning.QLearning.Episodic seeded bounded epsilon-greedy learning
 ```
 
 Internal representations use `Markovian.Internal.*`. The package does not expose those modules.

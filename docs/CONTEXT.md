@@ -6,11 +6,11 @@ Read this file, `TODO.md`, and the relevant architecture and decision sections b
 
 Markovian is a greenfield experimental Haskell package for finite stochastic kernels and decision models. It has no compatibility commitment and no external users. Incorrect interfaces are removed rather than preserved.
 
-The library exposes validated floating and exact probability, reward, objective, kernel, MRP, MDP, policy, sampling, and trace modules. The exact reference interpreter computes finite-horizon expected return and enumerates bounded traces. The sampled interpreter receives and returns explicit generator state. The semantic core depends only on `base`.
+The library exposes validated floating and exact probability, reward, objective, kernel, MRP, MDP, policy, sampling, trace, finite-compilation, and tabular-learning modules. Exact interpreters provide direct bounded expectation, trace enumeration, finite-horizon dynamic programming, and contraction Bellman policy evaluation. Sampled evaluation and episodic Q-learning receive and return explicit generator state. The semantic core depends only on `base`.
 
 The package does not contain the former branch-weight process, recursive `MDPF`, or Q-learning implementation. `app/Sample/Main.hs` demonstrates the exact finite-horizon evaluator.
 
-`test/Main.hs` contains twenty-two deterministic semantic, law, closure, sampling, trace, and interpreter contracts. GHC 9.4.8 and 9.8.4 pass project-scoped `-Werror`, source checks, package checks, warning-free Haddock, lower-bound resolution, and unpacked source-distribution tests. The complete greenfield hosted run passed at <https://github.com/josephjohncox/Markovian/actions/runs/32920753099>.
+`test/Main.hs` contains twenty-eight deterministic semantic, law, closure, sampling, compilation, solver, learning, trace, and interpreter contracts. GHC 9.4.8 and 9.8.4 pass project-scoped `-Werror`, source checks, package checks, warning-free Haddock, lower-bound resolution, and unpacked source-distribution tests. The complete greenfield hosted run passed at <https://github.com/josephjohncox/Markovian/actions/runs/32920753099>.
 
 ## Resolved defects
 
@@ -27,6 +27,8 @@ The package does not contain the former branch-weight process, recursive `MDPF`,
 | K-016 | Removed the third-party dependency plan that required `mwc-random` and `unix-compat` constraints. |
 | K-017 | Split HLint and cabal-fmt into separate Cabal installation plans after hosted CI exposed an unsatisfiable combined plan. |
 | K-018 | Added unbiased rational categorical selection so fixed-width unit-interval sampling cannot make positive exposed support unreachable. |
+| K-019 | Added exhaustive finite compilation so duplicate indexes and transitions to unindexed successors fail before iterative solvers run. |
+| K-020 | Replaced hidden, partial, unbounded learning behavior with validated Q-values, pure terminal-aware updates, bounded episodes, and explicit generator state. |
 
 ## Semantic vocabulary
 
@@ -68,7 +70,7 @@ The package does not contain the former branch-weight process, recursive `MDPF`,
 
 ## Next task
 
-P3.1 is `NEXT`: add validated finite state and action indexing. Reject duplicate indexes and transitions to unindexed states before adding dynamic programming.
+P5.1 is `NEXT`: define post-transition observation timing and validated exact finite beliefs with structured zero-evidence errors.
 
 ## Instructions for future agents
 

@@ -340,15 +340,16 @@ Do not use architecture text to hide an unresolved decision. Mark the uncertaint
 
 ## 10. Exact next workflow
 
-P0, P1, P2, and the greenfield cleanup are `DONE`. D-023 through D-031 define the verified environment, exact semantics, compatibility removal, and seeded sampling contract. Twenty-two tests and all completed local gates pass. P3.1 is `NEXT`.
+P0 through P4 and the greenfield cleanup are `DONE`. D-023 through D-033 define the verified environment, exact semantics, finite compilation, solvers, and learning contracts. Twenty-eight tests and all completed local gates pass. P5.1 is `NEXT`.
 
 The next writer must use this sequence:
 
-1. Complete the start gate and read D-003, D-004, D-011, D-029, and D-031.
-2. Define finite state and per-state action indexes with duplicate rejection.
-3. Reject every transition whose successor is outside the indexed state support.
-4. Compare compiled policy closure with per-state direct closure on exact fixtures.
-5. Keep index order observational only; semantic equality must not depend on insertion order.
-6. Run both compiler versions and every completed package gate.
+1. Complete the start gate and read D-008, D-011, D-029, and the POMDP proof obligation.
+2. Define post-transition observation timing in the POMDP interface.
+3. Define exact finite beliefs as validated normalized distributions.
+4. Implement prediction separately from observation conditioning.
+5. Return a structured zero-evidence error for impossible observations.
+6. Test prediction, conditioning, normalization, and filtering laws before planning.
+7. Run both compiler versions and every completed package gate.
 
-Do not add dynamic programming until finite compilation validation passes.
+Do not implement belief-state planning until exact filtering laws pass.
