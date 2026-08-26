@@ -104,7 +104,7 @@ This file records active architecture decisions. Change an accepted decision wit
 
 ### D-010: Migrate additively with two legacy adapters
 
-**Status:** Accepted
+**Status:** Superseded by D-030
 
 **Decision:** Add the new core before changing old exports. Add two explicitly named legacy adapters and no generic adapter.
 
@@ -120,7 +120,7 @@ This file records active architecture decisions. Change an accepted decision wit
 
 **Rationale:** This convention states reward timing for MRP, MDP, policy closure, Bellman equations, and learning targets.
 
-**Consequences:** Migration adapters must map legacy state rewards explicitly. Interpreters apply transition reward once and terminal payoff once.
+**Consequences:** Interpreters apply transition reward once and terminal payoff once.
 
 ### D-015: Preserve joint outcomes during policy closure
 
@@ -218,7 +218,7 @@ Closure removes the selected action ID. Code that needs action-labeled traces us
 
 ### D-022: Authorize the bounded Foundation Kickoff core slice
 
-**Status:** Accepted
+**Status:** Completed and superseded by D-030
 
 **Decision:** The user-authorized Foundation Kickoff can add one semantic-core slice before the blocked P0 baseline completes. The slice uses separate opaque `Double`-backed `Prob` and `Weight` values, scaled floating normalization, and fail-fast structured construction errors. `FiniteDist` preserves labeled duplicate entries and removes zero-weight entries. Exact-reference numeric types remain separate future work.
 
@@ -258,7 +258,7 @@ The slice can add `Reward`, `Kernel`, `Policy`, and one-step MRP and MDP interfa
 
 ### D-025: Scope warning failures and lower-bound workarounds to CI
 
-**Status:** Accepted
+**Status:** Warning scope accepted; dependency workarounds superseded by D-030
 
 **Decision:** `cabal.project.ci` applies `-Werror` only to the local Markovian package. The package requires monad-bayes 1.3.0.5 or later within the 1.3 series. CI constrains mwc-random to 0.15 or later and unix-compat to 0.7 or later for the `--prefer-oldest` plan.
 
@@ -317,6 +317,18 @@ The slice can add `Reward`, `Kernel`, `Policy`, and one-step MRP and MDP interfa
 **Consequences:** Exact model, policy, and evaluation errors remain separate and are wrapped by the evaluator. Transition reward and reached terminal payoff each occur once. No policy or transition runs at a terminal state. The evaluator uses direct finite sums without sampling, matrix conversion, memoization, or recursive transition trees.
 
 **Risk:** Direct evaluation can revisit states and grow exponentially with horizon and support size. It is a reference interpreter for bounded examples. Dynamic programming and compiled finite-state evaluators are later implementations that must match it exactly.
+
+### D-030: Remove defective experimental APIs instead of preserving compatibility
+
+**Status:** Accepted
+
+**Decision:** Markovian is greenfield and unreleased. It has no compatibility obligation. Remove the branch-weight process, recursive `MDPF`, defective Q-learning code, legacy examples, compatibility tests, adapter roadmap, and dependencies used only by those artifacts. Do not provide shims or deprecation periods for interfaces known to be semantically wrong.
+
+**Rationale:** Compatibility preserves value only when users depend on a coherent contract. These interfaces had no users and encoded contradictory meanings for actions, unchecked probability, unbounded recursion, partial operations, and incorrect learning semantics. Retaining them would increase defect surface and constrain the correct design for no benefit.
+
+**Consequences:** The package exposes only the validated semantic modules. The library, sample, and tests depend only on `base` and the local package. Learning returns later under a new explicit contract. D-010, D-022 compatibility limits, and the dependency-workaround portion of D-025 no longer govern current work.
+
+**Risk:** This branch cannot serve as a drop-in update for code written against the prototype. That break is intentional. Git history remains the only record of the deleted API.
 
 ## Proof obligations for advanced work
 

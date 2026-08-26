@@ -1,5 +1,9 @@
 # Revision history for Markovian
 
-## 0.1.0.0 -- YYYY-mm-dd
+## 0.1.0.0 — Unreleased
 
-* First version. Released on an unsuspecting world.
+- Added validated floating and exact finite probability distributions.
+- Added one-layer MRP and MDP interfaces with explicit transition rewards.
+- Added validated policy closure with structured support errors.
+- Added exact finite-horizon expected-return evaluation.
+- Added reproducible toolchain, package, documentation, and CI gates.

@@ -1,6 +1,6 @@
 # Target architecture
 
-This document defines the target architecture for Markovian. The Foundation Kickoff slice implements only the validated floating values and one-step interfaces described below. The slice has not compiled or run in the current environment.
+This document defines the implemented and target architecture for Markovian. Completed boundaries have compiler, test, Haddock, package, and hosted CI evidence.
 
 `docs/DECISIONS.md` records why the project selected these boundaries. `TODO.md` controls delivery order and completion status.
 
@@ -16,7 +16,7 @@ The project does not put tensors, devices, autodiff, neural networks, or samplin
 
 ### 1.1 Implemented boundary
 
-The additive core currently contains:
+The semantic core currently contains:
 
 - Opaque `Double`-backed `Prob`, `Weight`, `FiniteDist`, and `Reward` values.
 - Separate `Rational`-backed exact probability, distribution, reward, and discount values.
@@ -28,7 +28,7 @@ The additive core currently contains:
 - Validated floating policy closure and exact reference closure.
 - Exact finite-horizon expectation with explicit policy and objective values.
 
-The current `FiniteDist` constructor preserves labeled duplicate entries. It removes input zero weights and positive weights whose normalized `Double` mass rounds to zero. Floating constructors canonicalize negative zero. Objective evaluators, solvers, adapters, and backends remain unimplemented.
+The current `FiniteDist` constructor preserves labeled duplicate entries. It removes input zero weights and positive weights whose normalized `Double` mass rounds to zero. Floating constructors canonicalize negative zero. Seeded sampling, Bellman solvers, learning, POMDPs, compilers, and backends remain unimplemented.
 
 ## 2. Architecture principles
 
@@ -192,8 +192,6 @@ terminalPayoff    : State -> Reward
 An MRP omits the action argument. A deterministic reward function can be lifted into this joint outcome kernel.
 
 A model receives the terminal payoff once when evaluation reaches a terminal state.
-
-This convention does not match every interpretation of the legacy `processReward`. Migration adapters must select an explicit interpretation.
 
 ### 5.2 Finite-horizon objective
 
@@ -438,14 +436,15 @@ An interpreter can cache or compile a model. The cache and compiler are not part
 
 ### 11.1 Initial module map
 
-The additive implementation uses these boundaries. Entries marked "later" are not implemented:
+The implementation uses these boundaries. Entries marked "later" are not implemented:
 
 ```text
 Markovian.Probability       opaque floating probability and distribution types
 Markovian.Probability.Exact exact rational probability and distribution types
 Markovian.Reward            floating reward and terminal-payoff values
 Markovian.Reward.Exact      exact rational reward values
-Markovian.Objective         floating horizon and discount objective values
+Markovian.Horizon           unbounded validated transition horizons
+Markovian.Objective         floating discount objective values
 Markovian.Objective.Exact   exact rational discount and finite objective values
 Markovian.Kernel            one-layer floating stochastic kernel interface
 Markovian.Kernel.Exact      exact rational kernel and Kleisli composition
@@ -459,14 +458,11 @@ Markovian.Interpreter.Exact bounded exact finite expectation
 Markovian.Interpreter.Sample seeded finite sampling and traces (later)
 Markovian.Interpreter.Bellman cyclic finite solvers (later)
 Markovian.Learning.QLearning validated learning interpreter (later)
-Markovian.Legacy            compatibility definitions during migration (later)
 ```
 
 Internal representations use `Markovian.Internal.*`. The package does not expose those modules.
 
-The current `Markovian` and `QLearning` modules remain legacy modules until migration. `QLearning` must depend on model modules. Model modules must not depend on learning modules.
-
-Applications contain examples and adapters only. Tests contain executable contracts.
+Learning modules depend on model and interpreter modules. Model modules do not depend on learning modules. Applications contain examples only. Tests contain executable contracts.
 
 ### 11.2 Future package map
 
@@ -489,11 +485,9 @@ markovian-horde-ad          research autodiff backend
 
 ### 11.3 Public API policy
 
-Opaque semantic types and model interfaces can become stable after their law tests pass. Interpreters remain experimental until objective and error contracts pass their acceptance tests.
+The package is unreleased and experimental. Correctness changes can replace exposed interfaces immediately. A future stability declaration requires law tests, interpreter agreement, PVP policy, and release criteria.
 
-Legacy recursion types are not foundational API. Deprecate them before removal.
-
-Any exposed type or semantic change needs a PVP review. A release change also needs README, changelog, migration, and source-distribution review.
+A release change needs README, changelog, and source-distribution review.
 
 ## 12. GPU, tensor, and autodiff boundary
 
@@ -656,7 +650,7 @@ Use the explicit generator API from `random` for reproducible finite sampling un
 3. Example tests cover known values with exact arithmetic.
 4. Differential tests compare optimized, floating, tensor, and GPU backends with a reference interpreter.
 5. Seed tests cover pathwise reproducibility where the interpreter promises it.
-6. Compile fixtures prevent README and migration examples from drifting.
+6. Compile fixtures prevent README examples from drifting.
 7. Integration tests cover source distributions and application entry points.
 
 ### 17.2 Required semantic cases
@@ -666,7 +660,7 @@ Tests must include:
 - Empty, negative, zero-total, NaN, and infinite distribution inputs.
 - Floating weights whose direct sum overflows.
 - Extreme finite weights whose smaller normalized mass rounds to zero.
-- A non-finite or non-positive scaled normalization total.
+- The scaled-total proof and defensive error branch described by D-026.
 - Finite and non-finite rewards.
 - Terminal initial states.
 - Empty nonterminal action sets.
@@ -682,13 +676,13 @@ Do not use frequency thresholds as required CI gates. They are flaky and weak fo
 
 ### 17.3 Reference values
 
-The legacy sample has expected undiscounted value `12.5`. Its sampled return belongs to `{10, 15}`.
+The exact sample has one transition reward `2`, discount `1/2`, and terminal payoff `7`. Its finite-horizon expected return is `11/2`.
 
-These values characterize the legacy evaluation interpretation. They do not validate the current MDP naming.
+The randomized exact policy fixture chooses rewards `2` and `8` with masses `1/4` and `3/4`. Its conditional expected reward is `13/2`.
 
 ## 18. CI and release gates
 
-The current environment cannot run these commands. Future agents must record actual output before they mark a gate complete.
+The pinned local environment and hosted CI run these commands. Every completion claim records output from the current revision.
 
 Every change runs:
 
@@ -701,6 +695,7 @@ cabal test all --project-file=cabal.project.ci --test-show-details=direct
 CI also needs these gates after bootstrap:
 
 ```sh
+hlint src
 fourmolu --mode check $(git ls-files '*.hs' '*.lhs')
 cabal-fmt --check Markovian.cabal
 cabal build all --prefer-oldest --project-file=cabal.project.ci
@@ -711,56 +706,15 @@ cabal haddock all --project-file=cabal.project.ci \
 
 The source-distribution job runs `cabal check`, creates an archive, unpacks it, then builds and tests the unpacked tree.
 
-Start the compiler matrix with GHC 9.4.8 because the current `base` bound targets GHC 9.4. Add GHC 9.6.7 and 9.8.4 only after tested bounds permit them.
+The compiler matrix tests GHC 9.4.8 and 9.8.4. Add more compilers only after their package bounds and full gates pass.
 
 Pin GitHub Actions by commit SHA. Pin formatter versions. Change dependency pins in separate maintenance changes.
 
 A semantic change also requires an accepted decision, updated invariants, and deterministic contract tests.
 
-A public API or release change also requires PVP review, migration review, README updates, and a factual changelog entry.
+A public API or release change also requires README updates and a factual changelog entry.
 
-## 19. Migration plan
-
-### Phase A: Baseline
-
-Add project files and CI without changing semantics. Replace the placeholder test with legacy characterization tests.
-
-### Phase B: Additive core
-
-Add validated values, finite kernels, MRP, MDP, and policy modules. Keep current exports unchanged.
-
-The first safe implementation slice adds no evaluator, learner, adapter, or application migration.
-
-### Phase C: Bounded interpreters
-
-Add exact and seeded bounded interpreters under explicit policies and objectives. Test self-loops through horizon termination.
-
-### Phase D: Compatibility
-
-Move current definitions to `Markovian.Legacy`. Keep deprecated shims through the 0.2 series.
-
-Provide two adapters:
-
-- `fromLegacyMarkovProcess` treats branch weights as transition probabilities under one synthetic action ID.
-- `fromLegacyDeterministicMDP` treats each branch as one deterministic action and ignores its legacy weight.
-
-Do not provide a generic adapter. The legacy representation has no single correct MDP interpretation.
-
-Migrate `app/Sample/Main.hs` in this phase. Do not make the sampling migration depend on the replacement learner.
-
-### Phase E: Learning replacement
-
-Replace both Q-learning paths with one validated, seeded interpreter. Add explicit step limits and terminal-payoff semantics.
-
-Migrate `app/QLearning/Main.hs` only after the replacement learner passes its gate.
-
-### Phase F: Removal and expansion
-
-Remove legacy shims only in a PVP-major 0.3 release. Wait at least 90 days after a verified 0.2 release.
-
-Add cyclic, POMDP, continuous, compiler, GPU, or neural work only after its admission gate passes.
-
-## 20. Architecture compliance
+## 19. Architecture compliance
 
 A review fails when source, package metadata, tests, and durable documents disagree.
 

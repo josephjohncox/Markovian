@@ -24,6 +24,11 @@ where
 import Data.Foldable (foldl')
 import Data.List.NonEmpty (NonEmpty)
 import Data.List.NonEmpty qualified as NonEmpty
+import Data.Semigroup (Max (..), sconcat)
+
+-- Preserve tuple-pattern strictness at validated representation boundaries.
+{-# ANN module ("HLint: ignore Use first" :: String) #-}
+{-# ANN module ("HLint: ignore Use second" :: String) #-}
 
 -- | A finite probability in the closed interval @[0, 1]@.
 newtype Prob = Prob Double
@@ -83,7 +88,7 @@ instance Functor FiniteDist where
 -- | Errors returned while constructing a finite distribution with 'finiteDist'.
 data DistributionError
     = EmptySupport
-    | InvalidWeight !Int !WeightError
+    | InvalidWeight !Integer !WeightError
     | ZeroTotalWeight
     | InvalidScaledTotal !Double
     deriving (Eq, Show)
@@ -109,7 +114,7 @@ finiteDist entries = do
             Right validWeight -> Right (value, validWeight)
 
     normalize positiveEntries =
-        let largest = maximum (fmap (weight . snd) positiveEntries)
+        let largest = getMax (sconcat (fmap (Max . weight . snd) positiveEntries))
             scaled = fmap (\(value, validWeight) -> (value, weight validWeight / largest)) positiveEntries
             scaledTotal = foldl' (\total (_, mass) -> total + mass) 0 scaled
             normalized = fmap (\(value, mass) -> (value, mass / scaledTotal)) scaled

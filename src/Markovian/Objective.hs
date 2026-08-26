@@ -1,8 +1,7 @@
-{- | Validated floating objective parameters.
+{- | Validated floating discount parameters.
 
 A finite-horizon discount can equal one. A contraction discount for an
-infinite-horizon Bellman objective must be strictly less than one. 'Horizon'
-counts transitions and uses an unbounded natural-number representation.
+infinite-horizon Bellman objective must be strictly less than one.
 -}
 module Markovian.Objective (
     Discount,
@@ -13,13 +12,7 @@ module Markovian.Objective (
     asContractionDiscount,
     discountValue,
     contractionDiscountValue,
-    Horizon,
-    HorizonError (..),
-    mkHorizon,
-    horizonValue,
 ) where
-
-import Numeric.Natural (Natural)
 
 -- | A finite floating discount in the closed interval @[0, 1]@.
 newtype Discount = Discount Double
@@ -64,23 +57,3 @@ discountValue (Discount value) = value
 -- | Read a contraction discount.
 contractionDiscountValue :: ContractionDiscount -> Double
 contractionDiscountValue (ContractionDiscount value) = value
-
--- | A maximum number of model transitions.
-newtype Horizon = UnsafeHorizon Natural
-    deriving (Eq, Ord, Show)
-
--- | Errors returned by 'mkHorizon'.
-data HorizonError
-    = -- | The supplied transition count is negative.
-      NegativeHorizon !Integer
-    deriving (Eq, Show)
-
--- | Validate a transition horizon without imposing a machine-sized upper bound.
-mkHorizon :: Integer -> Either HorizonError Horizon
-mkHorizon value
-    | value < 0 = Left (NegativeHorizon value)
-    | otherwise = Right (UnsafeHorizon (fromInteger value))
-
--- | Read the maximum number of transitions.
-horizonValue :: Horizon -> Natural
-horizonValue (UnsafeHorizon value) = value

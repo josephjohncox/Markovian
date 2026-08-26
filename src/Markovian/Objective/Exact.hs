@@ -18,7 +18,7 @@ module Markovian.Objective.Exact (
     exactObjectiveDiscount,
 ) where
 
-import Markovian.Objective (Horizon)
+import Markovian.Horizon (Horizon)
 
 -- | An exact rational discount in the closed interval @[0, 1]@.
 newtype ExactDiscount = ExactDiscount Rational

@@ -1,0 +1,9 @@
+---
+cradle:
+  cabal:
+    - path: "./src"
+      component: "lib:Markovian"
+    - path: "./app/Sample"
+      component: "exe:Sample"
+    - path: "./test"
+      component: "test:Markovian-test"

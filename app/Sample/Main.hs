@@ -1,45 +1,41 @@
-module Main where
+module Main (main) where
 
-import Control.Monad.Bayes.Sampler.Strict (sampleIO)
-import Data.Vector qualified as V
-import Markovian (Action (..), Process (..), evaluateMDPExpect, evaluateMDPSample)
+import Markovian.Horizon (mkHorizon)
+import Markovian.Interpreter.Exact (expectedExactReturn)
+import Markovian.Kernel.Exact (exactKernel)
+import Markovian.MDP (actionId)
+import Markovian.MDP.Exact (
+    ExactStateStatus (..),
+    exactMDP,
+    exactTransitionOutcome,
+ )
+import Markovian.Objective.Exact (exactFiniteObjective, mkExactDiscount)
+import Markovian.Policy.Exact (exactPolicy)
+import Markovian.Probability.Exact (exactDirac)
+import Markovian.Reward.Exact (exactReward, exactRewardValue)
 
--- Example States
-data State = State String deriving (Show, Eq)
-
-sampleProcess :: Process State
-sampleProcess =
-    Process
-        { initialState = State "State1"
-        , isTerminal = isTerminalState
-        , processReward = getReward
-        , processActions = getActions
-        }
-  where
-    isTerminalState (State s) = s == "State3"
-
-    getReward (State s) = case s of
-        "State1" -> 0
-        "State2" -> 5
-        "State3" -> 10
-        _ -> 0
-
-    getActions (State s) = case s of
-        "State1" ->
-            V.fromList
-                [ Action "toState2" 0.5 (State "State2")
-                , Action "toState3" 0.5 (State "State3")
-                ]
-        "State2" -> V.singleton $ Action "toState3" 1.0 (State "State3")
-        _ -> V.empty
-
--- Main function
 main :: IO ()
 main = do
-    -- Sampling from the MDP using MonadMeasure
-    sampleValue <- sampleIO $ evaluateMDPSample sampleProcess
-    putStrLn $ "Sampled Value: " ++ show sampleValue
+    horizon <- either (fail . show) pure (mkHorizon 1)
+    discount <- either (fail . show) pure (mkExactDiscount (1 / 2))
+    let finish = actionId Finish
+        status Start = ExactContinuing
+        status Done = ExactTerminal (exactReward 7)
+        available Start = [finish]
+        available Done = []
+        model =
+            exactMDP
+                Start
+                status
+                available
+                (exactKernel (\_ -> exactDirac (exactTransitionOutcome (exactReward 2) Done)))
+        selectedPolicy = exactPolicy (exactKernel (const (exactDirac finish)))
+        objective = exactFiniteObjective horizon discount
+    result <- either (fail . show) pure (expectedExactReturn objective model selectedPolicy)
+    putStrLn ("Expected return: " ++ show (exactRewardValue result))
 
-    -- Computing the expected value using MonadMeasure
-    expectedValue <- sampleIO $ evaluateMDPExpect sampleProcess
-    putStrLn $ "Expected Value: " ++ show expectedValue
+data State = Start | Done
+    deriving (Eq, Show)
+
+data Action = Finish
+    deriving (Eq, Show)

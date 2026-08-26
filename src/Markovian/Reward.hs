@@ -11,9 +11,8 @@ where
 newtype Reward = Reward Double
     deriving (Eq, Show)
 
--- | Errors returned by 'mkReward'.
-data RewardError
-    = NonFiniteReward !Double
+-- | The supplied reward is NaN or infinite.
+newtype RewardError = NonFiniteReward Double
     deriving (Eq, Show)
 
 -- | Validate a floating reward.

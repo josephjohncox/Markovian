@@ -24,14 +24,15 @@ import Data.Foldable (foldl')
 import Data.List.NonEmpty (NonEmpty)
 import Data.List.NonEmpty qualified as NonEmpty
 
+-- Preserve tuple-pattern strictness at validated representation boundaries.
+{-# ANN module ("HLint: ignore Use first" :: String) #-}
+
 -- | An exact probability in the closed interval @[0, 1]@.
 newtype ExactProb = ExactProb Rational
     deriving (Eq, Ord, Show)
 
--- | Errors returned by 'mkExactProb'.
-data ExactProbabilityError
-    = -- | The supplied rational is outside the closed unit interval.
-      ExactProbabilityOutOfRange !Rational
+-- | The supplied rational is outside the closed unit interval.
+newtype ExactProbabilityError = ExactProbabilityOutOfRange Rational
     deriving (Eq, Show)
 
 -- | Validate an exact probability.
@@ -48,10 +49,8 @@ exactProbability (ExactProb value) = value
 newtype ExactWeight = ExactWeight Rational
     deriving (Eq, Ord, Show)
 
--- | Errors returned by 'mkExactWeight'.
-data ExactWeightError
-    = -- | The supplied rational is negative.
-      NegativeExactWeight !Rational
+-- | The supplied rational is negative.
+newtype ExactWeightError = NegativeExactWeight Rational
     deriving (Eq, Show)
 
 {- | Validate an exact weight. Zero is valid by itself, but an exact finite

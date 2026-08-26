@@ -144,7 +144,7 @@ jobs:
             --test-show-details=direct
 
   format:
-    name: Format
+    name: Source checks
     runs-on: ubuntu-22.04
 
     steps:
@@ -171,7 +171,7 @@ jobs:
           ghc-version: ${{ steps.toolchain.outputs.ghc }}
           cabal-version: ${{ steps.toolchain.outputs.cabal }}
 
-      - name: Install pinned formatters
+      - name: Install pinned source tools
         run: |
           set -euo pipefail
           source toolchain.env
@@ -182,6 +182,7 @@ jobs:
             --tool "fourmolu,${MARKOVIAN_FOURMOLU_VERSION}" \
             --bindir "${HOME}/.local/bin"
           cabal install \
+            "hlint-${MARKOVIAN_HLINT_VERSION}" \
             "cabal-fmt-${MARKOVIAN_CABAL_FMT_VERSION}" \
             --ignore-project \
             --install-method=copy \
@@ -189,7 +190,7 @@ jobs:
             --overwrite-policy=always
           echo "${HOME}/.local/bin" >> "${GITHUB_PATH}"
 
-      - name: Check formatting
+      - name: Check source and formatting
         run: |
           set -euo pipefail
           source toolchain.env
@@ -201,6 +202,9 @@ jobs:
           actual_cabal_fmt_version="$(cabal-fmt --version)"
           test "${actual_cabal_fmt_version}" = \
             "${MARKOVIAN_CABAL_FMT_VERSION}"
+          hlint --version | head -1 \
+            | grep -F "HLint v${MARKOVIAN_HLINT_VERSION}"
+          hlint src
           find src app test -type f -name '*.hs' -print0 \
             | sort -z \
             | xargs -0 fourmolu --mode check

@@ -6,6 +6,7 @@ module Markovian.Interpreter.Exact (
 ) where
 
 import Data.List.NonEmpty qualified as NonEmpty
+import Markovian.Horizon (horizonValue)
 import Markovian.MDP.Exact (
     ExactDecision (..),
     ExactMDP,
@@ -18,7 +19,6 @@ import Markovian.MDP.Exact (
     inspectExactMDP,
     stepExactMDP,
  )
-import Markovian.Objective (horizonValue)
 import Markovian.Objective.Exact (
     ExactFiniteObjective,
     exactDiscountValue,

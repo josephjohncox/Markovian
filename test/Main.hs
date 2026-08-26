@@ -1,18 +1,11 @@
 module Main (main) where
 
-import Control.Monad (replicateM)
-import Control.Monad.Bayes.Sampler.Strict (sampleIO)
-import Control.Monad.Random (evalRandIO)
 import Data.List.NonEmpty qualified as NonEmpty
-import Data.Map.Strict qualified as Map
 import Data.Ratio ((%))
-import Data.Vector qualified as Vector
-import Markovian (
-    Action (..),
-    Process (..),
-    buildMDPF,
-    evaluateMDPExpect,
-    evaluateMDPSample,
+import Markovian.Horizon (
+    HorizonError (..),
+    horizonValue,
+    mkHorizon,
  )
 import Markovian.Interpreter.Exact (
     ExactEvaluationError (..),
@@ -54,14 +47,11 @@ import Markovian.MRP (
  )
 import Markovian.Objective (
     DiscountError (..),
-    HorizonError (..),
     asContractionDiscount,
     contractionDiscountValue,
     discountValue,
-    horizonValue,
     mkContractionDiscount,
     mkDiscount,
-    mkHorizon,
  )
 import Markovian.Objective.Exact (
     ExactDiscountError (..),
@@ -83,6 +73,7 @@ import Markovian.Policy (
     stepPolicyMRP,
  )
 import Markovian.Policy.Exact (
+    ExactConditionalRewardError (..),
     ExactPolicyError (..),
     closeExactPolicy,
     exactConditionalExpectedReward,
@@ -119,7 +110,6 @@ import Markovian.Reward (
     rewardValue,
  )
 import Markovian.Reward.Exact (exactReward, exactRewardValue)
-import QLearning (qLearning)
 import System.Exit (exitFailure)
 
 main :: IO ()
@@ -137,10 +127,6 @@ main = do
     run "exact evaluator reward timing and discount" testExactEvaluatorRewardTiming
     run "exact evaluator weighted support and errors" testExactEvaluatorWeighted
     run "exact evaluator bounded self-loop" testExactEvaluatorSelfLoop
-    run "legacy terminal value" testLegacyTerminalValue
-    run "legacy deterministic chain" testLegacyDeterministicChain
-    run "legacy expectation and sample support" testLegacyExpectationAndSampleSupport
-    run "legacy Q-learning identity boundaries" testLegacyQLearningIdentity
     run "exact probability and reward values" testExactValues
     run "exact finite distribution functor laws" testExactFunctorLaws
     run "exact kernel Kleisli laws" testExactKernelLaws
@@ -592,7 +578,7 @@ testExactPolicyClosure = do
     conditional <- requireRight "exact conditional reward" (exactConditionalExpectedReward closed ClosureMiddle)
     assert "exact conditional reward changed" (exactRewardValue conditional == 13 % 2)
     case exactConditionalExpectedReward closed ClosureMissing of
-        Left ZeroMassTransition -> pure ()
+        Left ExactZeroMassTransition -> pure ()
         result -> failTest ("exact zero-mass conditional reward was not rejected: " ++ show result)
 
     case closeExactPolicy (lowAction NonEmpty.:| [lowAction]) selected transition of
@@ -761,95 +747,6 @@ testHorizons = do
     let largeValue = 10 ^ (30 :: Int)
     largeHorizon <- requireRight "large horizon" (mkHorizon largeValue)
     assert "horizon must not impose a machine-sized bound" (horizonValue largeHorizon == fromInteger largeValue)
-
-testLegacyTerminalValue :: IO ()
-testLegacyTerminalValue = do
-    expectedValue <- sampleIO (evaluateMDPExpect legacyTerminalProcess)
-    sampledValue <- sampleIO (evaluateMDPSample legacyTerminalProcess)
-    assert "legacy expectation must retain the terminal reward" (expectedValue == 7)
-    assert "legacy sampling must retain the terminal reward" (sampledValue == 7)
-
-testLegacyDeterministicChain :: IO ()
-testLegacyDeterministicChain = do
-    expectedValue <- sampleIO (evaluateMDPExpect legacyChainProcess)
-    sampledValue <- sampleIO (evaluateMDPSample legacyChainProcess)
-    assert "legacy expectation must sum deterministic state rewards" (expectedValue == 6)
-    assert "legacy sampling must sum deterministic state rewards" (sampledValue == 6)
-
-testLegacyExpectationAndSampleSupport :: IO ()
-testLegacyExpectationAndSampleSupport = do
-    expectedValue <- sampleIO (evaluateMDPExpect legacyChoiceProcess)
-    sampledValues <- replicateM 64 (sampleIO (evaluateMDPSample legacyChoiceProcess))
-    assert "legacy expectation must normalize to 12.5" (expectedValue == 12.5)
-    assert
-        "legacy samples must remain in the declared support"
-        (all (`elem` [10, 15]) sampledValues)
-
-testLegacyQLearningIdentity :: IO ()
-testLegacyQLearningIdentity = do
-    let initialTable = Map.singleton (LegacyChainStart, "next") 3.5
-        chainTree = buildMDPF legacyChainProcess LegacyChainStart
-        terminalTree = buildMDPF legacyTerminalProcess LegacyTerminal
-    zeroEpisodeTable <- evalRandIO (qLearning chainTree 0 initialTable)
-    terminalTable <- evalRandIO (qLearning terminalTree 5 initialTable)
-    assert "zero Q-learning episodes must preserve the table" (zeroEpisodeTable == initialTable)
-    assert "a terminal initial state must preserve the table" (terminalTable == initialTable)
-
-legacyTerminalProcess :: Process LegacyState
-legacyTerminalProcess =
-    Process
-        { initialState = LegacyTerminal
-        , isTerminal = const True
-        , processReward = const 7
-        , processActions = const Vector.empty
-        }
-
-legacyChainProcess :: Process LegacyState
-legacyChainProcess =
-    Process
-        { initialState = LegacyChainStart
-        , isTerminal = (== LegacyTerminal)
-        , processReward = chainReward
-        , processActions = chainActions
-        }
-  where
-    chainReward LegacyChainStart = 1
-    chainReward LegacyChainMiddle = 2
-    chainReward LegacyTerminal = 3
-    chainReward _ = 0
-
-    chainActions LegacyChainStart = Vector.singleton (Action "next" 1 LegacyChainMiddle)
-    chainActions LegacyChainMiddle = Vector.singleton (Action "finish" 1 LegacyTerminal)
-    chainActions _ = Vector.empty
-
-legacyChoiceProcess :: Process LegacyState
-legacyChoiceProcess =
-    Process
-        { initialState = LegacyChoice
-        , isTerminal = (`elem` [LegacyLow, LegacyHigh])
-        , processReward = choiceReward
-        , processActions = choiceActions
-        }
-  where
-    choiceReward LegacyLow = 10
-    choiceReward LegacyHigh = 15
-    choiceReward _ = 0
-
-    choiceActions LegacyChoice =
-        Vector.fromList
-            [ Action "low" 0.5 LegacyLow
-            , Action "high" 0.5 LegacyHigh
-            ]
-    choiceActions _ = Vector.empty
-
-data LegacyState
-    = LegacyTerminal
-    | LegacyChainStart
-    | LegacyChainMiddle
-    | LegacyChoice
-    | LegacyLow
-    | LegacyHigh
-    deriving (Eq, Ord, Show)
 
 data TestState = Start | End
     deriving (Eq, Show)

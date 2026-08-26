@@ -54,7 +54,7 @@ Gate: an accepted decision covers every semantic or public contract change.
 
 ### Phase C: Plan
 
-1. Select the smallest additive slice.
+1. Select the smallest coherent slice.
 2. List files and assign one writer.
 3. List required tests before implementation.
 4. List required documentation updates.
@@ -156,6 +156,7 @@ cabal test all --project-file=cabal.project.ci --test-show-details=direct
 Run pinned formatter versions:
 
 ```sh
+hlint src
 fourmolu --mode check $(git ls-files '*.hs' '*.lhs')
 cabal-fmt --check Markovian.cabal
 ```
@@ -180,7 +181,7 @@ cabal haddock all --project-file=cabal.project.ci \
   --enable-documentation --haddock-all --haddock-hyperlink-source
 ```
 
-Compile all README and migration examples. Review the package version under the Haskell PVP.
+Compile all README examples. Review the exposed module list and package metadata. The unreleased package may break incorrect interfaces without a compatibility phase.
 
 ### 4.6 Release changes
 
@@ -236,7 +237,7 @@ A missing tool produces `BLOCKED`, not `DONE`. Record the failed command and exi
 | Change | Required document updates |
 | --- | --- |
 | Semantic or invariant change | `docs/ARCHITECTURE.md`, `docs/DECISIONS.md`, tests, `docs/CONTEXT.md` |
-| Public API change | Architecture module map, Haddock, README, migration guide, Cabal review |
+| Public API change | Architecture module map, Haddock, README, Cabal review |
 | Module or dependency change | Architecture boundaries, `Markovian.cabal`, dependency rationale |
 | Priority or status change | `TODO.md` with evidence |
 | New defect or resolved defect | `docs/CONTEXT.md` with file and line evidence |
@@ -339,7 +340,7 @@ Do not use architecture text to hide an unresolved decision. Mark the uncertaint
 
 ## 10. Exact next workflow
 
-P0, P1, and P2.1 are `DONE`. D-023 through D-029 define the verified environment, exact closure, and finite expectation. Twenty-three tests and all completed local gates pass. P2.2 is `NEXT`.
+P0, P1, P2.1, and the greenfield cleanup are `DONE`. D-023 through D-030 define the verified environment, exact semantics, and compatibility removal. Nineteen tests and all completed local gates pass. P2.2 is `NEXT`.
 
 The next writer must use this sequence:
 

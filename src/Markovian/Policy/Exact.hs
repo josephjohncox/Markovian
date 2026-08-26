@@ -4,6 +4,7 @@ module Markovian.Policy.Exact (
     exactPolicy,
     exactPolicyActions,
     ExactPolicyError (..),
+    ExactConditionalRewardError (..),
     validateExactPolicySupport,
     closeExactPolicy,
     exactConditionalExpectedReward,
@@ -13,7 +14,6 @@ import Data.List.NonEmpty (NonEmpty)
 import Data.List.NonEmpty qualified as NonEmpty
 import Markovian.Kernel.Exact (ExactKernel, runExactKernel)
 import Markovian.MDP (ActionId)
-import Markovian.Policy (ConditionalRewardError (..))
 import Markovian.Probability.Exact (
     ExactFiniteDist,
     bindExactFiniteDist,
@@ -80,19 +80,25 @@ validateExactPolicySupport available selected = do
         Just unavailable -> Left (ExactPolicyUnavailableAction unavailable)
         Nothing -> pure ()
 
+-- | Errors from exact conditional reward queries.
+data ExactConditionalRewardError
+    = -- | The requested successor has zero marginal probability.
+      ExactZeroMassTransition
+    deriving (Eq, Show)
+
 {- | Compute an exact expected reward conditional on one successor state.
 
-The query returns 'ZeroMassTransition' when the successor has no positive
+The query returns 'ExactZeroMassTransition' when the successor has no positive
 marginal mass.
 -}
 exactConditionalExpectedReward ::
     (Eq state) =>
     ExactFiniteDist (ExactReward, state) ->
     state ->
-    Either ConditionalRewardError ExactReward
+    Either ExactConditionalRewardError ExactReward
 exactConditionalExpectedReward distribution requestedSuccessor =
     case matching of
-        [] -> Left ZeroMassTransition
+        [] -> Left ExactZeroMassTransition
         positive ->
             let marginal = sum (fmap snd positive)
                 expected =
