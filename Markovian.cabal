@@ -45,6 +45,7 @@ library
   exposed-modules:
     Markovian.Horizon
     Markovian.Interpreter.Exact
+    Markovian.Interpreter.Sampled
     Markovian.Kernel
     Markovian.Kernel.Exact
     Markovian.MDP
@@ -58,6 +59,8 @@ library
     Markovian.Probability.Exact
     Markovian.Reward
     Markovian.Reward.Exact
+    Markovian.Sampling
+    Markovian.Trace
 
   build-depends:    base >=4.17.2.1 && <4.20
   hs-source-dirs:   src

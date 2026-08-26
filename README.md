@@ -12,7 +12,10 @@ The package is greenfield and unreleased. It makes no compatibility promise. Inc
 - MRP and MDP interfaces with action IDs distinct from transition outcomes;
 - validated policy closure that preserves joint reward and successor distributions;
 - exact finite-horizon expected-return evaluation with explicit model, policy, horizon, and discount;
-- structured model, policy, objective, normalization, and conditioning errors.
+- explicit seeded finite-support sampling with returned generator state;
+- action-labeled traces with terminal and horizon stop reasons;
+- exact trace enumeration whose expected return matches direct evaluation;
+- structured model, policy, sampling, arithmetic, normalization, and conditioning errors.
 
 The semantic core depends only on `base`. Sampling frameworks, tensors, GPU runtimes, autodiff, and neural libraries remain outside the core.
 

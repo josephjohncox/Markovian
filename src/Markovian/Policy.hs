@@ -4,6 +4,7 @@ module Markovian.Policy (
     policy,
     policyActions,
     PolicyError (..),
+    validatePolicySupport,
     PolicyMRP,
     closePolicy,
     policyMRPInitialState,
@@ -19,7 +20,7 @@ import Markovian.MDP (
     ActionId,
     Decision (..),
     MDP,
-    ModelError,
+    ModelError (..),
     inspectMDP,
     mdpInitialState,
     mdpStateStatus,
@@ -92,13 +93,7 @@ closePolicy model selectedPolicy =
             Right (ActionDecision available) -> do
                 let selected = policyActions selectedPolicy state
                     selectedEntries = NonEmpty.toList (outcomes selected)
-                    selectedIds = fmap fst selectedEntries
-                case firstDuplicate selectedIds of
-                    Just duplicate -> Left (DuplicatePolicyAction duplicate)
-                    Nothing -> pure ()
-                case firstUnavailable (NonEmpty.toList available) selectedIds of
-                    Just unavailable -> Left (PolicyUnavailableAction unavailable)
-                    Nothing -> pure ()
+                validatePolicySupport available selected
                 branches <- traverse (runSelected state) selectedEntries
                 case finiteDist (concat branches) of
                     Left err -> Left (PolicyNormalizationError err)
@@ -112,6 +107,24 @@ closePolicy model selectedPolicy =
                     [ (outcome, probability selectedMass * probability transitionMass)
                     | (outcome, transitionMass) <- NonEmpty.toList (outcomes transition)
                     ]
+
+-- | Validate one floating policy distribution against available action IDs.
+validatePolicySupport ::
+    (Eq action) =>
+    NonEmpty.NonEmpty (ActionId action) ->
+    FiniteDist (ActionId action) ->
+    Either (PolicyError action) ()
+validatePolicySupport available selected = do
+    case firstDuplicate (NonEmpty.toList available) of
+        Just duplicate -> Left (PolicyModelError (DuplicateAvailableAction duplicate))
+        Nothing -> pure ()
+    let selectedIds = fmap fst (NonEmpty.toList (outcomes selected))
+    case firstDuplicate selectedIds of
+        Just duplicate -> Left (DuplicatePolicyAction duplicate)
+        Nothing -> pure ()
+    case firstUnavailable (NonEmpty.toList available) selectedIds of
+        Just unavailable -> Left (PolicyUnavailableAction unavailable)
+        Nothing -> pure ()
 
 -- | Read the closed process's initial state.
 policyMRPInitialState :: PolicyMRP state action -> state

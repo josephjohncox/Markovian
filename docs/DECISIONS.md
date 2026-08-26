@@ -330,6 +330,18 @@ The slice can add `Reward`, `Kernel`, `Policy`, and one-step MRP and MDP interfa
 
 **Risk:** This branch cannot serve as a drop-in update for code written against the prototype. That break is intentional. Git history remains the only record of the deleted API.
 
+### D-031: Own explicit generator state and sample finite support without fixed-width truncation
+
+**Status:** Accepted
+
+**Decision:** Seeded interpreters receive and return an opaque SplitMix64 generator state. Finite categorical sampling converts each positive floating mass to its exact binary rational value, renormalizes those rational weights, and draws an unbiased integer by rejection. Exact distributions use their rational masses directly. A deterministic one-point choice consumes no generator state.
+
+**Rationale:** A fixed 53-bit unit interval makes positive `Double` masses below `2^-53` unreachable. Statistical frequency assertions also cannot prove categorical correctness. Rational integer selection preserves all exposed support and gives deterministic equal-seed behavior without global randomness or a new package dependency.
+
+**Consequences:** `Markovian.Sampling` owns generator progression and returns resumable state. `Markovian.Interpreter.Sampled` preserves the exact interpreter's terminal-before-horizon, reward-timing, and discount conventions. `Markovian.Trace` records action IDs, transition rewards, successors, and explicit stop reasons. Exact trace enumeration provides a distribution whose expected return is tested against direct exact evaluation.
+
+**Risk:** The package now owns a stable pseudo-random stream contract. Changing the mixing function, rejection-bit order, or deterministic-choice consumption rule is an observable semantic change. Large rational denominators can require large integer draws and must be benchmarked before high-throughput use.
+
 ## Proof obligations for advanced work
 
 | Feature | Proof obligation before implementation | Evidence before acceptance |

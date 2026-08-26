@@ -27,8 +27,11 @@ The semantic core currently contains:
 - One-step floating and exact MDP interfaces with separate action IDs and transition outcomes.
 - Validated floating policy closure and exact reference closure.
 - Exact finite-horizon expectation with explicit policy and objective values.
+- Explicit SplitMix64 generator state and unbiased finite-support sampling.
+- Structured action-labeled traces with terminal and horizon stop reasons.
+- Exact bounded trace enumeration for expectation cross-checks.
 
-The current `FiniteDist` constructor preserves labeled duplicate entries. It removes input zero weights and positive weights whose normalized `Double` mass rounds to zero. Floating constructors canonicalize negative zero. Seeded sampling, Bellman solvers, learning, POMDPs, compilers, and backends remain unimplemented.
+The current `FiniteDist` constructor preserves labeled duplicate entries. It removes input zero weights and positive weights whose normalized `Double` mass rounds to zero. Floating constructors canonicalize negative zero. Bellman solvers, learning, POMDPs, compilers, and backends remain unimplemented.
 
 ## 2. Architecture principles
 
@@ -428,7 +431,9 @@ Interpreters provide:
 
 Each interpreter receives all behavior-changing configuration as an argument. This includes seeds, horizons, discounts, schedules, tolerances, iteration limits, and devices.
 
-The exact reference interpreter implements Section 5.2 by bounded state recursion. It checks terminal status before the horizon boundary, decreases the transition count on every recursive call, and preserves rational arithmetic throughout. It performs no sampling, memoization, or recursive model unfolding.
+The exact reference interpreter implements Section 5.2 by bounded state recursion. It checks terminal status before the horizon boundary, decreases the transition count on every recursive call, and preserves rational arithmetic throughout. Its trace enumerator exposes the same branches and returns for independent expectation checks.
+
+The sampled interpreter uses the same terminal-before-horizon and discount placement. It receives and returns opaque generator state. Floating support masses are converted to their exact binary rational values and sampled by rejection from unbiased generator bits, so every exposed positive entry remains reachable. A deterministic one-point distribution consumes no generator state.
 
 An interpreter can cache or compile a model. The cache and compiler are not part of the model denotation.
 
@@ -444,7 +449,7 @@ Markovian.Probability.Exact exact rational probability and distribution types
 Markovian.Reward            floating reward and terminal-payoff values
 Markovian.Reward.Exact      exact rational reward values
 Markovian.Horizon           unbounded validated transition horizons
-Markovian.Objective         floating discount objective values
+Markovian.Objective         floating discount and finite objective values
 Markovian.Objective.Exact   exact rational discount and finite objective values
 Markovian.Kernel            one-layer floating stochastic kernel interface
 Markovian.Kernel.Exact      exact rational kernel and Kleisli composition
@@ -454,8 +459,10 @@ Markovian.MDP.Exact         exact MDP, status, outcome, and model errors
 Markovian.Policy            floating policy validation and fallible closure
 Markovian.Policy.Exact      exact policy, support validation, and closure
 Markovian.POMDP             later finite POMDP interface
-Markovian.Interpreter.Exact bounded exact finite expectation
-Markovian.Interpreter.Sample seeded finite sampling and traces (later)
+Markovian.Sampling          explicit generator and finite categorical sampling
+Markovian.Trace             generic action-labeled bounded traces
+Markovian.Interpreter.Exact bounded exact expectation and trace enumeration
+Markovian.Interpreter.Sampled seeded floating finite sampling and traces
 Markovian.Interpreter.Bellman cyclic finite solvers (later)
 Markovian.Learning.QLearning validated learning interpreter (later)
 ```
@@ -639,7 +646,7 @@ Before adding a dependency, record its purpose, license, maintenance state, lowe
 
 Prefer `base` and `Data.List.NonEmpty` for the first value types. Use `containers` for indexed maps when direct imports require it.
 
-Use the explicit generator API from `random` for reproducible finite sampling unless an adapter has a demonstrated need.
+The current sampler uses a package-owned SplitMix64 stream implemented with `base`. Add `random` only when interoperability supplies an owned use case that the explicit `Generator` API cannot meet.
 
 ## 17. Testing strategy
 

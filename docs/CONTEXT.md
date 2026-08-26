@@ -6,11 +6,11 @@ Read this file, `TODO.md`, and the relevant architecture and decision sections b
 
 Markovian is a greenfield experimental Haskell package for finite stochastic kernels and decision models. It has no compatibility commitment and no external users. Incorrect interfaces are removed rather than preserved.
 
-The library exposes validated floating and exact probability, reward, objective, kernel, MRP, MDP, policy, and policy-closure modules. The exact reference interpreter computes finite-horizon expected return by bounded state recursion. The semantic core depends only on `base`.
+The library exposes validated floating and exact probability, reward, objective, kernel, MRP, MDP, policy, sampling, and trace modules. The exact reference interpreter computes finite-horizon expected return and enumerates bounded traces. The sampled interpreter receives and returns explicit generator state. The semantic core depends only on `base`.
 
 The package does not contain the former branch-weight process, recursive `MDPF`, or Q-learning implementation. `app/Sample/Main.hs` demonstrates the exact finite-horizon evaluator.
 
-`test/Main.hs` contains nineteen deterministic semantic, law, closure, and interpreter contracts. GHC 9.4.8 and 9.8.4 pass project-scoped `-Werror`, source checks, package checks, warning-free Haddock, lower-bound resolution, and unpacked source-distribution tests. The complete greenfield hosted run passed at <https://github.com/josephjohncox/Markovian/actions/runs/32920753099>.
+`test/Main.hs` contains twenty-two deterministic semantic, law, closure, sampling, trace, and interpreter contracts. GHC 9.4.8 and 9.8.4 pass project-scoped `-Werror`, source checks, package checks, warning-free Haddock, lower-bound resolution, and unpacked source-distribution tests. The complete greenfield hosted run passed at <https://github.com/josephjohncox/Markovian/actions/runs/32920753099>.
 
 ## Resolved defects
 
@@ -26,6 +26,7 @@ The package does not contain the former branch-weight process, recursive `MDPF`,
 | K-015 | Floating normalization removes every mass that rounds to zero and exposes positive support only. |
 | K-016 | Removed the third-party dependency plan that required `mwc-random` and `unix-compat` constraints. |
 | K-017 | Split HLint and cabal-fmt into separate Cabal installation plans after hosted CI exposed an unsatisfiable combined plan. |
+| K-018 | Added unbiased rational categorical selection so fixed-width unit-interval sampling cannot make positive exposed support unreachable. |
 
 ## Semantic vocabulary
 
@@ -51,7 +52,7 @@ The package does not contain the former branch-weight process, recursive `MDPF`,
 | INV-OBJECTIVE | Evaluation receives an explicit named objective. | Required argument |
 | INV-TERMINAL | No interpreter requests policy or transition data at a terminal state. | Control flow and sentinels in tests |
 | INV-HORIZON | Bounded evaluation decreases the transition horizon on every recursive call. | `Natural` horizon and self-loop tests |
-| INV-RNG | Reproducible stochastic execution receives explicit generator state. | Required by P2.2 |
+| INV-RNG | Reproducible stochastic execution receives and returns explicit generator state. | Implemented by P2.2 |
 | INV-CORE | The semantic core has no tensor, GPU, autodiff, neural, or sampling-framework dependency. | Cabal dependency gate |
 
 ## Current decisions
@@ -67,7 +68,7 @@ The package does not contain the former branch-weight process, recursive `MDPF`,
 
 ## Next task
 
-P2.2 is `NEXT`: add seeded finite-support sampling with explicit generator ownership and deterministic trace equality. Preserve every completed semantic and package gate.
+P3.1 is `NEXT`: add validated finite state and action indexing. Reject duplicate indexes and transitions to unindexed states before adding dynamic programming.
 
 ## Instructions for future agents
 

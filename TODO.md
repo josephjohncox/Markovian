@@ -27,7 +27,7 @@ Status terms: `DONE`, `NEXT`, `READY`, `BLOCKED`.
 
 Risks: reward timing, horizon boundaries, discount placement, and generator ownership can silently diverge between interpreters.
 
-- [ ] **P2.2 `NEXT` Add seeded finite-support sampling.**
+- [x] **P2.2 Add seeded finite-support sampling.**
   - Receive an explicit seed or generator.
   - Define generator ownership and returned generator state.
   - Sample only positive support exposed by `FiniteDist`.
@@ -35,17 +35,17 @@ Risks: reward timing, horizon boundaries, discount placement, and generator owne
   - Acceptance: equal seeds produce equal traces and returns.
   - Acceptance: support-membership tests replace frequency thresholds.
   - Acceptance: terminal, horizon-zero, weighted, and self-loop examples pass.
-- [ ] **P2.3 Add structured traces and errors.**
+- [x] **P2.3 Add structured traces and errors.**
   - Include action ID, transition reward, successor state, and stop reason.
   - Keep model, policy, objective, conditioning, and sampling errors distinct.
   - Acceptance: no interpreter uses partial indexing, partial maxima, global randomness, or unchecked normalization.
   - Acceptance: exact expectation of bounded trace observables matches direct evaluation.
 
-P2 gate: exact and sampling interpreters implement the same documented finite objective.
+P2 gate: `DONE`. Exact and sampling interpreters implement the same terminal-before-horizon, reward-timing, and discount semantics.
 
 ## P3: Finite-state compilation and Bellman solvers
 
-- [ ] **P3.1 Add validated finite state and action indexing.**
+- [ ] **P3.1 `NEXT` Add validated finite state and action indexing.**
   - Reject duplicate indexes and transitions to unindexed states.
   - Cache model and policy validation only after proving equivalence with per-state closure.
 - [ ] **P3.2 Add finite-horizon dynamic programming.**

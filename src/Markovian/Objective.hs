@@ -4,6 +4,10 @@ A finite-horizon discount can equal one. A contraction discount for an
 infinite-horizon Bellman objective must be strictly less than one.
 -}
 module Markovian.Objective (
+    FiniteObjective,
+    finiteObjective,
+    objectiveHorizon,
+    objectiveDiscount,
     Discount,
     ContractionDiscount,
     DiscountError (..),
@@ -13,6 +17,19 @@ module Markovian.Objective (
     discountValue,
     contractionDiscountValue,
 ) where
+
+import Markovian.Horizon (Horizon)
+
+-- | A validated finite-horizon floating objective.
+data FiniteObjective = FiniteObjective
+    { objectiveHorizon :: !Horizon
+    , objectiveDiscount :: !Discount
+    }
+    deriving (Eq, Show)
+
+-- | Pair a validated horizon and discount.
+finiteObjective :: Horizon -> Discount -> FiniteObjective
+finiteObjective = FiniteObjective
 
 -- | A finite floating discount in the closed interval @[0, 1]@.
 newtype Discount = Discount Double

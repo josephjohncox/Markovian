@@ -340,17 +340,15 @@ Do not use architecture text to hide an unresolved decision. Mark the uncertaint
 
 ## 10. Exact next workflow
 
-P0, P1, P2.1, and the greenfield cleanup are `DONE`. D-023 through D-030 define the verified environment, exact semantics, and compatibility removal. Nineteen tests and all completed local gates pass. P2.2 is `NEXT`.
+P0, P1, P2, and the greenfield cleanup are `DONE`. D-023 through D-031 define the verified environment, exact semantics, compatibility removal, and seeded sampling contract. Twenty-two tests and all completed local gates pass. P3.1 is `NEXT`.
 
 The next writer must use this sequence:
 
-1. Complete the start gate and read D-003, D-004, D-011, and the sampling contracts.
-2. Record the sampler's generator ownership, result, and error types before implementation.
-3. Use an explicit seed or generator and return updated generator state when applicable.
-4. Sample only the positive support exposed by `FiniteDist`.
-5. Preserve transition reward, terminal payoff, horizon, and discount timing from the exact evaluator.
-6. Add equal-seed trace equality and exact support-membership tests.
-7. Add terminal, horizon-zero, weighted, and self-loop sampling tests without frequency thresholds.
-8. Run both compiler versions and every completed package gate.
+1. Complete the start gate and read D-003, D-004, D-011, D-029, and D-031.
+2. Define finite state and per-state action indexes with duplicate rejection.
+3. Reject every transition whose successor is outside the indexed state support.
+4. Compare compiled policy closure with per-state direct closure on exact fixtures.
+5. Keep index order observational only; semantic equality must not depend on insertion order.
+6. Run both compiler versions and every completed package gate.
 
-Do not use global randomness or statistical frequency assertions as correctness gates.
+Do not add dynamic programming until finite compilation validation passes.

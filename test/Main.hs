@@ -9,8 +9,15 @@ import Markovian.Horizon (
  )
 import Markovian.Interpreter.Exact (
     ExactEvaluationError (..),
+    ExactTraceResult (..),
+    exactTraceDistribution,
     expectedExactReturn,
     expectedExactReturnFrom,
+ )
+import Markovian.Interpreter.Sampled (
+    SampledEvaluationError (..),
+    SampledResult (..),
+    sampleReturn,
  )
 import Markovian.Kernel (kernel)
 import Markovian.Kernel.Exact (
@@ -50,6 +57,7 @@ import Markovian.Objective (
     asContractionDiscount,
     contractionDiscountValue,
     discountValue,
+    finiteObjective,
     mkContractionDiscount,
     mkDiscount,
  )
@@ -110,6 +118,17 @@ import Markovian.Reward (
     rewardValue,
  )
 import Markovian.Reward.Exact (exactReward, exactRewardValue)
+import Markovian.Sampling (
+    generatorFromSeed,
+    generatorState,
+    sampleExactFiniteDist,
+    sampleFiniteDist,
+ )
+import Markovian.Trace (
+    StopReason (..),
+    Trace (..),
+    TraceStep (..),
+ )
 import System.Exit (exitFailure)
 
 main :: IO ()
@@ -127,6 +146,9 @@ main = do
     run "exact evaluator reward timing and discount" testExactEvaluatorRewardTiming
     run "exact evaluator weighted support and errors" testExactEvaluatorWeighted
     run "exact evaluator bounded self-loop" testExactEvaluatorSelfLoop
+    run "seeded finite-support sampling" testFiniteSampling
+    run "sampled interpreter boundaries and traces" testSampledInterpreter
+    run "exact trace expectation" testExactTraceExpectation
     run "exact probability and reward values" testExactValues
     run "exact finite distribution functor laws" testExactFunctorLaws
     run "exact kernel Kleisli laws" testExactKernelLaws
@@ -440,6 +462,169 @@ testExactEvaluatorSelfLoop = do
     result <- requireRight "bounded exact self-loop" (expectedExactReturn objective model selectedPolicy)
     assert "bounded exact self-loop return changed" (exactRewardValue result == 7 % 4)
 
+testFiniteSampling :: IO ()
+testFiniteSampling = do
+    floating <- requireRight "floating sampling support" (finiteDist [('a', 1), ('b', 3)])
+    first <- requireRight "first floating sample" (sampleFiniteDist (generatorFromSeed 42) floating)
+    second <- requireRight "second floating sample" (sampleFiniteDist (generatorFromSeed 42) floating)
+    assert "equal floating seeds must produce equal samples and generator state" (first == second)
+    sampled <-
+        traverse
+            (\seed -> requireRight "floating support sample" (sampleFiniteDist (generatorFromSeed seed) floating))
+            [0 .. 100]
+    assert "floating samples must remain in exposed support" (all ((`elem` "ab") . fst) sampled)
+
+    exact <- requireRight "exact sampling support" (exactFiniteDist [('x', 1), ('y', 2)])
+    exactFirst <- requireRight "first exact sample" (sampleExactFiniteDist (generatorFromSeed 99) exact)
+    exactSecond <- requireRight "second exact sample" (sampleExactFiniteDist (generatorFromSeed 99) exact)
+    assert "equal exact seeds must produce equal samples and generator state" (exactFirst == exactSecond)
+    exactSamples <-
+        traverse
+            (\seed -> requireRight "exact support sample" (sampleExactFiniteDist (generatorFromSeed seed) exact))
+            [0 .. 100]
+    assert "exact samples must remain in exposed support" (all ((`elem` "xy") . fst) exactSamples)
+
+    let initialGenerator = generatorFromSeed 7
+    certain <- requireRight "certain sample" (sampleFiniteDist initialGenerator (dirac 'z'))
+    assert "a certain sample must not consume generator state" (generatorState (snd certain) == generatorState initialGenerator)
+
+testSampledInterpreter :: IO ()
+testSampledInterpreter = do
+    horizonOne <- requireRight "sample horizon one" (mkHorizon 1)
+    horizonZero <- requireRight "sample horizon zero" (mkHorizon 0)
+    horizonThree <- requireRight "sample horizon three" (mkHorizon 3)
+    half <- requireRight "sample half discount" (mkDiscount 0.5)
+    let objectiveOne = finiteObjective horizonOne half
+        objectiveZero = finiteObjective horizonZero half
+        objectiveThree = finiteObjective horizonThree half
+        finish = actionId Finish
+        initialGenerator = generatorFromSeed 123
+    low <- requireRight "sample low reward" (mkReward 2)
+    high <- requireRight "sample high reward" (mkReward 4)
+    terminal <- requireRight "sample terminal payoff" (mkReward 7)
+    transitions <-
+        requireRight
+            "sample weighted transition"
+            ( finiteDist
+                [ (transitionOutcome low End, 1)
+                , (transitionOutcome high End, 1)
+                ]
+            )
+    let status Start = Continuing
+        status End = Terminal terminal
+        model =
+            mdp
+                Start
+                status
+                (\state -> case state of Start -> [finish]; End -> [])
+                (kernel (const transitions))
+        selectedPolicy = policy (kernel (const (dirac finish)))
+
+    sampled <- requireRight "sampled return" (sampleReturn objectiveOne model selectedPolicy initialGenerator)
+    repeated <- requireRight "repeated sampled return" (sampleReturn objectiveOne model selectedPolicy initialGenerator)
+    assert "equal seeds must produce equal traces, returns, and generator states" (sampled == repeated)
+    assert "sampled weighted return left its support" (rewardValue (sampledReturn sampled) `elem` [5.5, 7.5])
+    case sampledTrace sampled of
+        Trace [TraceStep selected reward successor] stopState (TerminalStop payoff) -> do
+            assert "sampled trace action changed" (selected == finish)
+            assert "sampled trace reward left support" (rewardValue reward `elem` [2, 4])
+            assert "sampled trace successor changed" (successor == End)
+            assert "sampled trace stop state changed" (stopState == End)
+            assert "sampled terminal payoff changed" (rewardValue payoff == 7)
+        trace -> failTest ("sampled trace shape changed: " ++ show trace)
+
+    let unusedPolicy = policy (kernel (\_ -> error "horizon-zero policy was evaluated"))
+    stopped <- requireRight "sampled horizon zero" (sampleReturn objectiveZero model unusedPolicy initialGenerator)
+    assert "continuing horizon zero must return zero" (rewardValue (sampledReturn stopped) == 0)
+    case sampledTrace stopped of
+        Trace [] Start HorizonStop -> pure ()
+        trace -> failTest ("horizon-zero stop trace changed: " ++ show trace)
+
+    let terminalModel :: MDP TestState TestAction
+        terminalModel =
+            mdp
+                End
+                status
+                (\_ -> error "terminal action support was evaluated")
+                (kernel (\_ -> error "terminal transition was evaluated"))
+    terminalResult <- requireRight "sampled terminal boundary" (sampleReturn objectiveZero terminalModel unusedPolicy initialGenerator)
+    assert "terminal payoff must survive sampled horizon zero" (rewardValue (sampledReturn terminalResult) == 7)
+    assert
+        "terminal evaluation must not consume generator state"
+        (generatorState (sampledGenerator terminalResult) == generatorState initialGenerator)
+
+    one <- requireRight "sample self-loop reward" (mkReward 1)
+    let loopModel =
+            mdp
+                Start
+                (const Continuing)
+                (const [finish])
+                (kernel (const (dirac (transitionOutcome one Start))))
+    loopResult <- requireRight "sampled bounded self-loop" (sampleReturn objectiveThree loopModel selectedPolicy initialGenerator)
+    assert "sampled bounded self-loop return changed" (rewardValue (sampledReturn loopResult) == 1.75)
+    assert "sampled bounded self-loop trace length changed" (length (traceSteps (sampledTrace loopResult)) == 3)
+
+    let unavailable = actionId MissingFinish
+        unavailablePolicy = policy (kernel (const (dirac unavailable)))
+    case sampleReturn objectiveOne model unavailablePolicy initialGenerator of
+        Left (SampledPolicyError (PolicyUnavailableAction rejected)) ->
+            assert "sampled unavailable action changed" (rejected == unavailable)
+        result -> failTest ("sampled policy error was not retained: " ++ show result)
+
+    let emptyModel = mdp Start (const Continuing) (const []) (kernel (const (dirac (transitionOutcome one Start))))
+    case sampleReturn objectiveOne emptyModel selectedPolicy initialGenerator of
+        Left (SampledModelError EmptyActionSupport) -> pure ()
+        result -> failTest ("sampled model error was not retained: " ++ show result)
+
+testExactTraceExpectation :: IO ()
+testExactTraceExpectation = do
+    objective <- makeExactObjective 1 1
+    selected <- requireRight "exact trace policy" (exactFiniteDist [(lowAction, 1), (highAction, 3)])
+    highOutcomes <-
+        requireRight
+            "exact trace transition"
+            ( exactFiniteDist
+                [ (exactTransitionOutcome (exactReward 4) EvalTerminal, 1)
+                , (exactTransitionOutcome (exactReward 8) EvalTerminal, 1)
+                ]
+            )
+    let model :: ExactMDP EvalState EvalAction
+        model =
+            exactMDP
+                EvalStart
+                (\state -> case state of EvalTerminal -> ExactTerminal (exactReward 0); _ -> ExactContinuing)
+                (\state -> case state of EvalTerminal -> []; _ -> [lowAction, highAction])
+                ( exactKernel
+                    ( \(_, selectedAction) ->
+                        case actionValue selectedAction of
+                            EvalLow -> exactDirac (exactTransitionOutcome (exactReward 2) EvalTerminal)
+                            EvalHigh -> highOutcomes
+                            EvalOnly -> error "unavailable exact trace action"
+                            EvalMissing -> error "missing exact trace action"
+                    )
+                )
+        selectedPolicy = exactPolicy (exactKernel (const selected))
+    direct <- requireRight "direct exact trace expectation" (expectedExactReturn objective model selectedPolicy)
+    traces <- requireRight "exact trace distribution" (exactTraceDistribution objective model selectedPolicy)
+    let tracedExpectation =
+            sum
+                [ exactProbability mass * exactRewardValue (exactTraceReturn result)
+                | (result, mass) <- NonEmpty.toList (exactOutcomes traces)
+                ]
+        traceResults = fmap fst (NonEmpty.toList (exactOutcomes traces))
+    assert "exact trace expectation must match direct evaluation" (tracedExpectation == exactRewardValue direct)
+    assert "exact weighted trace expectation changed" (tracedExpectation == 5)
+    assert "each exact bounded trace must contain one transition" (all ((== 1) . length . traceSteps . exactTrace) traceResults)
+    assert
+        "each exact trace must stop at the terminal state"
+        ( all
+            (\result -> traceStopState (exactTrace result) == EvalTerminal)
+            traceResults
+        )
+  where
+    lowAction = actionId EvalLow
+    highAction = actionId EvalHigh
+
 makeExactObjective :: Integer -> Rational -> IO ExactFiniteObjective
 makeExactObjective rawHorizon rawDiscount = do
     horizon <- requireRight "exact evaluator horizon" (mkHorizon rawHorizon)
@@ -751,7 +936,7 @@ testHorizons = do
 data TestState = Start | End
     deriving (Eq, Show)
 
-data TestAction = Finish
+data TestAction = Finish | MissingFinish
     deriving (Eq, Show)
 
 data ClosureState = ClosureStart | ClosureMiddle | ClosureEnd | ClosureMissing
