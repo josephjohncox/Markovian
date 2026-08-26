@@ -8,9 +8,9 @@ Markovian is a greenfield experimental Haskell package for finite stochastic ker
 
 The core library exposes validated floating and exact probability, reward, objective, kernel, MRP, MDP, policy, sampling, trace, finite-compilation, tabular-learning, exact POMDP, categorical IR, and dense CPU modules. Exact interpreters provide direct bounded expectation, trace enumeration, finite-horizon dynamic programming, contraction Bellman policy evaluation, filtering, and bounded belief planning. Sampled evaluation and episodic Q-learning receive and return explicit generator state. Separate GPU and neural packages depend on no semantic-core runtime framework.
 
-The package does not contain the former branch-weight process, recursive `MDPF`, or Q-learning implementation. `app/Sample/Main.hs` demonstrates the exact finite-horizon evaluator.
+The package does not contain the former branch-weight process, recursive `MDPF`, or defective prototype Q-learning implementation. `app/Sample/Main.hs` demonstrates the exact finite-horizon evaluator.
 
-`test/Main.hs` contains thirty-two deterministic semantic, law, closure, sampling, compilation, solver, learning, POMDP, categorical, CPU-lowering, trace, and interpreter contracts. Separate GPU and neural package tests cover disabled-backend behavior, actual CUDA differential execution, stable softmax, analytic gradients, and approximation error. GHC 9.4.8 and 9.8.4 pass project-scoped `-Werror`, source checks, package checks, warning-free Haddock, lower-bound resolution, and unpacked source-distribution tests. The complete greenfield hosted run passed at <https://github.com/josephjohncox/Markovian/actions/runs/32920753099>.
+`test/Main.hs` contains thirty-two deterministic semantic, law, closure, sampling, compilation, solver, learning, POMDP, categorical, CPU-lowering, trace, and interpreter contracts. Separate GPU and neural package tests cover disabled-backend behavior, actual CUDA differential execution, stable softmax, analytic gradients, and approximation error. GHC 9.4.8 and 9.8.4 pass project-scoped `-Werror`, source checks, package checks, warning-free Haddock, lower-bound resolution, and unpacked source-distribution tests. The complete three-package roadmap run passed at <https://github.com/josephjohncox/Markovian/actions/runs/32927616731>.
 
 ## Resolved defects
 
