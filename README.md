@@ -17,7 +17,7 @@ scripts/check-book
 
 Open `docs/book/build/index.html` after the build succeeds. Haddock remains the API-signature reference.
 
-The configured public URL is <https://josephjohncox.github.io/Markovian/>. The site will become available after the first successful Pages deployment from `main`.
+The public book is <https://josephjohncox.github.io/Markovian/>. [Pages run 33126170927](https://github.com/josephjohncox/Markovian/actions/runs/33126170927) deployed merge commit `1268191a025c22fd9b995a1025d9ca810ff43451` from `main`.
 
 ## Implemented semantics
 
