@@ -17,6 +17,9 @@ build-type:         Simple
 extra-doc-files:
   CHANGELOG.md
   docs/ARCHITECTURE.md
+  docs/book/book.toml
+  docs/book/README.md
+  docs/book/src/*.md
   docs/CONTEXT.md
   docs/DECISIONS.md
   docs/evidence/CUDA-2026-08-26.md
@@ -28,14 +31,18 @@ extra-doc-files:
 extra-source-files:
   .envrc
   .github/workflows/ci.yml
+  .github/workflows/pages.yml
   .gitleaks.toml
   cabal.project.ci
   hie.yaml
   scripts/bootstrap-tools
   scripts/check-acyclic-proof-boundary
   scripts/check-acyclic-purity
+  scripts/check-book
+  scripts/check-book-links
   scripts/check-circuit-purity
   scripts/check-refinement-roles
+  scripts/install-doc-tools
   test/compile-fail/AcyclicProofBoundary.hs
   test/compile-fail/AcyclicPurity.hs
   test/compile-fail/CircuitPurity.hs

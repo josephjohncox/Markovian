@@ -4,6 +4,21 @@ Markovian is an experimental Haskell package for finite stochastic kernels, Mark
 
 The package is greenfield and unreleased. It makes no compatibility promise. Incorrect interfaces are removed rather than retained behind shims.
 
+## Documentation
+
+[The Markovian Book](docs/book/src/introduction.md) is the user and contributor guide. It covers model construction, exact evaluation, learning, POMDPs, matrices, Bayesian inference, circuits, open systems, and optional backends.
+
+Build the searchable HTML book with the pinned documentation tool:
+
+```sh
+scripts/install-doc-tools
+scripts/check-book
+```
+
+Open `docs/book/build/index.html` after the build succeeds. Haddock remains the API-signature reference.
+
+The configured public URL is <https://josephjohncox.github.io/Markovian/>. The site will become available after the first successful Pages deployment from `main`.
+
 ## Implemented semantics
 
 - opaque validated floating probabilities, weights, finite distributions, rewards, discounts, and horizons;
@@ -109,6 +124,8 @@ find src app test backends -type f -name '*.hs' -print0 \
   | xargs -0 fourmolu --mode check
 bash -n \
   scripts/bootstrap-tools \
+  scripts/check-book \
+  scripts/install-doc-tools \
   scripts/check-refinement-roles \
   scripts/check-circuit-purity \
   scripts/check-acyclic-proof-boundary \
@@ -118,6 +135,7 @@ scripts/check-refinement-roles
 scripts/check-circuit-purity
 scripts/check-acyclic-proof-boundary
 scripts/check-acyclic-purity
+scripts/check-book
 cabal-fmt --check Markovian.cabal \
   backends/markovian-gpu/markovian-gpu.cabal \
   backends/markovian-neural/markovian-neural.cabal
@@ -127,6 +145,7 @@ Fourmolu 0.20 does not parse the repository's three LaTeX-style literate Haskell
 
 ## Project documents
 
+- [The Markovian Book](docs/book/src/introduction.md) is the user and contributor guide.
 - [TODO.md](TODO.md) is the prioritized implementation plan.
 - [docs/CONTEXT.md](docs/CONTEXT.md) is the current repository state.
 - [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) defines semantic contracts and boundaries.

@@ -22,6 +22,11 @@ Status terms: `DONE`, `NEXT`, `READY`, `BLOCKED`.
   - Removed compatibility adapters, deprecation phases, and third-party dependencies required only by deleted code.
   - Replaced legacy examples and generated changelog text.
   - Hosted evidence: <https://github.com/josephjohncox/Markovian/actions/runs/32920753099>.
+- [x] **Documentation stack.**
+  - Added a pinned mdBook user and contributor guide for the complete public semantic stack.
+  - Added repository-owned link, include, version, and HTML build checks.
+  - Added the book gate to CI and the source-distribution manifest.
+- [ ] **GitHub Pages publication.** `BLOCKED` until Pages uses GitHub Actions and a successful `main` run publishes the configured URL.
 
 ## P2: Bounded interpreters
 

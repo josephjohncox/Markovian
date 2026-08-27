@@ -113,6 +113,7 @@ Run these commands in Bash:
 git status --short
 git diff --check
 git diff -- README.md TODO.md docs CHANGELOG.md Markovian.cabal
+scripts/check-book
 
 while IFS= read -r file; do
   git diff --no-index -- /dev/null "$file"
@@ -130,16 +131,51 @@ done < <(git ls-files --others --exclude-standard -- \
   README.md TODO.md docs CHANGELOG.md Markovian.cabal)
 
 python3 /home/josephcox/.pi/agent/skills/ste-writing/scripts/ste-lint.py \
-  README.md TODO.md docs/*.md
+  README.md TODO.md docs/*.md docs/book/src/*.md
 ```
 
 `git diff` omits untracked files. The loop prints each untracked durable file as a complete added-file diff.
 
 The writer must read both outputs. A file list alone is not a content review.
 
-Also verify links and cited paths with an available Markdown link checker. If none is installed, record that fact and inspect local links manually.
+`scripts/check-book` verifies local chapter links, anchors, include targets, the pinned `mdbook` version, and the HTML build.
 
 Do not claim a Haskell build result for documentation-only work unless the current revision produced it.
+
+#### 4.1.1 GitHub Pages publication
+
+Enable Pages with GitHub Actions before the first deployment. Restrict the `github-pages` environment to `main`.
+
+The `Pages` workflow runs on all pushes to `main`. A manual run must select `main`. The build job runs `scripts/check-book` and uploads `docs/book/build`. The deployment job uses only that checked artifact.
+
+A local book gate is not hosted deployment evidence. Do not call the book published until the deployed revision has a successful hosted run and a reachable URL.
+
+After a push to `main`, collect this evidence:
+
+```sh
+run_id="$(
+  gh run list \
+    --workflow Pages \
+    --branch main \
+    --event push \
+    --limit 1 \
+    --json databaseId \
+    --jq '.[0].databaseId'
+)"
+gh run watch "$run_id" --exit-status
+test "$(gh run view "$run_id" --json headSha --jq .headSha)" = \
+  "$(git rev-parse HEAD)"
+gh run view "$run_id" \
+  --json conclusion,headSha,jobs,url \
+  --jq '{conclusion,headSha,url,jobs:[.jobs[]|{name,conclusion}]}'
+gh api repos/josephjohncox/Markovian/pages \
+  --jq '{html_url,status,build_type,https_enforced}'
+curl --fail --location --retry 10 --retry-delay 6 \
+  https://josephjohncox.github.io/Markovian/ \
+  >/dev/null
+```
+
+Record the run URL only after these commands pass. Record required package CI evidence separately. The Pages workflow does not run compiler or source-distribution gates.
 
 ### 4.2 Every Haskell change
 

@@ -207,6 +207,11 @@ jobs:
             --install-method=copy \
             --installdir="${HOME}/.local/bin" \
             --overwrite-policy=always
+          cargo install \
+            mdbook \
+            --version "${MARKOVIAN_MDBOOK_VERSION}" \
+            --locked \
+            --root "${HOME}/.local"
           echo "${HOME}/.local/bin" >> "${GITHUB_PATH}"
 
       - name: Check source and formatting
@@ -223,9 +228,13 @@ jobs:
             "${MARKOVIAN_CABAL_FMT_VERSION}"
           hlint --version | head -1 \
             | grep -F "HLint v${MARKOVIAN_HLINT_VERSION}"
+          test "$(mdbook --version)" = \
+            "mdbook v${MARKOVIAN_MDBOOK_VERSION}"
           hlint src backends/*/src test/AcyclicOpenSystems.hs
           bash -n \
             scripts/bootstrap-tools \
+            scripts/check-book \
+            scripts/install-doc-tools \
             scripts/check-refinement-roles \
             scripts/check-circuit-purity \
             scripts/check-acyclic-proof-boundary \
@@ -244,3 +253,6 @@ jobs:
             Markovian.cabal \
             backends/markovian-gpu/markovian-gpu.cabal \
             backends/markovian-neural/markovian-neural.cabal
+
+      - name: Build documentation book
+        run: scripts/check-book

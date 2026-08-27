@@ -674,7 +674,7 @@ The benchmark uses a 256-by-256 identity matrix and row-major `Double` values. I
 
 The 2026-08-26 sample-bearing run used an NVIDIA GB10 with driver 580.173.02 and compute capability 12.1. The enabled differential command passed. The benchmark measured `267.843920400 ms` mean with `3.025869898 ms` sample standard deviation. Its range was `263.519087000 ms` to `276.777522000 ms`, and maximum error was `0.000e0`.
 
-[The complete evidence record](evidence/CUDA-2026-08-26.md) contains the commands, tool versions, raw samples, PTX hashes, and revision context. It also retains four older mean-only measurements. Those historical values have no raw samples or dispersion, so they are execution records only.
+[The complete evidence record](https://github.com/josephjohncox/Markovian/blob/main/docs/evidence/CUDA-2026-08-26.md) contains the commands, tool versions, raw samples, PTX hashes, and revision context. It also retains four older mean-only measurements. Those historical values have no raw samples or dispersion, so they are execution records only.
 
 This measurement shows local execution on one host. It is not a general performance claim.
 
@@ -875,7 +875,16 @@ cabal build all --prefer-oldest --project-file=cabal.project.ci
 cabal test all --prefer-oldest --project-file=cabal.project.ci
 cabal haddock all --project-file=cabal.project.ci \
   --enable-documentation --haddock-all --haddock-hyperlink-source
+scripts/check-book
 ```
+
+The book gate checks local links, anchors, include targets, the pinned `mdbook` version, and the complete HTML build. Haddock remains the API-signature reference.
+
+The separate `Pages` workflow runs the same book gate for each push to `main`. A manual deployment must also use `main`. Its build job uploads only the checked `docs/book/build` directory. Its deployment job consumes that artifact through the `github-pages` environment.
+
+Only the deployment job has Pages and OIDC write permissions. All workflow actions use immutable commit SHAs. The `/Markovian/` mdBook site path matches the configured project URL.
+
+The Pages workflow does not replace compiler, lower-bound, source, Haddock, or source-distribution evidence. A completion claim records those CI results separately when the change requires them.
 
 The source-distribution job runs `cabal check`, creates an archive, unpacks it, then builds and tests the unpacked tree.
 

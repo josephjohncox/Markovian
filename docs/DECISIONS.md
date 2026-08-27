@@ -402,7 +402,7 @@ The slice can add `Reward`, `Kernel`, `Policy`, and one-step MRP and MDP interfa
 
 **Evidence correction, 2026-08-26:** The sample-bearing benchmark runs one excluded warmup before 20 measured runs. A final-correction worktree based on `2efb1c6` measured a `267.843920400 ms` transfer-inclusive mean and `3.025869898 ms` sample standard deviation. The range was `263.519087000 ms` to `276.777522000 ms`, and maximum error was `0.000e0`. The enabled differential test passed.
 
-The [complete evidence record](evidence/CUDA-2026-08-26.md) contains raw samples, commands, tool versions, hashes, and revision context. It retains four older mean-only values as historical execution records because their raw samples and dispersion are unavailable. None of these local values is a general performance claim.
+The [complete evidence record](https://github.com/josephjohncox/Markovian/blob/main/docs/evidence/CUDA-2026-08-26.md) contains raw samples, commands, tool versions, hashes, and revision context. It retains four older mean-only values as historical execution records because their raw samples and dispersion are unavailable. None of these local values is a general performance claim.
 
 The host used driver 580.173.02 and compute capability 12.1. CUDA 13.0 `nvcc` V13.0.88 was available. The PTX build script reproduced the committed artifacts exactly.
 
@@ -515,6 +515,33 @@ Composition delegates to structured-cospan pushout and validates the refinement 
 **Proof obligations:** Deterministic fixtures cover every topology rejection constructor, producer-error precedence, and the public reachable domain, assignment, label, endpoint, primitive, run-input, and purity paths used by the fragment. Opaque internal-invariant branches are not claimed as externally constructible fixtures. Further fixtures cover zero and arbitrary arity, identity, nonidentity chains, parallel composition, sharing, independent execution, full and partial discard, diamonds, duplicated observations, boundary layout changes, successful schedule and renaming independence, pushout composition, mismatched composition boundaries, tensor, units, and associations. Differential checks compare the live-frontier construction with a bounded complete-valuation evaluator, directly built circuits, directly composed matrices, and a named-assignment reindexing of `tensorStochastic`. A twelve-edge narrow chain guards against retention of complete apex history. Compile-fail gates reject raw topology, inaccessible constructors, forged cycles, aggregate-purity strengthening, reverse observation, substitution for the existing global decoration denotation, and representational coercion of validated label tables.
 
 **Deferred:** Arbitrary cyclic graphs, trace, feedback, recursion, fixed points, factor normalization, implicit priors, merge semantics, Bayesian reversal, `OpenSystemCell` denotation, infinite or continuous carriers, continuous-time open Markov black-boxing, unrestricted MDP black-boxing, and a machine-checked theorem for all finite DAGs.
+
+### D-043: Use a pinned mdBook stack for the user and contributor book
+
+**Status:** Accepted
+
+**Decision:** Keep conceptual documentation in `docs/book` and build it with the `mdbook` version pinned in `toolchain.env`. Keep Haddock as the exact API-signature reference. Include the architecture, decision, and workflow records as book appendices instead of copying their content.
+
+Run a repository-owned gate that checks local links, anchors, include targets, the tool version, and the complete HTML build. Run the same gate in hosted CI. Include all book sources and documentation scripts in the source distribution.
+
+Publish the checked HTML with the separate `Pages` workflow. Run it for every push to `main`, or by manual request from `main`. Keep its build and deployment jobs separate. Upload `docs/book/build` only after `scripts/check-book` passes. Use the `github-pages` environment and the deployment action URL output.
+
+Grant `contents: read` only to the build job. Grant `pages: write` and `id-token: write` only to the deployment job. Use one Pages concurrency group and do not cancel an active deployment.
+
+Pin the official actions to these releases and commits:
+
+- `actions/checkout` v7.0.1 at `3d3c42e5aac5ba805825da76410c181273ba90b1`.
+- `actions/configure-pages` v6.0.0 at `45bfe0192ca1faeb007ade9deae92b16b8254a0d`.
+- `actions/upload-pages-artifact` v5.0.0 at `fc324d3547104276b827a68afc52ff2a11cc49c9`.
+- `actions/deploy-pages` v5.0.0 at `cd2ce8fcbc39b97be8ca5fce6e763baed58fa128`.
+
+Set the mdBook `site-url` to `/Markovian/`. This path supports the configured project URL at <https://josephjohncox.github.io/Markovian/>.
+
+**Rationale:** The existing README and architecture record describe contracts, but they do not provide a guided path for users. A versioned Markdown book gives the project one navigable conceptual guide without adding a runtime dependency to the Haskell packages. A separate Pages workflow keeps publication permissions out of package CI jobs and permits a manual publication retry.
+
+**Consequences:** A user-visible semantic change must update its book chapter. Documentation changes can fail CI before a package build when navigation, includes, or the book renderer break. Generated HTML remains untracked. The Pages workflow checks the book but does not replace package CI evidence.
+
+**Proof obligations:** `scripts/check-book` must pass with the pinned tool. `cabal check` and source-distribution gates must include the complete book source, its scripts, and the Pages workflow. A publication claim also needs a successful hosted `Pages` run for the deployed revision and a reachable public URL.
 
 ## Proof obligations for advanced work
 

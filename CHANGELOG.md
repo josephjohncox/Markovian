@@ -2,6 +2,7 @@
 
 ## 0.1.0.0 — Unreleased
 
+- Added a pinned mdBook documentation stack with a checked user and contributor book, local-link validation, CI builds, semantic guides, recipes, and project-reference appendices. Added a SHA-pinned GitHub Pages workflow for publication from `main`.
 - Added validated floating and exact finite probability distributions.
 - Added one-layer MRP and MDP interfaces with explicit transition rewards.
 - Added validated policy closure with structured support errors.
