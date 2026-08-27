@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+log_file="$(mktemp)"
+trap 'rm -f "${log_file}"' EXIT
+
+if cabal exec --project-file=cabal.project.ci -- ghc \
+  -fno-code \
+  -package Markovian \
+  test/compile-fail/AcyclicPurity.hs >"${log_file}" 2>&1; then
+  echo "Stochastic aggregate purity was strengthened." >&2
+  exit 1
+fi
+
+if ! grep -F "badStrengthenAggregate" "${log_file}" >/dev/null \
+  || ! grep -F "Couldn't match type" "${log_file}" >/dev/null; then
+  cat "${log_file}" >&2
+  echo "The aggregate-purity fixture failed for an unexpected reason." >&2
+  exit 1
+fi
+
+echo "PASS: stochastic acyclic aggregate purity cannot be strengthened"

@@ -1,0 +1,97 @@
+#!/usr/bin/env python3
+"""Check local Markdown links, anchors, and mdBook include targets."""
+
+from __future__ import annotations
+
+import re
+import sys
+from pathlib import Path
+from urllib.parse import unquote, urlparse
+
+LINK = re.compile(r"(?<!!)\[[^\]]*\]\(([^)]+)\)")
+INCLUDE = re.compile(r"\{\{#include\s+([^}\s:]+)(?::[^}\s]+)?\}\}")
+HEADING = re.compile(r"^#{1,6}\s+(.+?)\s*#*\s*$")
+
+
+def slug(text: str) -> str:
+    value = text.strip().lower()
+    value = re.sub(r"[`*_]", "", value)
+    value = re.sub(r"[^\w\-\s]", "", value, flags=re.UNICODE)
+    return re.sub(r"[\s]+", "-", value)
+
+
+def anchors(path: Path) -> set[str]:
+    found: set[str] = set()
+    counts: dict[str, int] = {}
+    for line in path.read_text(encoding="utf-8").splitlines():
+        match = HEADING.match(line)
+        if match is None:
+            continue
+        base = slug(match.group(1))
+        count = counts.get(base, 0)
+        counts[base] = count + 1
+        found.add(base if count == 0 else f"{base}-{count}")
+    return found
+
+
+def local_target(raw: str) -> tuple[str, str] | None:
+    target = raw.strip()
+    if target.startswith("<") and target.endswith(">"):
+        target = target[1:-1]
+    target = target.split(maxsplit=1)[0]
+    parsed = urlparse(target)
+    if parsed.scheme or parsed.netloc:
+        return None
+    return unquote(parsed.path), unquote(parsed.fragment)
+
+
+def main() -> int:
+    if len(sys.argv) != 2:
+        print("usage: check-book-links BOOK_SOURCE", file=sys.stderr)
+        return 2
+
+    source = Path(sys.argv[1]).resolve()
+    failures: list[str] = []
+    markdown_files = sorted(source.rglob("*.md"))
+
+    if not markdown_files:
+        failures.append(f"no Markdown files found under {source}")
+
+    for document in markdown_files:
+        text = document.read_text(encoding="utf-8")
+        for line_number, line in enumerate(text.splitlines(), start=1):
+            for match in LINK.finditer(line):
+                parsed = local_target(match.group(1))
+                if parsed is None:
+                    continue
+                relative, fragment = parsed
+                target = document if relative == "" else (document.parent / relative).resolve()
+                if not target.exists():
+                    failures.append(
+                        f"{document}:{line_number}: missing link target {relative!r}"
+                    )
+                    continue
+                if fragment and target.suffix.lower() == ".md":
+                    if fragment not in anchors(target):
+                        failures.append(
+                            f"{document}:{line_number}: missing anchor {fragment!r} in {target}"
+                        )
+            for match in INCLUDE.finditer(line):
+                target = (document.parent / match.group(1)).resolve()
+                if not target.is_file():
+                    failures.append(
+                        f"{document}:{line_number}: missing include target {match.group(1)!r}"
+                    )
+
+    if failures:
+        print("Book link check failed:", file=sys.stderr)
+        for failure in failures:
+            print(f"- {failure}", file=sys.stderr)
+        return 1
+
+    print(f"Checked local links and includes in {len(markdown_files)} book files.")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

@@ -1,0 +1,61 @@
+cabal-version:      3.0
+name:               markovian-gpu
+version:            0.1.0.0
+synopsis:           Optional CUDA backend for Markovian dense kernels
+description:
+  Optional CUDA driver execution, differential tests, and transfer-inclusive benchmarks for dense Markovian kernels.
+
+category:           Math
+license:            BSD-3-Clause
+license-file:       LICENSE
+author:             Joseph Cox
+maintainer:         joseph@codensity.io
+build-type:         Simple
+extra-source-files:
+  cbits/markovian_dense.cu
+  cbits/markovian_dense.ptx
+  cbits/markovian_dense_ptx.h
+  cbits/markovian_gpu.h
+  scripts/build-ptx
+  toolchain.env
+
+flag cuda
+  description: Build and link the CUDA driver implementation
+  default:     False
+  manual:      True
+
+library
+  exposed-modules:  Markovian.Backend.GPU
+  hs-source-dirs:   src
+  build-depends:    base >=4.17.2.1 && <4.20
+  default-language: GHC2021
+  ghc-options:      -Wall
+
+  if flag(cuda)
+    cpp-options:     -DMARKOVIAN_CUDA
+    c-sources:       cbits/markovian_gpu.c
+    include-dirs:    cbits /usr/local/cuda/include
+    extra-libraries: cuda
+    cc-options:      -std=c11
+
+test-suite markovian-gpu-test
+  type:             exitcode-stdio-1.0
+  main-is:          Main.lhs
+  hs-source-dirs:   test
+  build-depends:
+    , base           >=4.17.2.1 && <4.20
+    , markovian-gpu
+
+  default-language: GHC2021
+  ghc-options:      -Wall
+
+benchmark markovian-gpu-bench
+  type:             exitcode-stdio-1.0
+  main-is:          Main.hs
+  hs-source-dirs:   bench
+  build-depends:
+    , base           >=4.17.2.1 && <4.20
+    , markovian-gpu
+
+  default-language: GHC2021
+  ghc-options:      -Wall

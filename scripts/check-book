@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+project_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd -P)"
+# shellcheck source=../toolchain.env
+source "$project_root/toolchain.env"
+
+export PATH="$project_root/.direnv/bin:$PATH"
+expected="mdbook v${MARKOVIAN_MDBOOK_VERSION}"
+
+if ! command -v mdbook >/dev/null 2>&1; then
+  echo "$expected is not installed. Run scripts/install-doc-tools." >&2
+  exit 1
+fi
+
+actual="$(mdbook --version)"
+if [[ "$actual" != "$expected" ]]; then
+  echo "Expected $expected but found $actual." >&2
+  exit 1
+fi
+
+python3 "$project_root/scripts/check-book-links" "$project_root/docs/book/src"
+rm -rf "$project_root/docs/book/build"
+mdbook build "$project_root/docs/book"
+test -f "$project_root/docs/book/build/index.html"
+
+echo "Checked $expected book at docs/book/build/index.html"

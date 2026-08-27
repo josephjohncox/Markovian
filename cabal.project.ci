@@ -1,0 +1,13 @@
+import: cabal.project
+optimization: False
+
+package Markovian
+  ghc-options: -Werror
+
+package markovian-gpu
+  ghc-options: -Werror
+  tests: True
+
+package markovian-neural
+  ghc-options: -Werror
+  tests: True

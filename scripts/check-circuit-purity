@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+log_file="$(mktemp)"
+trap 'rm -f "${log_file}"' EXIT
+
+if cabal exec --project-file=cabal.project.ci -- ghc \
+  -fno-code \
+  -package Markovian \
+  test/compile-fail/CircuitPurity.hs >"${log_file}" 2>&1; then
+  echo "Stochastic syntax was accepted by deterministic-only circuit APIs." >&2
+  exit 1
+fi
+
+for rejected_operation in badCopyRewrite badStrengthen badPurityCoerce; do
+  if ! grep -F "${rejected_operation}" "${log_file}" >/dev/null; then
+    cat "${log_file}" >&2
+    echo "The expected ${rejected_operation} purity error was absent." >&2
+    exit 1
+  fi
+done
+
+if ! grep -F "Couldn't match type" "${log_file}" >/dev/null; then
+  cat "${log_file}" >&2
+  echo "The fixture failed for a reason other than circuit purity." >&2
+  exit 1
+fi
+
+echo "PASS: stochastic circuits cannot use deterministic copy rewrites or strengthening"

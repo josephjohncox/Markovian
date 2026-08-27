@@ -1,0 +1,32 @@
+[book]
+title = "The Markovian Book"
+authors = ["Joseph Cox and Markovian contributors"]
+description = "Validated finite stochastic models, exact reference semantics, categorical structure, and explicit execution boundaries."
+language = "en"
+src = "src"
+
+[build]
+build-dir = "build"
+create-missing = false
+
+[output.html]
+site-url = "/Markovian/"
+default-theme = "light"
+preferred-dark-theme = "navy"
+git-repository-url = "https://github.com/josephjohncox/Markovian"
+git-repository-icon = "fab-github"
+edit-url-template = "https://github.com/josephjohncox/Markovian/edit/main/docs/book/{path}"
+no-section-label = false
+mathjax-support = true
+
+[output.html.playground]
+copyable = true
+
+[output.html.search]
+enable = true
+limit-results = 30
+use-boolean-and = true
+
+[output.html.fold]
+enable = true
+level = 1

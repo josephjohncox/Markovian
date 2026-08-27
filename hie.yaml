@@ -1,0 +1,19 @@
+---
+cradle:
+  cabal:
+    - path: "./src"
+      component: "lib:Markovian"
+    - path: "./app/Sample"
+      component: "exe:Sample"
+    - path: "./test"
+      component: "test:Markovian-test"
+    - path: "./backends/markovian-gpu/src"
+      component: "markovian-gpu:lib:markovian-gpu"
+    - path: "./backends/markovian-gpu/test"
+      component: "markovian-gpu:test:markovian-gpu-test"
+    - path: "./backends/markovian-gpu/bench"
+      component: "markovian-gpu:bench:markovian-gpu-bench"
+    - path: "./backends/markovian-neural/src"
+      component: "markovian-neural:lib:markovian-neural"
+    - path: "./backends/markovian-neural/test"
+      component: "markovian-neural:test:markovian-neural-test"
