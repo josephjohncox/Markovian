@@ -27,10 +27,14 @@ extra-source-files:
   .envrc
   .github/workflows/ci.yml
   .gitleaks.toml
-  cabal.project
   cabal.project.ci
   hie.yaml
   scripts/bootstrap-tools
+  scripts/check-circuit-purity
+  scripts/check-refinement-roles
+  test/compile-fail/CircuitPurity.hs
+  test/compile-fail/PushoutKind.hs
+  test/compile-fail/RefinementRoles.hs
   toolchain.env
 
 source-repository head
@@ -43,8 +47,22 @@ common warnings
 library
   import:           warnings
   exposed-modules:
+    Markovian.Algebra.NonNegativeRational
+    Markovian.Algebra.Semiring
     Markovian.Backend.CPU.Exact
+    Markovian.Bayesian.Channel.Exact
+    Markovian.Bayesian.Exact
+    Markovian.Category.Convex.Exact
     Markovian.Category.Finite.Exact
+    Markovian.Category.Finite.Object
+    Markovian.Category.Finite.Set
+    Markovian.Category.Matrix
+    Markovian.Category.Matrix.Deterministic
+    Markovian.Category.Matrix.Stochastic
+    Markovian.Circuit
+    Markovian.Circuit.Compile.Deterministic
+    Markovian.Circuit.Interpret.Approximate
+    Markovian.Circuit.Interpret.Exact
     Markovian.Compile.Exact
     Markovian.Horizon
     Markovian.Interpreter.Bellman.Exact
@@ -60,6 +78,11 @@ library
     Markovian.MRP
     Markovian.Objective
     Markovian.Objective.Exact
+    Markovian.Open.Circuit.Exact
+    Markovian.Open.Hypergraph
+    Markovian.Open.Interface
+    Markovian.Open.Pushout
+    Markovian.Open.StructuredCospan
     Markovian.Policy
     Markovian.Policy.Exact
     Markovian.POMDP.Exact
@@ -70,6 +93,10 @@ library
     Markovian.Reward.Exact
     Markovian.Sampling
     Markovian.Trace
+
+  other-modules:
+    Markovian.Category.Finite.Set.Internal
+    Markovian.Category.Matrix.Stochastic.Internal
 
   build-depends:    base >=4.17.2.1 && <4.20
   hs-source-dirs:   src
@@ -89,6 +116,12 @@ test-suite Markovian-test
   import:           warnings
   type:             exitcode-stdio-1.0
   main-is:          Main.hs
+  other-modules:
+    AlgebraicFoundation
+    BayesianExact
+    OpenSystems
+    StochasticCircuit
+
   build-depends:
     , base       >=4.17.2.1 && <4.20
     , Markovian

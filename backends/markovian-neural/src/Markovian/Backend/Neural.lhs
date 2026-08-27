@@ -3,7 +3,9 @@
 
 This package does not place tensors or autodiff in the semantic core. It makes
 normalization, gradient, estimator, and approximation assumptions explicit for
-later framework adapters.
+later framework adapters. A future circuit adapter must use an explicit
+@ApproximateInterpreterBoundary@; this module does not implement or claim the
+exact nonnegative-rational circuit homomorphism.
 -}
 module Markovian.Backend.Neural (
     NeuralCategoricalError (..),

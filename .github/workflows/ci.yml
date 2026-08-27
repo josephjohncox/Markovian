@@ -51,10 +51,20 @@ jobs:
           cabal --version
 
       - name: Check package metadata
-        run: cabal check
+        run: |
+          set -euo pipefail
+          for dir in . backends/markovian-gpu backends/markovian-neural; do
+            (cd "${dir}" && cabal check)
+          done
 
       - name: Build without compiler warnings
         run: cabal build all --project-file=cabal.project.ci
+
+      - name: Reject refinement coercions
+        run: scripts/check-refinement-roles
+
+      - name: Enforce circuit purity
+        run: scripts/check-circuit-purity
 
       - name: Run tests
         run: |
@@ -92,6 +102,7 @@ jobs:
             (
               cd "${package_root}"
               rm -f cabal.project cabal.project.local
+              cabal check
               cabal build all
               cabal test all --test-show-details=direct
             )
@@ -209,7 +220,15 @@ jobs:
           hlint src backends/*/src
           bash -n \
             scripts/bootstrap-tools \
+            scripts/check-refinement-roles \
+            scripts/check-circuit-purity \
             backends/markovian-gpu/scripts/build-ptx
+          # Fourmolu 0.20 cannot parse LaTeX-style literate Haskell. GHC and
+          # HLint still check these three production and test sources.
+          literate_source_count="$(
+            find src app test backends -type f -name '*.lhs' | wc -l
+          )"
+          test "${literate_source_count}" -eq 3
           find src app test backends -type f -name '*.hs' -print0 \
             | sort -z \
             | xargs -0 fourmolu --mode check

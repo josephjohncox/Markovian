@@ -1,0 +1,59 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+log_file="$(mktemp)"
+kind_log_file="$(mktemp)"
+trap 'rm -f "${log_file}" "${kind_log_file}"' EXIT
+
+if cabal exec --project-file=cabal.project.ci -- ghc \
+  -fno-code \
+  -package Markovian \
+  test/compile-fail/RefinementRoles.hs >"${log_file}" 2>&1; then
+  echo "Proof-carrying refinements accepted representational scalar coercions." >&2
+  exit 1
+fi
+
+for rejected_coercion in \
+  breakStochastic \
+  breakDeterministic \
+  breakConvex \
+  breakStochasticSource \
+  breakDeterministicSource \
+  breakConvexSource \
+  breakPriorSource \
+  breakSupportSource \
+  breakPosteriorSource \
+  breakInverseSource \
+  breakChannelSource \
+  breakPushoutCommon \
+  breakBeliefState; do
+  if ! grep -F "${rejected_coercion}" "${log_file}" >/dev/null; then
+    cat "${log_file}" >&2
+    echo "The expected ${rejected_coercion} role error was absent." >&2
+    exit 1
+  fi
+done
+
+if ! grep -F "Couldn't match type" "${log_file}" >/dev/null; then
+  cat "${log_file}" >&2
+  echo "The fixture failed for a reason other than nominal roles." >&2
+  exit 1
+fi
+
+if cabal exec --project-file=cabal.project.ci -- ghc \
+  -fno-code \
+  -package Markovian \
+  test/compile-fail/PushoutKind.hs >"${kind_log_file}" 2>&1; then
+  echo "FinitePushout accepted a non-Type common witness." >&2
+  exit 1
+fi
+
+if ! grep -F "Expected a type" "${kind_log_file}" >/dev/null \
+  || ! grep -F "'True" "${kind_log_file}" >/dev/null; then
+  cat "${kind_log_file}" >&2
+  echo "The pushout-kind fixture failed for an unexpected reason." >&2
+  exit 1
+fi
+
+echo "PASS: nominal refinement roles reject scalar and witness coercions"
+echo "PASS: finite pushout common witnesses have kind Type"

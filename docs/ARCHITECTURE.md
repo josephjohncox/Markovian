@@ -1,6 +1,6 @@
 # Target architecture
 
-This document defines the implemented and target architecture for Markovian. Completed boundaries have compiler, test, Haddock, package, and hosted CI evidence.
+This document defines the implemented and target architecture for Markovian. Implemented boundaries require compiler, test, Haddock, and package evidence. `docs/CONTEXT.md` distinguishes current local evidence from hosted evidence; the uncommitted S1 through S5 worktree does not yet have a hosted run.
 
 `docs/DECISIONS.md` records why the project selected these boundaries. `TODO.md` controls delivery order and completion status.
 
@@ -10,7 +10,7 @@ Markovian will provide typed semantics and interpreters for stochastic processes
 
 The first supported domain is finite state, finite action, and finite support. The first evaluators use a finite horizon.
 
-Later phases can add discounted cyclic solvers, finite POMDPs, and continuous-kernel experiments. Each later feature must pass its admission gate.
+The package includes an exact discounted Bellman policy evaluator and finite post-transition POMDP filtering and bounded planning. Continuous-kernel experiments remain future work and must pass their admission gate.
 
 The project does not put tensors, devices, autodiff, neural networks, or sampling frameworks in the semantic core.
 
@@ -36,6 +36,10 @@ The root package currently contains:
 - Validated tabular Q-values, schedules, pure updates, and bounded seeded episodes.
 - Canonical exact finite beliefs, post-transition filtering, and bounded belief planning.
 - Typed exact finite categorical syntax with explicit copy and independent tensor.
+- Duplicate-free finite sets, including empty sets, and nonempty finite-object refinements.
+- Law-documented semiring, involution, exact positivity, and convex scalar contracts.
+- Opaque finite semiring matrices with semantic reindexing, tensor, biproduct, dagger, compact structure, and trace.
+- Exact nonnegative stochastic matrices, proof-carrying deterministic matrices, and exact convex mixtures.
 - Dense row-major rational CPU lowering with exact denotational differential tests.
 
 The current `FiniteDist` constructor preserves labeled duplicate entries. It removes input zero weights and positive weights whose normalized `Double` mass rounds to zero. Floating constructors canonicalize negative zero. Optional CUDA execution and neural categorical contracts live in separate backend packages.
@@ -126,6 +130,80 @@ Copy is natural for deterministic morphisms. It is not natural for arbitrary sto
 Finite objects do not have `Functor` or `Traversable` instances. An arbitrary value map can introduce duplicates and break their validated invariant.
 
 Conditioning and Bayesian inversion are not total category operations. POMDP belief updates expose their normalization and zero-evidence failures.
+
+### 3.5 Exact finite matrix foundation
+
+Raw finite matrices use explicit duplicate-free `FiniteSet` witnesses. A finite set can be empty. `FiniteObject` is its nonempty probability-bearing refinement. Semantic support comparison ignores layout order. Named layout comparison and ordinary `Eq` preserve represented order for compatibility with the existing exact IR.
+
+The scalar hierarchy does not use `Num` as its law contract. `Semiring` provides zero, one, addition, and multiplication. Commutativity, involution, exact nonnegative division, and exact convex validation are separate capabilities. `NonNegativeRational` is the only implemented exact nonnegative semifield. It permits values above one and rejects negative values.
+
+`Matrix scalar source target` is opaque and stores checked source-by-target rows. Construction uses a total value-indexed function or checked rows. Indexing returns `Maybe`. Composition checks semantic middle support and reindexes by labels. Matrix equivalence ignores layout, while layout equivalence compares witnesses and row-major entries.
+
+Raw commutative-semiring matrices provide pointwise addition, Kronecker tensor, disjoint-sum biproducts, transpose, conjugate transpose, basis cups and caps, and explicit-object categorical trace. Tensor and biproduct are distinct operations. Trace is not exposed on normalized kernels.
+
+`StochasticMatrix` validates every row against exact one. Its public validating constructor is limited to `NonNegativeRational`. Identity, composition, tensor, copy, and discard preserve normalization by construction. It has no transpose, dagger, compact, trace, or raw-addition API. Transposing the one-row fair coin produces two rows of mass one-half and is the required normalization counterexample.
+
+Stochastic endpoints use `FiniteSet` because the empty-to-empty normalized arrow is valid by vacuity. A normalized arrow from a nonempty source into an empty target fails validation. Normalized states, priors, distributions, and the existing probability interfaces use `FiniteObject` and remain nonempty.
+
+`StochasticMatrix`, `DeterministicMatrix`, and exact convex families assign nominal roles to their scalar and endpoint parameters. External `coerce` calls cannot replace the scalar laws or endpoint equality evidence. Convex coefficient validation is a fixed generic sum-to-one operation, not an overridable instance predicate.
+
+`DeterministicMatrix` validates one-hot rows or a total represented finite function. Its forgetful embedding into `StochasticMatrix` is total. Only this proof-carrying type can authorize copy-naturality reasoning; a stochastic primitive remains stochastic even when its entries happen to be Dirac. Exact convex families are nonempty, use nonnegative coefficients summing exactly to one, and preserve stochastic normalization. Composition and tensor are separately affine, not jointly affine over correlated operand pairs.
+
+S1 does not compare transpose with Bayesian inversion because S2 owns priors, positive support, exact division, and zero-evidence errors. S1 exact-law-tests a raw transpose normalization counterexample. S2 defines prior-indexed Bayesian inversion as a separate normalized operation on restricted support and exact-law-tests its stated fixtures.
+
+### 3.6 Exact Bayesian structure
+
+A `Prior a` is a normalized state from the singleton object to an explicit nonempty finite object. Construction accepts exact rational masses, aggregates duplicate labels extensionally, rejects negative or outside labels, and requires total mass one. Each prior stores a positive `Support a` in parent-object layout order.
+
+Pushforward composes a prior with a stochastic matrix. Joint construction has mass `p(x) K(x,y)`. Evidence is the pushforward mass of one represented observation. Conditioning returns a `Posterior` and returns structured `ZeroEvidence` for a represented zero-mass observation. An observation outside the represented target has a separate error.
+
+For prior `p` and channel `K`, Bayesian inversion first computes `q = p;K`. It then restricts to `X_p` and `Y_q`. The inverse has entries `p(x) K(x,y) / q(y)` and type `Y_q -> X_p`. No API fills rows outside `Y_q`.
+
+`almostSureEqual p F G` checks `p(x)F(x,z) = p(x)G(x,z)` for every represented label. It is an explicit equivalence predicate. Postcomposition preserves it. Precomposition requires a transported prior.
+
+A `BayesianChannel` stores an input prior, forward stochastic matrix, and exact output prior. Composition verifies prior flow before it composes forward matrices. It has no plain `Category` or dagger instance. Matrix conjugate transpose remains unrelated.
+
+The generic exact distribution bridge in `Markovian.Bayesian.Exact` validates each raw weight before duplicate aggregation. It then owns canonical aggregation, pushforward, and conditioning for compatibility APIs. `Markovian.POMDP.Exact` delegates to it. The POMDP interface still observes after transition and preserves its existing errors and support order.
+
+### 3.7 Purity-indexed stochastic circuits
+
+`Circuit primitive purity source target` is opaque recursive syntax over a higher-kinded primitive signature. Its purity index records construction provenance. It does not inspect the denotation. Deterministic primitives and validated finite tables retain deterministic provenance. Stochastic primitives, nontrivial compositions with stochastic terms, and convex choice retain stochastic provenance. `weakenPurity` is the only cast.
+
+Structural nodes remain visible in the syntax: identity, composition, tensor, symmetry, associators, unitors, copy, and discard. Convex choice stores an exact checked coefficient family. `shareCircuit circuit` executes the circuit once and copies its output. `fanoutCircuit left right` copies the input and executes two branches independently conditional on that input. There is no Haskell-function binder.
+
+`copyNaturalDeterministic` implements the copy-naturality rewrite only for deterministic syntax. Compile-fail tests reject its use on stochastic syntax and reject purity strengthening. A stochastic primitive remains stochastic even if one interpreter currently returns a Dirac kernel.
+
+`CircuitAlgebra` lists unchecked fold operations. It is not evidence of categorical or convex laws. `foldCircuit` derives sharing as composition followed by copy. It derives fanout as copy followed by tensor and composition, so interpreters cannot assign independent meanings to those nodes. The exact algebra requires deterministic primitive interpretations to return `DeterministicMatrix NonNegativeRational` and stochastic primitive interpretations to return `StochasticMatrix NonNegativeRational`. It checks primitive endpoint layouts and evaluates convex choice through exact convex enrichment. Selected fixtures exact-law-test the stated operation-preservation and coherence equations for this algebra only; they do not establish a universal theorem.
+
+`lowerExactCircuit` converts the same exact denotation to the existing source-by-target row-major `DenseExactKernel`. Dense compatibility storage requires nonempty endpoints; the raw circuit AST and matrix layers still permit empty finite boundaries. Differential tests compare circuit sharing and fanout with both `denoteExactIR` and `lowerExactIR`.
+
+`ApproximateInterpreterBoundary` is separate from the exact algebra. A floating, GPU, or neural implementation must provide an observational relation, precision in bits, and an error policy. This record does not establish exact categorical equality.
+
+The Conal-style deterministic source language supports identity, composition, products, pairing, projections, and finite quoted primitive tables. Compilation maps composition to left-to-right circuit composition, products to tensor, pairing to copy followed by tensor, and projections to discard followed by a unitor. The compiler module does not depend on the exact interpreter; its vacuous primitive interpreter exists only in test support. The source and compiler contain no arbitrary Haskell function values. Bottoms, exceptions, `seq`, opaque higher-order functions, infinite types, exponentials, recursive term nodes, and stochastic cartesian closure are excluded.
+
+### 3.8 Typed structured cospans and open circuit decorations
+
+`Interface sort port` is a finite typed port table and can be empty. `InterfaceMap` is a validated total type-preserving table. Tensor is disjoint union. The discrete-boundary functor maps an interface to a hypergraph with the same typed vertices and no edges, and maps vertical arrows to edge-empty hypergraph maps.
+
+`TypedHypergraph sort vertex edge label` stores duplicate-free typed vertices, duplicate-free edge identities, and directed labelled hyperedges. Each edge has ordered typed inputs and outputs. A `HypergraphMap` is total on vertices and edges and preserves vertex types, labels, port order, and incidence.
+
+`finitePushout` computes the equivalence closure generated by a span of interface maps. Its carrier consists of opaque `PushoutPoint` quotient classes over the disjoint union. Class members are canonicalized in left-carrier order followed by right-carrier order, independent of relation-discovery order. The result exposes all classes and both canonical injections. `factorPushout` compares cocone objects by typed support, not layout, validates every quotient class, and returns the unique table factor in the selected target representation. Construction has no partial representative selection. `FinitePushout` has nominal roles for all witness parameters.
+
+`OpenSystem` is a structured cospan from two discrete interfaces into one typed hypergraph. Legs are total and type preserving but can identify boundary ports. Sequential composition reindexes the common interface, pushes out apex vertices, remaps ordered edge ports, and combines edge identities by disjoint union. Tensor is disjoint union. The horizontal identity is the discrete cospan.
+
+`OpenSystemCell` is a commuting square. It contains source and target open systems, two vertical interface maps, and a structure-preserving apex hypergraph map. Interface-map rows are stored in source-layout order, while `sameInterfaceMap` compares them extensionally. Vertical composition composes all three maps. Horizontal composition accepts extensionally equal middle maps and uses the induced map between pushouts. Tensor acts componentwise.
+
+Binary pushout classes have the canonical representation described above. Nested left- and right-associated `PushoutPoint` types are not literally equal. The tests therefore flatten their canonical members to the original three tagged carriers and construct an explicit associator isomorphism. They check both vertex and edge maps in both round trips. The tests construct left and right unitor isomorphisms and perform the same checks. These are executable representative witnesses. The public API does not package general associator or unitor constructors, and the project does not claim a strict double category or a general bicategorical coherence theorem.
+
+`reverseOpenBoundary` swaps cospan legs only. It does not reverse directed edges or dynamics. It is structured-cospan boundary reversal, not matrix conjugate transpose or prior-indexed Bayesian inversion, and it has no common `Dagger` instance.
+
+`OpenCircuit` attaches a global directed circuit decoration to open topology. By construction, composition and tensor delegate the decoration component directly to circuit composition and tensor. Selected fixtures exact-law-test the resulting decoration equations. Hypergraph topology has no stochastic black-box denotation. A boundary-reversed circuit view exchanges only the topological input and output parameters. Its state input and output parameters retain the original directed orientation, and the view has no reverse-denotation observer. Cyclic graph semantics, feedback, arbitrary graph evaluation, continuous-time open-Markov black-boxing, and MDP black-box theorems remain outside the implementation.
+
+### 3.9 Evidence classification and proof boundary
+
+Opaque smart constructors and nominal roles establish their represented validation invariants by construction. Direct circuit-fold and open-decoration delegation is also by construction. Algebraic, categorical, Bayesian, compiler, and open-system equations are exact-law-tested on the stated finite fixtures unless a section explicitly says otherwise. Differential claims are fixture-based comparisons with an independent existing path.
+
+The scalar classes cannot enforce their documented laws for third-party instances. Generic matrix, stochastic, deterministic, and convex closure therefore remains conditional on lawful scalar instances. The repository has no quantified or machine-checked theorem for all finite objects, all circuits, all compiler terms, all POMDPs, pushout universality, natural associator or unitor families, or pseudo-double-category coherence. Compiler soundness and finite pushout universality are algebraically argued and fixture-tested, not universally proved. `CircuitAlgebra` remains an unchecked operation record. The open API remains a double fragment and is not promoted to a double category.
 
 ## 4. Core value types
 
@@ -437,11 +515,11 @@ The architecture treats each variant as an explicit extension.
 | Variant | Status and boundary |
 | --- | --- |
 | Finite episodic MDP | First supported MDP. It uses a finite horizon. |
-| Discounted continuing MDP | Planned after bounded interpreters. It uses Bellman fixed points. |
+| Discounted continuing MDP | Exact contraction fixed-point policy evaluation is implemented. Control optimization remains separate future work. |
 | Average-reward MDP | Deferred. It needs recurrence and gain or bias semantics. |
 | Constrained MDP | Deferred. It needs separate cost signals and feasibility semantics. |
 | Semi-Markov decision process | Deferred. It needs explicit duration and discount timing. |
-| POMDP | Planned finite extension with observation and belief semantics. |
+| POMDP | Exact finite post-transition filtering and bounded belief-policy evaluation are implemented. |
 | Multi-agent model | Out of the initial scope. It needs joint actions and equilibrium concepts. |
 | Continuous-state MDP | Experimental package only after continuous-kernel admission. |
 
@@ -451,18 +529,16 @@ A variant does not enter the core through optional fields. It receives its own i
 
 The semantic core defines values, kernels, models, policies, and objectives. It performs validation but no execution-specific optimization.
 
-Interpreters provide:
+Implemented interpreters provide:
 
-- Exact finite expectation.
-- Seeded simulation.
-- Trace generation.
-- Policy evaluation.
-- Value iteration and policy iteration.
-- Q-learning and later learning algorithms.
-- POMDP filtering and planning.
-- Sparse and dense matrix lowering.
-- Continuous sampling or quadrature.
-- Tensor and GPU execution.
+- Exact finite expectation and trace enumeration.
+- Seeded finite-support simulation.
+- Exact finite-horizon dynamic programming and contraction policy evaluation.
+- Validated Q-learning updates and bounded seeded episodes.
+- Exact POMDP filtering and bounded belief-policy evaluation.
+- Dense exact CPU lowering and optional dense GPU execution.
+
+Control-optimizing value iteration or policy iteration, sparse lowering, and continuous sampling or quadrature remain future interpreter families.
 
 Each interpreter receives all behavior-changing configuration as an argument. This includes seeds, horizons, discounts, schedules, tolerances, iteration limits, and devices.
 
@@ -479,8 +555,27 @@ An interpreter can cache or compile a model. The cache and compiler are not part
 The implementation uses these boundaries. Entries marked "later" are not implemented:
 
 ```text
+Markovian.Algebra.Semiring law-bearing scalar capabilities
+Markovian.Algebra.NonNegativeRational exact nonnegative scalar implementation
 Markovian.Backend.CPU.Exact dense rational CPU lowering
+Markovian.Bayesian.Exact exact priors, support, conditioning, and inversion
+Markovian.Bayesian.Channel.Exact checked prior-flow channel composition
+Markovian.Circuit raw purity-indexed stochastic-circuit AST and unchecked fold algebra
+Markovian.Circuit.Compile.Deterministic first-order quoted-table compilation
+Markovian.Circuit.Interpret.Exact exact matrix and kernel algebra
+Markovian.Circuit.Interpret.Approximate floating and backend approximation boundary
+Markovian.Open.Interface finite typed interfaces and vertical maps
+Markovian.Open.Hypergraph finite typed hypergraphs and structure maps
+Markovian.Open.Pushout explicit finite typed quotient pushouts
+Markovian.Open.StructuredCospan open systems and commuting 2-cells
+Markovian.Open.Circuit.Exact directed circuit-decorated open topology
+Markovian.Category.Finite.Set duplicate-free finite sets, including empty sets
+Markovian.Category.Finite.Object nonempty finite-object refinement
 Markovian.Category.Finite.Exact typed exact categorical syntax and denotation
+Markovian.Category.Matrix opaque finite semiring matrices
+Markovian.Category.Matrix.Stochastic normalized exact nonnegative matrices
+Markovian.Category.Matrix.Deterministic proof-carrying one-hot matrices
+Markovian.Category.Convex.Exact exact convex families and mixtures
 Markovian.Compile.Exact     validated finite indexes and exact policy compilation
 Markovian.Probability       opaque floating probability and distribution types
 Markovian.Probability.Exact exact rational probability and distribution types
@@ -607,7 +702,7 @@ The typed source syntax preserves:
 - Discard.
 - Validated exact primitive kernels, including deterministic Dirac kernels.
 
-`copyExactIR` targets the full tensor square. Its denotation assigns mass only to diagonal pairs. A stochastic expression followed by copy performs one draw. Fanout performs two conditionally independent draws from one shared input. Tests prove that these denotations differ.
+`copyExactIR` targets the full tensor square. Its denotation assigns mass only to diagonal pairs. A stochastic expression followed by copy performs one draw. Fanout performs two conditionally independent draws from one shared input. An exact fixture demonstrates that these denotations differ.
 
 The dense CPU backend lowers exact denotation into a source-by-target rational matrix. The optional CUDA package executes floating dense matrices after explicit conversion at the backend boundary. Unsupported future primitives require typed compile errors.
 
@@ -716,6 +811,14 @@ Tests must include:
 - Horizon zero and self-loops.
 - Discount placement and terminal payoff timing.
 - One shared random draw compared with two random draws.
+- Matrix category, tensor, biproduct, dagger, compact, and trace laws.
+- Stochastic normalization, deterministic copy naturality, and exact convex laws.
+- Exact Bayesian joint, support, identity, composition, tensor, double-inversion, and almost-sure laws.
+- Exact circuit algebra, derived sharing and fanout, purity, convex choice, stated coherence equations, and deterministic compilation laws.
+- Finite pushout, structured-cospan, associator-isomorphism, double-cell interchange, tensor, reversal, and decorated-denotation laws.
+- Differential circuit fixtures against `denoteExactIR`, `lowerExactIR`, and dense exact CPU rows.
+- POMDP differential fixtures for aggregation, support order, posterior values, zero evidence, and bounded planning.
+- A concrete proof that transpose does not preserve row normalization.
 - Zero-evidence POMDP observations.
 - Equal-seed interpreter runs.
 - Bellman residual and error bounds.

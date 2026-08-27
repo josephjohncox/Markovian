@@ -6,11 +6,11 @@ Read this file, `TODO.md`, and the relevant architecture and decision sections b
 
 Markovian is a greenfield experimental Haskell package for finite stochastic kernels and decision models. It has no compatibility commitment and no external users. Incorrect interfaces are removed rather than preserved.
 
-The core library exposes validated floating and exact probability, reward, objective, kernel, MRP, MDP, policy, sampling, trace, finite-compilation, tabular-learning, exact POMDP, categorical IR, and dense CPU modules. Exact interpreters provide direct bounded expectation, trace enumeration, finite-horizon dynamic programming, contraction Bellman policy evaluation, filtering, and bounded belief planning. Sampled evaluation and episodic Q-learning receive and return explicit generator state. Separate GPU and neural packages depend on no semantic-core runtime framework.
+The core library exposes validated floating and exact probability, reward, objective, kernel, MRP, MDP, policy, sampling, trace, finite-compilation, tabular-learning, exact POMDP, categorical IR, and dense CPU modules. Its exact semantic foundation also exposes duplicate-free finite sets, nonempty finite objects, law-bearing scalar capabilities, nonnegative rational scalars, opaque semiring matrices, normalized stochastic matrices, proof-carrying deterministic matrices, exact convex mixtures, normalized priors, positive supports, conditioning, prior-indexed Bayesian inversion, checked Bayesian channels, raw purity-indexed stochastic-circuit syntax, first-order quoted-table compilation, finite typed hypergraphs, structured cospans, and commuting open-system cells. Exact interpreters provide direct bounded expectation, trace enumeration, finite-horizon dynamic programming, contraction Bellman policy evaluation, filtering, and bounded belief planning. Sampled evaluation and episodic Q-learning receive and return explicit generator state. Separate GPU and neural packages depend on no semantic-core runtime framework.
 
 The package does not contain the former branch-weight process, recursive `MDPF`, or defective prototype Q-learning implementation. `app/Sample/Main.hs` demonstrates the exact finite-horizon evaluator.
 
-`test/Main.hs` contains thirty-two deterministic semantic, law, closure, sampling, compilation, solver, learning, POMDP, categorical, CPU-lowering, trace, and interpreter contracts. Separate GPU and neural package tests cover disabled-backend behavior, actual CUDA differential execution, stable softmax, analytic gradients, and approximation error. GHC 9.4.8 and 9.8.4 pass project-scoped `-Werror`, source checks, package checks, warning-free Haddock, lower-bound resolution, and unpacked source-distribution tests. The complete three-package roadmap run passed at <https://github.com/josephjohncox/Markovian/actions/runs/32998596001>.
+`test/Main.hs`, `test/AlgebraicFoundation.hs`, `test/BayesianExact.hs`, `test/StochasticCircuit.hs`, and `test/OpenSystems.hs` contain fifty-five deterministic semantic, law, closure, sampling, compilation, solver, learning, POMDP, categorical, matrix, normalization, convex, Bayesian, circuit, open-system, CPU-lowering, trace, and interpreter contracts. Separate GPU and neural package tests cover disabled-backend behavior, actual CUDA differential execution, stable softmax, analytic gradients, and approximation error. The semantic-tower revision has local GHC 9.4.8 and 9.8.4 project-scoped `-Werror` build and test evidence. Source, package, compile-fail, unpacked source-archive, warning-free Haddock, CUDA-disabled, neural, and actual CUDA differential gates also pass locally. Hosted run <https://github.com/josephjohncox/Markovian/actions/runs/32998596001> tested the earlier `c453a8d` P6 baseline and is not evidence for S1 through S5. Delivery requires push and pull-request runs whose head SHA matches the delivered commit.
 
 ## Resolved defects
 
@@ -33,6 +33,11 @@ The package does not contain the former branch-weight process, recursive `MDPF`,
 | K-022 | Added typed categorical syntax and explicit copy semantics so compiler rewrites cannot equate one shared draw with two independent draws. |
 | K-023 | Added dense CPU, actual CUDA, and neural contract packages outside the semantic core with differential and normalization evidence. |
 | K-024 | Changed copy from a diagonal target subobject to the full tensor square with diagonal denotation. Added standard probability, category, arrow, symmetry, coherence, and fanout combinators. |
+| K-025 | Separated empty finite sets from nonempty probability objects and added exact scalar, raw matrix, stochastic, deterministic, compact, trace, and convex contracts without assigning stochastic meaning to transpose or trace. |
+| K-026 | Closed representational-coercion and overridable-convex-validation holes. Added nontrivial dagger, representative scalar, biproduct, normalization, deterministic-subcategory, embedding, and reordered trace evidence. |
+| K-027 | Added support-restricted exact Bayesian inversion and moved generic exact prediction and conditioning behind the Bayesian module without changing POMDP timing, support order, posterior values, impossible-observation errors, or bounded planning. |
+| K-028 | Added raw purity-indexed circuit syntax, an exact structural fold, shared dense CPU lowering, deterministic-only copy optimization, explicit approximation contracts, and first-order finite-table compilation. |
+| K-029 | Added finite typed interfaces and hypergraphs, explicit quotient pushouts, structured-cospan gluing, commuting open-system cells, and directed circuit decorations without graph black-boxing claims. |
 
 ## Semantic vocabulary
 
@@ -61,6 +66,14 @@ The package does not contain the former branch-weight process, recursive `MDPF`,
 | INV-RNG | Reproducible stochastic execution receives and returns explicit generator state. | Implemented by P2.2 |
 | INV-CORE | The semantic core has no tensor, GPU, autodiff, neural, or sampling-framework dependency. | Cabal dependency gate |
 | INV-COPY | Copy targets the full tensor square and assigns mass only to diagonal pairs. | Opaque IR constructors and exact law tests |
+| INV-MATRIX | Matrix semantics compare labelled entries and supports, not storage layout or exact-distribution representation. | Opaque matrices and `matrixEquivalent` laws |
+| INV-NORMALIZED | Stochastic matrix rows sum exactly to one; transpose and trace are raw-matrix operations only. | Opaque normalized refinement and counterexample test |
+| INV-DETERMINISTIC | Copy-naturality reasoning requires proof-carrying deterministic provenance. | Opaque deterministic refinement and total forgetful embedding |
+| INV-BAYES | Bayesian inversion is prior-indexed and defined only from positive output support to positive input support. | Opaque inverse, structured zero evidence, and exact joint laws |
+| INV-CIRCUIT-PURITY | Copy-naturality rewrites require deterministic construction provenance. | Purity index, one-way weakening, and compile-fail checks |
+| INV-CIRCUIT-SHARING | One stochastic execution followed by copy differs from duplicated execution. | Distinct share and fanout nodes with differential laws |
+| INV-OPEN-REVERSAL | Boundary reversal swaps cospan legs and does not reverse dynamics or circuit state parameters. | Same-oriented state types and a separate view with no reverse-denotation observer |
+| INV-OPEN-CELLS | Higher cells preserve types, labels, ordered incidence, and both boundary squares. | Opaque validated `OpenSystemCell` |
 
 ## Current decisions
 
@@ -73,10 +86,14 @@ The package does not contain the former branch-weight process, recursive `MDPF`,
 - D-026 through D-029 define exact values, exact Kleisli laws, validated policy closure, and exact finite expectation.
 - D-030 supersedes compatibility and migration decisions and authorizes immediate removal of defective experimental APIs.
 - D-031 through D-037 define sampling, compilation, learning, POMDP, backend, and finite Markov-category contracts.
+- D-038 authorizes the staged exact matrix, Bayesian, circuit, deterministic compiler, and syntax-only open-system tower while separating its three reversal operations.
+- D-039 defines support-restricted prior-indexed Bayesian inversion, almost-sure equality, and checked Bayesian-channel prior flow.
+- D-040 defines recursive purity-indexed circuits, exact structural folds, approximation boundaries, and the supported first-order deterministic compiler fragment.
+- D-041 defines finite typed structured cospans, explicit pushout witnesses, commuting open-system cells, and the narrow directed circuit decoration denotation.
 
 ## Next task
 
-All roadmap phases P0 through P6 are `DONE`. Further work must enter through an admission gate with a concrete use case, law or approximation contract, and required benchmark evidence.
+Exact semantic tower stages S1 through S5 are complete. S6, a partial interpreter for a separately validated acyclic boundary-functional hypergraph fragment, is the next ready stage. The current global circuit decoration is not graph black-boxing. Arbitrary open-system black-boxing and feedback remain deferred.
 
 ## Instructions for future agents
 

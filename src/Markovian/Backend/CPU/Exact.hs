@@ -6,12 +6,15 @@ module Markovian.Backend.CPU.Exact (
     denseExactShape,
     denseExactRows,
     DenseExactLoweringError (..),
+    DenseExactCircuitLoweringError (..),
     lowerExactIR,
+    lowerExactCircuit,
     runDenseExactKernel,
 ) where
 
 import Data.List.NonEmpty (NonEmpty)
 import Data.List.NonEmpty qualified as NonEmpty
+import Markovian.Algebra.NonNegativeRational (getNonNegativeRational)
 import Markovian.Category.Finite.Exact (
     ExactIR,
     ExactIRExecutionError,
@@ -20,6 +23,19 @@ import Markovian.Category.Finite.Exact (
     exactIRSource,
     exactIRTarget,
     finiteObjectValues,
+ )
+import Markovian.Category.Finite.Object (requireNonempty)
+import Markovian.Category.Matrix (matrixRows)
+import Markovian.Category.Matrix.Stochastic (
+    forgetStochastic,
+    stochasticSource,
+    stochasticTarget,
+ )
+import Markovian.Circuit (Circuit)
+import Markovian.Circuit.Interpret.Exact (
+    ExactCircuitInterpretationError,
+    ExactPrimitiveInterpreter,
+    interpretExactCircuit,
  )
 import Markovian.Probability.Exact (
     ExactDistributionError,
@@ -64,6 +80,17 @@ data DenseExactLoweringError
     | DenseExactInputOutsideSource
     deriving (Eq, Show)
 
+{- | Dense circuit lowering failure. Dense compatibility storage requires
+nonempty endpoints, although the free circuit and matrix layers permit empty
+finite boundaries.
+-}
+data DenseExactCircuitLoweringError primitiveError
+    = DenseCircuitInterpretationError !(ExactCircuitInterpretationError primitiveError)
+    | DenseCircuitEmptySource
+    | DenseCircuitEmptyTarget
+    | DenseCircuitInternalShapeError
+    deriving (Eq, Show)
+
 {- | Lower exact finite syntax to a dense row-major rational matrix.
 
 Source and target support order defines row and column indexing. Precision is
@@ -85,6 +112,41 @@ lowerExactIR expression = do
   where
     source = exactIRSource expression
     target = exactIRTarget expression
+
+{- | Lower a free circuit through its exact matrix denotation to the same dense
+row-major representation used by 'lowerExactIR'. There is no second numerical
+semantics in this path.
+-}
+lowerExactCircuit ::
+    ExactPrimitiveInterpreter primitive primitiveError ->
+    Circuit primitive purity source target ->
+    Either
+        (DenseExactCircuitLoweringError primitiveError)
+        (DenseExactKernel source target)
+lowerExactCircuit primitives circuit = do
+    arrow <-
+        either
+            (Left . DenseCircuitInterpretationError)
+            Right
+            (interpretExactCircuit primitives circuit)
+    source <-
+        either
+            (const (Left DenseCircuitEmptySource))
+            Right
+            (requireNonempty (stochasticSource arrow))
+    target <-
+        either
+            (const (Left DenseCircuitEmptyTarget))
+            Right
+            (requireNonempty (stochasticTarget arrow))
+    rows <-
+        case traverse (NonEmpty.nonEmpty . map getNonNegativeRational) (matrixRows (forgetStochastic arrow)) of
+            Nothing -> Left DenseCircuitInternalShapeError
+            Just nonemptyRows ->
+                case NonEmpty.nonEmpty nonemptyRows of
+                    Nothing -> Left DenseCircuitInternalShapeError
+                    Just representedRows -> Right representedRows
+    Right (DenseExactKernel source target rows)
 
 -- | Execute one dense row and reconstruct its exact finite distribution.
 runDenseExactKernel ::

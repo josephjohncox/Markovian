@@ -1,5 +1,7 @@
 module Main (main) where
 
+import AlgebraicFoundation (runAlgebraicFoundationTests)
+import BayesianExact (runBayesianExactTests)
 import Control.Arrow (left, (&&&), (***))
 import Control.Category qualified as Category
 import Data.List.NonEmpty qualified as NonEmpty
@@ -242,10 +244,16 @@ import Markovian.Trace (
     Trace (..),
     TraceStep (..),
  )
+import OpenSystems (runOpenSystemTests)
+import StochasticCircuit (runStochasticCircuitTests)
 import System.Exit (exitFailure)
 
 main :: IO ()
 main = do
+    runAlgebraicFoundationTests run
+    runBayesianExactTests run
+    runStochasticCircuitTests run
+    runOpenSystemTests run
     run "probability and weight validation" testValidation
     run "empty support rejection" testEmptySupport
     run "overflow-safe normalization" testNormalization
@@ -1285,6 +1293,9 @@ testExactPOMDPFiltering = do
         requireRight
             "exact duplicate-state belief"
             (exactBelief [(BeliefLeft, 1), (BeliefLeft, 1), (BeliefRight, 2)])
+    case exactBelief [(BeliefLeft, -1), (BeliefLeft, 2)] of
+        Left (InvalidExactWeight 0 (NegativeExactWeight (-1))) -> pure ()
+        _ -> failTest "exact belief hid a negative duplicate weight"
     leftTransition <-
         requireRight
             "left latent transition"
@@ -1327,16 +1338,19 @@ testExactPOMDPFiltering = do
         pomdp = exactPOMDP model prior observationKernel
     assert "exact POMDP observation timing changed" (exactObservationTiming pomdp == ObserveAfterTransition)
     assert "exact belief did not aggregate duplicate states" (beliefMass BeliefLeft prior == 1 % 2)
+    assert "exact belief support order changed" (beliefLabels prior == [BeliefLeft, BeliefRight])
     assert "exact initial belief did not normalize" (sumBelief prior == 1)
 
     predicted <- requireRight "exact belief prediction" (predictExactBelief pomdp observeAction prior)
     assert "predicted left mass changed" (beliefMass BeliefLeft predicted == 5 % 8)
     assert "predicted right mass changed" (beliefMass BeliefRight predicted == 3 % 8)
+    assert "predicted support order changed" (beliefLabels predicted == [BeliefLeft, BeliefRight])
     assert "predicted belief did not normalize" (sumBelief predicted == 1)
 
     conditioned <- requireRight "exact belief conditioning" (conditionExactBelief pomdp observeAction ObservedRed predicted)
     assert "conditioned left mass changed" (beliefMass BeliefLeft conditioned == 20 % 23)
     assert "conditioned right mass changed" (beliefMass BeliefRight conditioned == 3 % 23)
+    assert "conditioned support order changed" (beliefLabels conditioned == [BeliefLeft, BeliefRight])
     assert "conditioned belief did not normalize" (sumBelief conditioned == 1)
     filtered <- requireRight "exact one-step filtering" (filterExactBelief pomdp observeAction ObservedRed prior)
     assert "filtering differs from prediction followed by conditioning" (filtered == conditioned)
@@ -1355,6 +1369,7 @@ testExactPOMDPFiltering = do
             | (state, mass) <- NonEmpty.toList (exactBeliefOutcomes belief)
             , state == requested
             ]
+    beliefLabels = map fst . NonEmpty.toList . exactBeliefOutcomes
     sumBelief belief =
         sum
             [ exactProbability mass

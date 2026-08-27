@@ -340,9 +340,23 @@ Do not use architecture text to hide an unresolved decision. Mark the uncertaint
 3. Correct all affected authorities in one change.
 4. Add a decision when no accepted contract resolves the conflict.
 
-## 10. Admission workflow
+## 10. Exact semantic tower workflow
 
-P0 through P6 and the greenfield cleanup are `DONE`. D-023 through D-036 define the verified semantic, interpreter, solver, learning, POMDP, compiler, CPU, GPU, and neural contracts. Thirty-two core tests and two backend package tests pass. No roadmap item is `NEXT`.
+D-038 work follows the S1 through S6 roadmap in `TODO.md`.
+
+1. Preserve the direction `Algebra -> finite witnesses -> raw matrices -> normalized refinements -> Bayesian operations`. Matrix modules cannot import distributions, POMDPs, circuits, or backends.
+2. Keep empty `FiniteSet` boundaries separate from nonempty `FiniteObject` states, priors, and probability supports. Permit a normalized empty-to-empty arrow only by vacuous row validation.
+3. Use labelled extensional equality for matrix laws. Do not use storage equality or `ExactFiniteDist` equality. Ordinary witness `Eq` remains layout equality.
+4. Run the focused `Markovian-test` suite after each stage. S1 evidence must include category, tensor, biproduct, dagger, compact, trace, normalization, deterministic, convex, and transpose-counterexample test names. S2 evidence must include joint balance, normalization, support restriction, identity, composition reversal, tensor, double inversion, almost-sure uniqueness, checked prior flow, and POMDP differential tests. S3 and S4 evidence must include purity compile failures, sharing versus fanout, structural-fold preservation, coherence, convex choice, legacy IR and dense CPU differentials, and first-order compilation equations. S5 evidence must include typed-map failures, source-row canonicalization, nominal quotient witnesses, canonical class order, layout-independent cocone factorization, both associator round trips, both unitor isomorphisms, tensor, boundary reversal without state reversal, extensional middle-map cell composition, interchange, and the narrow decorated-circuit denotation boundary.
+5. Run Fourmolu, HLint, `scripts/check-refinement-roles`, and the project-scoped `-Werror` build before marking a stage complete.
+6. Do not expose transpose, compact structure, trace, or raw addition through `StochasticMatrix`.
+7. Permit copy-naturality rewrites only when a `DeterministicMatrix` or deterministic purity index supplies construction evidence. Assign nominal roles to each proof-carrying refinement.
+8. Keep matrix conjugate transpose, prior-indexed Bayesian inversion, and structured-cospan boundary reversal as separately named operations with no common class. Do not add a Bayesian inversion placeholder before S2 supplies priors and support restriction.
+9. Stop before arbitrary open-system black-boxing or feedback semantics. D-038 leaves both deferred.
+
+## 11. Admission workflow
+
+P0 through P6, the greenfield cleanup, and exact semantic-tower stages S1 through S5 are `DONE`. D-023 through D-041 define the implemented semantic, interpreter, solver, learning, POMDP, compiler, matrix, Bayesian, circuit, open-system, CPU, GPU, and neural contracts. Fifty-five named core contracts and two backend package tests pass locally on the current GHC 9.8.4 worktree. S6 is the next ready roadmap item, but it remains unimplemented and requires its own start gate and proof boundary.
 
 A new feature must use this sequence:
 
@@ -354,3 +368,5 @@ A new feature must use this sequence:
 6. Run both compiler versions, all three package tests, source distributions, and every applicable backend differential test.
 
 Do not widen the finite semantic core for speculative abstractions without the recorded proof obligation and evidence.
+
+Fourmolu 0.20 does not parse the repository's LaTeX-style literate Haskell files. Source-format gates therefore check all `.hs` files and explicitly exclude the three `.lhs` files from Fourmolu. This is a parser limitation, not a waiver from compiler or HLint diagnostics; GHC and HLint continue to check those files.

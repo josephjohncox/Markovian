@@ -100,6 +100,17 @@ P5 gate: `DONE`. Prediction, post-transition conditioning, impossible observatio
 
 P6 gate: `DONE`. Exact IR laws, full-tensor copy, symmetric monoidal coherence maps, deterministic copy naturality, shared-draw counterexamples, dense CPU differential tests, actual CUDA differential execution, transfer-inclusive benchmarking, and neural normalization and gradient contracts pass.
 
+## Exact semantic tower roadmap
+
+D-038 authorizes this roadmap in dependency order. A later stage cannot weaken the exact-law boundary established by an earlier stage.
+
+- [x] **S1 Algebraic foundation.** Add duplicate-free finite sets, nonempty finite objects, lawful scalar classes, exact nonnegative rationals, opaque raw matrices, stochastic and deterministic refinements, and exact convex enrichment. Nominal roles protect proof refinements, and convex validation uses a fixed exact sum. Tests cover representative scalar fixtures, nontrivial and noncommutative dagger fixtures, biproduct decomposition, compact and trace laws, stochastic closure, deterministic subcategory and embedding laws, convex laws, and the transpose-normalization counterexample.
+- [x] **S2 Exact Bayesian layer.** Added normalized priors, positive support restriction, exact pushforward and joints, structured conditioning, prior-indexed Bayesian inversion, almost-sure equality, checked Bayesian-channel composition, and differential POMDP integration. Exact tests cover joint balance, identity, composition reversal, tensor, double inversion, zero-evidence behavior, and almost-sure uniqueness.
+- [x] **S3 Purity-indexed stochastic circuits.** Added recursive deterministic and stochastic syntax, structural folds, exact matrix and kernel interpretation, explicit sharing and fanout, deterministic-only copy optimization, exact convex choice, dense CPU lowering, an approximation boundary, differential legacy-IR tests, and purity compile-fail evidence.
+- [x] **S4 Deterministic categorical compiler.** Added the approved first-order fragment with identity, composition, products, pairing, projections, and finite quoted tables. Compilation tests cover composition, tensor, pairing, projections, and independent finite-table denotation.
+- [x] **S5 Structured-cospan open syntax.** Added finite typed interfaces, directed labelled hypergraphs, total structure maps, explicit quotient pushouts and cocone factors, structured-cospan gluing, disjoint-union tensor, boundary reversal, and commuting open-system cells with vertical, horizontal, tensor, and interchange evidence.
+- [ ] **S6 Partial acyclic open interpretation.** Interpret only a separately validated directed acyclic boundary-functional hypergraph fragment. The current `OpenCircuit` global decoration delegates directed composition to circuit composition by construction but does not black-box graph topology. Arbitrary graph evaluation and feedback remain deferred. **Status: READY.**
+
 ## Admission gates
 
 - Continuous kernels require a concrete use case plus measurability and integration contracts.

@@ -1,7 +1,10 @@
+{-# LANGUAGE RoleAnnotations #-}
+
 {- | Exact finite beliefs and post-transition POMDP filtering.
 
 The observation kernel is evaluated from the selected action and successor
-state. Prediction and conditioning remain separate public operations.
+state. Prediction and conditioning remain separate public operations and
+delegate their generic normalization to "Markovian.Bayesian.Exact".
 -}
 module Markovian.POMDP.Exact (
     ExactBelief,
@@ -23,6 +26,13 @@ module Markovian.POMDP.Exact (
 ) where
 
 import Data.List.NonEmpty qualified as NonEmpty
+import Markovian.Bayesian.Exact (
+    ExactConditioningError (..),
+    ExactDistributionBayesianError (..),
+    canonicalExactDistribution,
+    conditionExactDistribution,
+    pushforwardExactDistribution,
+ )
 import Markovian.MDP (ActionId)
 import Markovian.MDP.Exact (
     ExactMDP,
@@ -34,12 +44,13 @@ import Markovian.Probability.Exact (
     ExactDistributionError,
     ExactFiniteDist,
     ExactProb,
-    exactFiniteDist,
     exactOutcomes,
     exactProbability,
  )
 
 -- | A canonical exact finite belief with duplicate states aggregated.
+type role ExactBelief nominal
+
 newtype ExactBelief state = ExactBelief (ExactFiniteDist state)
     deriving (Eq, Show)
 
@@ -48,7 +59,7 @@ exactBelief ::
     (Eq state) =>
     [(state, Rational)] ->
     Either ExactDistributionError (ExactBelief state)
-exactBelief entries = ExactBelief <$> exactFiniteDist (aggregate entries)
+exactBelief entries = ExactBelief <$> canonicalExactDistribution entries
 
 -- | Canonicalize an existing exact finite state distribution as a belief.
 exactBeliefFromDistribution ::
@@ -122,26 +133,26 @@ predictExactBelief ::
     ActionId action ->
     ExactBelief state ->
     Either (ExactFilteringError state action observation) (ExactBelief state)
-predictExactBelief pomdp selected prior = do
-    branches <-
-        fmap
-            concat
-            ( traverse
-                predictState
-                (NonEmpty.toList (exactBeliefOutcomes prior))
-            )
-    mapDistributionError (exactBelief branches)
+predictExactBelief pomdp selected prior =
+    case pushforwardExactDistribution
+        (exactBeliefDistribution prior)
+        predictState of
+        Left (ExactDistributionKernelError (state, modelError)) ->
+            Left (ExactFilteringModelError state modelError)
+        Left (ExactDistributionNormalizationError distributionError) ->
+            Left (ExactFilteringDistributionError distributionError)
+        Right predicted -> Right (ExactBelief predicted)
   where
     model = exactPOMDPModel pomdp
-
-    predictState (state, beliefMass) = do
-        transition <- mapModelError state (stepExactMDP model state selected)
-        Right
-            [ ( exactSuccessorState outcome
-              , exactProbability beliefMass * exactProbability transitionMass
-              )
-            | (outcome, transitionMass) <- NonEmpty.toList (exactOutcomes transition)
-            ]
+    predictState state =
+        case stepExactMDP model state selected of
+            Left modelError -> Left (state, modelError)
+            Right transition ->
+                Right
+                    ( fmap
+                        exactSuccessorState
+                        transition
+                    )
 
 -- | Condition a predicted belief on one post-transition observation.
 conditionExactBelief ::
@@ -152,24 +163,14 @@ conditionExactBelief ::
     ExactBelief state ->
     Either (ExactFilteringError state action observation) (ExactBelief state)
 conditionExactBelief pomdp selected observed predicted =
-    case positive of
-        [] -> Left (ImpossibleExactObservation observed)
-        entries -> mapDistributionError (exactBelief entries)
-  where
-    positive =
-        [ (state, exactProbability beliefMass * likelihood state)
-        | (state, beliefMass) <- NonEmpty.toList (exactBeliefOutcomes predicted)
-        , likelihood state > 0
-        ]
-
-    likelihood state =
-        sum
-            [ exactProbability mass
-            | (candidate, mass) <-
-                NonEmpty.toList
-                    (exactOutcomes (exactObservationDistribution pomdp selected state))
-            , candidate == observed
-            ]
+    case conditionExactDistribution
+        observed
+        (exactBeliefDistribution predicted)
+        (exactObservationDistribution pomdp selected) of
+        Left (ExactZeroEvidence impossible) -> Left (ImpossibleExactObservation impossible)
+        Left (ExactConditioningNormalizationError distributionError) ->
+            Left (ExactFilteringDistributionError distributionError)
+        Right posterior -> Right (ExactBelief posterior)
 
 -- | Predict and then condition under the post-transition convention.
 filterExactBelief ::
@@ -182,24 +183,3 @@ filterExactBelief ::
 filterExactBelief pomdp selected observed prior = do
     predicted <- predictExactBelief pomdp selected prior
     conditionExactBelief pomdp selected observed predicted
-
-aggregate :: (Eq value) => [(value, Rational)] -> [(value, Rational)]
-aggregate = foldl insert []
-  where
-    insert accumulated (value, mass) = go accumulated
-      where
-        go [] = [(value, mass)]
-        go ((existing, existingMass) : remaining)
-            | existing == value = (existing, existingMass + mass) : remaining
-            | otherwise = (existing, existingMass) : go remaining
-
-mapModelError ::
-    state ->
-    Either (ExactModelError action) value ->
-    Either (ExactFilteringError state action observation) value
-mapModelError state = either (Left . ExactFilteringModelError state) Right
-
-mapDistributionError ::
-    Either ExactDistributionError value ->
-    Either (ExactFilteringError state action observation) value
-mapDistributionError = either (Left . ExactFilteringDistributionError) Right

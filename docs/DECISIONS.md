@@ -184,7 +184,7 @@ Closure removes the selected action ID. Code that needs action-labeled traces us
 
 ### D-018: Admit a categorical compiler IR
 
-**Status:** Proposed
+**Status:** Superseded by D-035 and D-040
 
 **Question:** Does a typed source DSL have a measured need for shared stochastic compilation across two or more backends?
 
@@ -194,7 +194,7 @@ Closure removes the selected action ID. Code that needs action-labeled traces us
 
 ### D-019: Select the Q-learning contract
 
-**Status:** Proposed
+**Status:** Superseded by D-033
 
 **Question:** Which schedules, terminal target, exploration rule, seed contract, and step-limit behavior define the replacement learner?
 
@@ -202,7 +202,7 @@ Closure removes the selected action ID. Code that needs action-labeled traces us
 
 ### D-020: Select the finite POMDP contract
 
-**Status:** Proposed
+**Status:** Superseded by D-034
 
 **Question:** Which observation timing, belief representation, and zero-evidence error define the first finite POMDP?
 
@@ -282,7 +282,7 @@ The slice can add `Reward`, `Kernel`, `Policy`, and one-step MRP and MDP interfa
 
 **Risk:** `Rational` is a reference representation, not a low-level runtime format. Large numerators and denominators can consume unbounded memory. Optimized interpreters must remain observationally related to exact results without importing this representation into GPU or tensor storage.
 
-### D-027: Prove Kleisli laws in the exact kernel domain
+### D-027: Exact-law-test Kleisli laws in the exact kernel domain
 
 **Status:** Accepted
 
@@ -300,7 +300,7 @@ The slice can add `Reward`, `Kernel`, `Policy`, and one-step MRP and MDP interfa
 
 **Decision:** Policy closure validates model and policy action supports before it combines action and transition mass. Duplicate available action IDs, duplicate policy action IDs, and unavailable policy actions are distinct structured errors. A terminal state returns its payoff without evaluating the policy. Floating closure returns a fallible `PolicyMRP`; exact one-state closure returns an exact joint outcome distribution.
 
-**Rationale:** An arbitrary state type cannot be exhaustively validated when closure is constructed. Returning the existing total `MRP` would either hide an error, assume an unproved global invariant, or require partial code. Per-state validation is explicit and total. Exact closure proves the joint-outcome equation literally. Floating closure multiplies masses and revalidates them, so underflow or normalization failure remains visible.
+**Rationale:** An arbitrary state type cannot be exhaustively validated when closure is constructed. Returning the existing total `MRP` would either hide an error, assume an unproved global invariant, or require partial code. Per-state validation is explicit and total. Exact closure computes the joint-outcome equation directly by construction. Floating closure multiplies masses and revalidates them, so underflow or normalization failure remains visible.
 
 **Consequences:** Closure removes action IDs but preserves every reward and successor label. Two actions that reach the same successor with different rewards remain separate outcomes. Conditional reward queries divide only by positive successor mass and return `ZeroMassTransition` otherwise. Exact two-step traces and bounded trace observables match direct policy-and-MDP execution.
 
@@ -415,6 +415,78 @@ The copy target must be the full tensor square. Diagonal support belongs to the 
 **Consequences:** Exact distributions support `Functor`, `Applicative`, `Monad`, `Foldable`, and `Traversable`. Exact kernels support standard category and arrow combinators. IR tests cover full-tensor copy, symmetry, associator and unitor inverses, deterministic copy naturality, and stochastic shared-draw counterexamples.
 
 **Risk:** The implementation is a finite symmetric monoidal Markov fragment, not a higher-category framework. It does not add a dagger, trace, compact closure, or total Bayesian inverse. Such structures need separate denotations and laws.
+
+### D-038: Stage the exact semantic tower and keep reversal operations distinct
+
+**Status:** Accepted
+
+**Decision:** Authorize staged implementation of four additive layers: exact finite semiring matrices and their normalized refinements; prior-indexed exact Bayesian operations; purity-indexed finite stochastic circuits and the exact deterministic categorical compiler fragment; and syntax-only finite typed structured-cospan open systems. The matrix foundation uses explicit finite witnesses, exact nonnegative scalars, proof-carrying deterministic arrows, and exact convex enrichment.
+
+D-037 supersedes only D-027's prohibition on a `Monad ExactFiniteDist` instance. D-027's exact-versus-floating law boundary remains active. D-035 supersedes D-018 and D-009 only for the implemented exact categorical compiler fragment. D-009 continues to defer unrelated categorical optimizations.
+
+The design has three distinct reversal-like operations: matrix conjugate transpose, prior-indexed Bayesian inversion, and structured-cospan boundary reversal. No shared `Dagger` class or instance can contain these operations. Arbitrary open-system black-boxing and feedback semantics remain deferred.
+
+**Rationale:** Raw matrices, normalized kernels, Bayesian inversion, and open boundaries have different domains and preservation laws. A transpose need not preserve stochastic normalization. Bayesian inversion depends on a prior and positive support. Boundary reversal swaps cospan feet without reversing directed internal edges. One overloaded operation would make false equations expressible.
+
+**Consequences:** Implementation proceeds through explicit roadmap stages. Empty finite sets are valid for raw matrices, open boundaries, and vacuous normalized arrows from the empty set. A normalized arrow into the empty set exists only when its source is empty. Normalized states, priors, distributions, and existing probability objects remain nonempty. Copy naturality is available only through proof-carrying deterministic syntax or matrices. Exact circuit and Bayesian layers can depend on the matrix foundation, but the foundation cannot depend on distributions, POMDPs, circuits, or backends. Open hypergraphs initially have syntax-only semantics except for a separately validated acyclic fragment.
+
+The S1 transpose counterexample proves only that raw transpose does not preserve stochastic normalization. A comparison with prior-indexed Bayesian inversion belongs to S2 because that operation requires a prior, positive support restriction, division, and structured zero-evidence errors. Adding a placeholder inversion to S1 would erase those requirements and assert a false total operation. D-038 separates the names and types now; S2 must supply the Bayesian comparison evidence.
+
+Proof-carrying matrix refinements use nominal roles for scalars and endpoints. Constructor opacity alone is insufficient because representational coercion could otherwise replace the scalar laws or endpoint equality evidence.
+
+**Proof obligations:** Each stage must add literal law tests for the structure that it exposes. The matrix stage must test category, tensor, biproduct, dagger, compact, trace, normalization, determinism, convexity, and a transpose-normalization counterexample. Bayesian work must test support-restricted Bayes laws and preserve existing POMDP behavior differentially. Circuit work must preserve stochastic sharing and reject dishonest deterministic tags. Open-system work must validate pushouts and 2-cells up to explicit canonical isomorphism and must reject unsupported feedback.
+
+**Deferred:** A total black-box functor from arbitrary open hypergraphs to stochastic kernels, stationary feedback selection, unrelated NBE or Kan-extension optimizations, and a common dagger abstraction are not authorized.
+
+### D-039: Restrict exact Bayesian inversion to positive prior support
+
+**Status:** Accepted
+
+**Decision:** An exact `Prior` is a normalized state on an explicit nonempty finite object. It stores its positive `Support`. Pushforward, joint construction, evidence, and conditioning use exact nonnegative rational matrices. A `BayesianInverse source target` contains a normalized map from positive output support to positive input support. It does not choose rows for zero-evidence outputs.
+
+`almostSureEqual prior left right` is the explicit prior-indexed equality operation. Ordinary `Eq` does not express almost-sure equality. A `BayesianChannel` stores its input prior, forward channel, and exact pushforward prior. Composition checks that the second input prior equals the first output prior. It is not a `Category` over plain endpoint types.
+
+**Rationale:** The equation `p(x) K(x,y) / q(y)` is defined only when `q(y)` is positive. Arbitrary rows on zero-output support are not Bayesian data. Support restriction gives a total normalized inverse on its mathematical domain and makes the almost-sure uniqueness boundary explicit.
+
+**Consequences:** Prior-indexed Bayesian inversion remains distinct from matrix conjugate transpose and structured-cospan boundary reversal. The package adds no shared `Dagger` class and no `Dagger ExactKernel` instance. Exact POMDP prediction and conditioning delegate to the Bayesian distribution algebra while preserving post-transition timing, duplicate aggregation, support order, posterior values, and `ImpossibleExactObservation`.
+
+**Proof obligations:** Exact tests cover normalization, support extraction, the Bayes joint equation, identity, composition reversal, independent tensor, double inversion after support restriction, almost-sure equivalence, zero-evidence errors, and checked Bayesian-channel prior flow. Floating inference remains outside these literal law claims.
+
+### D-040: Reify purity-indexed stochastic circuits and first-order deterministic compilation
+
+**Status:** Accepted
+
+**Decision:** `Circuit primitive purity source target` is opaque recursive syntax. `purity` records deterministic or stochastic construction provenance. Identity, composition, tensor, symmetry, associators, unitors, copy, discard, validated finite tables, convex choice, sharing, and fanout remain explicit nodes. `share circuit` executes once and copies one result. `fanout left right` copies the input and executes both branches independently conditional on that input.
+
+Only deterministic syntax can use the copy-naturality rewrite. Deterministic primitives must interpret to `DeterministicMatrix`; stochastic primitives interpret to `StochasticMatrix`. The only purity cast weakens deterministic syntax to stochastic syntax. Compile-fail evidence rejects strengthening and deterministic copy optimization on stochastic circuits.
+
+`CircuitAlgebra` is an unchecked fold-operation record. It carries no categorical laws. `foldCircuit` derives sharing from composition and copy, and derives fanout from copy, tensor, and composition. An algebra that claims homomorphism laws must prove them separately. The exact algebra targets proof-carrying deterministic and normalized stochastic nonnegative-rational matrices. Exact kernel application and dense CPU lowering use that same matrix denotation. Floating, CUDA, and neural backends must use the separate approximation boundary with an observation relation, precision, and error policy.
+
+The deterministic source fragment contains identity, composition, products, pairing, projections, and finite quoted tables. Projection compilation uses discard and unitors. The source contains no Haskell function values or function equality.
+
+**Rationale:** A provenance index prevents a currently Dirac stochastic gate from authorizing copy rewrites. Reified sharing prevents accidental duplication of random effects. Finite tables give total inspectable first-order compilation without pretending that arbitrary Haskell functions form a quoted language.
+
+**Consequences:** Recursive circuits are supported, but recursive circuit definitions can diverge before construction and no feedback node is provided. The syntax is not claimed to be a quotient or a mechanically proved initial object. Arbitrary Haskell functions, bottoms, exceptions, `seq`, opaque higher-order functions, infinite types, finite exponentials, and cartesian closure of stochastic maps remain unsupported. Open hypergraphs and structured cospans remain S5 work.
+
+**Proof obligations:** Exact tests cover structural-fold preservation, derived sharing and fanout, deterministic-only copy naturality, convex choice, pentagon, triangle, symmetry hexagon, structural naturality, both unitors, reordered layouts, source compilation equations, validation failures, and differential agreement with `denoteExactIR`, `lowerExactIR`, and dense CPU rows.
+
+### D-041: Implement typed structured-cospan syntax and only decorated circuit denotation
+
+**Status:** Accepted
+
+**Decision:** Open syntax uses finite typed interfaces and directed labelled hypergraphs. Hyperedges have identities and ordered typed input and output ports. Interface maps and hypergraph maps are total, type preserving, and opaque. Structured cospans have total, not necessarily injective, legs from discrete boundary hypergraphs.
+
+Horizontal composition constructs the finite pushout of apex vertices along the shared discrete boundary. The pushout exposes explicit quotient classes, canonical injections, and checked cocone factorization. Members of each binary quotient class are stored in left-carrier order followed by right-carrier order. Cocones and middle vertical arrows are compared extensionally, so reordered but typed-support-equivalent interfaces do not block factorization or horizontal cell composition. Hyperedges combine by disjoint union because the glued boundary is discrete. Tensor is disjoint union. Boundary reversal swaps the two cospan legs without changing the apex, hyperedges, labels, or the directed circuit state orientation.
+
+The implemented double fragment has interfaces as objects, interface maps as vertical arrows, structured cospans as horizontal arrows, and commuting squares as 2-cells. A 2-cell contains both vertical boundary maps and a type-, label-, order-, and incidence-preserving apex hypergraph map. Vertical composition is map composition. Horizontal composition is the induced pushout map. Tensor acts componentwise.
+
+`OpenCircuit` is a structured cospan with a global directed circuit decoration. Sequential gluing composes both topology and decoration; tensor combines both. Only the circuit decoration has exact stochastic denotation. Hypergraph labels and internal topology are not black-boxed. Boundary reversal exchanges only the topological boundary parameters. It retains the original circuit state input and output parameters and returns a view with no reversed stochastic-denotation observer.
+
+**Rationale:** Finite pushouts justify structured-cospan composition and the double cells. A separate global decoration permits exact composition tests without claiming an unimplemented semantics for arbitrary directed hypergraphs, cycles, feedback, MDPs, or continuous-time open Markov processes.
+
+**Consequences:** Structured-cospan boundary reversal is distinct from matrix conjugate transpose and prior-indexed Bayesian inversion. No common `Dagger` class or instance is added. Binary quotient classes have an implemented canonical order. Nested associativity is not literal equality because the carrier types differ. Representative tests construct the canonical member-flattening isomorphism; this is not an exported general associator, unitor, or coherence theorem. The implementation does not claim a strict double category, a general bicategorical coherence theorem, graph black-boxing, feedback semantics, or existing continuous-time open-Markov theorems for MDPs.
+
+**Proof obligations:** Tests cover interface-map row canonicalization, hypergraph validation, nominal pushout witnesses, noninjective pushout quotients, canonical class order, layout-independent cocone factorization, gluing, disjoint-union tensor, reversal with unchanged directed state orientation, both unitor isomorphism fixtures, both associator round trips on vertex and edge maps, extensionally matched horizontal cell composition, interchange, and exact decorated-circuit composition, tensor, associativity, and units.
 
 ## Proof obligations for advanced work
 

@@ -36,6 +36,13 @@ module Markovian.Category.Finite.Exact (
 
 import Data.List.NonEmpty (NonEmpty (..))
 import Data.List.NonEmpty qualified as NonEmpty
+import Markovian.Category.Finite.Object (
+    FiniteObject,
+    FiniteObjectError (..),
+    finiteObject,
+    finiteObjectValues,
+ )
+import Markovian.Category.Finite.Set.Internal (FiniteObject (UnsafeFiniteObject))
 import Markovian.Probability.Exact (
     ExactDistributionError,
     ExactFiniteDist,
@@ -44,28 +51,6 @@ import Markovian.Probability.Exact (
     exactOutcomes,
     exactProbability,
  )
-
--- | Errors from finite object construction.
-data FiniteObjectError value
-    = EmptyFiniteObject
-    | DuplicateFiniteObjectValue !value
-    deriving (Eq, Show)
-
--- | A nonempty duplicate-free finite categorical object.
-newtype FiniteObject value = FiniteObject (NonEmpty value)
-    deriving (Eq, Show)
-
--- | Validate one finite object support.
-finiteObject :: (Eq value) => [value] -> Either (FiniteObjectError value) (FiniteObject value)
-finiteObject [] = Left EmptyFiniteObject
-finiteObject values@(first : remaining) =
-    case firstDuplicate values of
-        Just duplicate -> Left (DuplicateFiniteObjectValue duplicate)
-        Nothing -> Right (FiniteObject (first :| remaining))
-
--- | Read object values in representation order.
-finiteObjectValues :: FiniteObject value -> NonEmpty value
-finiteObjectValues (FiniteObject values) = values
 
 -- | Typed exact finite stochastic syntax.
 data ExactIR source target where
@@ -390,8 +375,8 @@ firstOutside target distribution = go (NonEmpty.toList (exactOutcomes distributi
         | otherwise = Just value
 
 tensorObject :: FiniteObject left -> FiniteObject right -> FiniteObject (left, right)
-tensorObject left right =
-    FiniteObject
+tensorObject left@(UnsafeFiniteObject _) right@(UnsafeFiniteObject _) =
+    UnsafeFiniteObject
         ( (firstLeft, firstRight)
             :| ( [(firstLeft, rightValue) | rightValue <- remainingRight]
                     ++ [ (leftValue, rightValue)
@@ -411,13 +396,7 @@ unassociateValue :: (first, (second, third)) -> ((first, second), third)
 unassociateValue (first, (second, third)) = ((first, second), third)
 
 unitObject :: FiniteObject ()
-unitObject = FiniteObject (() :| [])
-
-firstDuplicate :: (Eq value) => [value] -> Maybe value
-firstDuplicate [] = Nothing
-firstDuplicate (value : remaining)
-    | value `elem` remaining = Just value
-    | otherwise = firstDuplicate remaining
+unitObject = UnsafeFiniteObject (() :| [])
 
 mapDistributionError ::
     Either ExactDistributionError value ->

@@ -4,7 +4,10 @@
 
 The CUDA implementation is enabled with the package flag @cuda@. Reported
 runtime includes context creation, host-to-device transfer, kernel execution,
-device-to-host transfer, and cleanup.
+device-to-host transfer, and cleanup. Its 'Double' operations are approximate.
+A future circuit adapter must supply @ApproximateInterpreterBoundary@ with a
+precision, error policy, and observation relation; this module does not claim
+the exact circuit homomorphism laws.
 -}
 module Markovian.Backend.GPU (
     gpuBackendCompiled,
