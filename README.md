@@ -60,11 +60,11 @@ cabal test markovian-gpu-test --project-file=cabal.project -fcuda --test-show-de
 cabal bench markovian-gpu-bench --project-file=cabal.project -fcuda
 ```
 
-The 2026-08-26 repair ran both commands on an NVIDIA GB10. The host used driver 580.173.02 and compute capability 12.1. The worktree was based on commit `22796e4fb1998729eeed075fb47d31ef4f35b5a6`.
+The 2026-08-26 evidence run used an NVIDIA GB10 with driver 580.173.02 and compute capability 12.1. The differential test passed.
 
-The differential test passed. The benchmark used a 256-by-256 identity matrix, `Double` values, 20 runs, and no random seed. It measured a transfer-inclusive mean of `267.236742 ms` and a maximum error of `0.000e0`.
+The benchmark uses one excluded warmup and 20 measured runs. It measured a transfer-inclusive mean of `267.843920400 ms`. The sample standard deviation was `3.025869898 ms`, and the maximum differential error was `0.000e0`.
 
-The original P6 record at `faa5bd4` measured `295.110287 ms`. The prior PR verification for `22796e4` measured `265.395672 ms`. These variable local measurements are not general performance claims.
+[The complete CUDA evidence record](docs/evidence/CUDA-2026-08-26.md) contains raw samples, the range, tool versions, historical measurements, and revision context. The result shows local execution only. It is not a general performance claim.
 
 CUDA 13.0 `nvcc` V13.0.88 was available at `/usr/local/cuda/bin/nvcc`. This command reproduced the committed PTX files exactly:
 

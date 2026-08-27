@@ -32,4 +32,5 @@
 - Corrected categorical copy to target the full tensor square with diagonal denotation.
 - Added separate optional CUDA and framework-independent neural contract packages.
 - Corrected the CUDA evidence record to label variable local measurements and avoid a general performance claim.
+- Added CUDA benchmark warmup, raw-sample, range, and sample-standard-deviation reporting with a durable evidence record.
 - Added reproducible toolchain, package, documentation, and CI gates.

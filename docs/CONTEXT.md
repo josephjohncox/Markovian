@@ -12,9 +12,9 @@ The package does not contain the former branch-weight process, recursive `MDPF`,
 
 `test/Main.hs`, `test/AlgebraicFoundation.hs`, `test/BayesianExact.hs`, `test/StochasticCircuit.hs`, and `test/OpenSystems.hs` contain fifty-six deterministic contracts. The named `canonical finite-layout API aliases` contract imports and tests `sameFiniteLayout` from both finite-witness modules. Separate GPU and neural package tests cover disabled-backend behavior, actual CUDA differential execution, stable softmax, analytic gradients, and approximation error. The semantic-tower revision has local GHC 9.4.8 and 9.8.4 project-scoped `-Werror` build and test evidence. Source, package, compile-fail, unpacked source-archive, warning-free Haddock, CUDA-disabled, neural, and actual CUDA differential gates also pass locally.
 
-The 2026-08-26 CUDA repair evidence used a worktree based on `22796e4`. The enabled test passed on an NVIDIA GB10 with driver 580.173.02 and compute capability 12.1. The 20-run transfer-inclusive benchmark measured `267.236742 ms` with maximum error `0.000e0`. Earlier labeled measurements are `295.110287 ms` at `faa5bd4` and `265.395672 ms` during PR verification for `22796e4`. CUDA 13.0 `nvcc` V13.0.88 was available, and PTX regeneration reproduced the committed files. These values are local execution evidence, not general performance claims.
+The 2026-08-26 CUDA evidence used a final-correction worktree based on `2efb1c6`. The enabled test passed on an NVIDIA GB10 with driver 580.173.02 and compute capability 12.1. After one excluded warmup, 20 transfer-inclusive samples had a `267.843920400 ms` mean and `3.025869898 ms` sample standard deviation. The range was `263.519087000 ms` to `276.777522000 ms`, and maximum error was `0.000e0`. CUDA 13.0 `nvcc` V13.0.88 reproduced the committed PTX files. The [complete evidence record](evidence/CUDA-2026-08-26.md) retains raw samples and labels older mean-only results as historical execution records.
 
-Hosted run <https://github.com/josephjohncox/Markovian/actions/runs/32998596001> tested the earlier `c453a8d` P6 baseline. It is not evidence for S1 through S5 or this repair. Delivery requires push and pull-request runs whose head SHA matches the delivered commit.
+Commit `2efb1c690211fd7b925c64a212b331ea20d8459b` passed matching [push](https://github.com/josephjohncox/Markovian/actions/runs/33039698248) and [pull-request](https://github.com/josephjohncox/Markovian/actions/runs/33039701651) workflows. Both runs passed GHC 9.4.8, GHC 9.8.4, lower-bounds, and source-check jobs. PR #1 records hosted evidence for its current head.
 
 ## Resolved defects
 
@@ -44,6 +44,7 @@ Hosted run <https://github.com/josephjohncox/Markovian/actions/runs/32998596001>
 | K-029 | Added finite typed interfaces and hypergraphs, explicit quotient pushouts, structured-cospan gluing, commuting open-system cells, and directed circuit decorations without graph black-boxing claims. |
 | K-030 | Restored the binding finite-witness API. Both public modules now export lawful `sameFiniteLayout` operations and keep their descriptive aliases. |
 | K-031 | Reconciled the CUDA record with labeled historical and current local measurements. Verified enabled execution and reproducible PTX generation. |
+| K-032 | Added sample-bearing CUDA benchmark output, dispersion, a warmup policy, and a durable raw evidence record. Corrected stale hosted and contract-count documentation. |
 
 ## Semantic vocabulary
 

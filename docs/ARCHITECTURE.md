@@ -1,6 +1,6 @@
 # Target architecture
 
-This document defines the implemented and target architecture for Markovian. Implemented boundaries require compiler, test, Haddock, and package evidence. `docs/CONTEXT.md` distinguishes current local evidence from hosted evidence; the uncommitted S1 through S5 worktree does not yet have a hosted run.
+This document defines the implemented and target architecture for Markovian. Implemented boundaries require compiler, test, Haddock, and package evidence. Stages S1 through S5 are committed and have hosted evidence. `docs/CONTEXT.md` records revision-specific local and hosted evidence.
 
 `docs/DECISIONS.md` records why the project selected these boundaries. `TODO.md` controls delivery order and completion status.
 
@@ -658,20 +658,13 @@ A backend report must distinguish:
 
 The optional `markovian-gpu` package lowers row-major `Double` matrices through the CUDA driver API. Its package flag is off by default. The enabled path loads committed PTX, creates a context, transfers inputs, launches a dense kernel, transfers output, and releases resources. The reported duration includes every one of those operations.
 
-The original P6 record at `faa5bd4` measured `295.110287 ms`. The PR verification for `22796e4` measured `265.395672 ms`. Both values are transfer-inclusive means for 20 runs of the 256-by-256 fixture on an NVIDIA GB10.
+The benchmark uses a 256-by-256 identity matrix and row-major `Double` values. It runs one excluded warmup and records 20 transfer-inclusive samples. It reports each sample, the mean, sample standard deviation, minimum, maximum, and maximum differential error.
 
-The 2026-08-26 contract-repair worktree was based on `22796e4`. It used an NVIDIA GB10 with driver 580.173.02 and compute capability 12.1. The enabled differential command passed. The benchmark command measured `267.236742 ms` and a maximum error of `0.000e0`. The fixture uses row-major `Double`, an identity matrix, no random seed, and 20 runs without a separate warmup.
+The 2026-08-26 sample-bearing run used an NVIDIA GB10 with driver 580.173.02 and compute capability 12.1. The enabled differential command passed. The benchmark measured `267.843920400 ms` mean with `3.025869898 ms` sample standard deviation. Its range was `263.519087000 ms` to `276.777522000 ms`, and maximum error was `0.000e0`.
 
-The exact commands were:
+[The complete evidence record](evidence/CUDA-2026-08-26.md) contains the commands, tool versions, raw samples, PTX hashes, and revision context. It also retains four older mean-only measurements. Those historical values have no raw samples or dispersion, so they are execution records only.
 
-```sh
-cabal test markovian-gpu-test --project-file=cabal.project -fcuda --test-show-details=direct
-cabal bench markovian-gpu-bench --project-file=cabal.project -fcuda
-```
-
-These measurements show local execution only. They are not general performance claims. Timing variation between the three runs remains visible in this record.
-
-CUDA compilation was available for this repair. `/usr/local/cuda/bin/nvcc` reported CUDA 13.0, V13.0.88. `backends/markovian-gpu/scripts/build-ptx` exited with code zero and reproduced the committed PTX files exactly.
+This measurement shows local execution on one host. It is not a general performance claim.
 
 Autodiff belongs to a backend. A gradient of an expectation needs assumptions that justify differentiation under the expectation.
 

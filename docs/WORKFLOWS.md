@@ -356,7 +356,7 @@ D-038 work follows the S1 through S6 roadmap in `TODO.md`.
 
 ## 11. Admission workflow
 
-P0 through P6, the greenfield cleanup, and exact semantic-tower stages S1 through S5 are `DONE`. D-023 through D-041 define the implemented semantic, interpreter, solver, learning, POMDP, compiler, matrix, Bayesian, circuit, open-system, CPU, GPU, and neural contracts. Fifty-five named core contracts and two backend package tests pass locally on the current GHC 9.8.4 worktree. S6 is the next ready roadmap item, but it remains unimplemented and requires its own start gate and proof boundary.
+P0 through P6, the greenfield cleanup, and exact semantic-tower stages S1 through S5 are `DONE`. D-023 through D-041 define the implemented semantic, interpreter, solver, learning, POMDP, compiler, matrix, Bayesian, circuit, open-system, CPU, GPU, and neural contracts. Fifty-six named core contracts and two backend package tests pass locally on the current GHC 9.8.4 worktree. S6 is the next ready roadmap item, but it remains unimplemented and requires its own start gate and proof boundary.
 
 A new feature must use this sequence:
 

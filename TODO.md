@@ -95,10 +95,10 @@ P5 gate: `DONE`. Prediction, post-transition conditioning, impossible observatio
 - [x] **P6.3 Add GPU and neural packages outside the semantic core.**
   - Require CPU/GPU differential tests and transfer-inclusive benchmarks.
   - Define approximation, normalization, gradient, and estimator assumptions.
-  - Original P6 CUDA record at `faa5bd4`: NVIDIA GB10, transfer-inclusive 256-by-256 mean `295.110287 ms` over 20 runs.
-  - PR verification for `22796e4`: NVIDIA GB10, transfer-inclusive mean `265.395672 ms` over 20 runs.
-  - Contract-repair worktree based on `22796e4`: enabled test passed. The mean was `267.236742 ms`, and maximum error was `0.000e0`.
-  - These variable measurements are local execution evidence. They are not general performance claims.
+  - The 2026-08-26 sample-bearing run used one excluded warmup and 20 measured runs on an NVIDIA GB10.
+  - The transfer-inclusive mean was `267.843920400 ms`, and sample standard deviation was `3.025869898 ms`.
+  - The [evidence record](docs/evidence/CUDA-2026-08-26.md) retains raw samples and older mean-only execution records.
+  - These local measurements are not general performance claims.
   - Hosted three-package evidence: <https://github.com/josephjohncox/Markovian/actions/runs/32998596001>.
 
 P6 gate: `DONE`. Exact IR laws, full-tensor copy, symmetric monoidal coherence maps, deterministic copy naturality, shared-draw counterexamples, dense CPU differential tests, actual CUDA differential execution, transfer-inclusive benchmarking, and neural normalization and gradient contracts pass.

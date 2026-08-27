@@ -400,9 +400,11 @@ The slice can add `Reward`, `Kernel`, `Policy`, and one-step MRP and MDP interfa
 
 **Consequences:** The NVIDIA GB10 differential fixture reports zero observed error. Neural tests cover normalization, logit-shift invariance, analytic Jacobian row sums, explicit estimator choice, invalid values, and exact-reference approximation.
 
-**Evidence correction, 2026-08-26:** The original P6 record at `faa5bd4` measured a transfer-inclusive mean of `295.110287 ms`. The PR verification for `22796e4` measured `265.395672 ms`. The contract-repair worktree based on `22796e4` measured `267.236742 ms` and a maximum error of `0.000e0`. Each benchmark used 20 runs of the 256-by-256 `Double` fixture on an NVIDIA GB10. The enabled differential test also passed. These variable local measurements are evidence of execution, not general performance claims.
+**Evidence correction, 2026-08-26:** The sample-bearing benchmark runs one excluded warmup before 20 measured runs. A final-correction worktree based on `2efb1c6` measured a `267.843920400 ms` transfer-inclusive mean and `3.025869898 ms` sample standard deviation. The range was `263.519087000 ms` to `276.777522000 ms`, and maximum error was `0.000e0`. The enabled differential test passed.
 
-The repair host used driver 580.173.02 and compute capability 12.1. CUDA 13.0 `nvcc` V13.0.88 was available. The PTX build script reproduced the committed artifacts exactly.
+The [complete evidence record](evidence/CUDA-2026-08-26.md) contains raw samples, commands, tool versions, hashes, and revision context. It retains four older mean-only values as historical execution records because their raw samples and dispersion are unavailable. None of these local values is a general performance claim.
+
+The host used driver 580.173.02 and compute capability 12.1. CUDA 13.0 `nvcc` V13.0.88 was available. The PTX build script reproduced the committed artifacts exactly.
 
 **Risk:** The committed PTX targets CUDA compute capability 12.1 and the enabled package currently expects CUDA headers under `/usr/local/cuda/include`. Hosted CI checks the disabled contract only because its runners have no GPU. Any new device architecture, precision, or framework adapter requires fresh differential tests and transfer-inclusive benchmarks.
 

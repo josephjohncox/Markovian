@@ -19,6 +19,7 @@ extra-doc-files:
   docs/ARCHITECTURE.md
   docs/CONTEXT.md
   docs/DECISIONS.md
+  docs/evidence/CUDA-2026-08-26.md
   docs/WORKFLOWS.md
   README.md
   TODO.md
