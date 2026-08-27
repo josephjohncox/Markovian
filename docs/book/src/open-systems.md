@@ -14,9 +14,9 @@ The constructor validates vertices, incidence, labels, and interface maps before
 
 An open system has this shape:
 
-\[
+\\[
 X \longrightarrow G \longleftarrow Y.
-\]
+\\]
 
 `X` is the input boundary. `Y` is the output boundary. `G` is the internal directed hypergraph.
 

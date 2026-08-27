@@ -20,9 +20,9 @@ The API supports prior mass lookup, positive support restriction, and conversion
 
 For a prior `p` and channel `K`, pushforward computes:
 
-\[
+\\[
 q(y)=\sum_x p(x)K(x,y).
-\]
+\\]
 
 ```haskell
 outputPrior <- pushforward sourcePrior channel
@@ -37,9 +37,9 @@ posterior <- condition sourcePrior channel observed
 
 For positive evidence:
 
-\[
+\\[
 p(x\mid y)=\frac{p(x)K(x,y)}{q(y)}.
-\]
+\\]
 
 The function returns a structured error for an observation outside the target or an observation with zero evidence.
 
@@ -47,21 +47,21 @@ The function returns a structured error for an observation outside the target or
 
 Assume:
 
-\[
+\\[
 P(\mathit{Sick})=\frac1{100},
 \quad
 P(+\mid\mathit{Sick})=\frac9{10},
 \quad
 P(+\mid\mathit{Healthy})=\frac1{20}.
-\]
+\\]
 
 Then:
 
-\[
+\\[
 P(\mathit{Sick}\mid+)=
 \frac{(1/100)(9/10)}{(1/100)(9/10)+(99/100)(1/20)}
 =\frac2{13}.
-\]
+\\]
 
 Exact arithmetic preserves this result without a floating tolerance.
 

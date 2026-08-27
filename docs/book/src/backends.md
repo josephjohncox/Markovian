@@ -56,9 +56,9 @@ The implementation subtracts the largest logit before exponentiation. This preve
 
 The Jacobian uses:
 
-\[
+\\[
 \frac{\partial p_i}{\partial z_j}=p_i(\delta_{ij}-p_j).
-\]
+\\]
 
 The contract states the normalization, gradient meaning, and score-function estimator assumptions.
 

@@ -65,9 +65,9 @@ Evaluation inspects terminal status before the horizon boundary. A continuing st
 
 This example performs one transition. Its return is:
 
-\[
+\\[
 2 + \frac{1}{2} 7 = \frac{11}{2}.
-\]
+\\]
 
 The evaluator includes the reached terminal payoff once. It applies the same discount placement in exact and sampled execution.
 

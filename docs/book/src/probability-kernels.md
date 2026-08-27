@@ -30,9 +30,9 @@ This order of validation matters. A positive duplicate cannot hide a negative en
 
 A kernel maps one input to one distribution:
 
-\[
+\\[
 K : X \rightarrow \mathcal{D}(Y).
-\]
+\\]
 
 ```haskell
 sensor = exactKernel $ \surface ->
@@ -43,9 +43,9 @@ sensor = exactKernel $ \surface ->
 
 Kleisli composition integrates over the intermediate value:
 
-\[
+\\[
 (L \mathbin{>=>} K)(x)(z)=\sum_y K(x)(y)L(y)(z).
-\]
+\\]
 
 The kernel is one stochastic layer. It is not a recursive transition tree.
 

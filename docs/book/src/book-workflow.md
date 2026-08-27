@@ -26,8 +26,9 @@ This command performs these checks:
 
 1. Check the installed `mdbook` version.
 2. Validate local Markdown links and anchors.
-3. Build the complete HTML book.
-4. Check that the output index exists.
+3. Validate escaped and balanced display-math delimiters.
+4. Build the complete HTML book.
+5. Check the output index and MathJax loader.
 
 CI runs the same command.
 
@@ -48,6 +49,20 @@ The generated `docs/book/build` directory remains ignored. Do not commit its fil
 A local book gate proves only the local source and generated output. Publication requires a successful hosted `Pages` run for the same revision and a reachable public URL.
 
 The Pages workflow does not replace the package CI workflow. Record package CI evidence separately when a change requires those gates.
+
+## Write mathematics
+
+The mdBook Markdown parser consumes one backslash from a display-math delimiter. Write two backslashes in the Markdown source:
+
+```text
+\\[
+V(s)=\sum_x p(x)r(x).
+\\]
+```
+
+Do not write a single-backslash delimiter or `$$`. The [mdBook MathJax guide](https://rust-lang.github.io/mdBook/format/mathjax.html) documents this requirement.
+
+`check-book-links` rejects single-backslash and unbalanced delimiters. `check-book` also verifies that the generated HTML loads MathJax and contains a display-math delimiter.
 
 ## Write examples
 

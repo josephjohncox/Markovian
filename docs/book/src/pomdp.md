@@ -34,10 +34,10 @@ Prediction integrates the transition over the current belief:
 predicted <- predictExactBelief pomdp action prior
 ```
 
-\[
+\\[
 \hat b(s')=
 \sum_s b(s)P(s'\mid s,a).
-\]
+\\]
 
 ## Conditioning
 
@@ -48,11 +48,11 @@ posterior <-
   conditionExactBelief pomdp action observation predicted
 ```
 
-\[
+\\[
 b'(s')=
 \frac{O(o\mid a,s')\hat b(s')}
      {\sum_t O(o\mid a,t)\hat b(t)}.
-\]
+\\]
 
 The operation returns `ImpossibleExactObservation` when the denominator is zero. It does not select an arbitrary posterior.
 
@@ -66,25 +66,25 @@ posterior <- filterExactBelief pomdp action observation prior
 
 Assume a robot predicts these floor states after `Move`:
 
-\[
+\\[
 P(\mathit{Wet})=\frac{3}{10},
 \qquad
 P(\mathit{Dry})=\frac{7}{10}.
-\]
+\\]
 
 Assume these sensor likelihoods:
 
-\[
+\\[
 P(\mathit{Slip}\mid\mathit{Wet})=\frac45,
 \qquad
 P(\mathit{Slip}\mid\mathit{Dry})=\frac1{20}.
-\]
+\\]
 
 After `Slip`, the wet-state posterior is:
 
-\[
+\\[
 \frac{(3/10)(4/5)}{(3/10)(4/5)+(7/10)(1/20)}=\frac{48}{55}.
-\]
+\\]
 
 ## Belief-policy planning
 

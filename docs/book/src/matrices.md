@@ -21,15 +21,15 @@ Use `sameFiniteSet` for support equality. Use `sameFiniteLayout` before indexed 
 
 A matrix has explicit source and target witnesses:
 
-\[
+\\[
 M : X \rightarrow Y.
-\]
+\\]
 
 Its entries use a `Semiring` scalar. Composition is:
 
-\[
+\\[
 (N\circ M)(x,z)=\sum_y M(x,y)N(y,z).
-\]
+\\]
 
 Different semirings give this equation different meanings. Nonnegative rationals compute exact weighted paths. A caller can add lawful Boolean, counting, tropical, or symbolic scalar instances.
 
@@ -54,15 +54,15 @@ Tensor and direct sum are different operations. Tensor combines independent dime
 
 For an involutive semiring:
 
-\[
+\\[
 (M^\dagger)(y,x)=\overline{M(x,y)}.
-\]
+\\]
 
 The dagger reverses composition:
 
-\[
+\\[
 (N\circ M)^\dagger=M^\dagger\circ N^\dagger.
-\]
+\\]
 
 Use this operation for raw algebraic reversal and diagrammatic calculations. Do not use it as Bayesian inversion.
 
@@ -76,8 +76,8 @@ These raw matrices satisfy the finite snake equations. They do not generally def
 
 For `F : (X,H) -> (Y,H)`:
 
-\[
+\\[
 \operatorname{Tr}_H(F)(x,y)=\sum_h F((x,h),(y,h)).
-\]
+\\]
 
 Use the trace to contract a finite internal index. Do not interpret it as a general stochastic feedback solver.

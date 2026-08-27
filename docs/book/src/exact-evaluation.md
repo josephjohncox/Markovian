@@ -49,11 +49,11 @@ Iteration zero assigns each terminal payoff to its terminal state. It assigns ze
 
 Each later iteration applies one Bellman expectation backup:
 
-\[
+\\[
 V_{n+1}(s)=
 \sum_{r,s'}P_\pi(r,s'\mid s)
 \left(r+\gamma V_n(s')\right).
-\]
+\\]
 
 The evaluator clamps terminal values to their payoffs on every iteration. It returns the value of each represented state and the initial state.
 
@@ -75,11 +75,11 @@ report <- solveCompiledExactPolicy config compiled
 
 The solver computes an exact rational residual. It reports this stopping bound:
 
-\[
+\\[
 \lVert V-V^*\rVert_\infty
 \le
 \frac{\lVert T(V)-V\rVert_\infty}{1-\gamma}.
-\]
+\\]
 
 The report states whether the bound met the tolerance. It also reports an iteration-limit stop.
 

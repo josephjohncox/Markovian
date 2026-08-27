@@ -33,9 +33,9 @@ asChannel = embedDeterministic negation
 
 The proof permits copy naturality:
 
-\[
+\\[
 \mathsf{copy}\circ f=(f\otimes f)\circ\mathsf{copy}.
-\]
+\\]
 
 This equation fails for a general stochastic computation. The type prevents the compiler from applying the rewrite there.
 
@@ -61,13 +61,13 @@ mixedPolicy = convexMixture family
 
 The denotation is:
 
-\[
+\\[
 K=\sum_i \lambda_iK_i,
 \qquad
 \lambda_i\ge0,
 \qquad
 \sum_i\lambda_i=1.
-\]
+\\]
 
 Use convex mixtures for mixed policies, controller ensembles, and uncertain environment models.
 

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Check local Markdown links, anchors, and mdBook include targets."""
+"""Check local Markdown links, anchors, includes, and math delimiters."""
 
 from __future__ import annotations
 
@@ -59,7 +59,18 @@ def main() -> int:
 
     for document in markdown_files:
         text = document.read_text(encoding="utf-8")
+        math_opens = 0
+        math_closes = 0
         for line_number, line in enumerate(text.splitlines(), start=1):
+            stripped = line.strip()
+            if stripped == r"\[" or stripped == r"\]":
+                failures.append(
+                    f"{document}:{line_number}: mdBook math delimiter needs two backslashes"
+                )
+            elif stripped == r"\\[":
+                math_opens += 1
+            elif stripped == r"\\]":
+                math_closes += 1
             for match in LINK.finditer(line):
                 parsed = local_target(match.group(1))
                 if parsed is None:
@@ -82,6 +93,11 @@ def main() -> int:
                     failures.append(
                         f"{document}:{line_number}: missing include target {match.group(1)!r}"
                     )
+        if math_opens != math_closes:
+            failures.append(
+                f"{document}: unbalanced mdBook display math delimiters "
+                f"({math_opens} open, {math_closes} close)"
+            )
 
     if failures:
         print("Book link check failed:", file=sys.stderr)
@@ -89,7 +105,10 @@ def main() -> int:
             print(f"- {failure}", file=sys.stderr)
         return 1
 
-    print(f"Checked local links and includes in {len(markdown_files)} book files.")
+    print(
+        "Checked local links, includes, and math delimiters in "
+        f"{len(markdown_files)} book files."
+    )
     return 0
 
 

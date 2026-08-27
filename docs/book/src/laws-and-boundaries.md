@@ -26,15 +26,15 @@ Therefore, normalized stochastic matrices do not have a general transpose dagger
 
 Copying one fair coin gives:
 
-\[
+\\[
 P(F,F)=P(T,T)=\frac12.
-\]
+\\]
 
 Executing two fair coins gives:
 
-\[
+\\[
 P(F,F)=P(F,T)=P(T,F)=P(T,T)=\frac14.
-\]
+\\]
 
 Therefore, a stochastic function does not preserve copy. Copy-naturality rewrites require deterministic evidence.
 

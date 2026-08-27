@@ -23,5 +23,7 @@ python3 "$project_root/scripts/check-book-links" "$project_root/docs/book/src"
 rm -rf "$project_root/docs/book/build"
 mdbook build "$project_root/docs/book"
 test -f "$project_root/docs/book/build/index.html"
+grep -Fq "MathJax.js?config=" "$project_root/docs/book/build/index.html"
+grep -RFq '<p>\[' "$project_root/docs/book/build"
 
 echo "Checked $expected book at docs/book/build/index.html"

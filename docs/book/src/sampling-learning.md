@@ -47,9 +47,9 @@ updated <- updateQ rate discount model observed table
 
 For a continuing successor, the target is:
 
-\[
+\\[
 r+\gamma\max_{a'}Q(s',a').
-\]
+\\]
 
 For a terminal successor, the target includes the terminal payoff exactly once. The update does not request actions from a terminal state.
 

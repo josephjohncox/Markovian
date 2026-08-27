@@ -38,17 +38,17 @@ independent <- fanoutCircuit coin coin
 
 `shared` executes the coin once and copies its result:
 
-\[
+\\[
 P(F,F)=\frac12,
 \qquad
 P(T,T)=\frac12.
-\]
+\\]
 
 `independent` executes both branch occurrences:
 
-\[
+\\[
 P(F,F)=P(F,T)=P(T,F)=P(T,T)=\frac14.
-\]
+\\]
 
 Use sharing for a common cause or shared latent value. Use fanout for repeated experiments.
 
@@ -69,9 +69,9 @@ Dense CPU lowering uses this same exact matrix denotation. It does not define a 
 
 The circuit optimizer can move a deterministic function through copy:
 
-\[
+\\[
 \mathsf{copy}\circ f=(f\otimes f)\circ\mathsf{copy}.
-\]
+\\]
 
 The API accepts only deterministic syntax for this rewrite. It rejects a stochastic circuit at the type level.
 
