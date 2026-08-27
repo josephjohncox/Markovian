@@ -197,13 +197,23 @@ Binary pushout classes have the canonical representation described above. Nested
 
 `reverseOpenBoundary` swaps cospan legs only. It does not reverse directed edges or dynamics. It is structured-cospan boundary reversal, not matrix conjugate transpose or prior-indexed Bayesian inversion, and it has no common `Dagger` instance.
 
-`OpenCircuit` attaches a global directed circuit decoration to open topology. By construction, composition and tensor delegate the decoration component directly to circuit composition and tensor. Selected fixtures exact-law-test the resulting decoration equations. Hypergraph topology has no stochastic black-box denotation. A boundary-reversed circuit view exchanges only the topological input and output parameters. Its state input and output parameters retain the original directed orientation, and the view has no reverse-denotation observer. Cyclic graph semantics, feedback, arbitrary graph evaluation, continuous-time open-Markov black-boxing, and MDP black-box theorems remain outside the implementation.
+`OpenCircuit` attaches a global directed circuit decoration to open topology. By construction, composition and tensor delegate the decoration component directly to circuit composition and tensor. Selected fixtures exact-law-test the resulting decoration equations. That API is unchanged by S6. A boundary-reversed circuit view exchanges only the topological input and output parameters. Its state input and output parameters retain the original directed orientation, and the view has no reverse-denotation observer.
+
+`AcyclicOpenSystem` is a separate opaque refinement. Every apex vertex must have one producer: one injective input-boundary occurrence or one edge-output occurrence. Validation rejects missing, ambiguous, or repeated production before stable topological sorting. Stable cycle diagnostics contain an actual edge cycle. Multiple consumers, repeated edge inputs, noninjective output observation, discard, passthrough, nullary edges, disconnected components, and empty boundaries remain valid.
+
+`FiniteValueDomains` supplies one finite value carrier for each runtime sort. `Assignment` stores named ports and values, compares extensionally, and is canonicalized in interface order. Edge assignment ports are positional integers. A label table is keyed by label and both ordered sort signatures, and endpoint support is checked before interpretation. Each edge occurrence executes its selected purity-indexed circuit once. Later consumers read the stored output, so sharing is not independent repetition.
+
+`AcyclicOpenCircuit` records the join of represented edge purities. Exact interpretation first interprets each local circuit with edge context. It composes initialization, edge-step, and observation matrices in topological order. Each step retains only vertices needed by a later edge or output observation. It marginalizes all other edge outputs in that step. The final normalization check does not recover or renormalize. Noninjective output legs impose equality constraints.
+
+The interpreter does not enumerate the complete apex assignment object. A bounded test computes the complete-valuation sum independently and compares it with the live-frontier result. Runtime cost remains exponential in the largest live frontier and in represented boundary size. S6 makes no general efficiency claim for wide DAGs.
+
+The admitted fragment supports exact identity, sequential composition after named middle-boundary reindexing, disjoint-union tensor, normalization, stored sharing, explicit discard, conditional-product diamonds, and ready-edge scheduling independence for successful denotations. Failures are diagnostics ordered by the stable topological schedule, so changing a valid schedule can change which failing edge is reported first. The semantic laws are finite fixture laws, not error-value laws or a machine-checked theorem. Cycles, trace, feedback, recursion, arbitrary graph evaluation, continuous-time open-Markov black-boxing, and unrestricted MDP black-boxing remain outside the implementation.
 
 ### 3.9 Evidence classification and proof boundary
 
 Opaque smart constructors and nominal roles establish their represented validation invariants by construction. Direct circuit-fold and open-decoration delegation is also by construction. Algebraic, categorical, Bayesian, compiler, and open-system equations are exact-law-tested on the stated finite fixtures unless a section explicitly says otherwise. Differential claims are fixture-based comparisons with an independent existing path.
 
-The scalar classes cannot enforce their documented laws for third-party instances. Generic matrix, stochastic, deterministic, and convex closure therefore remains conditional on lawful scalar instances. The repository has no quantified or machine-checked theorem for all finite objects, all circuits, all compiler terms, all POMDPs, pushout universality, natural associator or unitor families, or pseudo-double-category coherence. Compiler soundness and finite pushout universality are algebraically argued and fixture-tested, not universally proved. `CircuitAlgebra` remains an unchecked operation record. The open API remains a double fragment and is not promoted to a double category.
+The scalar classes cannot enforce their documented laws for third-party instances. Generic matrix, stochastic, deterministic, and convex closure therefore remains conditional on lawful scalar instances. The repository has no quantified or machine-checked theorem for all finite objects, all circuits, all finite DAG networks, all compiler terms, all POMDPs, pushout universality, natural associator or unitor families, or pseudo-double-category coherence. Compiler soundness and finite pushout universality are algebraically argued and fixture-tested, not universally proved. `CircuitAlgebra` remains an unchecked operation record. The open API remains a double fragment and is not promoted to a double category.
 
 ## 4. Core value types
 
@@ -569,6 +579,8 @@ Markovian.Open.Hypergraph finite typed hypergraphs and structure maps
 Markovian.Open.Pushout explicit finite typed quotient pushouts
 Markovian.Open.StructuredCospan open systems and commuting 2-cells
 Markovian.Open.Circuit.Exact directed circuit-decorated open topology
+Markovian.Open.Acyclic opaque unique-production finite DAG refinement
+Markovian.Open.Acyclic.Circuit.Exact named assignments and exact local-circuit DAG semantics
 Markovian.Category.Finite.Set duplicate-free finite sets, including empty sets
 Markovian.Category.Finite.Object nonempty finite-object refinement
 Markovian.Category.Finite.Exact typed exact categorical syntax and denotation

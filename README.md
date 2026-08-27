@@ -30,7 +30,8 @@ The package is greenfield and unreleased. It makes no compatibility promise. Inc
 - raw purity-indexed stochastic-circuit syntax with explicit sharing, fanout, structural maps, and exact convex choice;
 - first-order deterministic categorical compilation from finite quoted tables;
 - finite typed hypergraphs, explicit quotient pushouts, structured cospans, and commuting open-system cells;
-- directed circuit-decorated open topology with no invented reverse or graph black-box denotation;
+- directed circuit-decorated open topology with no invented reverse denotation;
+- a separately validated boundary-functional finite DAG fragment with exact local-circuit semantics;
 - a finite symmetric monoidal Markov IR with explicit object witnesses, full-tensor copy, fanout, symmetry, associators, and unitors;
 - standard probability-monad, Kleisli `Category`, `Arrow`, and `ArrowChoice` instances;
 - dense rational CPU lowering with denotational differential tests;
@@ -46,7 +47,9 @@ The deterministic compiler supports identity, composition, products, pairing, pr
 
 Open systems use structured cospans of finite typed directed hypergraphs. Sequential composition is an explicit finite pushout; tensor is disjoint union. Binary quotient members have canonical left-then-right order, and cocones compare interfaces by typed support rather than layout. Higher cells are commuting squares with type-, label-, order-, and incidence-preserving apex maps. Boundary reversal swaps cospan legs only and retains the original directed circuit state orientation. It is separate from matrix conjugate transpose and Bayesian inversion.
 
-`OpenCircuit` attaches one directed circuit decoration. Only that decoration has exact stochastic denotation. Internal graph labels, cycles, and feedback are not black-boxed, and no continuous-time open-Markov theorem is claimed for MDPs.
+`OpenCircuit` attaches one directed global circuit decoration, and its existing denotation is unchanged. Separately, `AcyclicOpenSystem` accepts only topology in which every apex vertex has one input-boundary or edge-output producer and the edge dependency graph is acyclic. `AcyclicOpenCircuit` resolves label and ordered-signature entries to local purity-indexed circuits and gives the validated finite DAG an exact assignment-matrix denotation. Evaluation retains only values needed by later edges or output observations. It marginalizes dead values at the edge step. Multiple consumers copy one stored value, while distinct edge occurrences execute independently. Exact fixture laws cover identity, composition, tensor, sharing, discard, conditional independence, normalization, and schedule independence for successful denotations. Runtime cost can still grow exponentially with live-frontier width and boundary size.
+
+Raw or cyclic `OpenSystem` values cannot use this interpreter. Feedback, trace, fixed points, arbitrary hypergraph black-boxing, continuous-time open Markov processes, and unrestricted MDP black-boxing remain deferred.
 
 The semantic core depends only on `base`. GPU runtimes and neural contracts remain outside it in separate packages:
 
@@ -100,7 +103,7 @@ cabal haddock all \
 ! grep -nE '(^|[[:space:]])Warning:' haddock.log
 cabal build all --project-file=cabal.project.ci --prefer-oldest
 cabal test all --project-file=cabal.project.ci --prefer-oldest
-hlint src backends/*/src
+hlint src backends/*/src test/AcyclicOpenSystems.hs
 find src app test backends -type f -name '*.hs' -print0 \
   | sort -z \
   | xargs -0 fourmolu --mode check
@@ -108,9 +111,13 @@ bash -n \
   scripts/bootstrap-tools \
   scripts/check-refinement-roles \
   scripts/check-circuit-purity \
+  scripts/check-acyclic-proof-boundary \
+  scripts/check-acyclic-purity \
   backends/markovian-gpu/scripts/build-ptx
 scripts/check-refinement-roles
 scripts/check-circuit-purity
+scripts/check-acyclic-proof-boundary
+scripts/check-acyclic-purity
 cabal-fmt --check Markovian.cabal \
   backends/markovian-gpu/markovian-gpu.cabal \
   backends/markovian-neural/markovian-neural.cabal

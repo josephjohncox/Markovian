@@ -66,6 +66,12 @@ jobs:
       - name: Enforce circuit purity
         run: scripts/check-circuit-purity
 
+      - name: Enforce acyclic open-system proof boundary
+        run: scripts/check-acyclic-proof-boundary
+
+      - name: Enforce acyclic aggregate purity
+        run: scripts/check-acyclic-purity
+
       - name: Run tests
         run: |
           cabal test all \
@@ -217,11 +223,13 @@ jobs:
             "${MARKOVIAN_CABAL_FMT_VERSION}"
           hlint --version | head -1 \
             | grep -F "HLint v${MARKOVIAN_HLINT_VERSION}"
-          hlint src backends/*/src
+          hlint src backends/*/src test/AcyclicOpenSystems.hs
           bash -n \
             scripts/bootstrap-tools \
             scripts/check-refinement-roles \
             scripts/check-circuit-purity \
+            scripts/check-acyclic-proof-boundary \
+            scripts/check-acyclic-purity \
             backends/markovian-gpu/scripts/build-ptx
           # Fourmolu 0.20 cannot parse LaTeX-style literate Haskell. GHC and
           # HLint still check these three production and test sources.

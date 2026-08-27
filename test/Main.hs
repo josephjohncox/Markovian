@@ -1,5 +1,6 @@
 module Main (main) where
 
+import AcyclicOpenSystems (runAcyclicOpenSystemTests)
 import AlgebraicFoundation (runAlgebraicFoundationTests)
 import BayesianExact (runBayesianExactTests)
 import Control.Arrow (left, (&&&), (***))
@@ -254,6 +255,7 @@ main = do
     runBayesianExactTests run
     runStochasticCircuitTests run
     runOpenSystemTests run
+    runAcyclicOpenSystemTests run
     run "probability and weight validation" testValidation
     run "empty support rejection" testEmptySupport
     run "overflow-safe normalization" testNormalization

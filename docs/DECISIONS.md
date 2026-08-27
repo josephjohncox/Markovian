@@ -494,6 +494,28 @@ The implemented double fragment has interfaces as objects, interface maps as ver
 
 **Proof obligations:** Tests cover interface-map row canonicalization, hypergraph validation, nominal pushout witnesses, noninjective pushout quotients, canonical class order, layout-independent cocone factorization, gluing, disjoint-union tensor, reversal with unchanged directed state orientation, both unitor isomorphism fixtures, both associator round trips on vertex and edge maps, extensionally matched horizontal cell composition, interchange, and exact decorated-circuit composition, tensor, associativity, and units.
 
+### D-042: Interpret only boundary-functional finite DAG networks
+
+**Status:** Accepted
+
+**Decision:** Add the opaque `AcyclicOpenSystem` refinement and validate every apex vertex as having exactly one producer: one injective input-boundary occurrence or one edge-output occurrence. Reject unproduced vertices, boundary-and-edge production, multiple edge producers, repeated outputs within one edge, self-loops, and directed cycles before interpretation. Stable Kahn sorting uses edge layout order and cycle errors contain an actual, canonically rotated cycle.
+
+`FiniteValueDomains` assigns one finite Haskell carrier to each runtime sort. `Assignment` retains named port identity and compares extensionally, so boundary layout changes can be reindexed without treating bare value lists as typed assignments. Label circuits are keyed by label and ordered input and output sort signatures. Every represented edge selects one purity-indexed `Circuit`; repeated edge occurrences execute separately, while multiple consumers read one stored result.
+
+`AcyclicOpenCircuit` has aggregate purity equal to the join of selected represented edges. Its exact denotation interprets each local circuit with edge context. It composes initialization, topological edge-step, and observation matrices from left to right. Each step drops values that no later edge or output observation can read. The step sums over dropped edge outputs. The interpreter validates final normalization without renormalizing. Output duplication is an equality observation.
+
+The implementation does not build the complete apex assignment object. A bounded differential fixture evaluates the complete-valuation product-and-sum equation independently. Runtime cost can still grow exponentially with live-frontier width and boundary size.
+
+Composition delegates to structured-cospan pushout and validates the refinement again. Tensor is disjoint union. The supported laws are exact normalization, identity, sequential composition after named-boundary reindexing, independent tensor, stored-value sharing, discard marginalization, conditional products, and schedule independence for successful denotations. Nontrivial fixtures compare composition and tensor with directly composed and reindexed matrices using `stochasticEquivalent`; literal nested pushout equality is not required. Interpretation failures remain schedule-ordered diagnostics: stable topological order determines which failing edge is reported first.
+
+**Rationale:** A generic label-to-circuit function cannot select arbitrary Haskell endpoint types from runtime sorts. Positional assignments over one finite carrier support arbitrary finite arity without claiming dependent typing. Unique production and acyclicity make causal evaluation total and distinguish stored sharing from repeated stochastic execution.
+
+**Consequences:** `OpenSystem`, `OpenCircuit`, `openCircuitDenotation`, boundary reversal, and the boundary-reversed view are unchanged. A reversed topology can only receive an ordinary forward interpretation after fresh validation. The implementation adds no reverse dynamics.
+
+**Proof obligations:** Deterministic fixtures cover every topology rejection constructor, producer-error precedence, and the public reachable domain, assignment, label, endpoint, primitive, run-input, and purity paths used by the fragment. Opaque internal-invariant branches are not claimed as externally constructible fixtures. Further fixtures cover zero and arbitrary arity, identity, nonidentity chains, parallel composition, sharing, independent execution, full and partial discard, diamonds, duplicated observations, boundary layout changes, successful schedule and renaming independence, pushout composition, mismatched composition boundaries, tensor, units, and associations. Differential checks compare the live-frontier construction with a bounded complete-valuation evaluator, directly built circuits, directly composed matrices, and a named-assignment reindexing of `tensorStochastic`. A twelve-edge narrow chain guards against retention of complete apex history. Compile-fail gates reject raw topology, inaccessible constructors, forged cycles, aggregate-purity strengthening, reverse observation, substitution for the existing global decoration denotation, and representational coercion of validated label tables.
+
+**Deferred:** Arbitrary cyclic graphs, trace, feedback, recursion, fixed points, factor normalization, implicit priors, merge semantics, Bayesian reversal, `OpenSystemCell` denotation, infinite or continuous carriers, continuous-time open Markov black-boxing, unrestricted MDP black-boxing, and a machine-checked theorem for all finite DAGs.
+
 ## Proof obligations for advanced work
 
 | Feature | Proof obligation before implementation | Evidence before acceptance |

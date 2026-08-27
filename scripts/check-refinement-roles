@@ -7,6 +7,7 @@ trap 'rm -f "${log_file}" "${kind_log_file}"' EXIT
 
 if cabal exec --project-file=cabal.project.ci -- ghc \
   -fno-code \
+  -fmax-errors=100 \
   -package Markovian \
   test/compile-fail/RefinementRoles.hs >"${log_file}" 2>&1; then
   echo "Proof-carrying refinements accepted representational scalar coercions." >&2
@@ -26,7 +27,14 @@ for rejected_coercion in \
   breakInverseSource \
   breakChannelSource \
   breakPushoutCommon \
-  breakBeliefState; do
+  breakBeliefState \
+  breakAcyclicVertex \
+  breakValueDomain \
+  breakAssignmentValue \
+  breakAssignmentObjectValue \
+  breakAcyclicCircuitValue \
+  breakLabelTableSort \
+  breakLabelTableLabel; do
   if ! grep -F "${rejected_coercion}" "${log_file}" >/dev/null; then
     cat "${log_file}" >&2
     echo "The expected ${rejected_coercion} role error was absent." >&2

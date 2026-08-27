@@ -28,7 +28,8 @@
 - Canonicalized interface-map rows and pushout class members, made cocone and middle-map checks layout independent, protected pushout witness roles, and kept circuit state orientation unchanged under topological boundary reversal.
 - Protected `ExactBelief` state equality evidence with a nominal role and constrained pushout witness kinds.
 - Added the canonical `sameFiniteLayout` operation to both finite-witness modules. Retained `sameFiniteSetLayout` and `sameFiniteObjectLayout` as descriptive aliases.
-- Added directed circuit-decorated open topology while deferring graph black-boxing, feedback, and continuous-time open-Markov claims.
+- Added directed circuit-decorated open topology while deferring arbitrary graph black-boxing, feedback, and continuous-time open-Markov claims.
+- Added an opaque boundary-functional acyclic open-system refinement, finite named assignments, signature-keyed local circuits, aggregate purity, and exact live-frontier matrix semantics with explicit sharing and discard behavior.
 - Corrected categorical copy to target the full tensor square with diagonal denotation.
 - Added separate optional CUDA and framework-independent neural contract packages.
 - Corrected the CUDA evidence record to label variable local measurements and avoid a general performance claim.

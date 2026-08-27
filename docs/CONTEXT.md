@@ -6,11 +6,11 @@ Read this file, `TODO.md`, and the relevant architecture and decision sections b
 
 Markovian is a greenfield experimental Haskell package for finite stochastic kernels and decision models. It has no compatibility commitment and no external users. Incorrect interfaces are removed rather than preserved.
 
-The core library exposes validated floating and exact probability, reward, objective, kernel, MRP, MDP, policy, sampling, trace, finite-compilation, tabular-learning, exact POMDP, categorical IR, and dense CPU modules. Its exact semantic foundation also exposes duplicate-free finite sets, nonempty finite objects, law-bearing scalar capabilities, nonnegative rational scalars, opaque semiring matrices, normalized stochastic matrices, proof-carrying deterministic matrices, exact convex mixtures, normalized priors, positive supports, conditioning, prior-indexed Bayesian inversion, checked Bayesian channels, raw purity-indexed stochastic-circuit syntax, first-order quoted-table compilation, finite typed hypergraphs, structured cospans, and commuting open-system cells. Both finite-witness modules export the canonical `sameFiniteLayout` operation. They retain `sameFiniteSetLayout` and `sameFiniteObjectLayout` as descriptive aliases. Exact interpreters provide direct bounded expectation, trace enumeration, finite-horizon dynamic programming, contraction Bellman policy evaluation, filtering, and bounded belief planning. Sampled evaluation and episodic Q-learning receive and return explicit generator state. Separate GPU and neural packages depend on no semantic-core runtime framework.
+The core library exposes validated floating and exact probability, reward, objective, kernel, MRP, MDP, policy, sampling, trace, finite-compilation, tabular-learning, exact POMDP, categorical IR, and dense CPU modules. Its exact semantic foundation also exposes duplicate-free finite sets, nonempty finite objects, law-bearing scalar capabilities, nonnegative rational scalars, opaque semiring matrices, normalized stochastic matrices, proof-carrying deterministic matrices, exact convex mixtures, normalized priors, positive supports, conditioning, prior-indexed Bayesian inversion, checked Bayesian channels, raw purity-indexed stochastic-circuit syntax, first-order quoted-table compilation, finite typed hypergraphs, structured cospans, commuting open-system cells, and a separately validated boundary-functional finite DAG interpreter. Both finite-witness modules export the canonical `sameFiniteLayout` operation. They retain `sameFiniteSetLayout` and `sameFiniteObjectLayout` as descriptive aliases. Exact interpreters provide direct bounded expectation, trace enumeration, finite-horizon dynamic programming, contraction Bellman policy evaluation, filtering, and bounded belief planning. Sampled evaluation and episodic Q-learning receive and return explicit generator state. Separate GPU and neural packages depend on no semantic-core runtime framework.
 
 The package does not contain the former branch-weight process, recursive `MDPF`, or defective prototype Q-learning implementation. `app/Sample/Main.hs` demonstrates the exact finite-horizon evaluator.
 
-`test/Main.hs`, `test/AlgebraicFoundation.hs`, `test/BayesianExact.hs`, `test/StochasticCircuit.hs`, and `test/OpenSystems.hs` contain fifty-six deterministic contracts. The named `canonical finite-layout API aliases` contract imports and tests `sameFiniteLayout` from both finite-witness modules. Separate GPU and neural package tests cover disabled-backend behavior, actual CUDA differential execution, stable softmax, analytic gradients, and approximation error. The semantic-tower revision has local GHC 9.4.8 and 9.8.4 project-scoped `-Werror` build and test evidence. Source, package, compile-fail, unpacked source-archive, warning-free Haddock, CUDA-disabled, neural, and actual CUDA differential gates also pass locally.
+`test/Main.hs`, `test/AlgebraicFoundation.hs`, `test/BayesianExact.hs`, `test/StochasticCircuit.hs`, `test/OpenSystems.hs`, and `test/AcyclicOpenSystems.hs` contain one hundred two deterministic contracts. The [S6 evidence record](evidence/S6-ACYCLIC-OPEN-2026-08-27.md) lists current local formatter, lint, compiler, test, proof-boundary, and Haddock gates. The named `canonical finite-layout API aliases` contract imports and tests `sameFiniteLayout` from both finite-witness modules. Separate GPU and neural package tests cover disabled-backend behavior, actual CUDA differential execution, stable softmax, analytic gradients, and approximation error. The semantic-tower revision has local GHC 9.4.8 and 9.8.4 project-scoped `-Werror` build and test evidence. Source, package, compile-fail, unpacked source-archive, warning-free Haddock, CUDA-disabled, neural, and actual CUDA differential gates also pass locally.
 
 The 2026-08-26 CUDA evidence used a final-correction worktree based on `2efb1c6`. The enabled test passed on an NVIDIA GB10 with driver 580.173.02 and compute capability 12.1. After one excluded warmup, 20 transfer-inclusive samples had a `267.843920400 ms` mean and `3.025869898 ms` sample standard deviation. The range was `263.519087000 ms` to `276.777522000 ms`, and maximum error was `0.000e0`. CUDA 13.0 `nvcc` V13.0.88 reproduced the committed PTX files. The [complete evidence record](evidence/CUDA-2026-08-26.md) retains raw samples and labels older mean-only results as historical execution records.
 
@@ -45,6 +45,7 @@ Commit `2efb1c690211fd7b925c64a212b331ea20d8459b` passed matching [push](https:/
 | K-030 | Restored the binding finite-witness API. Both public modules now export lawful `sameFiniteLayout` operations and keep their descriptive aliases. |
 | K-031 | Reconciled the CUDA record with labeled historical and current local measurements. Verified enabled execution and reproducible PTX generation. |
 | K-032 | Added sample-bearing CUDA benchmark output, dispersion, a warmup policy, and a durable raw evidence record. Corrected stale hosted and contract-count documentation. |
+| K-033 | Added opaque unique-production and acyclicity validation, exact finite DAG interpretation through local purity-indexed circuits and matrices, and compile-fail boundaries that exclude raw, cyclic, reversed, and purity-strengthened use. |
 
 ## Semantic vocabulary
 
@@ -81,6 +82,8 @@ Commit `2efb1c690211fd7b925c64a212b331ea20d8459b` passed matching [push](https:/
 | INV-CIRCUIT-SHARING | One stochastic execution followed by copy differs from duplicated execution. | Distinct share and fanout nodes with differential laws |
 | INV-OPEN-REVERSAL | Boundary reversal swaps cospan legs and does not reverse dynamics or circuit state parameters. | Same-oriented state types and a separate view with no reverse-denotation observer |
 | INV-OPEN-CELLS | Higher cells preserve types, labels, ordered incidence, and both boundary squares. | Opaque validated `OpenSystemCell` |
+| INV-OPEN-DAG | Every interpreted apex vertex has exactly one producer and represented edges are acyclic. | Opaque `AcyclicOpenSystem`, stable cycle diagnostics, and compile-fail gates |
+| INV-OPEN-EXECUTION | One edge occurrence executes once; multiple consumers read its stored value, while separate occurrences execute independently. | Named assignments, edge-local circuit interpretation, and exact sharing fixtures |
 
 ## Current decisions
 
@@ -97,10 +100,11 @@ Commit `2efb1c690211fd7b925c64a212b331ea20d8459b` passed matching [push](https:/
 - D-039 defines support-restricted prior-indexed Bayesian inversion, almost-sure equality, and checked Bayesian-channel prior flow.
 - D-040 defines recursive purity-indexed circuits, exact structural folds, approximation boundaries, and the supported first-order deterministic compiler fragment.
 - D-041 defines finite typed structured cospans, explicit pushout witnesses, commuting open-system cells, and the narrow directed circuit decoration denotation.
+- D-042 defines the separately validated boundary-functional finite DAG fragment, named finite assignments, local label-circuit resolution, and exact topological semantics.
 
 ## Next task
 
-Exact semantic tower stages S1 through S5 are complete. S6, a partial interpreter for a separately validated acyclic boundary-functional hypergraph fragment, is the next ready stage. The current global circuit decoration is not graph black-boxing. Arbitrary open-system black-boxing and feedback remain deferred.
+S1 through S6 are complete. No post-S6 implementation stage is authorized. A new task must pass the admission gates in `TODO.md`. Arbitrary cyclic graphs, feedback, continuous-time open Markov black-boxing, and unrestricted MDP black-boxing remain deferred.
 
 ## Instructions for future agents
 

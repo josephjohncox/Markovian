@@ -112,7 +112,11 @@ D-038 authorizes this roadmap in dependency order. A later stage cannot weaken t
 - [x] **S3 Purity-indexed stochastic circuits.** Added recursive deterministic and stochastic syntax, structural folds, exact matrix and kernel interpretation, explicit sharing and fanout, deterministic-only copy optimization, exact convex choice, dense CPU lowering, an approximation boundary, differential legacy-IR tests, and purity compile-fail evidence.
 - [x] **S4 Deterministic categorical compiler.** Added the approved first-order fragment with identity, composition, products, pairing, projections, and finite quoted tables. Compilation tests cover composition, tensor, pairing, projections, and independent finite-table denotation.
 - [x] **S5 Structured-cospan open syntax.** Added finite typed interfaces, directed labelled hypergraphs, total structure maps, explicit quotient pushouts and cocone factors, structured-cospan gluing, disjoint-union tensor, boundary reversal, and commuting open-system cells with vertical, horizontal, tensor, and interchange evidence.
-- [ ] **S6 Partial acyclic open interpretation.** Interpret only a separately validated directed acyclic boundary-functional hypergraph fragment. The current `OpenCircuit` global decoration delegates directed composition to circuit composition by construction but does not black-box graph topology. Arbitrary graph evaluation and feedback remain deferred. **Status: READY.**
+- [x] **S6 Partial acyclic open interpretation.** Added opaque boundary-functional DAG validation, stable topological schedules, cycle witnesses, and named finite assignments. Added signature-keyed local circuits, aggregate purity, and exact live-frontier matrix interpretation. Bounded differential tests compare this interpretation with the complete-valuation equation and direct matrix paths. Tests distinguish stored sharing, independent execution, and discard. `OpenCircuit` remains the unchanged global-decoration API. Arbitrary cyclic graphs, feedback, continuous-time black-boxing, and unrestricted MDP black-boxing remain deferred.
+
+S6 gate: `DONE`.
+
+**NEXT:** Select a new task that passes the admission gates. No post-S6 implementation stage is currently authorized.
 
 ## Admission gates
 

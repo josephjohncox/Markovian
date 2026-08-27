@@ -20,6 +20,7 @@ extra-doc-files:
   docs/CONTEXT.md
   docs/DECISIONS.md
   docs/evidence/CUDA-2026-08-26.md
+  docs/evidence/S6-ACYCLIC-OPEN-2026-08-27.md
   docs/WORKFLOWS.md
   README.md
   TODO.md
@@ -31,8 +32,12 @@ extra-source-files:
   cabal.project.ci
   hie.yaml
   scripts/bootstrap-tools
+  scripts/check-acyclic-proof-boundary
+  scripts/check-acyclic-purity
   scripts/check-circuit-purity
   scripts/check-refinement-roles
+  test/compile-fail/AcyclicProofBoundary.hs
+  test/compile-fail/AcyclicPurity.hs
   test/compile-fail/CircuitPurity.hs
   test/compile-fail/PushoutKind.hs
   test/compile-fail/RefinementRoles.hs
@@ -79,6 +84,8 @@ library
     Markovian.MRP
     Markovian.Objective
     Markovian.Objective.Exact
+    Markovian.Open.Acyclic
+    Markovian.Open.Acyclic.Circuit.Exact
     Markovian.Open.Circuit.Exact
     Markovian.Open.Hypergraph
     Markovian.Open.Interface
@@ -118,6 +125,7 @@ test-suite Markovian-test
   type:             exitcode-stdio-1.0
   main-is:          Main.hs
   other-modules:
+    AcyclicOpenSystems
     AlgebraicFoundation
     BayesianExact
     OpenSystems

@@ -7,6 +7,8 @@ import Markovian.Bayesian.Exact (BayesianInverse, Posterior, Prior, Support)
 import Markovian.Category.Convex.Exact (ConvexFamily)
 import Markovian.Category.Matrix.Deterministic (DeterministicMatrix)
 import Markovian.Category.Matrix.Stochastic (StochasticMatrix)
+import Markovian.Open.Acyclic (AcyclicOpenSystem)
+import Markovian.Open.Acyclic.Circuit.Exact (AcyclicOpenCircuit, Assignment, AssignmentObject, FiniteValueDomains, LabelCircuitTable)
 import Markovian.Open.Pushout (FinitePushout)
 import Markovian.POMDP.Exact (ExactBelief)
 
@@ -74,3 +76,38 @@ breakPushoutCommon = coerce
 
 breakBeliefState :: ExactBelief Bool -> ExactBelief CollapsedState
 breakBeliefState = coerce
+
+breakAcyclicVertex ::
+    AcyclicOpenSystem sort input output Bool edge label ->
+    AcyclicOpenSystem sort input output DifferentSource edge label
+breakAcyclicVertex = coerce
+
+breakValueDomain ::
+    FiniteValueDomains sort Bool ->
+    FiniteValueDomains sort DifferentSource
+breakValueDomain = coerce
+
+breakAssignmentValue ::
+    Assignment port Bool ->
+    Assignment port DifferentSource
+breakAssignmentValue = coerce
+
+breakAssignmentObjectValue ::
+    AssignmentObject sort port Bool ->
+    AssignmentObject sort port DifferentSource
+breakAssignmentObjectValue = coerce
+
+breakAcyclicCircuitValue ::
+    AcyclicOpenCircuit primitive purity sort input output vertex edge label Bool ->
+    AcyclicOpenCircuit primitive purity sort input output vertex edge label DifferentSource
+breakAcyclicCircuitValue = coerce
+
+breakLabelTableSort ::
+    LabelCircuitTable primitive Bool label value ->
+    LabelCircuitTable primitive DifferentSource label value
+breakLabelTableSort = coerce
+
+breakLabelTableLabel ::
+    LabelCircuitTable primitive sort Bool value ->
+    LabelCircuitTable primitive sort DifferentSource value
+breakLabelTableLabel = coerce
