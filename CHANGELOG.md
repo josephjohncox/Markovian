@@ -26,8 +26,10 @@
 - Added finite typed interfaces and directed hypergraphs, total type-preserving structure maps, explicit quotient pushouts, and checked cocone factorization.
 - Added structured-cospan composition, disjoint-union tensor, boundary reversal, commuting open-system cells, and double-interchange tests.
 - Canonicalized interface-map rows and pushout class members, made cocone and middle-map checks layout independent, protected pushout witness roles, and kept circuit state orientation unchanged under topological boundary reversal.
-- Protected `ExactBelief` state equality evidence with a nominal role, constrained pushout witness kinds, and replaced ambiguous finite-layout operation names with `sameFiniteSetLayout` and `sameFiniteObjectLayout`.
+- Protected `ExactBelief` state equality evidence with a nominal role and constrained pushout witness kinds.
+- Added the canonical `sameFiniteLayout` operation to both finite-witness modules. Retained `sameFiniteSetLayout` and `sameFiniteObjectLayout` as descriptive aliases.
 - Added directed circuit-decorated open topology while deferring graph black-boxing, feedback, and continuous-time open-Markov claims.
 - Corrected categorical copy to target the full tensor square with diagonal denotation.
 - Added separate optional CUDA and framework-independent neural contract packages.
+- Corrected the CUDA evidence record to label variable local measurements and avoid a general performance claim.
 - Added reproducible toolchain, package, documentation, and CI gates.

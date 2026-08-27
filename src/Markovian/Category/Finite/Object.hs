@@ -12,6 +12,7 @@ module Markovian.Category.Finite.Object (
     finiteObjectValues,
     finiteObjectCardinality,
     sameFiniteSupport,
+    sameFiniteLayout,
     sameFiniteObjectLayout,
     forgetNonempty,
     requireNonempty,
@@ -49,8 +50,12 @@ sameFiniteSupport :: FiniteObject value -> FiniteObject value -> Bool
 sameFiniteSupport left right = sameFiniteSet (forgetNonempty left) (forgetNonempty right)
 
 -- | Compare support and layout order.
+sameFiniteLayout :: FiniteObject value -> FiniteObject value -> Bool
+sameFiniteLayout = (==)
+
+-- | Descriptive alias for 'sameFiniteLayout'.
 sameFiniteObjectLayout :: FiniteObject value -> FiniteObject value -> Bool
-sameFiniteObjectLayout = (==)
+sameFiniteObjectLayout = sameFiniteLayout
 
 -- | Forget the nonempty proof without changing layout.
 forgetNonempty :: FiniteObject value -> FiniteSet value

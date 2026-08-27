@@ -36,7 +36,7 @@ The package is greenfield and unreleased. It makes no compatibility promise. Inc
 - dense rational CPU lowering with denotational differential tests;
 - structured model, policy, sampling, compilation, solver, arithmetic, normalization, and conditioning errors.
 
-Raw matrices can use empty objects. The vacuous empty-to-empty stochastic arrow is also valid, but a stochastic arrow from a nonempty source to an empty target is not. Normalized states, distributions, priors, and other probability-bearing finite objects remain nonempty. `matrixEquivalent` is labelled extensional equality; `sameMatrixLayout` compares the represented witnesses and row layout. Stochastic matrices deliberately have no transpose, dagger, compact, trace, or raw-addition API because those operations do not generally preserve normalization. Nominal roles protect stochastic, deterministic, and convex proofs from `coerce`. Copy-naturality reasoning requires the proof-carrying deterministic refinement.
+Raw matrices can use empty objects. The vacuous empty-to-empty stochastic arrow is also valid, but a stochastic arrow from a nonempty source to an empty target is not. Normalized states, distributions, priors, and other probability-bearing finite objects remain nonempty. Both finite-witness modules export `sameFiniteLayout` as the canonical layout comparison. `sameFiniteSetLayout` and `sameFiniteObjectLayout` remain descriptive aliases. `matrixEquivalent` is labelled extensional equality; `sameMatrixLayout` compares the represented witnesses and row layout. Stochastic matrices deliberately have no transpose, dagger, compact, trace, or raw-addition API because those operations do not generally preserve normalization. Nominal roles protect stochastic, deterministic, and convex proofs from `coerce`. Copy-naturality reasoning requires the proof-carrying deterministic refinement.
 
 Bayesian inversion is prior-indexed and maps positive output support to positive input support. It does not fill zero-evidence rows and is not matrix conjugate transpose. `BayesianChannel` composition checks its middle prior and has no plain `Category` or dagger instance. Exact POMDP filtering delegates to the same pushforward and conditioning algebra.
 
@@ -58,6 +58,18 @@ The CUDA package flag is disabled by default so ordinary builds require no GPU t
 ```sh
 cabal test markovian-gpu-test --project-file=cabal.project -fcuda --test-show-details=direct
 cabal bench markovian-gpu-bench --project-file=cabal.project -fcuda
+```
+
+The 2026-08-26 repair ran both commands on an NVIDIA GB10. The host used driver 580.173.02 and compute capability 12.1. The worktree was based on commit `22796e4fb1998729eeed075fb47d31ef4f35b5a6`.
+
+The differential test passed. The benchmark used a 256-by-256 identity matrix, `Double` values, 20 runs, and no random seed. It measured a transfer-inclusive mean of `267.236742 ms` and a maximum error of `0.000e0`.
+
+The original P6 record at `faa5bd4` measured `295.110287 ms`. The prior PR verification for `22796e4` measured `265.395672 ms`. These variable local measurements are not general performance claims.
+
+CUDA 13.0 `nvcc` V13.0.88 was available at `/usr/local/cuda/bin/nvcc`. This command reproduced the committed PTX files exactly:
+
+```sh
+backends/markovian-gpu/scripts/build-ptx
 ```
 
 ## Example

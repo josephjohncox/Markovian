@@ -14,7 +14,9 @@ import Markovian.Category.Finite.Object (
     sameFiniteObjectLayout,
     sameFiniteSupport,
  )
+import Markovian.Category.Finite.Object qualified as FiniteObject (sameFiniteLayout)
 import Markovian.Category.Finite.Set
+import Markovian.Category.Finite.Set qualified as FiniteSet (sameFiniteLayout)
 import Markovian.Category.Matrix
 import Markovian.Category.Matrix.Deterministic
 import Markovian.Category.Matrix.Stochastic
@@ -22,6 +24,7 @@ import Markovian.Category.Matrix.Stochastic
 runAlgebraicFoundationTests :: (String -> IO () -> IO ()) -> IO ()
 runAlgebraicFoundationTests run = do
     run "exact scalar and finite-witness laws" testScalarAndFiniteWitnesses
+    run "canonical finite-layout API aliases" testCanonicalFiniteLayoutAliases
     run "finite semiring matrix category and biproduct laws" testMatrixCategory
     run "matrix dagger and compact laws" testDaggerAndCompact
     run "finite matrix trace laws" testTraceLaws
@@ -164,6 +167,19 @@ testScalarAndFiniteWitnesses = do
     case finiteSet [False, False] of
         Left (DuplicateFiniteSetValue False) -> pure ()
         result -> ioError (userError ("duplicate finite set accepted: " ++ show result))
+
+testCanonicalFiniteLayoutAliases :: IO ()
+testCanonicalFiniteLayoutAliases = do
+    ordered <- set [False, True]
+    reversed <- set [True, False]
+    assertF "canonical finite-set layout equality must be reflexive" (FiniteSet.sameFiniteLayout ordered ordered)
+    assertF "canonical finite-set layout equality must observe order" (not (FiniteSet.sameFiniteLayout ordered reversed))
+    assertF "finite-set layout names must agree" (FiniteSet.sameFiniteLayout ordered reversed == sameFiniteSetLayout ordered reversed)
+    object <- requireRightF "finite object" (finiteObject [False, True])
+    reversedObject <- requireRightF "reversed finite object" (finiteObject [True, False])
+    assertF "canonical finite-object layout equality must be reflexive" (FiniteObject.sameFiniteLayout object object)
+    assertF "canonical finite-object layout equality must observe order" (not (FiniteObject.sameFiniteLayout object reversedObject))
+    assertF "finite-object layout names must agree" (FiniteObject.sameFiniteLayout object reversedObject == sameFiniteObjectLayout object reversedObject)
 
 testMatrixCategory :: IO ()
 testMatrixCategory = do

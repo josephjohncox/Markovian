@@ -95,7 +95,10 @@ P5 gate: `DONE`. Prediction, post-transition conditioning, impossible observatio
 - [x] **P6.3 Add GPU and neural packages outside the semantic core.**
   - Require CPU/GPU differential tests and transfer-inclusive benchmarks.
   - Define approximation, normalization, gradient, and estimator assumptions.
-  - Local CUDA evidence on NVIDIA GB10: CPU/GPU differential error `0.000e0`; transfer-inclusive 256-by-256 mean `295.110287 ms` over 20 runs.
+  - Original P6 CUDA record at `faa5bd4`: NVIDIA GB10, transfer-inclusive 256-by-256 mean `295.110287 ms` over 20 runs.
+  - PR verification for `22796e4`: NVIDIA GB10, transfer-inclusive mean `265.395672 ms` over 20 runs.
+  - Contract-repair worktree based on `22796e4`: enabled test passed. The mean was `267.236742 ms`, and maximum error was `0.000e0`.
+  - These variable measurements are local execution evidence. They are not general performance claims.
   - Hosted three-package evidence: <https://github.com/josephjohncox/Markovian/actions/runs/32998596001>.
 
 P6 gate: `DONE`. Exact IR laws, full-tensor copy, symmetric monoidal coherence maps, deterministic copy naturality, shared-draw counterexamples, dense CPU differential tests, actual CUDA differential execution, transfer-inclusive benchmarking, and neural normalization and gradient contracts pass.
@@ -104,7 +107,7 @@ P6 gate: `DONE`. Exact IR laws, full-tensor copy, symmetric monoidal coherence m
 
 D-038 authorizes this roadmap in dependency order. A later stage cannot weaken the exact-law boundary established by an earlier stage.
 
-- [x] **S1 Algebraic foundation.** Add duplicate-free finite sets, nonempty finite objects, lawful scalar classes, exact nonnegative rationals, opaque raw matrices, stochastic and deterministic refinements, and exact convex enrichment. Nominal roles protect proof refinements, and convex validation uses a fixed exact sum. Tests cover representative scalar fixtures, nontrivial and noncommutative dagger fixtures, biproduct decomposition, compact and trace laws, stochastic closure, deterministic subcategory and embedding laws, convex laws, and the transpose-normalization counterexample.
+- [x] **S1 Algebraic foundation.** Add duplicate-free finite sets, nonempty finite objects, lawful scalar classes, exact nonnegative rationals, opaque raw matrices, stochastic and deterministic refinements, and exact convex enrichment. Each finite-witness module exports `sameFiniteLayout` and retains its descriptive alias. Nominal roles protect proof refinements, and convex validation uses a fixed exact sum. Tests cover the canonical layout API, representative scalar fixtures, nontrivial and noncommutative dagger fixtures, biproduct decomposition, compact and trace laws, stochastic closure, deterministic subcategory and embedding laws, convex laws, and the transpose-normalization counterexample.
 - [x] **S2 Exact Bayesian layer.** Added normalized priors, positive support restriction, exact pushforward and joints, structured conditioning, prior-indexed Bayesian inversion, almost-sure equality, checked Bayesian-channel composition, and differential POMDP integration. Exact tests cover joint balance, identity, composition reversal, tensor, double inversion, zero-evidence behavior, and almost-sure uniqueness.
 - [x] **S3 Purity-indexed stochastic circuits.** Added recursive deterministic and stochastic syntax, structural folds, exact matrix and kernel interpretation, explicit sharing and fanout, deterministic-only copy optimization, exact convex choice, dense CPU lowering, an approximation boundary, differential legacy-IR tests, and purity compile-fail evidence.
 - [x] **S4 Deterministic categorical compiler.** Added the approved first-order fragment with identity, composition, products, pairing, projections, and finite quoted tables. Compilation tests cover composition, tensor, pairing, projections, and independent finite-table denotation.

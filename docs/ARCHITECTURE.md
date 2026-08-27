@@ -133,7 +133,7 @@ Conditioning and Bayesian inversion are not total category operations. POMDP bel
 
 ### 3.5 Exact finite matrix foundation
 
-Raw finite matrices use explicit duplicate-free `FiniteSet` witnesses. A finite set can be empty. `FiniteObject` is its nonempty probability-bearing refinement. Semantic support comparison ignores layout order. Named layout comparison and ordinary `Eq` preserve represented order for compatibility with the existing exact IR.
+Raw finite matrices use explicit duplicate-free `FiniteSet` witnesses. A finite set can be empty. `FiniteObject` is its nonempty probability-bearing refinement. Semantic support comparison ignores layout order. Each exposed finite-witness module exports `sameFiniteLayout` as its canonical layout operation. `sameFiniteSetLayout` and `sameFiniteObjectLayout` are descriptive aliases with identical behavior. These operations and ordinary `Eq` preserve represented order.
 
 The scalar hierarchy does not use `Num` as its law contract. `Semiring` provides zero, one, addition, and multiplication. Commutativity, involution, exact nonnegative division, and exact convex validation are separate capabilities. `NonNegativeRational` is the only implemented exact nonnegative semifield. It permits values above one and rejects negative values.
 
@@ -656,7 +656,22 @@ A backend report must distinguish:
 - Equality in distribution.
 - Approximate numeric agreement.
 
-The optional `markovian-gpu` package lowers row-major `Double` matrices through the CUDA driver API. Its package flag is off by default. The enabled path loads committed PTX, creates a context, transfers inputs, launches a dense kernel, transfers output, and releases resources. The reported duration includes every one of those operations. The local NVIDIA GB10 differential test has zero observed error on the scripted fixture, and the 256-by-256 transfer-inclusive benchmark reports `295.110287 ms` mean over 20 runs.
+The optional `markovian-gpu` package lowers row-major `Double` matrices through the CUDA driver API. Its package flag is off by default. The enabled path loads committed PTX, creates a context, transfers inputs, launches a dense kernel, transfers output, and releases resources. The reported duration includes every one of those operations.
+
+The original P6 record at `faa5bd4` measured `295.110287 ms`. The PR verification for `22796e4` measured `265.395672 ms`. Both values are transfer-inclusive means for 20 runs of the 256-by-256 fixture on an NVIDIA GB10.
+
+The 2026-08-26 contract-repair worktree was based on `22796e4`. It used an NVIDIA GB10 with driver 580.173.02 and compute capability 12.1. The enabled differential command passed. The benchmark command measured `267.236742 ms` and a maximum error of `0.000e0`. The fixture uses row-major `Double`, an identity matrix, no random seed, and 20 runs without a separate warmup.
+
+The exact commands were:
+
+```sh
+cabal test markovian-gpu-test --project-file=cabal.project -fcuda --test-show-details=direct
+cabal bench markovian-gpu-bench --project-file=cabal.project -fcuda
+```
+
+These measurements show local execution only. They are not general performance claims. Timing variation between the three runs remains visible in this record.
+
+CUDA compilation was available for this repair. `/usr/local/cuda/bin/nvcc` reported CUDA 13.0, V13.0.88. `backends/markovian-gpu/scripts/build-ptx` exited with code zero and reproduced the committed PTX files exactly.
 
 Autodiff belongs to a backend. A gradient of an expectation needs assumptions that justify differentiation under the expectation.
 

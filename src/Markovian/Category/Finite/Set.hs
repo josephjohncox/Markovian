@@ -12,6 +12,7 @@ module Markovian.Category.Finite.Set (
     finiteSetValues,
     finiteSetCardinality,
     sameFiniteSet,
+    sameFiniteLayout,
     sameFiniteSetLayout,
 ) where
 
@@ -42,8 +43,12 @@ sameFiniteSet (UnsafeFiniteSet left) (UnsafeFiniteSet right) =
     all (`elem` right) left && all (`elem` left) right
 
 -- | Compare support and layout order.
+sameFiniteLayout :: FiniteSet value -> FiniteSet value -> Bool
+sameFiniteLayout = (==)
+
+-- | Descriptive alias for 'sameFiniteLayout'.
 sameFiniteSetLayout :: FiniteSet value -> FiniteSet value -> Bool
-sameFiniteSetLayout = (==)
+sameFiniteSetLayout = sameFiniteLayout
 
 firstDuplicate :: (Eq value) => [value] -> Maybe value
 firstDuplicate [] = Nothing
