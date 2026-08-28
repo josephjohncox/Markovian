@@ -20,6 +20,10 @@ extra-doc-files:
   docs/book/book.toml
   docs/book/README.md
   docs/book/src/*.md
+  docs/book/theme/mathjax-config.js
+  docs/book/theme/vendor/mathjax/LICENSE
+  docs/book/theme/vendor/mathjax/README.md
+  docs/book/theme/vendor/mathjax/tex-svg-full.js
   docs/CONTEXT.md
   docs/DECISIONS.md
   docs/evidence/CUDA-2026-08-26.md

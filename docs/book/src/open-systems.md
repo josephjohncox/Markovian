@@ -2,6 +2,8 @@
 
 An open system separates a subsystem's boundary from its internal topology.
 
+Read [Category theory behind the interfaces](category-primer.md#structured-cospans-describe-open-boundaries) for pushout composition and the double-category fragment. Read [Categorical probability: the bridge](categorical-probability.md#open-systems-separate-topology-from-probability) for the separation between graph topology and stochastic denotation.
+
 ## Typed interfaces
 
 An interface contains named ports and runtime sorts. Interface maps preserve these sorts.

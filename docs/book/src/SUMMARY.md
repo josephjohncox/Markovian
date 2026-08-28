@@ -10,6 +10,13 @@
 - [First exact MDP](./first-mdp.md)
 - [Choose an API](./choose-an-api.md)
 
+# Mathematical foundations
+
+- [Algebra behind the implementation](./algebra-primer.md)
+- [Category theory behind the interfaces](./category-primer.md)
+- [Measure theory and the finite specialization](./measure-theory-primer.md)
+- [Categorical probability: the bridge](./categorical-probability.md)
+
 # Models and evaluation
 
 - [Probability values, distributions, and kernels](./probability-kernels.md)

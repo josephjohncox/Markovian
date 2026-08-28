@@ -587,7 +587,7 @@ Provide bounded episodic runners with empty-start and resumable APIs. A resume c
 
 **Status:** Accepted
 
-**Decision:** Keep `markovian-neural` optional and independent of tensors, autodiff, devices, and global randomness. Depend only on `base` and the root `Markovian` package so the neural package reuses the explicit approximation boundary. Use an opaque finite scalar where a durable finite claim is needed; validate raw `Double` inputs and arithmetic results at operation boundaries. Use explicit dimensions, stable categorical operations, immutable snapshots, and structured nonfinite failures.
+**Decision:** Keep `markovian-neural` optional and independent of tensors, autodiff, devices, and global randomness. Keep the released neural package `base`-only and define its approximation boundary locally so its source archive builds independently. Test agreement with the root `Markovian` package in a separate integration suite. Use an opaque finite scalar where a durable finite claim is needed; validate raw `Double` inputs and arithmetic results at operation boundaries. Use explicit dimensions, stable categorical operations, immutable snapshots, and structured nonfinite failures.
 
 Provide row-major dense networks with zero or more `tanh` hidden layers, a linear output head, and manual input and parameter VJPs. Provide pure SGD from one pre-update snapshot.
 
@@ -602,6 +602,22 @@ Provide standard and Double-DQN targets over explicit nonempty action masks. Eva
 **Consequences:** D-036 is superseded where it describes the neural package as metadata only. The package remains an experimental `Double` reference. It has no environment runner, random replay adapter, complete trainer, convergence guarantee, accelerator support, or production claim.
 
 **Required evidence:** Central finite differences cover every represented dense VJP and categorical derivative on finite fixtures. Worked examples cover REINFORCE and actor-critic targets, detachment, and failure atomicity. Replay, target-network, DQN, batch-loss, and root Q-learning differential fixtures cover ordering, timing, masks, snapshot behavior, and successful updates.
+
+### D-047: Self-host mathematical rendering and connect foundation chapters to primary sources
+
+**Status:** Accepted
+
+**Decision:** Disable mdBook's external MathJax 2 loader. Commit the complete MathJax 3.2.2 SVG bundle and its Apache-2.0 license under `docs/book/theme/vendor`. Load the local configuration before the local bundle through `additional-js`. Pin the bundle digest in `toolchain.env`.
+
+Extend `scripts/check-book` to verify the MathJax digest, reject the external loader, require the generated local script tags, and compare every source display-math block with its generated chapter HTML.
+
+Add separate foundation chapters for algebra, category theory, measure theory, and categorical probability. State the finite specialization, the categorical structure at each refinement layer, and the analytic requirements that do not disappear under categorical notation. Link explanations to the implementation chapters, the law catalogue, and annotated primary or standard references.
+
+**Rationale:** The external MathJax loader can be blocked or unavailable even when the generated HTML contains correct delimiters. A local complete SVG bundle removes that runtime dependency. Foundation chapters let readers with basic mathematical background understand why the API separates semiring matrices, stochastic refinements, Bayesian inversion, fixed points, and approximate execution.
+
+**Consequences:** The source distribution grows by the vendored bundle. Updating MathJax requires an explicit version, digest, license, local build, and Pages check. Documentation equations continue to use mdBook's required double-backslash display delimiters. A mathematical claim should link to its internal explanation and then to a direct primary or standard source where practical.
+
+**Required evidence:** `scripts/check-book` verifies the local loader and all display blocks. Local links and anchors must pass. The source archive must contain the configuration, bundle, license, and foundation chapters. A publication claim requires a successful Pages run and reachable rendered pages.
 
 ## Required evidence for advanced work
 

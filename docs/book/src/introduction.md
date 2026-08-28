@@ -4,6 +4,8 @@ Markovian is a greenfield Haskell framework for finite stochastic models. It pro
 
 The framework separates mathematical meaning from execution. Exact rational code defines the reference behavior. Floating, sampled, GPU, and neural code cross explicit approximation boundaries.
 
+Readers who know basic mathematics but want the structures connected explicitly should start with [Algebra behind the implementation](algebra-primer.md), [Category theory behind the interfaces](category-primer.md), [Measure theory and the finite specialization](measure-theory-primer.md), and [Categorical probability: the bridge](categorical-probability.md). Each chapter links its claims to primary references and to the corresponding Markovian APIs.
+
 ## What the framework prevents
 
 Many probability libraries permit operations that are type-correct but mathematically wrong. Markovian rejects these common errors:

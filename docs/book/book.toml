@@ -17,7 +17,11 @@ git-repository-url = "https://github.com/josephjohncox/Markovian"
 git-repository-icon = "fab-github"
 edit-url-template = "https://github.com/josephjohncox/Markovian/edit/main/docs/book/{path}"
 no-section-label = false
-mathjax-support = true
+mathjax-support = false
+additional-js = [
+  "theme/mathjax-config.js",
+  "theme/vendor/mathjax/tex-svg-full.js",
+]
 
 [output.html.playground]
 copyable = true

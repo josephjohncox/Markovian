@@ -24,10 +24,11 @@ Status terms: `DONE`, `NEXT`, `READY`, `BLOCKED`.
   - Hosted evidence: <https://github.com/josephjohncox/Markovian/actions/runs/32920753099>.
 - [x] **Documentation stack.**
   - Added a pinned mdBook user and contributor guide for the complete public semantic stack.
-  - Added repository-owned link, include, math-delimiter, version, and HTML build checks.
-  - Added an equation-level law catalogue, executable fixture links, derived mathematical insights, and an annotated bibliography.
+  - Added repository-owned link, include, math-delimiter, local-MathJax digest, source-to-HTML equation-count, version, and HTML build checks.
+  - Added foundation chapters for algebra, category theory, measure theory, and categorical probability.
+  - Added an equation-level law catalogue, executable fixture links, derived mathematical insights, guided reading routes, and an annotated bibliography.
   - Added the book check to CI, Pages, and the source-distribution manifest.
-- [ ] **GitHub Pages publication.** `BLOCKED` until Pages uses GitHub Actions and a successful `main` run publishes the configured URL.
+- [x] **GitHub Pages publication.** GitHub Actions publishes successful `main` documentation builds at <https://josephjohncox.github.io/Markovian/>.
 
 ## P2: Bounded interpreters
 

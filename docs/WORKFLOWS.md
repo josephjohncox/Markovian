@@ -138,7 +138,7 @@ python3 /home/josephcox/.pi/agent/skills/ste-writing/scripts/ste-lint.py \
 
 The writer must read both outputs. A file list alone is not a content review.
 
-`scripts/check-book` verifies local chapter links, anchors, include targets, the pinned `mdbook` version, and the HTML build.
+`scripts/check-book` verifies local chapter links, anchors, include targets, the pinned `mdbook` version, the vendored MathJax digest, local generated script tags, absence of the external loader, every source-to-generated display-math block, and the complete HTML build.
 
 Do not claim a Haskell build result for documentation-only work unless the current revision produced it.
 

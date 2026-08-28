@@ -20,10 +20,74 @@ if [[ "$actual" != "$expected" ]]; then
 fi
 
 python3 "$project_root/scripts/check-book-links" "$project_root/docs/book/src"
+
+mathjax="$project_root/docs/book/theme/vendor/mathjax/tex-svg-full.js"
+test -f "$mathjax"
+actual_mathjax_sha256="$(sha256sum "$mathjax" | cut -d ' ' -f 1)"
+if [[ "$actual_mathjax_sha256" != "$MARKOVIAN_MATHJAX_SHA256" ]]; then
+  echo "Expected MathJax $MARKOVIAN_MATHJAX_VERSION SHA-256 $MARKOVIAN_MATHJAX_SHA256 but found $actual_mathjax_sha256." >&2
+  exit 1
+fi
+
 rm -rf "$project_root/docs/book/build"
 mdbook build "$project_root/docs/book"
 test -f "$project_root/docs/book/build/index.html"
-grep -Fq "MathJax.js?config=" "$project_root/docs/book/build/index.html"
-grep -RFq '<p>\[' "$project_root/docs/book/build"
+grep -Fq 'theme/mathjax-config-' "$project_root/docs/book/build/index.html"
+grep -Fq 'theme/vendor/mathjax/tex-svg-full-' "$project_root/docs/book/build/index.html"
+if grep -RFq 'cdnjs.cloudflare.com/ajax/libs/mathjax' "$project_root/docs/book/build"; then
+  echo "The generated book still depends on external MathJax." >&2
+  exit 1
+fi
 
-echo "Checked $expected book at docs/book/build/index.html"
+python3 - "$project_root/docs/book/src" "$project_root/docs/book/build" <<'PY'
+from pathlib import Path
+import re
+import sys
+
+source = Path(sys.argv[1])
+build = Path(sys.argv[2])
+
+
+def source_display_blocks(text: str) -> int:
+    count = 0
+    fence_character = None
+    fence_length = 0
+    for line in text.splitlines():
+        stripped = line.lstrip()
+        fence = re.match(r"^(`{3,}|~{3,})", stripped)
+        if fence_character is not None:
+            if fence and fence.group(1)[0] == fence_character and len(fence.group(1)) >= fence_length:
+                fence_character = None
+                fence_length = 0
+            continue
+        if fence:
+            fence_character = fence.group(1)[0]
+            fence_length = len(fence.group(1))
+            continue
+        if line.strip() == r"\\[":
+            count += 1
+    return count
+
+
+checked = 0
+for chapter in source.glob("*.md"):
+    output = build / f"{chapter.stem}.html"
+    if not output.is_file():
+        continue
+    expected_blocks = source_display_blocks(chapter.read_text(encoding="utf-8"))
+    generated = output.read_text(encoding="utf-8")
+    rendered = re.findall(r"<p>\\\[(.*?)\\\]</p>", generated, flags=re.DOTALL)
+    if len(rendered) != expected_blocks:
+        raise SystemExit(
+            f"{chapter.name}: expected {expected_blocks} display-math blocks in generated HTML but found {len(rendered)}"
+        )
+    for index, block in enumerate(rendered, start=1):
+        if re.search(r"</?(?:a|code|em|strong)\\b", block):
+            raise SystemExit(f"{chapter.name}: display-math block {index} contains Markdown-generated HTML markup")
+    checked += expected_blocks
+if checked == 0:
+    raise SystemExit("No display-math blocks were checked.")
+print(f"Checked {checked} display-math blocks against generated chapter HTML.")
+PY
+
+echo "Checked $expected with local MathJax $MARKOVIAN_MATHJAX_VERSION at docs/book/build/index.html"

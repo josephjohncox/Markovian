@@ -2,6 +2,8 @@
 
 The raw matrix layer permits operations that do not preserve probability. Refinement types expose only operations that preserve their proofs.
 
+The refinement tower is derived in [Algebra behind the implementation](algebra-primer.md#where-the-structures-live) and related to Markov categories in [Categorical probability: the bridge](categorical-probability.md).
+
 ## Stochastic matrices
 
 A `StochasticMatrix` over nonnegative rational scalars proves that each source row sums to one.

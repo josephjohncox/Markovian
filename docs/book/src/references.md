@@ -2,7 +2,31 @@
 
 This bibliography favors published papers, standard books, and freely available author copies. A citation explains the mathematical source of a design. It does not imply that Markovian implements every result in that source.
 
+## Guided reading routes
+
+Each route starts with background and ends at the source closest to Markovian's design.
+
+- **Category basics:** [Leinster](#leinster-basic-category-theory) → [Riehl](#riehl-category-theory-in-context) → [Mac Lane](#mac-lane-categories-and-monoidal-coherence) → [Selinger](#selinger-graphical-languages)
+- **Measure kernels and conditioning:** [Pollard](#pollard-measure-theoretic-probability) → [Kallenberg](#kallenberg-foundations-of-modern-probability) → [Faden](#faden-regular-conditional-probabilities)
+- **Categorical probability:** [Giry](#giry-probability-as-a-monad) → [Moggi](#moggi-kleisli-semantics) → [Fritz](#fritz-markov-categories) → [Cho and Jacobs](#cho-and-jacobs-disintegration-and-bayesian-inversion)
+- **Matrix and path algebra:** [Mohri](#mohri-semiring-path-algorithms) → [Droste, Kuich, and Vogler](#droste-kuich-and-vogler-weighted-automata) → [Joyal, Street, and Verity](#joyal-street-and-verity-traced-monoidal-categories)
+- **Open composition:** [Fong and Spivak](#fong-and-spivak-applied-category-theory) → [Fong](#fong-decorated-cospans) → [Baez and Courser](#baez-and-courser-structured-cospans)
+
+The book chapters [Algebra behind the implementation](algebra-primer.md), [Category theory behind the interfaces](category-primer.md), [Measure theory and the finite specialization](measure-theory-primer.md), and [Categorical probability: the bridge](categorical-probability.md) explain how these sources connect to the code.
+
 ## Category theory and string diagrams
+
+### Leinster: basic category theory
+
+Tom Leinster. *Basic Category Theory*. Cambridge Studies in Advanced Mathematics 143, Cambridge University Press, 2014. [DOI 10.1017/CBO9781107360068](https://doi.org/10.1017/CBO9781107360068). [Free arXiv edition](https://arxiv.org/abs/1612.09375). [Direct PDF](https://arxiv.org/pdf/1612.09375).
+
+Chapter 1 introduces categories, functors, and natural transformations. Chapters 2–5 develop universal properties, representables, Yoneda, limits, and adjunctions. This is the shortest rigorous starting point used by the book's category primer.
+
+### Riehl: category theory in context
+
+Emily Riehl. *Category Theory in Context*. Dover Publications, 2016. [Author-hosted book page](https://math.jhu.edu/~eriehl/context/). [Direct author PDF](https://emilyriehl.github.io/files/context.pdf).
+
+Chapters 1 and 3 cover categories, functors, natural transformations, limits, and colimits. Chapter 5 develops monads and Kleisli categories and explicitly includes probability monads. Use this text when Leinster's compact treatment needs more examples.
 
 ### Mac Lane: categories and monoidal coherence
 
@@ -59,6 +83,24 @@ Read §2 for Markov categories, §3 for deterministic morphisms, §11 for condit
 Kenta Cho and Bart Jacobs. “Disintegration and Bayesian inversion via string diagrams.” *Mathematical Structures in Computer Science* 29(7), 2019, pages 938–971. [DOI 10.1017/S0960129518000488](https://doi.org/10.1017/S0960129518000488). [arXiv:1709.00322](https://arxiv.org/abs/1709.00322).
 
 Read §3 for disintegration, §4 for almost-everywhere equality and uniqueness, and §5 for Bayesian inversion. Markovian specializes these equations to exact finite positive support.
+
+### Pollard: measure-theoretic probability
+
+David Pollard. *A User's Guide to Measure Theoretic Probability*. Cambridge Series in Statistical and Probabilistic Mathematics 8, Cambridge University Press, 2002. [DOI 10.1017/CBO9780511811555](https://doi.org/10.1017/CBO9780511811555). [Publisher page](https://www.cambridge.org/core/books/users-guide-to-measure-theoretic-probability/A257FE6572A9142FE3B811FFF3FD0171). [Front matter and contents](https://assets.cambridge.org/97805210/02899/frontmatter/9780521002899_frontmatter.pdf).
+
+Chapters 2 and 5 introduce measure theory and conditioning with a probability-first motivation. This is the most approachable bridge from elementary probability to the kernel language used in the measure-theory primer.
+
+### Kallenberg: foundations of modern probability
+
+Olav Kallenberg. *Foundations of Modern Probability*. Third edition, Probability Theory and Stochastic Modelling 99, Springer, 2021. [DOI 10.1007/978-3-030-61871-1](https://doi.org/10.1007/978-3-030-61871-1). [Publisher page](https://link.springer.com/book/10.1007/978-3-030-61871-1).
+
+Chapter 1 develops measurable spaces, measures, integration, product measures, and Fubini's theorem. Chapter 4 treats kernels, products, and disintegration. Chapter 8 treats conditioning and conditional distributions. This is the main measure-theoretic reference for the continuous concepts that Markovian specializes to finite sums.
+
+### Faden: regular conditional probabilities
+
+Arnold M. Faden. “The existence of regular conditional probabilities: necessary and sufficient conditions.” *The Annals of Probability* 13(1), 1985, pages 288–298. [DOI 10.1214/aop/1176993081](https://doi.org/10.1214/aop/1176993081). [Bibliographic record](https://ftp.math.utah.edu/pub/tex/bib/idx/annprobab1980/13/1/288_298.html).
+
+Faden characterizes when regular conditional probabilities exist. The paper grounds Markovian's refusal to claim that disintegration is automatic on arbitrary measurable spaces.
 
 ## Semirings, matrices, and convexity
 
@@ -222,6 +264,8 @@ Goldberg gives a practical account of representation, rounding, guard digits, an
 
 | Markovian topic | Primary starting points |
 | --- | --- |
+| Category basics and universal properties | Leinster, Riehl |
+| Measure spaces, kernels, and conditioning | Pollard, Kallenberg, Faden |
 | Kernel composition and exact monad laws | Giry, Moggi, Fritz |
 | Copy, discard, and deterministic morphisms | Fritz §§2–3 |
 | Bayesian inversion and almost-sure equality | Cho and Jacobs §§3–5, Fritz §§11 and 13 |

@@ -2,6 +2,8 @@
 
 Bayesian inversion requires a prior. A likelihood matrix alone cannot define a reverse stochastic channel.
 
+Read [Measure theory and the finite specialization](measure-theory-primer.md#conditioning-and-disintegration) for conditioning and null events, then [Categorical probability: the bridge](categorical-probability.md#bayesian-inversion-decorates-reversal-with-a-state) for the prior-indexed categorical equation. Primary sources are linked through [Cho and Jacobs](references.md#cho-and-jacobs-disintegration-and-bayesian-inversion), [Fritz](references.md#fritz-markov-categories), and [Faden](references.md#faden-regular-conditional-probabilities).
+
 ## Exact priors
 
 A prior is a normalized distribution over an explicit nonempty finite object:

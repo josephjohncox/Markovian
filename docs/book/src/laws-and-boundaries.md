@@ -4,6 +4,8 @@ This chapter states the equations that the implementation tests. It also states 
 
 A test suite does not prove a theorem for every inhabitant of a Haskell type. The fixtures check representative finite witnesses, reordered layouts, noncommutative scalar multiplication where relevant, and explicit counterexamples. Each instance must satisfy the class laws.
 
+Use [Algebra behind the implementation](algebra-primer.md), [Category theory behind the interfaces](category-primer.md), [Measure theory and the finite specialization](measure-theory-primer.md), and [Categorical probability: the bridge](categorical-probability.md) when a law's surrounding structure is unfamiliar. Their reading routes link directly to primary sources.
+
 ## Notation and equality
 
 Write `g ∘ f` for standard right-to-left composition. The Haskell API passes `f` and then `g` to `composeMatrix` or `composeStochastic`.

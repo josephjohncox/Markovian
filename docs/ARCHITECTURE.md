@@ -902,7 +902,7 @@ cabal haddock all --project-file=cabal.project.ci \
 scripts/check-book
 ```
 
-The book gate checks local links, anchors, include targets, the pinned `mdbook` version, and the complete HTML build. Haddock remains the API-signature reference.
+The book check validates local links, anchors, include targets, the pinned `mdbook` version, the pinned local MathJax digest and loader, every source-to-generated display-math block, and the complete HTML build. The published book includes foundation chapters for algebra, category theory, measure theory, and categorical probability, with internal concept links and direct primary-source reading routes. Haddock remains the API-signature reference.
 
 The separate `Pages` workflow runs the same book gate for each push to `main`. A manual deployment must also use `main`. Its build job uploads only the checked `docs/book/build` directory. Its deployment job consumes that artifact through the `github-pages` environment.
 

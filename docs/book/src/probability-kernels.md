@@ -1,5 +1,7 @@
 # Probability values, distributions, and kernels
 
+For the mathematical background, read [Measure theory and the finite specialization](measure-theory-primer.md) and [Categorical probability: the bridge](categorical-probability.md). The former explains kernels as measurable families of measures; the latter explains why their composition is categorical.
+
 ## Floating and exact domains
 
 The package keeps floating and exact probability domains separate.

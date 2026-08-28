@@ -2,6 +2,8 @@
 
 A circuit is typed syntax. An interpreter assigns a denotation to each primitive and structural operation.
 
+The categorical meaning of sequence, tensor, copy, and discard is explained in [Category theory behind the interfaces](category-primer.md). The difference between copied and independently repeated randomness is derived in [Categorical probability: the bridge](categorical-probability.md#copying-sharing-and-independence).
+
 ## Purity index
 
 Each circuit has one provenance index:

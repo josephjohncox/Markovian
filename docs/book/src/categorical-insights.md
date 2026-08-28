@@ -2,7 +2,7 @@
 
 This chapter records deductions that become visible when the semantic layers are kept separate. These are not claims of historical priority. Most ingredients are standard. The useful contribution is their placement in one checked finite implementation.
 
-Each section distinguishes an implemented fact, a deduction, and a boundary.
+Each section distinguishes an implemented fact, a deduction, and a boundary. Definitions and background appear in [Algebra behind the implementation](algebra-primer.md), [Category theory behind the interfaces](category-primer.md), and [Categorical probability: the bridge](categorical-probability.md).
 
 ## 1. Algebraic structure belongs at different refinement levels
 

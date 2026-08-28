@@ -1,5 +1,7 @@
 # Finite objects and semiring matrices
 
+Read [Algebra behind the implementation](algebra-primer.md) for semirings, semimodules, tensor, direct sum, convexity, and the exact-versus-floating scalar boundary. Read [Category theory behind the interfaces](category-primer.md) for the categorical meaning of composition and tensor.
+
 ## Finite layouts
 
 A `FiniteSet` stores a duplicate-free support and an explicit order. The order defines row and column indexes.
