@@ -81,3 +81,10 @@ For `F : (X,H) -> (Y,H)`:
 \\]
 
 Use the trace to contract a finite internal index. Do not interpret it as a general stochastic feedback solver.
+
+## Further reading
+
+- [Mac Lane: categories and monoidal coherence](references.md#mac-lane-categories-and-monoidal-coherence)
+- [Kelly and Laplaza: compact closed coherence](references.md#kelly-and-laplaza-compact-closed-coherence)
+- [Joyal, Street, and Verity: traced monoidal categories](references.md#joyal-street-and-verity-traced-monoidal-categories)
+- [Mohri: semiring path algorithms](references.md#mohri-semiring-path-algorithms)

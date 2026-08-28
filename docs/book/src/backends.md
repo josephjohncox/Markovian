@@ -83,3 +83,8 @@ A new backend must define these items before it can claim compatibility:
 7. Add differential tests against the exact reference.
 
 A fast result without this contract is only an unrelated computation.
+
+## Further reading
+
+- [Higham: floating-point stability](references.md#higham-floating-point-stability)
+- [Goldberg: floating-point arithmetic](references.md#goldberg-floating-point-arithmetic)

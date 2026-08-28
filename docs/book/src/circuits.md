@@ -93,3 +93,9 @@ matrix  <- denoteDeterministicTerm notTerm
 Quoted tables provide finite extensional data. The compiler does not compare arbitrary Haskell functions.
 
 Use this compiler for finite controller logic, routing, lookup tables, and backend-independent deterministic circuits.
+
+## Further reading
+
+- [Selinger: graphical languages](references.md#selinger-graphical-languages)
+- [Fong and Spivak: applied category theory](references.md#fong-and-spivak-applied-category-theory)
+- [Fritz: Markov categories](references.md#fritz-markov-categories)

@@ -80,3 +80,9 @@ Before you accept a model, answer these questions:
 4. Does each policy select only available actions?
 5. Does the horizon count transitions rather than visited states?
 6. Does the observation model describe the successor state?
+
+## Further reading
+
+- [Puterman: Markov decision processes](references.md#puterman-markov-decision-processes)
+- [Sutton and Barto: reinforcement learning](references.md#sutton-and-barto-reinforcement-learning)
+- [Kaelbling, Littman, and Cassandra: POMDPs](references.md#kaelbling-littman-and-cassandra-pomdps)

@@ -94,3 +94,8 @@ The arithmetic is exact. The requested tolerance still defines an approximation 
 | Get all finite-horizon state values | Dynamic programming |
 | Evaluate a discounted cyclic policy | Bellman solver |
 | Execute one random path | Sampled interpreter |
+
+## Further reading
+
+- [Puterman: Markov decision processes](references.md#puterman-markov-decision-processes)
+- [Bellman: dynamic programming](references.md#bellman-dynamic-programming)

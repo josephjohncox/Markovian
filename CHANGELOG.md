@@ -2,6 +2,7 @@
 
 ## 0.1.0.0 — Unreleased
 
+- Expanded the book with an explicit law catalogue, derivations, executable fixture links, derived categorical insights, and an annotated bibliography of primary papers and standard books.
 - Corrected mdBook display-math delimiters so MathJax renders the documented equations. Added source and generated-output checks that prevent this regression.
 - Added a pinned mdBook documentation stack with a checked user and contributor book, local-link validation, CI builds, semantic guides, recipes, and project-reference appendices. Added a SHA-pinned GitHub Pages workflow and published the book at <https://josephjohncox.github.io/Markovian/>.
 - Added validated floating and exact finite probability distributions.

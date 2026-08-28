@@ -64,6 +64,20 @@ Do not write a single-backslash delimiter or `$$`. The [mdBook MathJax guide](ht
 
 `check-book-links` rejects single-backslash and unbalanced delimiters. `check-book` also verifies that the generated HTML loads MathJax and contains a display-math delimiter.
 
+## Cite mathematical claims
+
+Use a published primary paper or a standard book for each mathematical structure. Give a chapter or section when it helps the reader locate the result.
+
+Separate three kinds of statement:
+
+1. Link an implemented fact to an executable fixture.
+2. Give the derivation for a mathematical deduction.
+3. State the boundary that prevents a stronger claim.
+
+Prefer DOI, publisher, journal, arXiv, or author-hosted links. Do not use an uncited blog as the authority for a law.
+
+Add each durable source to [References and further reading](references.md). Add a short further-reading section to the chapter that uses it.
+
 ## Write examples
 
 Prefer a complete executable source over an isolated fragment. The first MDP chapter includes `app/Sample/Main.hs` directly.

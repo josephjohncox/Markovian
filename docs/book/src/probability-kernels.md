@@ -73,3 +73,9 @@ sameFiniteLayout left right
 ```
 
 Use layout equality before indexed or dense execution.
+
+## Further reading
+
+- [Giry: probability as a monad](references.md#giry-probability-as-a-monad)
+- [Moggi: Kleisli semantics](references.md#moggi-kleisli-semantics)
+- [Fritz: Markov categories](references.md#fritz-markov-categories)

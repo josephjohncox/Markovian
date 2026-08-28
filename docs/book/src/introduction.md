@@ -54,3 +54,9 @@ The final chapters state the execution boundaries and unsupported claims. The pr
 The package is unreleased. It makes no compatibility promise. The project removes an incorrect API instead of preserving it behind a compatibility layer.
 
 The implemented scope is finite and discrete. Cyclic MDP value problems use bounded dynamic programming or Bellman fixed points. Arbitrary cyclic open-graph interpretation remains outside the implemented scope.
+
+## Mathematical guides
+
+- [Law catalogue and proof boundaries](laws-and-boundaries.md)
+- [Derived categorical and mathematical insights](categorical-insights.md)
+- [References and further reading](references.md)

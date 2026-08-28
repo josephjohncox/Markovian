@@ -24,8 +24,9 @@ Status terms: `DONE`, `NEXT`, `READY`, `BLOCKED`.
   - Hosted evidence: <https://github.com/josephjohncox/Markovian/actions/runs/32920753099>.
 - [x] **Documentation stack.**
   - Added a pinned mdBook user and contributor guide for the complete public semantic stack.
-  - Added repository-owned link, include, version, and HTML build checks.
-  - Added the book gate to CI and the source-distribution manifest.
+  - Added repository-owned link, include, math-delimiter, version, and HTML build checks.
+  - Added an equation-level law catalogue, executable fixture links, derived mathematical insights, and an annotated bibliography.
+  - Added the book gate to CI, Pages, and the source-distribution manifest.
 - [ ] **GitHub Pages publication.** `BLOCKED` until Pages uses GitHub Actions and a successful `main` run publishes the configured URL.
 
 ## P2: Bounded interpreters

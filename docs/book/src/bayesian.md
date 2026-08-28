@@ -87,3 +87,8 @@ This is not ordinary `Eq`. The prior is part of the equivalence statement.
 A `BayesianChannel` packages a channel with its input and output priors. Composition checks that the middle prior flows correctly.
 
 The type has no plain `Category` or dagger instance. Composition without prior compatibility would be unsound.
+
+## Further reading
+
+- [Cho and Jacobs: disintegration and Bayesian inversion](references.md#cho-and-jacobs-disintegration-and-bayesian-inversion)
+- [Fritz: Markov categories](references.md#fritz-markov-categories)

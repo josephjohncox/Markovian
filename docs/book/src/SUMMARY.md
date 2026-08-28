@@ -25,17 +25,19 @@
 - [Bayesian inference](./bayesian.md)
 - [Stochastic circuits and deterministic compilation](./circuits.md)
 - [Open systems and acyclic networks](./open-systems.md)
+- [Derived categorical and mathematical insights](./categorical-insights.md)
 
 # Execution and assurance
 
 - [CPU, GPU, and neural boundaries](./backends.md)
-- [Laws, counterexamples, and scope](./laws-and-boundaries.md)
+- [Law catalogue and proof boundaries](./laws-and-boundaries.md)
 - [Practical recipes](./recipes.md)
 - [Public module map](./api-map.md)
 - [Build and maintain this book](./book-workflow.md)
 
 # Project references
 
+- [References and further reading](./references.md)
 - [Architecture](./appendix-architecture.md)
 - [Decisions](./appendix-decisions.md)
 - [Development workflows](./appendix-workflows.md)

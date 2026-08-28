@@ -98,3 +98,8 @@ value  <- expectedExactBeliefReturn objective pomdp policy
 The planner enumerates observations for a bounded horizon. It rejects states whose support mixes terminal and continuing behavior when that mixture makes one belief action contract invalid.
 
 Use this planner for small exact references. Large POMDPs need approximate belief representations outside the semantic core.
+
+## Further reading
+
+- [Kaelbling, Littman, and Cassandra: POMDPs](references.md#kaelbling-littman-and-cassandra-pomdps)
+- [Koller and Friedman: sum-product elimination](references.md#koller-and-friedman-sum-product-elimination)

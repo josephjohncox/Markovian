@@ -85,3 +85,8 @@ exactFiniteDist
 Do not define separate reward and successor distributions. Separate distributions destroy branch correlation.
 
 For a short horizon, use exact trace enumeration to inspect every path. For a larger finite model, compile the model and use dynamic programming.
+
+## Further reading
+
+- [Puterman: Markov decision processes](references.md#puterman-markov-decision-processes)
+- [Bellman: dynamic programming](references.md#bellman-dynamic-programming)

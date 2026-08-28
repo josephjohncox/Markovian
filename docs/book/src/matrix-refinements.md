@@ -72,3 +72,9 @@ K=\sum_i \lambda_iK_i,
 Use convex mixtures for mixed policies, controller ensembles, and uncertain environment models.
 
 Do not replace this operation with raw matrix addition. Raw addition does not preserve row normalization.
+
+## Further reading
+
+- [Fritz: Markov categories](references.md#fritz-markov-categories)
+- [Fritz: convex spaces](references.md#fritz-convex-spaces)
+- [Jacobs: convexity and effects](references.md#jacobs-convexity-and-effects)

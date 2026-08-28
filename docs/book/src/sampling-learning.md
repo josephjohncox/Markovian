@@ -78,3 +78,8 @@ Both limits are mandatory. A cyclic model cannot create an unbounded episode.
 Use this module for small tabular experiments and reference learning behavior. Compare learned values with exact dynamic-programming values when possible.
 
 Do not use a statistical-frequency assertion as the main correctness gate. Test the pure update and seeded traces directly.
+
+## Further reading
+
+- [Sutton and Barto: reinforcement learning](references.md#sutton-and-barto-reinforcement-learning)
+- [Watkins and Dayan: Q-learning](references.md#watkins-and-dayan-q-learning)

@@ -73,3 +73,9 @@ The method avoids construction of the complete apex assignment object. Runtime c
 Use this fragment for feed-forward sensor networks, fault trees, finite workflows, and acyclic probabilistic circuits.
 
 Do not use it for feedback, recursion, cyclic graphs, or arbitrary hypergraph black-boxing.
+
+## Further reading
+
+- [Baez and Courser: structured cospans](references.md#baez-and-courser-structured-cospans)
+- [Fong: decorated cospans](references.md#fong-decorated-cospans)
+- [Koller and Friedman: sum-product elimination](references.md#koller-and-friedman-sum-product-elimination)

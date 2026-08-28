@@ -6,7 +6,7 @@ The package is greenfield and unreleased. It makes no compatibility promise. Inc
 
 ## Documentation
 
-[The Markovian Book](docs/book/src/introduction.md) is the user and contributor guide. It covers model construction, exact evaluation, learning, POMDPs, matrices, Bayesian inference, circuits, open systems, and optional backends.
+[The Markovian Book](docs/book/src/introduction.md) is the user and contributor guide. It covers model construction, exact evaluation, learning, POMDPs, matrices, Bayesian inference, circuits, open systems, and optional backends. It also gives an equation-level [law catalogue](docs/book/src/laws-and-boundaries.md), [derived mathematical insights](docs/book/src/categorical-insights.md), and an annotated [bibliography](docs/book/src/references.md).
 
 Build the searchable HTML book with the pinned documentation tool:
 
