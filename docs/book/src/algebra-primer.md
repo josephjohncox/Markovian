@@ -214,7 +214,7 @@ For the abstract laws of convex spaces, see [Fritz on convex spaces](references.
 An involutive semiring has an operation that reverses products and is its own inverse:
 
 \\[
-\overline{ab}=\overline b\,\overline a,
+\overline{ab}=\overline b\\,\overline a,
 \qquad
 \overline{\overline a}=a.
 \\]

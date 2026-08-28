@@ -32,7 +32,7 @@ CUDA execution is approximate. It does not inherit exact rational circuit laws. 
 
 ## Neural package status
 
-`markovian-neural` is an experimental framework-independent reference package. It depends only on `base` and the root `Markovian` package. It uses checked `Double` arithmetic and immutable values.
+`markovian-neural` is an experimental framework-independent reference package. Its released library depends only on `base`. A separate integration test compares it with the root `Markovian` package. It uses checked `Double` arithmetic and immutable values.
 
 It implements:
 
@@ -219,7 +219,8 @@ y=r+\gamma\max_{a'\in M(s')}Q_{\theta^-}(s',a').
 For Double DQN:
 
 \\[
-a^*=\operatorname*{arg\,max}_{a'\in M(s')}Q_{\theta}(s',a'),
+a^*=\underset{a'\in M(s')}{\operatorname{arg\\,max}}
+Q^{\mathrm{online}}(s',a'),
 \\]
 
 \\[

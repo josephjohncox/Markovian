@@ -31,7 +31,7 @@ Finite kernel composition is:
 For measurable spaces, the same pattern becomes:
 
 \\[
-(L\circ K)(x,C)=\int_YL(y,C)\,K(x,dy).
+(L\circ K)(x,C)=\int_YL(y,C)\\,K(x,dy).
 \\]
 
 The finite sum is therefore not an unrelated special case. It is integration against an atomic probability measure.
@@ -91,7 +91,7 @@ q(y)=\sum_xp(x)K(y\mid x).
 In measure notation:
 
 \\[
-q(B)=\int_XK(x,B)\,p(dx).
+q(B)=\int_XK(x,B)\\,p(dx).
 \\]
 
 This single composition operation covers prediction through a sensor, one Markov transition, and marginalization of a joint law.

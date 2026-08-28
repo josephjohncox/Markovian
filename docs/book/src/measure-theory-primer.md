@@ -92,7 +92,7 @@ Pushforward preserves total mass. Categorically, it is the action of the distrib
 The integral of a measurable function generalizes a weighted average. In finite probability:
 
 \\[
-\int_X h(x)\,p(dx)=\sum_{x\in X}p(x)h(x).
+\int_X h(x)\\,p(dx)=\sum_{x\in X}p(x)h(x).
 \\]
 
 Expected reward, Bellman backups, kernel composition, and marginalization all use this pattern.
@@ -122,7 +122,7 @@ It must satisfy two conditions:
 Kernel composition integrates over the intermediate space:
 
 \\[
-(L\circ K)(x,C)=\int_Y L(y,C)\,K(x,dy).
+(L\circ K)(x,C)=\int_Y L(y,C)\\,K(x,dy).
 \\]
 
 For finite spaces:
@@ -206,7 +206,7 @@ Two measurable functions are equal almost surely under `p` when they differ only
 \\[
 f=_{p\text{-a.s.}}g
 \quad\Longleftrightarrow\quad
-p\{x:f(x)\ne g(x)\}=0.
+p\\{x:f(x)\ne g(x)\\}=0.
 \\]
 
 For finite distributions:
@@ -241,7 +241,7 @@ A measure `ν` is absolutely continuous with respect to `μ`, written `ν≪μ`,
 The Radon–Nikodym theorem gives conditions under which there is a density `dν/dμ` satisfying:
 
 \\[
-\nu(A)=\int_A\frac{d\nu}{d\mu}\,d\mu.
+\nu(A)=\int_A\frac{d\nu}{d\mu}\\,d\mu.
 \\]
 
 In finite probability, the density is a ratio on positive support:

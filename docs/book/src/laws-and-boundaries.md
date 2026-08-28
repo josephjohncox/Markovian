@@ -619,17 +619,17 @@ These laws are dagger-like only after the prior, support restriction, and almost
 For the exact interpreter `⟦-⟧`, the fixtures check
 
 \\[
-\lbrack\!\lbrack\mathrm{id}\rbrack\!\rbrack=\mathrm{id},
+\lbrack\\!\lbrack\mathrm{id}\rbrack\\!\rbrack=\mathrm{id},
 \\]
 
 \\[
-\lbrack\!\lbrack g\circ f\rbrack\!\rbrack=
-\lbrack\!\lbrack g\rbrack\!\rbrack\circ\lbrack\!\lbrack f\rbrack\!\rbrack,
+\lbrack\\!\lbrack g\circ f\rbrack\\!\rbrack=
+\lbrack\\!\lbrack g\rbrack\\!\rbrack\circ\lbrack\\!\lbrack f\rbrack\\!\rbrack,
 \\]
 
 \\[
-\lbrack\!\lbrack f\otimes g\rbrack\!\rbrack=
-\lbrack\!\lbrack f\rbrack\!\rbrack\otimes\lbrack\!\lbrack g\rbrack\!\rbrack.
+\lbrack\\!\lbrack f\otimes g\rbrack\\!\rbrack=
+\lbrack\\!\lbrack f\rbrack\\!\rbrack\otimes\lbrack\\!\lbrack g\rbrack\\!\rbrack.
 \\]
 
 They also check symmetry involution, associator and unitor round trips, copy cocommutativity, copy counits, stochastic discard naturality, pentagon, triangle, hexagon, and structural naturality.
