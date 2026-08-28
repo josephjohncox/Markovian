@@ -2,7 +2,7 @@
 
 This document defines the required execution workflow for future agents.
 
-## 1. Start gate
+## 1. Before editing
 
 Before any edit:
 
@@ -13,7 +13,7 @@ Before any edit:
 5. Read the relevant sections of `docs/ARCHITECTURE.md`.
 6. Run `git status --short`.
 7. List tracked and untracked files.
-8. Confirm the `NEXT` task or record the user-authorized priority change.
+8. Confirm the `NEXT` task or record the user-selected priority change.
 9. Identify the one writer for the branch and worktree.
 
 Stop if the worktree contains unexplained changes. Do not overwrite work owned by another writer.
@@ -40,17 +40,17 @@ Do not let two agents update `TODO.md`, `docs/CONTEXT.md`, or `docs/DECISIONS.md
 4. Check tool availability.
 5. State which checks cannot run.
 
-Gate: the writer can explain current behavior, target behavior, affected invariants, and likely blast radius.
+Ready when: the writer can explain current behavior, target behavior, affected invariants, and likely blast radius.
 
 ### Phase B: Decide
 
 1. Classify the change as documentation, behavior, semantics, public API, dependency, backend, or release work.
-2. Find the accepted decision that authorizes it.
-3. Add a proposed decision if no accepted decision applies.
-4. List proof obligations and acceptance criteria.
-5. Stop when a required decision remains open.
+2. Find the recorded decision that defines its technical boundary.
+3. Add a proposed decision if no recorded decision applies.
+4. List the required evidence and success criteria.
+5. Stop when a required design decision remains open.
 
-Gate: an accepted decision covers every semantic or public contract change.
+Ready when: a recorded decision defines every semantic or public contract change.
 
 ### Phase C: Plan
 
@@ -61,7 +61,7 @@ Gate: an accepted decision covers every semantic or public contract change.
 5. List exact commands and expected evidence.
 6. Record dependencies and rollback steps.
 
-Gate: the plan maps each acceptance criterion to a file or command.
+Ready when: the plan maps each success criterion to a file or command.
 
 ### Phase D: Implement
 
@@ -72,13 +72,13 @@ Gate: the plan maps each acceptance criterion to a file or command.
 5. Do not refactor unrelated code.
 6. Review the diff after each coherent slice.
 
-Gate: the diff contains no unexplained file and no unrelated behavior change.
+Ready when: the diff contains no unexplained file and no unrelated behavior change.
 
 ### Phase E: Verify
 
 Run the required commands for the change class. Capture the command, revision, exit code, and relevant output.
 
-Gate: every acceptance criterion has current evidence or has an explicit blocked status.
+Ready when: every success criterion has current evidence or has an explicit blocked status.
 
 ### Phase F: Document
 
@@ -89,7 +89,7 @@ Gate: every acceptance criterion has current evidence or has an explicit blocked
 5. Update `CHANGELOG.md` only for verified released behavior.
 6. Recheck all links and file references.
 
-Gate: source, tests, Cabal metadata, and documents describe the same contract.
+Ready when: source, tests, Cabal metadata, and documents describe the same contract.
 
 ### Phase G: Handoff
 
@@ -101,7 +101,7 @@ Gate: source, tests, Cabal metadata, and documents describe the same contract.
 6. List remaining risks and blockers.
 7. State the exact next task.
 
-Gate: another agent can resume from `docs/CONTEXT.md` and the `NEXT` marker.
+Ready when: another agent can resume from `docs/CONTEXT.md` and the `NEXT` marker.
 
 ## 4. Required commands
 
@@ -223,7 +223,7 @@ Compile all README examples. Review the exposed module list and package metadata
 
 ### 4.6 Release changes
 
-Run all prior gates. Then run:
+Run all prior checks. Then run:
 
 ```sh
 cabal check
@@ -279,14 +279,14 @@ A missing tool produces `BLOCKED`, not `DONE`. Record the failed command and exi
 | Module or dependency change | Architecture boundaries, `Markovian.cabal`, dependency rationale |
 | Priority or status change | `TODO.md` with evidence |
 | New defect or resolved defect | `docs/CONTEXT.md` with file and line evidence |
-| Workflow or gate change | `docs/WORKFLOWS.md` and related TODO acceptance criteria |
+| Workflow or check change | `docs/WORKFLOWS.md` and related TODO success criteria |
 | Released user behavior | `CHANGELOG.md` and README when relevant |
 | Decision reversal | New superseding entry in `docs/DECISIONS.md` |
-| Backend admission | Architecture boundary, decision proof obligations, differential tests, benchmarks |
+| Backend compatibility change | Architecture boundary, required evidence, differential tests, benchmarks |
 
 A task is incomplete when a required document update is missing.
 
-Accepted decision history remains intact. Correct factual mistakes with a dated note or a superseding entry.
+Decision history remains intact. Correct factual mistakes with a dated note or a superseding entry.
 
 ## 7. Anti-drift checks
 
@@ -296,11 +296,11 @@ Run these checks before handoff:
 2. Compare exposed modules in `Markovian.cabal` with the architecture module map.
 3. Compare direct imports with each Cabal component dependency list.
 4. Compare exported behavior with README and Haddock examples.
-5. Compare test names with TODO acceptance criteria.
+5. Compare test names with TODO success criteria.
 6. Compare current defects with `docs/CONTEXT.md` line references.
-7. Compare accepted decisions with normative architecture statements.
+7. Compare recorded decisions with normative architecture statements.
 8. Compare `TODO.md` statuses with linked evidence and known blockers.
-9. Compare the `NEXT` marker with the highest eligible task or its blocker resolution.
+9. Compare the `NEXT` marker with the highest `READY` task or its blocker resolution.
 10. Search for generated placeholders before release work.
 11. Search for hidden horizons, discounts, seeds, tolerances, and learning schedules.
 12. Confirm that core modules have no backend dependency.
@@ -320,11 +320,11 @@ Each decision contains:
 - Rationale.
 - Consequences.
 - Alternatives when material.
-- Proof obligations.
-- Evidence links when accepted through tests or benchmarks.
+- Required evidence.
+- Evidence links when tests or benchmarks determine the selected outcome.
 - Superseded ID when applicable.
 
-A proposed decision does not authorize implementation. The designated reviewer or user accepts it.
+A proposed decision records an open design question. The designated reviewer or user records the selected outcome.
 
 Do not use architecture text to hide an unresolved decision. Mark the uncertainty and link the proposed entry.
 
@@ -353,7 +353,7 @@ Do not use architecture text to hide an unresolved decision. Mark the uncertaint
 2. Add a proposed decision with alternatives.
 3. Add a focused characterization or model test when possible.
 4. Request review.
-5. Resume only after acceptance.
+5. Resume only after the reviewer or user records the decision.
 
 ### 9.4 Flaky test
 
@@ -367,14 +367,14 @@ Do not use architecture text to hide an unresolved decision. Mark the uncertaint
 1. Confirm the benchmark environment and workload.
 2. Compare end-to-end and kernel-only timings.
 3. Check numerical and stochastic equivalence first.
-4. Revert an optimization that changes semantics without authorization.
+4. Revert an optimization that changes semantics without a corresponding technical decision.
 
 ### 9.6 Documentation conflict
 
 1. Identify the source, test, package, and document claims.
-2. Find the accepted decision.
+2. Find the recorded decision.
 3. Correct all affected authorities in one change.
-4. Add a decision when no accepted contract resolves the conflict.
+4. Add a decision when no recorded contract resolves the conflict.
 
 ## 10. Exact semantic tower workflow
 
@@ -390,19 +390,27 @@ D-038 work follows the S1 through S6 roadmap in `TODO.md`.
 8. Keep matrix conjugate transpose, prior-indexed Bayesian inversion, and structured-cospan boundary reversal as separately named operations with no common class. Do not add a Bayesian inversion placeholder before S2 supplies priors and support restriction.
 9. Stop before arbitrary open-system black-boxing or feedback semantics. D-038 leaves both deferred.
 
-## 11. Admission workflow
+## 11. New-feature evidence workflow
 
-P0 through P6, the greenfield cleanup, and exact semantic-tower stages S1 through S6 are `DONE`. D-023 through D-042 define the implemented contracts. The core suite contains one hundred two named contracts. Two backend package tests cover the disabled CUDA package and neural categorical behavior. No post-S6 stage is authorized. Arbitrary cyclic graph semantics, feedback, continuous-time black-boxing, and unrestricted MDP black-boxing remain deferred.
+P0 through P6, the greenfield cleanup, and exact semantic-tower stages S1 through S6 are `DONE`. D-023 through D-046 define the implemented contracts. Focused root modules cover exact control and tabular learning. Focused neural modules cover finite differences, policy gradients, replay, target networks, and DQN. No further training stage is planned. Arbitrary cyclic graph semantics, feedback, continuous-time black-boxing, unrestricted MDP black-boxing, tensor frameworks, autodiff, and device execution remain deferred.
 
 A new feature must use this sequence:
 
-1. Complete the start gate and identify its admission gate in `TODO.md`.
+1. Complete the before-editing steps and identify its requirements in `TODO.md`.
 2. Record the use case, denotation or approximation relation, and failure semantics.
 3. State required laws, differential tests, or estimator assumptions before implementation.
 4. Keep hardware, framework, and runtime dependencies outside the semantic core.
 5. Add deterministic reference evidence before statistical or benchmark evidence.
 6. Run both compiler versions, all three package tests, source distributions, and every applicable backend differential test.
+7. For exact control, record residual, bound, tie-order, terminal, and iteration-limit fixtures.
+8. For sampled learning, record exact seeded generator states and split-run equality.
+9. For neural derivatives, record the finite-difference tolerance and every checked parameter or input coordinate.
+10. For replay or target updates, record ordering, eviction, successful-update count, and failed-update scheduling fixtures.
 
-Do not widen the finite semantic core for speculative abstractions without the recorded proof obligation and evidence.
+Do not widen the finite semantic core for speculative abstractions without recorded requirements and evidence.
 
-Fourmolu 0.20 does not parse the repository's LaTeX-style literate Haskell files. Source-format gates therefore check all `.hs` files and explicitly exclude the three `.lhs` files from Fourmolu. This is a parser limitation, not a waiver from compiler or HLint diagnostics; GHC and HLint continue to check those files.
+Fourmolu 0.20 does not parse the repository's LaTeX-style literate Haskell files. Source-format checks therefore check all `.hs` files and explicitly exclude the three `.lhs` files from Fourmolu. This is a parser limitation, not a waiver from compiler or HLint diagnostics. GHC and HLint continue to check those files.
+
+### Intentional terminology allowlist
+
+Use `gate` only for a named executable CI, build, test, book, or compile-fail check. Preserve `stochastic gate` as a circuit term and `admissible` as a mathematical term.

@@ -33,6 +33,7 @@ extra-source-files:
   .github/workflows/ci.yml
   .github/workflows/pages.yml
   .gitleaks.toml
+  .hlint.yaml
   cabal.project.ci
   hie.yaml
   scripts/bootstrap-tools
@@ -79,13 +80,23 @@ library
     Markovian.Compile.Exact
     Markovian.Horizon
     Markovian.Interpreter.Bellman.Exact
+    Markovian.Interpreter.Control.Exact
     Markovian.Interpreter.DynamicProgramming.Exact
     Markovian.Interpreter.Exact
     Markovian.Interpreter.Sampled
+    Markovian.Interpreter.Sampled.Step
     Markovian.Kernel
     Markovian.Kernel.Exact
+    Markovian.Learning.EpsilonGreedy
+    Markovian.Learning.ExpectedSarsa
+    Markovian.Learning.ExpectedSarsa.Episodic
     Markovian.Learning.QLearning
     Markovian.Learning.QLearning.Episodic
+    Markovian.Learning.Sarsa
+    Markovian.Learning.Sarsa.Episodic
+    Markovian.Learning.Tabular
+    Markovian.Learning.TD0
+    Markovian.Learning.TD0.Episodic
     Markovian.MDP
     Markovian.MDP.Exact
     Markovian.MRP
@@ -135,8 +146,11 @@ test-suite Markovian-test
     AcyclicOpenSystems
     AlgebraicFoundation
     BayesianExact
+    ExactControl
+    Legacy
     OpenSystems
     StochasticCircuit
+    TabularLearning
 
   build-depends:
     , base       >=4.17.2.1 && <4.20

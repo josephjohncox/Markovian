@@ -12,8 +12,9 @@
 - Added explicit seeded finite-support sampling with returned generator state.
 - Added structured action, reward, successor, and stop-reason traces.
 - Added validated exact finite compilation and unindexed-transition rejection.
-- Added exact finite-horizon dynamic programming and discounted Bellman policy evaluation.
-- Added validated pure Q-updates and seeded bounded episodic Q-learning.
+- Added policy-free exact MDP compilation with separate compiled policy closure.
+- Added bounded exact value iteration with residual and policy bounds, deterministic greedy extraction, and exact rational policy iteration.
+- Added shared sampled-step and tabular foundations, pure TD(0), SARSA, Expected SARSA, and Q-learning updates, plus bounded resumable episodic runners.
 - Added exact finite POMDP prediction, conditioning, filtering, and bounded belief planning.
 - Added typed exact categorical syntax and dense rational CPU lowering.
 - Added standard exact probability and Kleisli instances plus symmetric monoidal coherence and fanout combinators.
@@ -34,7 +35,8 @@
 - Added directed circuit-decorated open topology while deferring arbitrary graph black-boxing, feedback, and continuous-time open-Markov claims.
 - Added an opaque boundary-functional acyclic open-system refinement, finite named assignments, signature-keyed local circuits, aggregate purity, and exact live-frontier matrix semantics with explicit sharing and discard behavior.
 - Corrected categorical copy to target the full tensor square with diagonal denotation.
-- Added separate optional CUDA and framework-independent neural contract packages.
+- Added separate optional CUDA and framework-independent neural packages.
+- Added checked dense networks with manual VJPs, stable categorical derivatives, linear REINFORCE and actor-critic updates, FIFO replay, target synchronization, and atomic standard or Double-DQN batch updates.
 - Corrected the CUDA evidence record to label variable local measurements and avoid a general performance claim.
 - Added CUDA benchmark warmup, raw-sample, range, and sample-standard-deviation reporting with a durable evidence record.
-- Added reproducible toolchain, package, documentation, and CI gates.
+- Added reproducible toolchain, package, documentation, and CI checks.

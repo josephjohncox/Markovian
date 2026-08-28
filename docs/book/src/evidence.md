@@ -20,8 +20,8 @@ The measurement proves one local execution. It is not a general GPU performance 
 
 [S6 acyclic open-system evidence for 2026-08-27](https://github.com/josephjohncox/Markovian/blob/main/docs/evidence/S6-ACYCLIC-OPEN-2026-08-27.md) records:
 
-- The accepted semantic scope.
-- Package and compiler gates.
+- The supported semantic scope.
+- Package and compiler checks.
 - Exact law fixtures.
 - Rejection fixtures.
 - Differential comparisons.

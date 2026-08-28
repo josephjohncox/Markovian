@@ -2,7 +2,7 @@
 
 The Markovian Book uses [mdBook](https://rust-lang.github.io/mdBook/).
 
-Install the pinned documentation tool and run the complete gate:
+Install the pinned documentation tool and run the complete check:
 
 ```sh
 scripts/install-doc-tools

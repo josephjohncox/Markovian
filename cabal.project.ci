@@ -9,5 +9,6 @@ package markovian-gpu
   tests: True
 
 package markovian-neural
+  flags: +markovian-integration
   ghc-options: -Werror
   tests: True

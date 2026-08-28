@@ -72,7 +72,7 @@ A horizon stop in a continuing state does not invent a terminal payoff. A termin
 
 ## Practical review checklist
 
-Before you accept a model, answer these questions:
+Before you use a model, answer these questions:
 
 1. Does each reward belong to a transition or a terminal state?
 2. Does each stochastic branch contain both reward and successor?

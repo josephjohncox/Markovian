@@ -1,7 +1,8 @@
-{- | Validated finite indexing and compilation for exact MDP policies.
+{- | Policy-free finite compilation for exact Markov decision processes.
 
-Compilation exhaustively validates the supplied finite state and action
-supports. The result contains only integer indexes and exact distributions.
+Compilation validates explicit state and action indexes once, then stores every
+available action and its joint @(reward, successor)@ distribution. Policy
+closure is a separate operation over the compiled model.
 -}
 module Markovian.Compile.Exact (
     StateIndex,
@@ -17,19 +18,30 @@ module Markovian.Compile.Exact (
     finiteActionIndex,
     lookupActionIndex,
     actionAtIndex,
-    ExactCompileError (..),
+    ExactMDPCompileError (..),
+    ExactPolicyCompileError (..),
     CompiledExactOutcome (..),
-    CompiledExactState (..),
+    CompiledExactState,
+    compiledSourceState,
+    foldCompiledExactState,
     CompiledExactMDP,
-    compileExactPolicyMDP,
+    compileExactMDP,
     compiledInitialState,
     compiledStateIndex,
     compiledActionIndex,
     compiledStates,
     compiledStateEntries,
+    CompiledExactMRPState (..),
+    CompiledExactMRP,
+    closeCompiledExactPolicy,
+    compiledMRPInitialState,
+    compiledMRPStateIndex,
+    compiledMRPStates,
+    compiledMRPStateEntries,
     CompiledExactStep (..),
     CompiledRuntimeError (..),
-    stepCompiledExactPolicy,
+    stepCompiledExactMDP,
+    stepCompiledExactMRP,
 ) where
 
 import Data.List.NonEmpty (NonEmpty (..))
@@ -125,17 +137,23 @@ actionAtIndex :: FiniteActionIndex action -> ActionIndex -> Maybe (ActionId acti
 actionAtIndex (FiniteActionIndex values) (ActionIndex requested) =
     valueAtPosition requested values
 
--- | Exhaustive exact-compilation failures.
-data ExactCompileError state action
-    = StateIndexError !(FiniteIndexError state)
-    | ActionIndexError !(FiniteIndexError (ActionId action))
-    | UnindexedInitialState !state
-    | CompileModelError !state !(ExactModelError action)
-    | CompilePolicyError !state !(ExactPolicyError action)
-    | UnindexedAvailableAction !state !(ActionId action)
-    | UnindexedPolicyAction !state !(ActionId action)
-    | UnindexedSuccessor !state !(ActionId action) !state
-    | CompileDistributionError !ExactDistributionError
+-- | Exhaustive policy-free model-compilation failures.
+data ExactMDPCompileError state action
+    = ExactMDPStateIndexError !(FiniteIndexError state)
+    | ExactMDPActionIndexError !(FiniteIndexError (ActionId action))
+    | ExactMDPUnindexedInitialState !state
+    | ExactMDPModelError !state !(ExactModelError action)
+    | ExactMDPUnindexedAvailableAction !state !(ActionId action)
+    | ExactMDPUnindexedSuccessor !state !(ActionId action) !state
+    | ExactMDPDistributionError !ExactDistributionError
+    deriving (Eq, Show)
+
+-- | Failures while closing a compiled model under an exact policy.
+data ExactPolicyCompileError state action
+    = ExactPolicyAtStateError !state !(ExactPolicyError action)
+    | ExactPolicyUnindexedAction !state !(ActionId action)
+    | ExactPolicyCompileInvariant !state !CompiledRuntimeError
+    | ExactPolicyCompileDistributionError !ExactDistributionError
     deriving (Eq, Show)
 
 -- | A compiled transition reward paired with an indexed successor.
@@ -145,21 +163,31 @@ data CompiledExactOutcome = CompiledExactOutcome
     }
     deriving (Eq, Show)
 
--- | One exhaustively validated compiled state.
+-- | One exhaustively validated policy-free state.
 data CompiledExactState state
     = CompiledTerminalState
         { compiledSourceState :: !state
+        -- ^ Original source state.
         , compiledTerminalPayoff :: !ExactReward
         }
     | CompiledContinuingState
         { compiledSourceState :: !state
         , compiledAvailableActions :: !(NonEmpty ActionIndex)
-        , compiledPolicyActions :: !(ExactFiniteDist ActionIndex)
         , compiledTransitions :: ![(ActionIndex, ExactFiniteDist CompiledExactOutcome)]
         }
     deriving (Eq, Show)
 
--- | An exact MDP and policy compiled over explicit finite supports.
+-- | Eliminate a validated compiled state without exposing forgeable constructors.
+foldCompiledExactState ::
+    (state -> ExactReward -> value) ->
+    (state -> NonEmpty ActionIndex -> [(ActionIndex, ExactFiniteDist CompiledExactOutcome)] -> value) ->
+    CompiledExactState state ->
+    value
+foldCompiledExactState terminal _ (CompiledTerminalState source payoff) = terminal source payoff
+foldCompiledExactState _ continuing (CompiledContinuingState source available transitions) =
+    continuing source available transitions
+
+-- | An exact MDP compiled over explicit finite supports, without a policy.
 data CompiledExactMDP state action
     = CompiledExactMDP
         !StateIndex
@@ -167,20 +195,19 @@ data CompiledExactMDP state action
         !(FiniteActionIndex action)
         !(NonEmpty (CompiledExactState state))
 
--- | Compile and exhaustively validate an exact policy and MDP.
-compileExactPolicyMDP ::
+-- | Compile every available action of an exact finite MDP.
+compileExactMDP ::
     (Eq state, Eq action) =>
     [state] ->
     [ActionId action] ->
     ExactMDP state action ->
-    ExactPolicy state action ->
-    Either (ExactCompileError state action) (CompiledExactMDP state action)
-compileExactPolicyMDP stateSupport actionSupport model selectedPolicy = do
-    states <- mapIndexError StateIndexError (finiteStateIndex stateSupport)
-    actions <- mapIndexError ActionIndexError (finiteActionIndex actionSupport)
+    Either (ExactMDPCompileError state action) (CompiledExactMDP state action)
+compileExactMDP stateSupport actionSupport model = do
+    states <- mapLeft ExactMDPStateIndexError (finiteStateIndex stateSupport)
+    actions <- mapLeft ExactMDPActionIndexError (finiteActionIndex actionSupport)
     initial <-
         case lookupStateIndex states (exactMDPInitialState model) of
-            Nothing -> Left (UnindexedInitialState (exactMDPInitialState model))
+            Nothing -> Left (ExactMDPUnindexedInitialState (exactMDPInitialState model))
             Just index -> Right index
     compiled <- traverse (compileState states actions) (stateValues states)
     Right (CompiledExactMDP initial states actions compiled)
@@ -190,10 +217,7 @@ compileExactPolicyMDP stateSupport actionSupport model selectedPolicy = do
         case decision of
             ExactTerminalDecision payoff -> Right (CompiledTerminalState state payoff)
             ExactActionDecision available -> do
-                let selected = exactPolicyActions selectedPolicy state
-                mapPolicyError state (validateExactPolicySupport available selected)
                 availableIndexes <- traverse (requireAvailableAction state actions) available
-                selectedIndexes <- compilePolicyDistribution state actions selected
                 transitions <-
                     traverse
                         (compileTransition states actions state)
@@ -202,7 +226,6 @@ compileExactPolicyMDP stateSupport actionSupport model selectedPolicy = do
                     CompiledContinuingState
                         { compiledSourceState = state
                         , compiledAvailableActions = availableIndexes
-                        , compiledPolicyActions = selectedIndexes
                         , compiledTransitions = transitions
                         }
 
@@ -224,16 +247,94 @@ compiledStateIndex (CompiledExactMDP _ states _ _) = states
 compiledActionIndex :: CompiledExactMDP state action -> FiniteActionIndex action
 compiledActionIndex (CompiledExactMDP _ _ actions _) = actions
 
--- | Read all compiled states in index order.
+-- | Read all policy-free compiled states in index order.
 compiledStates :: CompiledExactMDP state action -> NonEmpty (CompiledExactState state)
 compiledStates (CompiledExactMDP _ _ _ states) = states
 
--- | Read compiled states paired with their zero-based indexes.
+-- | Read policy-free compiled states paired with their zero-based indexes.
 compiledStateEntries :: CompiledExactMDP state action -> NonEmpty (StateIndex, CompiledExactState state)
 compiledStateEntries compiled =
     NonEmpty.zip (StateIndex 0 :| fmap StateIndex [1 ..]) (compiledStates compiled)
 
--- | One compiled closed-policy layer.
+-- | A state after a compiled policy has been closed over the model.
+data CompiledExactMRPState state
+    = CompiledMRPTerminalState
+        { compiledMRPSourceState :: !state
+        , compiledMRPTerminalPayoff :: !ExactReward
+        }
+    | CompiledMRPContinuingState
+        { compiledMRPSourceState :: !state
+        , compiledMRPTransition :: !(ExactFiniteDist CompiledExactOutcome)
+        }
+    deriving (Eq, Show)
+
+-- | A compiled exact Markov reward process obtained by one policy closure.
+data CompiledExactMRP state
+    = CompiledExactMRP
+        !StateIndex
+        !(FiniteStateIndex state)
+        !(NonEmpty (CompiledExactMRPState state))
+
+-- | Close a policy over every continuing state of a compiled exact MDP.
+closeCompiledExactPolicy ::
+    (Eq action) =>
+    CompiledExactMDP state action ->
+    ExactPolicy state action ->
+    Either (ExactPolicyCompileError state action) (CompiledExactMRP state)
+closeCompiledExactPolicy compiled selectedPolicy = do
+    indexedStates <- traverse closeState (compiledStateEntries compiled)
+    let states = fmap snd indexedStates
+    Right (CompiledExactMRP (compiledInitialState compiled) (compiledStateIndex compiled) states)
+  where
+    closeState (stateIndex, state) =
+        case state of
+            CompiledTerminalState source payoff -> Right (stateIndex, CompiledMRPTerminalState source payoff)
+            CompiledContinuingState source available transitions -> do
+                availableIds <- traverse (decodeAction source) available
+                let selected = exactPolicyActions selectedPolicy source
+                mapLeft (ExactPolicyAtStateError source) (validateExactPolicySupport availableIds selected)
+                selectedIndexes <- traverse (compileSelected source) (NonEmpty.toList (exactOutcomes selected))
+                branches <- fmap concat (traverse (selectedBranches source stateIndex transitions) selectedIndexes)
+                distribution <- mapLeft ExactPolicyCompileDistributionError (exactFiniteDist branches)
+                Right (stateIndex, CompiledMRPContinuingState source distribution)
+
+    decodeAction source index =
+        case actionAtIndex (compiledActionIndex compiled) index of
+            Nothing -> Left (ExactPolicyCompileInvariant source (InvalidCompiledActionIndex index))
+            Just action -> Right action
+
+    compileSelected source (selectedAction, mass) =
+        case lookupActionIndex (compiledActionIndex compiled) selectedAction of
+            Nothing -> Left (ExactPolicyUnindexedAction source selectedAction)
+            Just index -> Right (index, exactProbability mass)
+
+    selectedBranches source stateIndex transitions (selectedAction, actionMass) =
+        case lookup selectedAction transitions of
+            Nothing -> Left (ExactPolicyCompileInvariant source (MissingCompiledTransition stateIndex selectedAction))
+            Just transition ->
+                Right
+                    [ (outcome, actionMass * exactProbability transitionMass)
+                    | (outcome, transitionMass) <- NonEmpty.toList (exactOutcomes transition)
+                    ]
+
+-- | Read a closed process's initial-state index.
+compiledMRPInitialState :: CompiledExactMRP state -> StateIndex
+compiledMRPInitialState (CompiledExactMRP initial _ _) = initial
+
+-- | Read a closed process's validated state index.
+compiledMRPStateIndex :: CompiledExactMRP state -> FiniteStateIndex state
+compiledMRPStateIndex (CompiledExactMRP _ states _) = states
+
+-- | Read closed-process states in state-index order.
+compiledMRPStates :: CompiledExactMRP state -> NonEmpty (CompiledExactMRPState state)
+compiledMRPStates (CompiledExactMRP _ _ states) = states
+
+-- | Read closed-process states paired with their zero-based indexes.
+compiledMRPStateEntries :: CompiledExactMRP state -> NonEmpty (StateIndex, CompiledExactMRPState state)
+compiledMRPStateEntries compiled =
+    NonEmpty.zip (StateIndex 0 :| fmap StateIndex [1 ..]) (compiledMRPStates compiled)
+
+-- | One compiled exact state step.
 data CompiledExactStep
     = CompiledExactTerminalStep !ExactReward
     | CompiledExactTransitionStep !(ExactFiniteDist CompiledExactOutcome)
@@ -242,65 +343,57 @@ data CompiledExactStep
 -- | Runtime invariant failures from an otherwise compiled model.
 data CompiledRuntimeError
     = InvalidCompiledStateIndex !StateIndex
+    | InvalidCompiledActionIndex !ActionIndex
+    | CompiledActionRequestedAtTerminal !StateIndex !ExactReward
     | MissingCompiledTransition !StateIndex !ActionIndex
-    | CompiledRuntimeDistributionError !ExactDistributionError
     deriving (Eq, Show)
 
--- | Step one compiled state under its compiled exact policy.
-stepCompiledExactPolicy ::
+-- | Step one state-action pair in a policy-free compiled MDP.
+stepCompiledExactMDP ::
     CompiledExactMDP state action ->
     StateIndex ->
-    Either CompiledRuntimeError CompiledExactStep
-stepCompiledExactPolicy compiled requested = do
-    state <-
-        case compiledStateAt compiled requested of
-            Nothing -> Left (InvalidCompiledStateIndex requested)
-            Just value -> Right value
+    ActionIndex ->
+    Either CompiledRuntimeError (ExactFiniteDist CompiledExactOutcome)
+stepCompiledExactMDP compiled requested selected = do
+    _ <-
+        case actionAtIndex (compiledActionIndex compiled) selected of
+            Nothing -> Left (InvalidCompiledActionIndex selected)
+            Just action -> Right action
+    state <- requireCompiledState compiled requested
     case state of
-        CompiledTerminalState _ payoff -> Right (CompiledExactTerminalStep payoff)
-        CompiledContinuingState _ _ selected transitions -> do
-            branches <-
-                fmap
-                    concat
-                    ( traverse
-                        (selectedBranches requested transitions)
-                        (NonEmpty.toList (exactOutcomes selected))
-                    )
-            case exactFiniteDist branches of
-                Left err -> Left (CompiledRuntimeDistributionError err)
-                Right distribution -> Right (CompiledExactTransitionStep distribution)
-  where
-    selectedBranches stateIndex transitions (selectedAction, actionMass) =
-        case lookup selectedAction transitions of
-            Nothing -> Left (MissingCompiledTransition stateIndex selectedAction)
-            Just transition ->
-                Right
-                    [ (outcome, exactProbability actionMass * exactProbability transitionMass)
-                    | (outcome, transitionMass) <- NonEmpty.toList (exactOutcomes transition)
-                    ]
+        CompiledTerminalState _ payoff -> Left (CompiledActionRequestedAtTerminal requested payoff)
+        CompiledContinuingState _ _ transitions ->
+            case lookup selected transitions of
+                Nothing -> Left (MissingCompiledTransition requested selected)
+                Just transition -> Right transition
+
+-- | Step one state in a closed compiled exact MRP.
+stepCompiledExactMRP ::
+    CompiledExactMRP state ->
+    StateIndex ->
+    Either CompiledRuntimeError CompiledExactStep
+stepCompiledExactMRP compiled requested =
+    case compiledMRPStateAt compiled requested of
+        Nothing -> Left (InvalidCompiledStateIndex requested)
+        Just (CompiledMRPTerminalState _ payoff) -> Right (CompiledExactTerminalStep payoff)
+        Just (CompiledMRPContinuingState _ transition) -> Right (CompiledExactTransitionStep transition)
+
+requireCompiledState ::
+    CompiledExactMDP state action ->
+    StateIndex ->
+    Either CompiledRuntimeError (CompiledExactState state)
+requireCompiledState compiled requested =
+    case compiledStateAt compiled requested of
+        Nothing -> Left (InvalidCompiledStateIndex requested)
+        Just state -> Right state
 
 compiledStateAt :: CompiledExactMDP state action -> StateIndex -> Maybe (CompiledExactState state)
 compiledStateAt (CompiledExactMDP _ _ _ states) (StateIndex requested) =
     valueAtPosition requested (NonEmpty.toList states)
 
-compilePolicyDistribution ::
-    (Eq action) =>
-    state ->
-    FiniteActionIndex action ->
-    ExactFiniteDist (ActionId action) ->
-    Either (ExactCompileError state action) (ExactFiniteDist ActionIndex)
-compilePolicyDistribution state actions selected = do
-    entries <-
-        traverse
-            ( \(selectedAction, mass) -> do
-                index <-
-                    case lookupActionIndex actions selectedAction of
-                        Nothing -> Left (UnindexedPolicyAction state selectedAction)
-                        Just value -> Right value
-                Right (index, exactProbability mass)
-            )
-            (NonEmpty.toList (exactOutcomes selected))
-    mapDistributionError (exactFiniteDist entries)
+compiledMRPStateAt :: CompiledExactMRP state -> StateIndex -> Maybe (CompiledExactMRPState state)
+compiledMRPStateAt (CompiledExactMRP _ _ states) (StateIndex requested) =
+    valueAtPosition requested (NonEmpty.toList states)
 
 compileTransitionDistribution ::
     (Eq state) =>
@@ -308,14 +401,14 @@ compileTransitionDistribution ::
     state ->
     ActionId action ->
     ExactFiniteDist (ExactTransitionOutcome state) ->
-    Either (ExactCompileError state action) (ExactFiniteDist CompiledExactOutcome)
+    Either (ExactMDPCompileError state action) (ExactFiniteDist CompiledExactOutcome)
 compileTransitionDistribution states source selected transition = do
     entries <-
         traverse
             ( \(outcome, mass) -> do
                 successor <-
                     case lookupStateIndex states (exactSuccessorState outcome) of
-                        Nothing -> Left (UnindexedSuccessor source selected (exactSuccessorState outcome))
+                        Nothing -> Left (ExactMDPUnindexedSuccessor source selected (exactSuccessorState outcome))
                         Just value -> Right value
                 Right
                     ( CompiledExactOutcome (exactTransitionReward outcome) successor
@@ -323,17 +416,17 @@ compileTransitionDistribution states source selected transition = do
                     )
             )
             (NonEmpty.toList (exactOutcomes transition))
-    mapDistributionError (exactFiniteDist entries)
+    mapLeft ExactMDPDistributionError (exactFiniteDist entries)
 
 requireAvailableAction ::
     (Eq action) =>
     state ->
     FiniteActionIndex action ->
     ActionId action ->
-    Either (ExactCompileError state action) ActionIndex
+    Either (ExactMDPCompileError state action) ActionIndex
 requireAvailableAction state actions selected =
     case lookupActionIndex actions selected of
-        Nothing -> Left (UnindexedAvailableAction state selected)
+        Nothing -> Left (ExactMDPUnindexedAvailableAction state selected)
         Just index -> Right index
 
 stateValues :: FiniteStateIndex state -> NonEmpty state
@@ -369,25 +462,11 @@ valueAtPosition requested
     go 0 (value : _) = Just value
     go remaining (_ : values) = go (remaining - 1) values
 
-mapIndexError ::
-    (error -> compiledError) ->
-    Either error value ->
-    Either compiledError value
-mapIndexError wrap = either (Left . wrap) Right
-
 mapModelError ::
     state ->
     Either (ExactModelError action) value ->
-    Either (ExactCompileError state action) value
-mapModelError state = either (Left . CompileModelError state) Right
+    Either (ExactMDPCompileError state action) value
+mapModelError state = mapLeft (ExactMDPModelError state)
 
-mapPolicyError ::
-    state ->
-    Either (ExactPolicyError action) value ->
-    Either (ExactCompileError state action) value
-mapPolicyError state = either (Left . CompilePolicyError state) Right
-
-mapDistributionError ::
-    Either ExactDistributionError value ->
-    Either (ExactCompileError state action) value
-mapDistributionError = either (Left . CompileDistributionError) Right
+mapLeft :: (error -> otherError) -> Either error value -> Either otherError value
+mapLeft wrap = either (Left . wrap) Right

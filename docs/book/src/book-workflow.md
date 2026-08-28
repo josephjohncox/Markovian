@@ -16,7 +16,7 @@ scripts/install-doc-tools
 
 The script reads `MARKOVIAN_MDBOOK_VERSION` from `toolchain.env`. It installs that exact crate release with Cargo's locked dependency graph.
 
-## Run the complete book gate
+## Run the complete book check
 
 ```sh
 scripts/check-book
@@ -46,9 +46,9 @@ The configured project URL is <https://josephjohncox.github.io/Markovian/>. The 
 
 The generated `docs/book/build` directory remains ignored. Do not commit its files.
 
-A local book gate proves only the local source and generated output. Publication requires a successful hosted `Pages` run for the same revision and a reachable public URL.
+A local book check proves only the local source and generated output. Publication requires a successful hosted `Pages` run for the same revision and a reachable public URL.
 
-The Pages workflow does not replace the package CI workflow. Record package CI evidence separately when a change requires those gates.
+The Pages workflow does not replace the package CI workflow. Record package CI evidence separately when a change requires those checks.
 
 ## Write mathematics
 
@@ -114,4 +114,4 @@ The checker is heuristic. Review equations, code, links, and semantic claims man
 
 The book explains the supported public semantics. It also states important counterexamples and unsupported claims.
 
-Do not turn a research proposal into user documentation. Add an accepted decision and evidence before you describe a new abstraction as implemented.
+Do not turn a research proposal into user documentation. Record the technical decision and evidence before you describe a new abstraction as implemented.

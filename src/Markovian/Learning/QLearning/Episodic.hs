@@ -5,11 +5,12 @@ module Markovian.Learning.QLearning.Episodic (
     QLearningResult (..),
     EpisodicQLearningError (..),
     learnEpisodes,
+    learnEpisodesFrom,
 ) where
 
-import Data.List.NonEmpty (NonEmpty (..))
-import Data.List.NonEmpty qualified as NonEmpty
 import Markovian.Horizon (horizonValue)
+import Markovian.Interpreter.Sampled.Step (SampledStepError (..), sampleMDPStep)
+import Markovian.Learning.EpsilonGreedy (EpsilonGreedyError (..), sampleEpsilonGreedy)
 import Markovian.Learning.QLearning (
     ObservedTransition (..),
     QLearningConfig,
@@ -18,34 +19,28 @@ import Markovian.Learning.QLearning (
     QUpdateResult (..),
     emptyQTable,
     explorationRateAt,
-    explorationRateValue,
     learningRateAt,
     qEpisodeLimit,
     qEpisodeStepLimit,
     qExplorationSchedule,
     qLearningDiscount,
     qLearningRateSchedule,
-    qValue,
-    qValueAt,
     updateQ,
  )
 import Markovian.MDP (
     ActionId,
     Decision (..),
     MDP,
-    ModelError,
+    ModelError (..),
     inspectMDP,
     mdpInitialState,
-    stepMDP,
  )
-import Markovian.MRP (successorState, transitionReward)
 import Markovian.Objective (discountValue)
-import Markovian.Probability (DistributionError, finiteDist)
+import Markovian.Probability (DistributionError)
 import Markovian.Reward (Reward, RewardError, mkReward, rewardValue)
 import Markovian.Sampling (
     Generator,
     SamplingError,
-    sampleFiniteDist,
  )
 import Markovian.Trace (
     StopReason (..),
@@ -84,6 +79,7 @@ data EpisodicQLearningError action
     = EpisodicModelError !(ModelError action)
     | EpisodicDistributionError !DistributionError
     | EpisodicSamplingError !SamplingError
+    | EpisodicExplorationUnderflow !Double !Int
     | EpisodicUpdateError !(QUpdateError action)
     | EpisodicArithmeticError !RewardError
     deriving (Eq, Show)
@@ -95,12 +91,26 @@ learnEpisodes ::
     MDP state action ->
     Generator ->
     Either (EpisodicQLearningError action) (QLearningResult state action)
-learnEpisodes config model initialGenerator =
+learnEpisodes config model = learnEpisodesFrom config model emptyQTable 0 0
+
+{- | Resume learning from an explicit table, episode index, update count, and
+owned generator. The configured episode limit counts episodes in this call.
+-}
+learnEpisodesFrom ::
+    (Eq state, Eq action) =>
+    QLearningConfig ->
+    MDP state action ->
+    QTable state action ->
+    Natural ->
+    Natural ->
+    Generator ->
+    Either (EpisodicQLearningError action) (QLearningResult state action)
+learnEpisodesFrom config model initialTable initialEpisodeIndex initialUpdateCount initialGenerator =
     runEpisodes
-        0
+        initialEpisodeIndex
         (horizonValue (qEpisodeLimit config))
-        0
-        emptyQTable
+        initialUpdateCount
+        initialTable
         initialGenerator
         []
   where
@@ -170,10 +180,10 @@ learnEpisodes config model initialGenerator =
                                 available
                                 currentTable
                                 currentGenerator
-                        transition <- mapModelError (stepMDP model state selected)
-                        (outcome, afterTransition) <- mapSamplingError (sampleFiniteDist afterAction transition)
-                        let reward = transitionReward outcome
-                            successor = successorState outcome
+                        (traceStep, afterTransition) <-
+                            mapStepError (sampleMDPStep model state selected afterAction)
+                        let reward = traceTransitionReward traceStep
+                            successor = traceSuccessorState traceStep
                             observed = ObservedTransition state selected reward successor
                             rate = learningRateAt (qLearningRateSchedule config) currentUpdate
                         updated <-
@@ -181,7 +191,6 @@ learnEpisodes config model initialGenerator =
                                 (updateQ rate (qLearningDiscount config) model observed currentTable)
                         let nextAccumulated = accumulated + discountPower * rewardValue reward
                             nextPower = discountPower * discountValue (qLearningDiscount config)
-                            traceStep = TraceStep selected reward successor
                             learningStep = QLearningStep traceStep updated
                         _ <- validatedReward nextAccumulated
                         go
@@ -196,59 +205,36 @@ learnEpisodes config model initialGenerator =
                             (learningStep : reversedUpdates)
 
     chooseAction episodeIndex state available table generator =
-        let epsilon = explorationRateAt (qExplorationSchedule config) episodeIndex
-         in chooseWithRate epsilon
-      where
-        chooseWithRate epsilon
-            | explorationRateValue epsilon == 0 =
-                Right (greedyAction table state available, generator)
-            | explorationRateValue epsilon == 1 =
-                sampleUniform available generator
-            | otherwise = do
-                exploreDistribution <-
-                    mapDistributionError
-                        ( finiteDist
-                            [ (False, 1 - explorationRateValue epsilon)
-                            , (True, explorationRateValue epsilon)
-                            ]
-                        )
-                (explore, afterDecision) <-
-                    mapSamplingError (sampleFiniteDist generator exploreDistribution)
-                if explore
-                    then sampleUniform available afterDecision
-                    else Right (greedyAction table state available, afterDecision)
-
-    sampleUniform available generator = do
-        distribution <-
-            mapDistributionError
-                (finiteDist [(selected, 1) | selected <- NonEmpty.toList available])
-        mapSamplingError (sampleFiniteDist generator distribution)
+        mapBehaviorError
+            ( sampleEpsilonGreedy
+                (explorationRateAt (qExplorationSchedule config) episodeIndex)
+                table
+                state
+                available
+                generator
+            )
 
     validatedReward value =
         case mkReward value of
             Left err -> Left (EpisodicArithmeticError err)
             Right reward -> Right reward
 
-greedyAction ::
-    (Eq state, Eq action) =>
-    QTable state action ->
-    state ->
-    NonEmpty (ActionId action) ->
-    ActionId action
-greedyAction table state (first :| remaining) = foldl choose first remaining
-  where
-    choose best candidate
-        | qValue (qValueAt table state candidate) > qValue (qValueAt table state best) = candidate
-        | otherwise = best
-
 mapModelError :: Either (ModelError action) value -> Either (EpisodicQLearningError action) value
 mapModelError = either (Left . EpisodicModelError) Right
 
-mapDistributionError :: Either DistributionError value -> Either (EpisodicQLearningError action) value
-mapDistributionError = either (Left . EpisodicDistributionError) Right
-
-mapSamplingError :: Either SamplingError value -> Either (EpisodicQLearningError action) value
-mapSamplingError = either (Left . EpisodicSamplingError) Right
-
 mapUpdateError :: Either (QUpdateError action) value -> Either (EpisodicQLearningError action) value
 mapUpdateError = either (Left . EpisodicUpdateError) Right
+
+mapBehaviorError :: Either (EpsilonGreedyError action) value -> Either (EpisodicQLearningError action) value
+mapBehaviorError = either convert Right
+  where
+    convert (DuplicateEpsilonGreedyAction duplicate) = Left (EpisodicModelError (DuplicateAvailableAction duplicate))
+    convert (PositiveExplorationMassUnderflow epsilon count) = Left (EpisodicExplorationUnderflow epsilon count)
+    convert (EpsilonGreedyDistributionError err) = Left (EpisodicDistributionError err)
+    convert (EpsilonGreedySamplingError err) = Left (EpisodicSamplingError err)
+
+mapStepError :: Either (SampledStepError action) value -> Either (EpisodicQLearningError action) value
+mapStepError = either convert Right
+  where
+    convert (SampledStepModelError err) = Left (EpisodicModelError err)
+    convert (SampledStepSamplingError err) = Left (EpisodicSamplingError err)

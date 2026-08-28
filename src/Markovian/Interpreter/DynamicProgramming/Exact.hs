@@ -1,4 +1,4 @@
--- | Exact finite-horizon dynamic programming over compiled policy MDPs.
+-- | Exact finite-horizon dynamic programming over closed compiled policies.
 module Markovian.Interpreter.DynamicProgramming.Exact (
     ExactFiniteDPError (..),
     ExactFiniteDPReport (..),
@@ -8,15 +8,15 @@ module Markovian.Interpreter.DynamicProgramming.Exact (
 import Data.List.NonEmpty (NonEmpty)
 import Data.List.NonEmpty qualified as NonEmpty
 import Markovian.Compile.Exact (
-    CompiledExactMDP,
+    CompiledExactMRP,
+    CompiledExactMRPState (..),
     CompiledExactOutcome (..),
-    CompiledExactState (..),
     CompiledExactStep (..),
     CompiledRuntimeError,
     StateIndex,
-    compiledInitialState,
-    compiledStateEntries,
-    stepCompiledExactPolicy,
+    compiledMRPInitialState,
+    compiledMRPStateEntries,
+    stepCompiledExactMRP,
  )
 import Markovian.Horizon (horizonValue)
 import Markovian.Objective.Exact (
@@ -44,7 +44,7 @@ data ExactFiniteDPReport = ExactFiniteDPReport
     }
     deriving (Eq, Show)
 
-{- | Evaluate a compiled exact policy by backward finite-horizon induction.
+{- | Evaluate a closed compiled exact policy by backward finite-horizon induction.
 
 Iteration zero assigns terminal payoffs to terminal states and zero to
 continuing states. Each later iteration performs one Bellman expectation
@@ -52,11 +52,11 @@ backup while keeping terminal values clamped to their payoffs.
 -}
 evaluateCompiledExactFinite ::
     ExactFiniteObjective ->
-    CompiledExactMDP state action ->
+    CompiledExactMRP state ->
     Either ExactFiniteDPError ExactFiniteDPReport
 evaluateCompiledExactFinite objective compiled = do
     values <- iterateValues iterations initialValues
-    initialResult <- requireValue (compiledInitialState compiled) values
+    initialResult <- requireValue (compiledMRPInitialState compiled) values
     Right
         ExactFiniteDPReport
             { exactFiniteDPObjective = objective
@@ -67,13 +67,13 @@ evaluateCompiledExactFinite objective compiled = do
   where
     iterations = horizonValue (exactObjectiveHorizon objective)
     discount = exactDiscountValue (exactObjectiveDiscount objective)
-    entries = compiledStateEntries compiled
+    entries = compiledMRPStateEntries compiled
     initialValues = fmap baseValue entries
 
     baseValue (index, state) =
         case state of
-            CompiledTerminalState _ payoff -> (index, payoff)
-            CompiledContinuingState{} -> (index, exactReward 0)
+            CompiledMRPTerminalState _ payoff -> (index, payoff)
+            CompiledMRPContinuingState{} -> (index, exactReward 0)
 
     iterateValues 0 values = Right values
     iterateValues remaining values = do
@@ -82,9 +82,9 @@ evaluateCompiledExactFinite objective compiled = do
 
     backup previous (index, state) =
         case state of
-            CompiledTerminalState _ payoff -> Right (index, payoff)
-            CompiledContinuingState{} -> do
-                step <- mapRuntimeError (stepCompiledExactPolicy compiled index)
+            CompiledMRPTerminalState _ payoff -> Right (index, payoff)
+            CompiledMRPContinuingState{} -> do
+                step <- mapRuntimeError (stepCompiledExactMRP compiled index)
                 case step of
                     CompiledExactTerminalStep payoff -> Right (index, payoff)
                     CompiledExactTransitionStep distribution -> do
@@ -98,12 +98,10 @@ evaluateCompiledExactFinite objective compiled = do
         future <- requireValue (compiledSuccessorState outcome) previous
         Right
             ( exactProbability mass
-                * ( compiledRewardValue outcome
+                * ( exactRewardValue (compiledTransitionReward outcome)
                         + discount * exactRewardValue future
                   )
             )
-
-    compiledRewardValue = exactRewardValue . compiledTransitionReward
 
 requireValue ::
     StateIndex ->

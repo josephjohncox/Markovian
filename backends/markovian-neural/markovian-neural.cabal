@@ -1,9 +1,9 @@
 cabal-version: 3.0
 name:          markovian-neural
 version:       0.1.0.0
-synopsis:      Neural categorical contracts for Markovian
+synopsis:      Framework-independent neural RL references for Markovian
 description:
-  Framework-independent softmax, gradient, estimator, and approximation contracts for Markovian adapters.
+  Checked dense networks, policy gradients, replay, target networks, and DQN reference computations.
 
 category:      Math
 license:       BSD-3-Clause
@@ -12,8 +12,29 @@ author:        Joseph Cox
 maintainer:    joseph@codensity.io
 build-type:    Simple
 
+flag markovian-integration
+  description:
+    Build tests that compare against the sibling Markovian package
+
+  default:     False
+  manual:      True
+
 library
-  exposed-modules:  Markovian.Backend.Neural
+  exposed-modules:
+    Markovian.Backend.Neural
+    Markovian.Backend.Neural.ActorCritic
+    Markovian.Backend.Neural.Approximation
+    Markovian.Backend.Neural.Categorical
+    Markovian.Backend.Neural.Dense
+    Markovian.Backend.Neural.DQN
+    Markovian.Backend.Neural.Numeric
+    Markovian.Backend.Neural.Optimizer
+    Markovian.Backend.Neural.Policy
+    Markovian.Backend.Neural.Reinforce
+    Markovian.Backend.Neural.Replay
+    Markovian.Backend.Neural.TargetNetwork
+    Markovian.Backend.Neural.Transition
+
   hs-source-dirs:   src
   build-depends:    base >=4.17.2.1 && <4.20
   default-language: GHC2021
@@ -22,6 +43,15 @@ library
 test-suite markovian-neural-test
   type:             exitcode-stdio-1.0
   main-is:          Main.lhs
+  other-modules:
+    ActorCritic
+    DenseFiniteDifference
+    DQN
+    PolicyGradient
+    Reinforce
+    ReplayTarget
+    TestSupport
+
   hs-source-dirs:   test
   build-depends:
     , base              >=4.17.2.1 && <4.20
@@ -29,3 +59,23 @@ test-suite markovian-neural-test
 
   default-language: GHC2021
   ghc-options:      -Wall
+
+test-suite markovian-neural-integration-test
+  type:             exitcode-stdio-1.0
+  main-is:          IntegrationMain.hs
+  hs-source-dirs:   test
+  default-language: GHC2021
+  ghc-options:      -Wall
+
+  if !flag(markovian-integration)
+    buildable: False
+
+  else
+    other-modules:
+      MarkovianDifferential
+      TestSupport
+
+    build-depends:
+      , base              >=4.17.2.1 && <4.20
+      , Markovian         >=0.1      && <0.2
+      , markovian-neural

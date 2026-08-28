@@ -4,6 +4,12 @@ Markovian is an experimental Haskell package for finite stochastic kernels, Mark
 
 The package is greenfield and unreleased. It makes no compatibility promise. Incorrect interfaces are removed rather than retained behind shims.
 
+Capability labels in this repository have these meanings:
+
+- **Implemented:** source and deterministic fixtures exist in the current worktree.
+- **Experimental:** the API is unreleased and can change without migration support.
+- **Out of scope:** no support claim exists for convergence, production training, tensor frameworks, autodiff, or neural devices.
+
 ## Documentation
 
 [The Markovian Book](docs/book/src/introduction.md) is the user and contributor guide. It covers model construction, exact evaluation, learning, POMDPs, matrices, Bayesian inference, circuits, open systems, and optional backends. It also gives an equation-level [law catalogue](docs/book/src/laws-and-boundaries.md), [derived mathematical insights](docs/book/src/categorical-insights.md), and an annotated [bibliography](docs/book/src/references.md).
@@ -30,10 +36,13 @@ The public book is <https://josephjohncox.github.io/Markovian/>. [Pages run 3312
 - explicit seeded finite-support sampling with returned generator state;
 - action-labeled traces with terminal and horizon stop reasons;
 - exact trace enumeration whose expected return matches direct evaluation;
-- validated finite state and action compilation with unindexed-successor rejection;
-- exact finite-horizon dynamic programming and discounted Bellman policy evaluation;
-- validated tabular Q-values, constant schedules, and pure terminal-aware updates;
-- seeded bounded epsilon-greedy episodic Q-learning with deterministic traces;
+- policy-free exact finite MDP compilation with all joint action outcomes preserved;
+- separate compiled policy closure for finite-horizon and discounted Bellman policy evaluation;
+- exact discounted value iteration with residual, value-error, and greedy-policy bounds;
+- exact deterministic policy iteration with signed rational policy solves;
+- shared validated tabular Q-values, V-values, rates, schedules, and observations;
+- pure terminal-aware TD(0), SARSA, Expected SARSA, and Q-learning updates;
+- seeded bounded resumable episodic runners with explicit generator ownership;
 - canonical exact finite beliefs with post-transition prediction and conditioning;
 - exact bounded belief-state policy evaluation with mixed-termination rejection;
 - duplicate-free finite sets, including empty sets, plus nonempty finite-object refinements;
@@ -69,7 +78,9 @@ Raw or cyclic `OpenSystem` values cannot use this interpreter. Feedback, trace, 
 The semantic core depends only on `base`. GPU runtimes and neural contracts remain outside it in separate packages:
 
 - `backends/markovian-gpu` provides an optional CUDA 13 driver backend, CPU/GPU differential tests, and a transfer-inclusive benchmark;
-- `backends/markovian-neural` provides stable-softmax normalization, analytic Jacobian, score-function estimator, and approximation contracts without selecting a tensor framework.
+- `backends/markovian-neural` provides checked dense networks with manual VJPs, stable categorical operations, linear REINFORCE and actor-critic updates, replay storage, target networks, and one standard or Double-DQN batch update.
+
+The neural package is an experimental `Double` reference. It has no tensor framework, autodiff, device runtime, environment runner, or complete trainer. Its finite-difference and worked-example tests do not support convergence, scalability, or production claims.
 
 The CUDA package flag is disabled by default so ordinary builds require no GPU toolkit. On a CUDA host, run:
 
@@ -102,7 +113,7 @@ The sample evaluates one exact transition with reward `2`, discount `1/2`, and t
 
 ## Verification
 
-The package tests GHC 9.4.8 and 9.8.4. The required gates are:
+The package tests GHC 9.4.8 and 9.8.4. The required CI checks are:
 
 ```bash
 for dir in . backends/markovian-gpu backends/markovian-neural; do
@@ -118,7 +129,7 @@ cabal haddock all \
 ! grep -nE '(^|[[:space:]])Warning:' haddock.log
 cabal build all --project-file=cabal.project.ci --prefer-oldest
 cabal test all --project-file=cabal.project.ci --prefer-oldest
-hlint src backends/*/src test/AcyclicOpenSystems.hs
+hlint src backends/*/src test backends/*/test
 find src app test backends -type f -name '*.hs' -print0 \
   | sort -z \
   | xargs -0 fourmolu --mode check
@@ -149,7 +160,7 @@ Fourmolu 0.20 does not parse the repository's three LaTeX-style literate Haskell
 - [TODO.md](TODO.md) is the prioritized implementation plan.
 - [docs/CONTEXT.md](docs/CONTEXT.md) is the current repository state.
 - [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) defines semantic contracts and boundaries.
-- [docs/DECISIONS.md](docs/DECISIONS.md) records accepted decisions and proof obligations.
+- [docs/DECISIONS.md](docs/DECISIONS.md) records technical decisions and their required evidence.
 - [docs/WORKFLOWS.md](docs/WORKFLOWS.md) defines required evidence and change procedures.
 - [CHANGELOG.md](CHANGELOG.md) records unreleased user-visible changes.
 

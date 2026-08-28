@@ -90,13 +90,13 @@ Jacobs relates distribution monads, convex sets, and probabilistic effects. It g
 
 ### Fong: decorated cospans
 
-Brendan Fong. “Decorated cospans.” *Theory and Applications of Categories* 30(33), 2015, pages 1096–1120. [Journal PDF](https://www.tac.mta.ca/tac/volumes/30/33/30-33.pdf). [arXiv:1502.00872](https://arxiv.org/abs/1502.00872).
+Brendan Fong. “Decorated cospans.” *Theory and Applications of Categories* 30(33), 2015, pages 1096–1120. [Journal PDF](https://tac.mta.ca/tac/volumes/30/33/30-33.pdf). [arXiv:1502.00872](https://arxiv.org/abs/1502.00872).
 
 Decorated cospans attach system data to an apex and compose systems by pushout. This paper is a predecessor to the structured-cospan approach.
 
 ### Baez and Courser: structured cospans
 
-John C. Baez and Kenny Courser. “Structured cospans.” *Theory and Applications of Categories* 35(48), 2020, pages 1771–1822. [Journal PDF](https://www.tac.mta.ca/tac/volumes/35/48/35-48.pdf). [arXiv:1911.04630](https://arxiv.org/abs/1911.04630).
+John C. Baez and Kenny Courser. “Structured cospans.” *Theory and Applications of Categories* 35(48), 2020, pages 1771–1822. [Journal PDF](https://tac.mta.ca/tac/volumes/35/48/35-48.pdf). [arXiv:1911.04630](https://arxiv.org/abs/1911.04630).
 
 The paper constructs categories and symmetric monoidal double categories of structured cospans. It is the primary reference for Markovian interfaces, horizontal composition by pushout, vertical maps, and cells.
 
@@ -120,6 +120,12 @@ Richard Bellman. *Dynamic Programming*. Princeton University Press, 1957. [Publi
 
 Bellman gives the principle of optimality and the recursive value equations that underlie finite-horizon and fixed-point evaluation.
 
+### Sutton: temporal-difference learning
+
+Richard S. Sutton. “Learning to predict by the methods of temporal differences.” *Machine Learning* 3, 1988, pages 9–44. [DOI 10.1007/BF00115009](https://doi.org/10.1007/BF00115009).
+
+This paper develops temporal-difference prediction and the TD(0) update. Markovian implements the one-step tabular target for a supplied policy.
+
 ### Kaelbling, Littman, and Cassandra: POMDPs
 
 Leslie Pack Kaelbling, Michael L. Littman, and Anthony R. Cassandra. “Planning and acting in partially observable stochastic domains.” *Artificial Intelligence* 101(1–2), 1998, pages 99–134. [DOI 10.1016/S0004-3702(98)00023-X](https://doi.org/10.1016/S0004-3702%2898%2900023-X). [Author-hosted PDF](https://cs.brown.edu/courses/csci2951-k/papers/kaelbling98.pdf).
@@ -137,6 +143,66 @@ Chapter 3 defines finite MDPs. Chapter 4 covers dynamic programming. Chapter 6 c
 Christopher J. C. H. Watkins and Peter Dayan. “Q-learning.” *Machine Learning* 8, 1992, pages 279–292. [DOI 10.1007/BF00992698](https://doi.org/10.1007/BF00992698). [Author-hosted PDF](https://www.gatsby.ucl.ac.uk/~dayan/papers/cjch.pdf).
 
 This is the classical convergence paper for tabular Q-learning. Its convergence theorem has visitation and learning-rate assumptions that Markovian does not claim from a bounded example run.
+
+### Rummery and Niranjan: SARSA
+
+Gavin A. Rummery and Mahesan Niranjan. *On-line Q-learning using connectionist systems*. Cambridge University Engineering Department Technical Report CUED/F-INFENG/TR 166, 1994. [University repository record and PDF](https://www.repository.cam.ac.uk/handle/1810/244990).
+
+The report describes the on-policy action-value update later called SARSA. Markovian carries the sampled next behavior action explicitly.
+
+### van Seijen and colleagues: Expected SARSA
+
+Harm van Seijen, Hado van Hasselt, Shimon Whiteson, and Marco Wiering. “A theoretical and empirical analysis of Expected Sarsa.” 2009 IEEE Symposium on Adaptive Dynamic Programming and Reinforcement Learning, pages 177–184. [DOI 10.1109/ADPRL.2009.4927542](https://doi.org/10.1109/ADPRL.2009.4927542).
+
+The paper analyzes the expected action-value target. Markovian uses the expectation under its canonical epsilon-greedy distribution.
+
+### Williams: REINFORCE
+
+Ronald J. Williams. “Simple statistical gradient-following algorithms for connectionist reinforcement learning.” *Machine Learning* 8, 1992, pages 229–256. [DOI 10.1007/BF00992696](https://doi.org/10.1007/BF00992696).
+
+Williams derives score-function reinforcement algorithms. Markovian implements a bounded finite-episode update with an optional detached scalar baseline.
+
+### Sutton and colleagues: policy gradients
+
+Richard S. Sutton, David McAllester, Satinder Singh, and Yishay Mansour. “Policy gradient methods for reinforcement learning with function approximation.” *Advances in Neural Information Processing Systems 12*, 2000, pages 1057–1063. [Publisher paper](https://proceedings.neurips.cc/paper/1999/hash/464d828b85b0bed98e80ade0a5c43b0f-Abstract.html).
+
+This paper states policy-gradient results with function approximation and discusses actor-critic methods. Markovian implements finite linear reference updates, not the paper's convergence claims.
+
+### Konda and Tsitsiklis: actor-critic
+
+Vijay R. Konda and John N. Tsitsiklis. “Actor-critic algorithms.” *Advances in Neural Information Processing Systems 12*, 2000, pages 1008–1014. [Publisher paper](https://proceedings.neurips.cc/paper/1999/hash/6449f44a102fde848669bdd9eb6b76fa-Abstract.html).
+
+This paper develops two-time-scale actor-critic algorithms. Markovian provides one checked simultaneous one-step reference update.
+
+### Lin: experience replay
+
+Long-Ji Lin. “Self-improving reactive agents based on reinforcement learning, planning and teaching.” *Machine Learning* 8, 1992, pages 293–321. [DOI 10.1007/BF00992699](https://doi.org/10.1007/BF00992699).
+
+Lin introduces experience replay for reinforcement learning agents. Markovian implements deterministic bounded FIFO storage and explicit ID selection.
+
+### Mnih and colleagues: DQN
+
+Volodymyr Mnih and colleagues. “Human-level control through deep reinforcement learning.” *Nature* 518, 2015, pages 529–533. [DOI 10.1038/nature14236](https://doi.org/10.1038/nature14236). [Author manuscript](https://storage.googleapis.com/deepmind-media/dqn/DQNNaturePaper.pdf).
+
+This paper combines deep Q-learning, replay, and a target network. Markovian implements one small dense-network batch update, not the Atari training system.
+
+### van Hasselt and colleagues: Double DQN
+
+Hado van Hasselt, Arthur Guez, and David Silver. “Deep reinforcement learning with Double Q-learning.” *Proceedings of the AAAI Conference on Artificial Intelligence* 30(1), 2016. [arXiv:1509.06461](https://arxiv.org/abs/1509.06461). [AAAI paper](https://ojs.aaai.org/index.php/AAAI/article/view/10295).
+
+Double DQN selects the bootstrap action with the online network and evaluates it with the target network. Markovian implements this target rule over an explicit action mask.
+
+### Lillicrap and colleagues: soft target synchronization
+
+Timothy P. Lillicrap and colleagues. “Continuous control with deep reinforcement learning.” *ICLR*, 2016. [arXiv:1509.02971](https://arxiv.org/abs/1509.02971).
+
+This paper uses the soft target update `target <- tau * online + (1 - tau) * target` implemented by Markovian. The operation is deterministic exponential interpolation and is often called a Polyak update in deep-learning code.
+
+### Polyak and Juditsky: averaged stochastic approximation
+
+Boris T. Polyak and Anatoli B. Juditsky. “Acceleration of stochastic approximation by averaging.” *SIAM Journal on Control and Optimization* 30(4), 1992, pages 838–855. [DOI 10.1137/0330046](https://doi.org/10.1137/0330046).
+
+This paper is the primary source for Polyak–Ruppert iterate averaging. That averaging scheme is historically related terminology, but it is not the fixed-coefficient soft target update implemented here.
 
 ## Numerical computation
 
@@ -165,7 +231,9 @@ Goldberg gives a practical account of representation, rounding, guard digits, an
 | Convex mixtures | Fritz on convex spaces, Jacobs |
 | Structured cospans and double cells | Baez–Courser, Fong |
 | Acyclic sum-product interpretation | Koller–Friedman Chs. 9–10 |
-| Finite and discounted MDP evaluation | Puterman Chs. 4 and 6, Bellman |
+| Finite and discounted MDP evaluation and control | Puterman Chs. 4 and 6, Bellman |
 | POMDP belief filtering | Kaelbling–Littman–Cassandra |
-| Q-learning | Sutton–Barto Ch. 6, Watkins–Dayan |
+| TD(0), SARSA, Expected SARSA, and Q-learning | Sutton, Rummery–Niranjan, van Seijen and colleagues, Watkins–Dayan |
+| REINFORCE and actor-critic | Williams, Sutton and colleagues, Konda–Tsitsiklis |
+| Replay, DQN, Double DQN, and target updates | Lin, Mnih and colleagues, van Hasselt and colleagues, Lillicrap and colleagues |
 | Floating approximation boundaries | Higham Ch. 2, Goldberg |

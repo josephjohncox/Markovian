@@ -1,6 +1,6 @@
 # Target architecture
 
-This document defines the implemented and target architecture for Markovian. Implemented boundaries require compiler, test, Haddock, and package evidence. Stages S1 through S5 are committed and have hosted evidence. `docs/CONTEXT.md` records revision-specific local and hosted evidence.
+This document defines the implemented and target architecture for Markovian. Implemented boundaries require compiler, test, Haddock, and package evidence. `docs/CONTEXT.md` records revision-specific local and hosted evidence.
 
 `docs/DECISIONS.md` records why the project selected these boundaries. `TODO.md` controls delivery order and completion status.
 
@@ -10,7 +10,7 @@ Markovian will provide typed semantics and interpreters for stochastic processes
 
 The first supported domain is finite state, finite action, and finite support. The first evaluators use a finite horizon.
 
-The package includes an exact discounted Bellman policy evaluator and finite post-transition POMDP filtering and bounded planning. Continuous-kernel experiments remain future work and must pass their admission gate.
+The package includes exact discounted policy evaluation and control. It also includes finite post-transition POMDP filtering and bounded planning. Continuous-kernel experiments remain future work and require the evidence listed in Section 15.
 
 The project does not put tensors, devices, autodiff, neural networks, or sampling frameworks in the semantic core.
 
@@ -30,10 +30,15 @@ The root package currently contains:
 - Explicit SplitMix64 generator state and unbiased finite-support sampling.
 - Structured action-labeled traces with terminal and horizon stop reasons.
 - Exact bounded trace enumeration for expectation cross-checks.
-- Duplicate-free finite state and action indexes with exhaustive exact compilation.
+- Duplicate-free finite state and action indexes with policy-free exhaustive exact MDP compilation.
+- Separate compiled policy closure that produces a compiled MRP.
 - Exact finite-horizon dynamic programming over compiled policy models.
 - Exact discounted Bellman policy evaluation with sup-norm stopping bounds.
-- Validated tabular Q-values, schedules, pure updates, and bounded seeded episodes.
+- Exact discounted value iteration with residual, value-error, and greedy-policy bounds.
+- Exact deterministic policy iteration with signed rational linear solves.
+- Shared validated Q-tables, V-tables, rates, schedules, observations, and epsilon-greedy behavior.
+- Pure TD(0), SARSA, Expected SARSA, and Q-learning updates.
+- Bounded seeded and resumable episodic runners for all four tabular methods.
 - Canonical exact finite beliefs, post-transition filtering, and bounded belief planning.
 - Typed exact finite categorical syntax with explicit copy and independent tensor.
 - Duplicate-free finite sets, including empty sets, and nonempty finite-object refinements.
@@ -42,7 +47,7 @@ The root package currently contains:
 - Exact nonnegative stochastic matrices, proof-carrying deterministic matrices, and exact convex mixtures.
 - Dense row-major rational CPU lowering with exact denotational differential tests.
 
-The current `FiniteDist` constructor preserves labeled duplicate entries. It removes input zero weights and positive weights whose normalized `Double` mass rounds to zero. Floating constructors canonicalize negative zero. Optional CUDA execution and neural categorical contracts live in separate backend packages.
+The current `FiniteDist` constructor preserves labeled duplicate entries. It removes input zero weights and positive weights whose normalized `Double` mass rounds to zero. Floating constructors canonicalize negative zero. Optional CUDA execution and neural numerical updates live in separate backend packages.
 
 ## 2. Architecture principles
 
@@ -55,7 +60,7 @@ The current `FiniteDist` constructor preserves labeled duplicate entries. It rem
 7. Use recursion schemes only for recursive model syntax.
 8. Keep model definitions separate from interpreters.
 9. Keep approximate backends observationally related to a reference interpreter.
-10. Admit advanced abstractions only after laws, use cases, and benchmarks justify them.
+10. Add advanced abstractions only when laws, use cases, and benchmarks justify them.
 
 ## 3. Semantic foundation
 
@@ -147,7 +152,7 @@ Stochastic endpoints use `FiniteSet` because the empty-to-empty normalized arrow
 
 `StochasticMatrix`, `DeterministicMatrix`, and exact convex families assign nominal roles to their scalar and endpoint parameters. External `coerce` calls cannot replace the scalar laws or endpoint equality evidence. Convex coefficient validation is a fixed generic sum-to-one operation, not an overridable instance predicate.
 
-`DeterministicMatrix` validates one-hot rows or a total represented finite function. Its forgetful embedding into `StochasticMatrix` is total. Only this proof-carrying type can authorize copy-naturality reasoning; a stochastic primitive remains stochastic even when its entries happen to be Dirac. Exact convex families are nonempty, use nonnegative coefficients summing exactly to one, and preserve stochastic normalization. Composition and tensor are separately affine, not jointly affine over correlated operand pairs.
+`DeterministicMatrix` validates one-hot rows or a total represented finite function. Its forgetful embedding into `StochasticMatrix` is total. Copy-naturality reasoning requires this proof-carrying type. A stochastic primitive remains stochastic even when its entries happen to be Dirac. Exact convex families are nonempty, use nonnegative coefficients summing exactly to one, and preserve stochastic normalization. Composition and tensor are separately affine, not jointly affine over correlated operand pairs.
 
 S1 does not compare transpose with Bayesian inversion because S2 owns priors, positive support, exact division, and zero-evidence errors. S1 exact-law-tests a raw transpose normalization counterexample. S2 defines prior-indexed Bayesian inversion as a separate normalized operation on restricted support and exact-law-tests its stated fixtures.
 
@@ -207,7 +212,7 @@ Binary pushout classes have the canonical representation described above. Nested
 
 The interpreter does not enumerate the complete apex assignment object. A bounded test computes the complete-valuation sum independently and compares it with the live-frontier result. Runtime cost remains exponential in the largest live frontier and in represented boundary size. S6 makes no general efficiency claim for wide DAGs.
 
-The admitted fragment supports exact identity, sequential composition after named middle-boundary reindexing, disjoint-union tensor, normalization, stored sharing, explicit discard, conditional-product diamonds, and ready-edge scheduling independence for successful denotations. Failures are diagnostics ordered by the stable topological schedule, so changing a valid schedule can change which failing edge is reported first. The semantic laws are finite fixture laws, not error-value laws or a machine-checked theorem. Cycles, trace, feedback, recursion, arbitrary graph evaluation, continuous-time open-Markov black-boxing, and unrestricted MDP black-boxing remain outside the implementation.
+The supported fragment provides exact identity, sequential composition after named middle-boundary reindexing, disjoint-union tensor, normalization, stored sharing, explicit discard, conditional-product diamonds, and ready-edge scheduling independence for successful denotations. Failures are diagnostics ordered by the stable topological schedule, so changing a valid schedule can change which failing edge is reported first. The semantic laws are finite fixture laws, not error-value laws or a machine-checked theorem. Cycles, trace, feedback, recursion, arbitrary graph evaluation, continuous-time open-Markov black-boxing, and unrestricted MDP black-boxing remain outside the implementation.
 
 ### 3.9 Evidence classification and proof boundary
 
@@ -414,19 +419,26 @@ The floating implementation returns a fallible `PolicyMRP`. It validates the req
 
 Policy closure is the only standard path from MDP evaluation to MRP evaluation. An evaluator must not treat stochastic outcomes as selectable actions.
 
-### 6.4 Tabular Q-learning interpreter
+### 6.4 Tabular temporal-difference learning
 
-The Q-table key is `(state, ActionId)`. Missing keys denote zero. The model remains free of table, schedule, exploration, and generator state.
+The shared tabular layer keeps state-value and action-value tables distinct. Missing keys denote zero. The model remains free of tables, schedules, exploration, and generator state.
 
-For one observed transition `(s,a,r,s')`, the pure update is:
+Every update uses `x' = x + alpha * (target - x)`. For one observed transition `(s,a,r,s')`, continuing targets are:
 
 ```text
-target = r + gamma * terminalPayoff(s')        when s' is terminal
-target = r + gamma * max_a' Q(s',a')           otherwise
-Q'(s,a) = Q(s,a) + alpha * (target - Q(s,a))
+TD(0)          r + gamma * V(s')
+SARSA          r + gamma * Q(s',a')
+Expected SARSA r + gamma * sum_a pi_epsilon(a | s') * Q(s',a)
+Q-learning     r + gamma * max_a Q(s',a)
 ```
 
-The maximum ranges only over validated actions available at `s'`. The source action must be available at `s`. Learning rate, epsilon, discount, episode count, per-episode step count, and generator state are explicit. The current schedules are validated constants. Epsilon-greedy ties choose the first available action; support order therefore defines deterministic tie-breaking, not model semantics.
+Every terminal target is `r + gamma * terminalPayoff(s')`. A terminal update does not request successor actions, a policy, epsilon, or a dummy next action.
+
+TD(0), SARSA, and Expected SARSA use on-policy targets. Q-learning separates epsilon-greedy behavior from its greedy off-policy target. The pure root updates still inspect the MDP for terminal status and action-support validation.
+
+The canonical epsilon-greedy distribution assigns `epsilon / |A(s)|` to every available action. It adds `1 - epsilon` to the first greedy action. Exact ties choose the first model-available action. Duplicate action support fails validation.
+
+Each algorithm has a bounded episodic runner and a resumable runner. Resume state includes the table, episode index, global update count, and generator. SARSA selects its next behavior action before the current update and carries that exact action into the next step.
 
 Each episode checks terminal status before its step limit. Transition and terminal rewards use the bounded-interpreter discount convention. Equal initial generator state produces equal traces, updates, tables, and returned generator state.
 
@@ -484,7 +496,9 @@ An iterative solver clamps terminal values to `g_Z`. It reports the residual ove
 
 Under the contraction conditions, residual `delta` gives the bound `delta / (1 - gamma)` in the supremum norm.
 
-Optimal MDP value uses a maximum over available action IDs. Policy iteration and value iteration remain interpreter choices.
+For control, the optimality operator maximizes exact action values over each state's available actions. The value-iteration report includes `delta / (1 - gamma)` and the greedy-policy bound `2 * gamma * delta / (1 - gamma)^2`.
+
+Exact policy iteration selects the first available initial action, solves each fixed policy over signed rationals, and selects the first exact maximizer. Value and policy iteration both have explicit limits.
 
 Undiscounted cyclic systems need separate properness conditions. The implementation must reject or isolate cases without a stated convergence contract.
 
@@ -525,13 +539,13 @@ The architecture treats each variant as an explicit extension.
 | Variant | Status and boundary |
 | --- | --- |
 | Finite episodic MDP | First supported MDP. It uses a finite horizon. |
-| Discounted continuing MDP | Exact contraction fixed-point policy evaluation is implemented. Control optimization remains separate future work. |
+| Discounted continuing MDP | Exact contraction policy evaluation, value iteration, and deterministic policy iteration are implemented for finite models. |
 | Average-reward MDP | Deferred. It needs recurrence and gain or bias semantics. |
 | Constrained MDP | Deferred. It needs separate cost signals and feasibility semantics. |
 | Semi-Markov decision process | Deferred. It needs explicit duration and discount timing. |
 | POMDP | Exact finite post-transition filtering and bounded belief-policy evaluation are implemented. |
 | Multi-agent model | Out of the initial scope. It needs joint actions and equilibrium concepts. |
-| Continuous-state MDP | Experimental package only after continuous-kernel admission. |
+| Continuous-state MDP | Experimental package only after the continuous-kernel requirements are met. |
 
 A variant does not enter the core through optional fields. It receives its own interface and objective contract.
 
@@ -544,17 +558,21 @@ Implemented interpreters provide:
 - Exact finite expectation and trace enumeration.
 - Seeded finite-support simulation.
 - Exact finite-horizon dynamic programming and contraction policy evaluation.
-- Validated Q-learning updates and bounded seeded episodes.
+- Exact bounded value iteration, greedy extraction, and rational policy iteration.
+- Pure TD(0), SARSA, Expected SARSA, and Q-learning updates.
+- Bounded seeded and resumable tabular episodes.
 - Exact POMDP filtering and bounded belief-policy evaluation.
 - Dense exact CPU lowering and optional dense GPU execution.
 
-Control-optimizing value iteration or policy iteration, sparse lowering, and continuous sampling or quadrature remain future interpreter families.
+Sparse lowering and continuous sampling or quadrature remain future interpreter families.
 
 Each interpreter receives all behavior-changing configuration as an argument. This includes seeds, horizons, discounts, schedules, tolerances, iteration limits, and devices.
 
 The exact reference interpreter implements Section 5.2 by bounded state recursion. It checks terminal status before the horizon boundary, decreases the transition count on every recursive call, and preserves rational arithmetic throughout. Its trace enumerator exposes the same branches and returns for independent expectation checks.
 
 The sampled interpreter uses the same terminal-before-horizon and discount placement. It receives and returns opaque generator state. Floating support masses are converted to their exact binary rational values and sampled by rejection from unbiased generator bits, so every exposed positive entry remains reachable. A deterministic one-point distribution consumes no generator state.
+
+The shared sampled MDP step validates one selected action and samples its joint reward-successor outcome. Episodic tabular runners use this operation and return the successor generator.
 
 An interpreter can cache or compile a model. The cache and compiler are not part of the model denotation.
 
@@ -588,7 +606,7 @@ Markovian.Category.Matrix opaque finite semiring matrices
 Markovian.Category.Matrix.Stochastic normalized exact nonnegative matrices
 Markovian.Category.Matrix.Deterministic proof-carrying one-hot matrices
 Markovian.Category.Convex.Exact exact convex families and mixtures
-Markovian.Compile.Exact     validated finite indexes and exact policy compilation
+Markovian.Compile.Exact     policy-free exact MDP compilation and compiled policy closure
 Markovian.Probability       opaque floating probability and distribution types
 Markovian.Probability.Exact exact rational probability and distribution types
 Markovian.Reward            floating reward and terminal-payoff values
@@ -609,10 +627,20 @@ Markovian.Sampling          explicit generator and finite categorical sampling
 Markovian.Trace             generic action-labeled bounded traces
 Markovian.Interpreter.Exact bounded exact expectation and trace enumeration
 Markovian.Interpreter.Sampled seeded floating finite sampling and traces
-Markovian.Interpreter.DynamicProgramming.Exact exact finite-horizon backups
+Markovian.Interpreter.Sampled.Step one validated selected-action joint sample
+Markovian.Interpreter.DynamicProgramming.Exact exact finite-horizon policy backups
 Markovian.Interpreter.Bellman.Exact exact contraction policy evaluation
-Markovian.Learning.QLearning validated Q-values, configuration, and pure update
-Markovian.Learning.QLearning.Episodic seeded bounded epsilon-greedy learning
+Markovian.Interpreter.Control.Exact exact value iteration, greedy extraction, and policy iteration
+Markovian.Learning.Tabular shared Q/V tables, rates, schedules, and observations
+Markovian.Learning.EpsilonGreedy canonical behavior distribution and seeded sampler
+Markovian.Learning.TD0 pure state-value update
+Markovian.Learning.TD0.Episodic bounded supplied-policy TD runner
+Markovian.Learning.Sarsa pure carried-action update
+Markovian.Learning.Sarsa.Episodic bounded epsilon-greedy SARSA runner
+Markovian.Learning.ExpectedSarsa pure expected behavior-policy update
+Markovian.Learning.ExpectedSarsa.Episodic bounded Expected SARSA runner
+Markovian.Learning.QLearning pure greedy-target action-value update
+Markovian.Learning.QLearning.Episodic bounded epsilon-greedy behavior runner
 ```
 
 Internal representations use `Markovian.Internal.*`. The package does not expose those modules.
@@ -621,24 +649,15 @@ Learning modules depend on model and interpreter modules. Model modules do not d
 
 ### 11.2 Package map
 
-The semantic implementation remains in the root package while hardware and framework contracts use separate packages.
+The implemented project has three packages:
 
 ```text
-markovian-core              semantic values, finite kernels, models, policies
-markovian-interpreters      exact, sample, trace, and Bellman interpreters
-markovian-learning          tabular learning algorithms
-markovian-pomdp             POMDP filtering and planning
-markovian-continuous        experimental continuous kernels
-markovian-compiler          typed categorical IR and lowering
-markovian-gpu               optional CUDA driver backend (implemented)
-markovian-neural            framework-independent neural contracts (implemented)
-markovian-hasktorch         possible future tensor-framework adapter
-markovian-accelerate        batched finite array backend
-markovian-monad-bayes       optional sampling adapter
-markovian-horde-ad          research autodiff backend
+Markovian                  semantic core, exact interpreters, tabular learning, and exact CPU lowering
+markovian-gpu              optional CUDA driver backend
+markovian-neural           framework-independent checked neural reference updates
 ```
 
-`markovian-core` has no dependency on any other package in this list. Backend packages depend inward on stable semantic interfaces.
+The root package depends only on `base`. The neural package depends only on `base` and the root `Markovian` package so it can reuse the explicit approximation boundary. Neither package imports a tensor, autodiff, device, or global-randomness framework.
 
 ### 11.3 Public API policy
 
@@ -697,14 +716,19 @@ Every neural backend must define:
 - Parameter and input domains.
 - Output normalization.
 - Approximation or calibration metrics.
-- Estimator bias and variance.
-- Gradient assumptions.
-- Device precision and reproducibility.
+- Gradient and detachment assumptions.
+- Device precision and reproducibility when a device exists.
 - Failure behavior for NaN, infinity, or invalid support.
 
-The `markovian-neural` package implements stable-softmax normalization, the analytic softmax Jacobian, a score-function estimator contract with an explicit baseline flag, and max-norm comparison with exact rational categorical masses. It rejects empty, non-finite, out-of-range, and shape-mismatched values. It selects no tensor or autodiff framework.
+The `markovian-neural` package uses checked `Double` arithmetic and reuses the root approximation boundary. It implements an opaque finite scalar, stable softmax, analytic categorical gradients, row-major dense networks, manual VJPs, and pure SGD. Dense layers use `tanh` hidden activations and a linear output head.
 
-Training APIs come after these denotations and error contracts.
+REINFORCE and actor-critic use masked linear categorical policies and linear scalar value functions. Unavailable outputs receive zero score gradient. Their actor, baseline, and critic gradients use immutable pre-update snapshots. REINFORCE includes the outer discount power for the discounted start-return objective. Truncated episodes require an explicit boundary bootstrap.
+
+Replay is a positive-capacity FIFO buffer with monotonic IDs and explicit ordered ID selection. It has no random sampler. Target networks support hard, periodic hard, and Polyak synchronization. Failed updates do not advance target schedules.
+
+DQN supports standard and Double-DQN targets over nonempty ordered action masks. One nonempty batch uses one online and target snapshot, one mean half-squared-loss gradient, one atomic SGD update, and post-success target scheduling.
+
+The package has no tensor framework, autodiff, device execution, environment runner, or complete trainer. Its finite-difference and deterministic fixtures do not support convergence, calibration, scalability, or production claims.
 
 ## 14. Categorical compiler IR
 
@@ -738,7 +762,7 @@ The base functor must contain recursive positions as its type parameter. The coa
 
 A state graph with a self-loop is not an initial-algebra tree. Evaluate it with a horizon or fixed point.
 
-Admission requires a termination or productivity argument and equivalence tests against a direct interpreter.
+Ready when: a termination or productivity argument and equivalence tests against a direct interpreter are available.
 
 ### 15.2 Kan extensions
 
@@ -759,7 +783,7 @@ Do not merge the claim without a derivation and tests for the preserved structur
 
 Codensity can reassociate bind-heavy probability or free-program representations. Keep it internal.
 
-Admission requires semantic-equivalence tests, allocation measurements, and runtime benchmarks on a representative bind-heavy workload.
+Ready when: semantic-equivalence tests, allocation measurements, and runtime benchmarks cover a representative bind-heavy workload.
 
 ### 15.4 Cayley forms
 
@@ -767,7 +791,7 @@ A Cayley form can improve accumulation of traces, rewards, sparse updates, or ot
 
 Floating-point addition is not associative. An optimization must state its numeric effect and pass tolerance-based differential tests.
 
-Admission requires an identified accumulation bottleneck and benchmark evidence.
+Ready when: an identified accumulation bottleneck and benchmark evidence are available.
 
 ### 15.5 Normalization by evaluation
 
@@ -775,7 +799,7 @@ NBE requires a typed source DSL with clear normal forms. It can normalize determ
 
 NBE must not sample during normalization. It must residualize unsupported neural, continuous, or recursive primitives.
 
-Admission requires soundness, reification correctness, a termination boundary, and code-size benchmarks.
+Ready when: soundness, reification correctness, a termination boundary, and code-size benchmarks are available.
 
 ### 15.6 Diagonalization
 
@@ -785,11 +809,11 @@ Matrix diagonalization is a solver optimization for suitable finite transition o
 
 A matrix backend can use eigendecomposition only after it checks the required matrix conditions. It must report conditioning, residuals, and numeric error.
 
-Admission requires comparison with a direct or iterative reference solver. A benchmark must show a benefit on representative models.
+Ready when: tests compare with a direct or iterative reference solver. A benchmark must show a benefit on representative models.
 
 ## 16. External package recommendations
 
-These are candidates, not current dependencies. A recommendation does not authorize a Cabal change.
+These are candidates, not current dependencies. This list does not change the Cabal dependencies.
 
 | Package | Recommendation | Boundary | Source |
 | --- | --- | --- | --- |
@@ -888,11 +912,11 @@ The Pages workflow does not replace compiler, lower-bound, source, Haddock, or s
 
 The source-distribution job runs `cabal check`, creates an archive, unpacks it, then builds and tests the unpacked tree.
 
-The compiler matrix tests GHC 9.4.8 and 9.8.4. Add more compilers only after their package bounds and full gates pass.
+The compiler matrix tests GHC 9.4.8 and 9.8.4. Add more compilers only after their package bounds and full checks pass.
 
 Pin GitHub Actions by commit SHA. Pin formatter versions. Change dependency pins in separate maintenance changes.
 
-A semantic change also requires an accepted decision, updated invariants, and deterministic contract tests.
+A semantic change also requires a recorded technical decision, updated invariants, and deterministic contract tests.
 
 A public API or release change also requires README updates and a factual changelog entry.
 

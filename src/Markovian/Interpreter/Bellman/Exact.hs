@@ -1,7 +1,7 @@
 {- | Exact discounted Bellman fixed-point evaluation for compiled policies.
 
 The solver uses the sup norm. For contraction factor @gamma@ and Bellman
-residual @r = ||T v - v||_infinity@, the reported stopping bound is
+residual @r = ||T v - v||_infinity@, the reported value-error bound is
 @r / (1 - gamma)@.
 -}
 module Markovian.Interpreter.Bellman.Exact (
@@ -24,15 +24,15 @@ import Data.List.NonEmpty (NonEmpty)
 import Data.List.NonEmpty qualified as NonEmpty
 import Data.Semigroup (Max (..), sconcat)
 import Markovian.Compile.Exact (
-    CompiledExactMDP,
+    CompiledExactMRP,
+    CompiledExactMRPState (..),
     CompiledExactOutcome (..),
-    CompiledExactState (..),
     CompiledExactStep (..),
     CompiledRuntimeError,
     StateIndex,
-    compiledInitialState,
-    compiledStateEntries,
-    stepCompiledExactPolicy,
+    compiledMRPInitialState,
+    compiledMRPStateEntries,
+    stepCompiledExactMRP,
  )
 import Markovian.Horizon (Horizon, horizonValue)
 import Markovian.Objective.Exact (
@@ -97,18 +97,19 @@ data ExactBellmanReport = ExactBellmanReport
     }
     deriving (Eq, Show)
 
-{- | Solve one compiled exact policy's discounted Bellman fixed point.
+{- | Solve one closed compiled exact policy's discounted Bellman fixed point.
 
 Terminal values are clamped to terminal payoffs on initialization and every
-backup. The returned residual is evaluated at the returned value vector.
+backup. The residual is evaluated at the returned value vector. A zero
+iteration limit performs no backups.
 -}
 solveCompiledExactPolicy ::
     ExactBellmanConfig ->
-    CompiledExactMDP state action ->
+    CompiledExactMRP state ->
     Either ExactBellmanError ExactBellmanReport
 solveCompiledExactPolicy config compiled = iterateValues 0 initialValues
   where
-    entries = compiledStateEntries compiled
+    entries = compiledMRPStateEntries compiled
     gamma = exactContractionDiscountValue (exactBellmanDiscount config)
     tolerance = exactBellmanToleranceValue (exactBellmanTolerance config)
     maximumIterations = horizonValue (exactBellmanMaximumIterations config)
@@ -116,38 +117,39 @@ solveCompiledExactPolicy config compiled = iterateValues 0 initialValues
 
     baseValue (index, state) =
         case state of
-            CompiledTerminalState _ payoff -> (index, payoff)
-            CompiledContinuingState{} -> (index, exactReward 0)
+            CompiledMRPTerminalState _ payoff -> (index, payoff)
+            CompiledMRPContinuingState{} -> (index, exactReward 0)
 
     iterateValues iteration values = do
         next <- traverse (backup values) entries
         residual <- supDistance values next
         let stoppingBound = residual / (1 - gamma)
             converged = stoppingBound <= tolerance
-            exhausted = iteration >= maximumIterations
-        if converged || exhausted
-            then makeReport iteration residual stoppingBound values converged
-            else iterateValues (iteration + 1) next
+        if converged
+            then makeReport iteration residual stoppingBound values BellmanConverged
+            else
+                if iteration >= maximumIterations
+                    then makeReport iteration residual stoppingBound values BellmanIterationLimit
+                    else iterateValues (iteration + 1) next
 
-    makeReport iteration residual stoppingBound values converged = do
-        initial <- requireValue (compiledInitialState compiled) values
+    makeReport iteration residual stoppingBound values reason = do
+        initial <- requireValue (compiledMRPInitialState compiled) values
         Right
             ExactBellmanReport
                 { exactBellmanConfigUsed = config
                 , exactBellmanIterations = iteration
                 , exactBellmanResidual = residual
                 , exactBellmanStoppingBound = stoppingBound
-                , exactBellmanStopReason =
-                    if converged then BellmanConverged else BellmanIterationLimit
+                , exactBellmanStopReason = reason
                 , exactBellmanValues = values
                 , exactBellmanInitialValue = initial
                 }
 
     backup previous (index, state) =
         case state of
-            CompiledTerminalState _ payoff -> Right (index, payoff)
-            CompiledContinuingState{} -> do
-                step <- mapRuntimeError (stepCompiledExactPolicy compiled index)
+            CompiledMRPTerminalState _ payoff -> Right (index, payoff)
+            CompiledMRPContinuingState{} -> do
+                step <- mapRuntimeError (stepCompiledExactMRP compiled index)
                 case step of
                     CompiledExactTerminalStep payoff -> Right (index, payoff)
                     CompiledExactTransitionStep distribution -> do

@@ -27,7 +27,19 @@ The framework has five main layers.
 4. Matrices, circuits, and open systems define compositional structure.
 5. Interpreters and backends execute the same model under different contracts.
 
-The exact layers depend only on `base`. CUDA and neural contracts live in separate packages.
+The exact layers depend only on `base`. CUDA and neural code lives in separate packages.
+
+## Control and learning axes
+
+The book classifies control and learning methods along three independent axes:
+
+- model-based or model-free target;
+- on-policy or off-policy;
+- tabular or function approximation.
+
+Exact value iteration and policy iteration are model-based. The TD, policy-gradient, and DQN updates use observed transitions or episodes.
+
+Read [Control and learning taxonomy](control-learning-taxonomy.md) before selecting a learning API.
 
 ## Three operations called reversal
 
@@ -44,6 +56,8 @@ No common `Dagger` class joins these operations.
 ## How to read this book
 
 Read [First exact MDP](first-mdp.md) for an executable example. Read [Choose an API](choose-an-api.md) when you have a specific task.
+
+Read [Exact evaluation and control](exact-evaluation.md) for model-based methods. Read [Sampling and tabular learning](sampling-learning.md) for sample-based table updates.
 
 The model chapters explain rewards, policies, evaluation, learning, and partial observability. The algebra chapters explain matrices, Bayesian inference, circuits, and open systems.
 

@@ -13,7 +13,7 @@ Each circuit has one provenance index:
 
 A deterministic primitive must produce a proof-carrying deterministic matrix. A stochastic primitive must produce a normalized stochastic matrix.
 
-This split prevents a dishonest deterministic tag from authorizing invalid rewrites.
+This split prevents a dishonest deterministic tag from enabling invalid rewrites.
 
 ## Structural operations
 

@@ -1,13 +1,15 @@
 # Decision log
 
-This file records active architecture decisions. Change an accepted decision with a new superseding entry. Do not rewrite its history to hide a reversal.
+This file records active architecture decisions. Change a recorded decision with a new superseding entry. Do not rewrite its history to hide a reversal.
+
+Editorial note: terminology-only edits do not alter decision IDs, dates, statuses, or recorded technical outcomes.
 
 ## Status terms
 
-- **Accepted**: required for target design and new work.
+- **Accepted**: selected for the target design and current work.
 - **Proposed**: review is still open.
-- **Deferred**: no implementation is authorized.
-- **Rejected**: do not implement without a superseding decision.
+- **Deferred**: implementation is not planned.
+- **Rejected**: the project selected against this design.
 - **Superseded**: a later decision replaces this entry.
 
 ## Decisions
@@ -92,7 +94,7 @@ This file records active architecture decisions. Change an accepted decision wit
 
 **Consequences:** This decision does not add a dependency. Each package still needs license, maintenance, bounds, and benchmark review.
 
-### D-009: Gate advanced categorical optimization
+### D-009: Defer advanced categorical optimization
 
 **Status:** Deferred
 
@@ -100,7 +102,7 @@ This file records active architecture decisions. Change an accepted decision wit
 
 **Rationale:** The repository has no typed source DSL, optimizer benchmarks, or stable semantic core.
 
-**Consequences:** No named feature is authorized. Each feature needs a specific use case, its proof obligations, and an accepted superseding decision.
+**Consequences:** No named feature is planned. Each feature needs a specific use case, required evidence, and a recorded superseding decision.
 
 ### D-010: Migrate additively with two legacy adapters
 
@@ -182,7 +184,7 @@ Closure removes the selected action ID. Code that needs action-labeled traces us
 
 **Required evidence:** A small characterization-test change, Cabal bounds, maintenance review, and CI runtime.
 
-### D-018: Admit a categorical compiler IR
+### D-018: Evaluate a categorical compiler IR
 
 **Status:** Superseded by D-035 and D-040
 
@@ -190,7 +192,7 @@ Closure removes the selected action ID. Code that needs action-labeled traces us
 
 **Required evidence:** Source and target categories, a typed IR sketch, structure laws, random-sharing tests, and a representative workload.
 
-**Superseding effect:** If accepted, D-018 supersedes D-009 only for categorical compiler IR work. D-009 continues to defer other named features.
+**Superseding effect:** If selected, D-018 supersedes D-009 only for categorical compiler IR work. D-009 continues to defer other named features.
 
 ### D-019: Select the Q-learning contract
 
@@ -208,7 +210,7 @@ Closure removes the selected action ID. Code that needs action-labeled traces us
 
 **Required evidence:** Filtering equations and exact examples for normalization and impossible observations.
 
-### D-021: Admit one continuous-kernel use case
+### D-021: Evaluate one continuous-kernel use case
 
 **Status:** Proposed
 
@@ -216,11 +218,11 @@ Closure removes the selected action ID. Code that needs action-labeled traces us
 
 **Required evidence:** Measurability, integrability, supported operations, errors, and a reference or statistical validation plan.
 
-### D-022: Authorize the bounded Foundation Kickoff core slice
+### D-022: Implement the bounded Foundation Kickoff core slice
 
 **Status:** Completed and superseded by D-030
 
-**Decision:** The user-authorized Foundation Kickoff can add one semantic-core slice before the blocked P0 baseline completes. The slice uses separate opaque `Double`-backed `Prob` and `Weight` values, scaled floating normalization, and fail-fast structured construction errors. `FiniteDist` preserves labeled duplicate entries and removes zero-weight entries. Exact-reference numeric types remain separate future work.
+**Decision:** The user-selected Foundation Kickoff adds one semantic-core slice before the blocked P0 baseline completes. The slice uses separate opaque `Double`-backed `Prob` and `Weight` values, scaled floating normalization, and fail-fast structured construction errors. `FiniteDist` preserves labeled duplicate entries and removes zero-weight entries. Exact-reference numeric types remain separate future work.
 
 The slice can add `Reward`, `Kernel`, `Policy`, and one-step MRP and MDP interfaces. It cannot add policy closure, objectives, evaluators, adapters, learning changes, recursion abstractions, or backends.
 
@@ -274,7 +276,7 @@ The slice can add `Reward`, `Kernel`, `Policy`, and one-step MRP and MDP interfa
 
 **Decision:** Exact reference probabilities, weights, finite distributions, rewards, and discounts use opaque `Rational`-backed types in separate modules. Floating finite-horizon `Discount` accepts the closed interval from zero to one. `ContractionDiscount` and its exact counterpart accept the half-open interval from zero to one. `Horizon` stores an unbounded `Natural` and validates an `Integer` input.
 
-**Rationale:** Exact law tests need literal equality and cannot inherit floating rounding. Finite-horizon evaluation permits a unit discount, while Bellman contraction arguments require a discount below one. A machine-sized horizon would add an unrelated overflow boundary. Separate types make each proof obligation visible in signatures.
+**Rationale:** Exact law tests need literal equality and cannot inherit floating rounding. Finite-horizon evaluation permits a unit discount, while Bellman contraction arguments require a discount below one. A machine-sized horizon would add an unrelated overflow boundary. Separate types make each required invariant visible in signatures.
 
 **Floating normalization proof:** After validation and zero removal, the largest weight `m` is positive and finite. Every scaled term `w_i / m` lies in the interval from zero to one, and at least one term equals one. Therefore the scaled total is positive. It can become infinite only after more than `maxFiniteDouble` positive terms, which no executable finite list can materialize. The defensive `InvalidScaledTotal` check remains, but a public deterministic unit test cannot reach it without an infeasible list. Tests instead cover invalid inputs, direct-sum overflow, rounded-zero removal, and positive exposed mass.
 
@@ -326,7 +328,7 @@ The slice can add `Reward`, `Kernel`, `Policy`, and one-step MRP and MDP interfa
 
 **Rationale:** Compatibility preserves value only when users depend on a coherent contract. These interfaces had no users and encoded contradictory meanings for actions, unchecked probability, unbounded recursion, partial operations, and incorrect learning semantics. Retaining them would increase defect surface and constrain the correct design for no benefit.
 
-**Consequences:** The package exposes only the validated semantic modules. The library, sample, and tests depend only on `base` and the local package. Learning returns later under a new explicit contract. D-010, D-022 compatibility limits, and the dependency-workaround portion of D-025 no longer govern current work.
+**Consequences:** The package exposes only the validated semantic modules. The library, sample, and tests depend only on `base` and the local package. Learning returns later under a new explicit contract. D-010, D-022 compatibility limits, and the dependency-workaround portion of D-025 no longer apply to current work.
 
 **Risk:** This branch cannot serve as a drop-in update for code written against the prototype. That break is intentional. Git history remains the only record of the deleted API.
 
@@ -362,7 +364,7 @@ The slice can add `Reward`, `Kernel`, `Policy`, and one-step MRP and MDP interfa
 
 **Rationale:** The deleted prototype hid learning rate, discount, epsilon, and termination behavior, ignored transition weights, omitted terminal payoff, and used partial vector maxima. Separating the pure algebraic update from seeded sampling makes every parameter and target independently testable. Bounded horizons rule out negative-count and cyclic nontermination.
 
-**Consequences:** `Markovian.Learning.QLearning` owns finite Q-values, duplicate-free tables, schedules, configuration, and pure updates. `Markovian.Learning.QLearning.Episodic` samples the validated MDP, returns structured episode traces and final generator state, and uses deterministic first-action tie-breaking. Equal seeds produce equal updates and final tables. Statistical frequency thresholds are not correctness gates.
+**Consequences:** `Markovian.Learning.QLearning` owns finite Q-values, duplicate-free tables, schedules, configuration, and pure updates. `Markovian.Learning.QLearning.Episodic` samples the validated MDP, returns structured episode traces and final generator state, and uses deterministic first-action tie-breaking. Equal seeds produce equal updates and final tables. Statistical frequency thresholds are not correctness checks.
 
 **Risk:** List-backed tables and constant schedules are reference implementations. More efficient maps and decaying schedules must preserve key semantics, validation, visit indexing, generator ownership, and deterministic scripted fixtures.
 
@@ -386,7 +388,7 @@ The slice can add `Reward`, `Kernel`, `Policy`, and one-step MRP and MDP interfa
 
 **Rationale:** Rewriting one shared stochastic result as two kernel executions changes correlation. Typed source and target objects reject out-of-support primitive outputs and mismatched composition before lowering. Exact rational denotation makes identity, composition, tensor, copy, discard, and shared-draw counterexamples literal tests.
 
-**Consequences:** `Markovian.Category.Finite.Exact` is the accepted exact finite IR. `Markovian.Backend.CPU.Exact` lowers it to a source-by-target row-major rational matrix. Source and target support order defines indexes only; dense execution is differentially tested against exact denotation.
+**Consequences:** `Markovian.Category.Finite.Exact` is the implemented exact finite IR. `Markovian.Backend.CPU.Exact` lowers it to a source-by-target row-major rational matrix. Source and target support order defines indexes only; dense execution is differentially tested against exact denotation.
 
 **Risk:** This fragment has no recursive syntax, optimizer, sparse storage, or reward annotations. New primitives require preservation laws and cannot blur shared and independent stochastic execution.
 
@@ -426,7 +428,7 @@ The copy target must be the full tensor square. Diagonal support belongs to the 
 
 **Status:** Accepted
 
-**Decision:** Authorize staged implementation of four additive layers: exact finite semiring matrices and their normalized refinements; prior-indexed exact Bayesian operations; purity-indexed finite stochastic circuits and the exact deterministic categorical compiler fragment; and syntax-only finite typed structured-cospan open systems. The matrix foundation uses explicit finite witnesses, exact nonnegative scalars, proof-carrying deterministic arrows, and exact convex enrichment.
+**Decision:** Implement four additive layers in stages: exact finite semiring matrices and their normalized refinements; prior-indexed exact Bayesian operations; purity-indexed finite stochastic circuits and the exact deterministic categorical compiler fragment; and syntax-only finite typed structured-cospan open systems. The matrix foundation uses explicit finite witnesses, exact nonnegative scalars, proof-carrying deterministic arrows, and exact convex enrichment.
 
 D-037 supersedes only D-027's prohibition on a `Monad ExactFiniteDist` instance. D-027's exact-versus-floating law boundary remains active. D-035 supersedes D-018 and D-009 only for the implemented exact categorical compiler fragment. D-009 continues to defer unrelated categorical optimizations.
 
@@ -440,9 +442,9 @@ The S1 transpose counterexample proves only that raw transpose does not preserve
 
 Proof-carrying matrix refinements use nominal roles for scalars and endpoints. Constructor opacity alone is insufficient because representational coercion could otherwise replace the scalar laws or endpoint equality evidence.
 
-**Proof obligations:** Each stage must add literal law tests for the structure that it exposes. The matrix stage must test category, tensor, biproduct, dagger, compact, trace, normalization, determinism, convexity, and a transpose-normalization counterexample. Bayesian work must test support-restricted Bayes laws and preserve existing POMDP behavior differentially. Circuit work must preserve stochastic sharing and reject dishonest deterministic tags. Open-system work must validate pushouts and 2-cells up to explicit canonical isomorphism and must reject unsupported feedback.
+**Required evidence:** Each stage must add literal law tests for the structure that it exposes. The matrix stage must test category, tensor, biproduct, dagger, compact, trace, normalization, determinism, convexity, and a transpose-normalization counterexample. Bayesian work must test support-restricted Bayes laws and preserve existing POMDP behavior differentially. Circuit work must preserve stochastic sharing and reject dishonest deterministic tags. Open-system work must validate pushouts and 2-cells up to explicit canonical isomorphism and must reject unsupported feedback.
 
-**Deferred:** A total black-box functor from arbitrary open hypergraphs to stochastic kernels, stationary feedback selection, unrelated NBE or Kan-extension optimizations, and a common dagger abstraction are not authorized.
+**Deferred:** A total black-box functor from arbitrary open hypergraphs to stochastic kernels, stationary feedback selection, unrelated NBE or Kan-extension optimizations, and a common dagger abstraction remain outside the supported scope.
 
 ### D-039: Restrict exact Bayesian inversion to positive prior support
 
@@ -456,7 +458,7 @@ Proof-carrying matrix refinements use nominal roles for scalars and endpoints. C
 
 **Consequences:** Prior-indexed Bayesian inversion remains distinct from matrix conjugate transpose and structured-cospan boundary reversal. The package adds no shared `Dagger` class and no `Dagger ExactKernel` instance. Exact POMDP prediction and conditioning delegate to the Bayesian distribution algebra while preserving post-transition timing, duplicate aggregation, support order, posterior values, and `ImpossibleExactObservation`.
 
-**Proof obligations:** Exact tests cover normalization, support extraction, the Bayes joint equation, identity, composition reversal, independent tensor, double inversion after support restriction, almost-sure equivalence, zero-evidence errors, and checked Bayesian-channel prior flow. Floating inference remains outside these literal law claims.
+**Required evidence:** Exact tests cover normalization, support extraction, the Bayes joint equation, identity, composition reversal, independent tensor, double inversion after support restriction, almost-sure equivalence, zero-evidence errors, and checked Bayesian-channel prior flow. Floating inference remains outside these literal law claims.
 
 ### D-040: Reify purity-indexed stochastic circuits and first-order deterministic compilation
 
@@ -470,11 +472,11 @@ Only deterministic syntax can use the copy-naturality rewrite. Deterministic pri
 
 The deterministic source fragment contains identity, composition, products, pairing, projections, and finite quoted tables. Projection compilation uses discard and unitors. The source contains no Haskell function values or function equality.
 
-**Rationale:** A provenance index prevents a currently Dirac stochastic gate from authorizing copy rewrites. Reified sharing prevents accidental duplication of random effects. Finite tables give total inspectable first-order compilation without pretending that arbitrary Haskell functions form a quoted language.
+**Rationale:** A provenance index prevents a currently Dirac stochastic gate from enabling copy rewrites. Reified sharing prevents accidental duplication of random effects. Finite tables give total inspectable first-order compilation without pretending that arbitrary Haskell functions form a quoted language.
 
 **Consequences:** Recursive circuits are supported, but recursive circuit definitions can diverge before construction and no feedback node is provided. The syntax is not claimed to be a quotient or a mechanically proved initial object. Arbitrary Haskell functions, bottoms, exceptions, `seq`, opaque higher-order functions, infinite types, finite exponentials, and cartesian closure of stochastic maps remain unsupported. Open hypergraphs and structured cospans remain S5 work.
 
-**Proof obligations:** Exact tests cover structural-fold preservation, derived sharing and fanout, deterministic-only copy naturality, convex choice, pentagon, triangle, symmetry hexagon, structural naturality, both unitors, reordered layouts, source compilation equations, validation failures, and differential agreement with `denoteExactIR`, `lowerExactIR`, and dense CPU rows.
+**Required evidence:** Exact tests cover structural-fold preservation, derived sharing and fanout, deterministic-only copy naturality, convex choice, pentagon, triangle, symmetry hexagon, structural naturality, both unitors, reordered layouts, source compilation equations, validation failures, and differential agreement with `denoteExactIR`, `lowerExactIR`, and dense CPU rows.
 
 ### D-041: Implement typed structured-cospan syntax and only decorated circuit denotation
 
@@ -492,7 +494,7 @@ The implemented double fragment has interfaces as objects, interface maps as ver
 
 **Consequences:** Structured-cospan boundary reversal is distinct from matrix conjugate transpose and prior-indexed Bayesian inversion. No common `Dagger` class or instance is added. Binary quotient classes have an implemented canonical order. Nested associativity is not literal equality because the carrier types differ. Representative tests construct the canonical member-flattening isomorphism; this is not an exported general associator, unitor, or coherence theorem. The implementation does not claim a strict double category, a general bicategorical coherence theorem, graph black-boxing, feedback semantics, or existing continuous-time open-Markov theorems for MDPs.
 
-**Proof obligations:** Tests cover interface-map row canonicalization, hypergraph validation, nominal pushout witnesses, noninjective pushout quotients, canonical class order, layout-independent cocone factorization, gluing, disjoint-union tensor, reversal with unchanged directed state orientation, both unitor isomorphism fixtures, both associator round trips on vertex and edge maps, extensionally matched horizontal cell composition, interchange, and exact decorated-circuit composition, tensor, associativity, and units.
+**Required evidence:** Tests cover interface-map row canonicalization, hypergraph validation, nominal pushout witnesses, noninjective pushout quotients, canonical class order, layout-independent cocone factorization, gluing, disjoint-union tensor, reversal with unchanged directed state orientation, both unitor isomorphism fixtures, both associator round trips on vertex and edge maps, extensionally matched horizontal cell composition, interchange, and exact decorated-circuit composition, tensor, associativity, and units.
 
 ### D-042: Interpret only boundary-functional finite DAG networks
 
@@ -512,7 +514,7 @@ Composition delegates to structured-cospan pushout and validates the refinement 
 
 **Consequences:** `OpenSystem`, `OpenCircuit`, `openCircuitDenotation`, boundary reversal, and the boundary-reversed view are unchanged. A reversed topology can only receive an ordinary forward interpretation after fresh validation. The implementation adds no reverse dynamics.
 
-**Proof obligations:** Deterministic fixtures cover every topology rejection constructor, producer-error precedence, and the public reachable domain, assignment, label, endpoint, primitive, run-input, and purity paths used by the fragment. Opaque internal-invariant branches are not claimed as externally constructible fixtures. Further fixtures cover zero and arbitrary arity, identity, nonidentity chains, parallel composition, sharing, independent execution, full and partial discard, diamonds, duplicated observations, boundary layout changes, successful schedule and renaming independence, pushout composition, mismatched composition boundaries, tensor, units, and associations. Differential checks compare the live-frontier construction with a bounded complete-valuation evaluator, directly built circuits, directly composed matrices, and a named-assignment reindexing of `tensorStochastic`. A twelve-edge narrow chain guards against retention of complete apex history. Compile-fail gates reject raw topology, inaccessible constructors, forged cycles, aggregate-purity strengthening, reverse observation, substitution for the existing global decoration denotation, and representational coercion of validated label tables.
+**Required evidence:** Deterministic fixtures cover every topology rejection constructor, producer-error precedence, and the public reachable domain, assignment, label, endpoint, primitive, run-input, and purity paths used by the fragment. Opaque internal-invariant branches are not claimed as externally constructible fixtures. Further fixtures cover zero and arbitrary arity, identity, nonidentity chains, parallel composition, sharing, independent execution, full and partial discard, diamonds, duplicated observations, boundary layout changes, successful schedule and renaming independence, pushout composition, mismatched composition boundaries, tensor, units, and associations. Differential checks compare the live-frontier construction with a bounded complete-valuation evaluator, directly built circuits, directly composed matrices, and a named-assignment reindexing of `tensorStochastic`. A twelve-edge narrow chain guards against retention of complete apex history. Compile-fail gates reject raw topology, inaccessible constructors, forged cycles, aggregate-purity strengthening, reverse observation, substitution for the existing global decoration denotation, and representational coercion of validated label tables.
 
 **Deferred:** Arbitrary cyclic graphs, trace, feedback, recursion, fixed points, factor normalization, implicit priors, merge semantics, Bayesian reversal, `OpenSystemCell` denotation, infinite or continuous carriers, continuous-time open Markov black-boxing, unrestricted MDP black-boxing, and a machine-checked theorem for all finite DAGs.
 
@@ -522,7 +524,7 @@ Composition delegates to structured-cospan pushout and validates the refinement 
 
 **Decision:** Keep conceptual documentation in `docs/book` and build it with the `mdbook` version pinned in `toolchain.env`. Keep Haddock as the exact API-signature reference. Include the architecture, decision, and workflow records as book appendices instead of copying their content.
 
-Run a repository-owned gate that checks local links, anchors, include targets, the tool version, and the complete HTML build. Run the same gate in hosted CI. Include all book sources and documentation scripts in the source distribution.
+Run a repository-owned check for local links, anchors, include targets, the tool version, and the complete HTML build. Run the same check in hosted CI. Include all book sources and documentation scripts in the source distribution.
 
 Publish the checked HTML with the separate `Pages` workflow. Run it for every push to `main`, or by manual request from `main`. Keep its build and deployment jobs separate. Upload `docs/book/build` only after `scripts/check-book` passes. Use the `github-pages` environment and the deployment action URL output.
 
@@ -541,11 +543,69 @@ Set the mdBook `site-url` to `/Markovian/`. This path supports the configured pr
 
 **Consequences:** A user-visible semantic change must update its book chapter. Documentation changes can fail CI before a package build when navigation, includes, or the book renderer break. Generated HTML remains untracked. The Pages workflow checks the book but does not replace package CI evidence.
 
-**Proof obligations:** `scripts/check-book` must pass with the pinned tool. `cabal check` and source-distribution gates must include the complete book source, its scripts, and the Pages workflow. A publication claim also needs a successful hosted `Pages` run for the deployed revision and a reachable public URL.
+**Required evidence:** `scripts/check-book` must pass with the pinned tool. `cabal check` and source-distribution gates must include the complete book source, its scripts, and the Pages workflow. A publication claim also needs a successful hosted `Pages` run for the deployed revision and a reachable public URL.
 
-## Proof obligations for advanced work
+### D-044: Compile exact MDPs without a policy and keep exact control separate
 
-| Feature | Proof obligation before implementation | Evidence before acceptance |
+**Status:** Accepted
+
+**Decision:** Compile a finite exact MDP before selecting a policy. Store every model-available action in per-state availability order. Store each complete joint reward-successor distribution, including duplicate labels and support order.
+
+Close a compiled MDP under an exact policy as a separate operation. Finite-horizon and Bellman policy evaluators consume the resulting compiled MRP.
+
+Implement discounted exact value iteration over the policy-free compiled MDP. Report the completed backup count, exact value vector, initial value, sup-norm optimality residual, contraction value-error bound, greedy-policy performance bound, and stop reason. A zero iteration limit performs no backups.
+
+Extract deterministic greedy actions in model availability order. Replace a selected action only for a strict greater value, so exact ties retain the first available action.
+
+Implement bounded deterministic policy iteration with exact rational policy evaluation. Solve signed linear systems with a dedicated rational Gaussian solver. Do not use the nonnegative matrix API for subtraction.
+
+**Rationale:** Policy-free compilation validates the complete finite control problem once. Joint outcome storage preserves reward-successor correlation. Exact action comparisons make deterministic tie behavior inspectable.
+
+**Consequences:** D-032 is superseded where it requires policy-bound compilation. Policy evaluation still requires explicit policy closure. Finite value iteration reports an approximation bound and does not label a finite iterate an exact optimum.
+
+**Required evidence:** Deterministic fixtures cover terminal-only compilation, all actions, joint and duplicate outcomes, index failures, terminal timing, negative rewards, zero discount, zero limits, residual bounds, ties, permutations, greedy-policy bounds, exact policy residuals, exhaustive deterministic-policy comparison, and agreement between policy and value iteration within reported bounds.
+
+### D-045: Share sampled steps and tabular TD foundations
+
+**Status:** Accepted
+
+**Decision:** Use one sampled-step operation for episodic interpreters. It receives the selected action and an explicit generator. It validates through `stepMDP`, samples one joint reward-successor outcome, and returns one trace step plus the next generator.
+
+Keep Q-tables, V-tables, finite values, learning rates, exploration rates, constant schedules, and observed transitions in a shared tabular module. Use one canonical epsilon-greedy distribution for behavior and Expected SARSA targets. Exact ties retain the first model-available action.
+
+Provide pure terminal-aware updates for TD(0), SARSA, Expected SARSA, and Q-learning. Use `r + gamma * g` for every terminal target. Use separate terminal and continuing bootstrap constructors when an algorithm needs successor policy data.
+
+Provide bounded episodic runners with empty-start and resumable APIs. A resume call owns the current table, episode index, global update count, and generator. Q-learning separates epsilon-greedy behavior from its greedy target. SARSA selects and carries the exact next behavior action.
+
+**Rationale:** One joint step prevents reward-successor decorrelation. Shared behavior logic prevents different epsilon-greedy meanings. Pure updates expose the algorithmic target without hiding environment or generator effects.
+
+**Consequences:** The root learning APIs use checked `Double` arithmetic. They are sample-based, but they still inspect the supplied MDP for terminal status and action-support validation. A bounded run makes no convergence claim.
+
+**Required evidence:** Deterministic fixtures cover distinct continuing targets, common terminal targets, no terminal policy query, behavior-target separation, carried SARSA actions, Expected SARSA distributions, unavailable actions, malformed models, arithmetic failures, exact seeded generator states, zero bounds, terminal timing, bounded loops, split-run equality, and exact-formula differentials.
+
+### D-046: Keep neural numerical update references framework-independent
+
+**Status:** Accepted
+
+**Decision:** Keep `markovian-neural` optional and independent of tensors, autodiff, devices, and global randomness. Depend only on `base` and the root `Markovian` package so the neural package reuses the explicit approximation boundary. Use an opaque finite scalar where a durable finite claim is needed; validate raw `Double` inputs and arithmetic results at operation boundaries. Use explicit dimensions, stable categorical operations, immutable snapshots, and structured nonfinite failures.
+
+Provide row-major dense networks with zero or more `tanh` hidden layers, a linear output head, and manual input and parameter VJPs. Provide pure SGD from one pre-update snapshot.
+
+Provide executable masked linear REINFORCE and one-step actor-critic updates. Normalize over each observation's nonempty action mask and scatter score gradients into global parameter order. For the discounted start-return objective, weight each REINFORCE actor term by `gamma^t`. Detach baselines, targets, and advantages at their stated boundaries. Compute all participating gradients from pre-update parameters and return all updated models or an error.
+
+Provide a bounded FIFO replay buffer with monotonic IDs and explicit ordered ID selection. Provide topology-checked hard, periodic, and Polyak target synchronization. Count only successful online updates.
+
+Provide standard and Double-DQN targets over explicit nonempty action masks. Evaluate one complete nonempty batch from one online and target snapshot. Aggregate one mean half-squared-loss gradient, apply one atomic SGD step, and schedule target synchronization only after success.
+
+**Rationale:** Small framework-independent implementations make numerical and detachment contracts executable without adding a runtime framework to the semantic core. Immutable snapshots make update timing and failure atomicity explicit.
+
+**Consequences:** D-036 is superseded where it describes the neural package as metadata only. The package remains an experimental `Double` reference. It has no environment runner, random replay adapter, complete trainer, convergence guarantee, accelerator support, or production claim.
+
+**Required evidence:** Central finite differences cover every represented dense VJP and categorical derivative on finite fixtures. Worked examples cover REINFORCE and actor-critic targets, detachment, and failure atomicity. Replay, target-network, DQN, batch-loss, and root Q-learning differential fixtures cover ordering, timing, masks, snapshot behavior, and successful updates.
+
+## Required evidence for advanced work
+
+| Feature | Required evidence before implementation | Implementation evidence |
 | --- | --- | --- |
 | Bellman solver | State contraction or properness assumptions. Derive the stopping-error relation. | Residual tests and comparison with an exact finite reference. |
 | Q-learning | Define transition sampling, reward timing, schedules, and step limits. | Pure update tests, seeded traces, and scripted behavior tests. |
@@ -557,14 +617,14 @@ Set the mdBook `site-url` to `/Markovian/`. This path supports the configured pr
 | NBE | Define normal forms, soundness, reification, residualization, and termination boundary. | Correctness tests and generated-code size benchmarks. |
 | Matrix diagonalization | State diagonalizability, conditioning, precision, and residual checks. | Differential solver tests and representative benchmarks. |
 | GPU backend | Define numeric tolerance, RNG meaning, device subset, and transfer boundary. | CPU and GPU differential tests with transfer-inclusive benchmarks. |
-| Neural backend | Define denotation, approximation relation, normalization, and gradient assumptions. | Calibration or error metrics and estimator bias or variance analysis. |
+| Neural backend | Define denotation, approximation relation, normalization, detachment, and gradient assumptions. | Finite differences, worked updates, failure atomicity, and exact or tabular differential fixtures. |
 | POMDP conditioning | Define observation timing, normalization, and zero-evidence behavior. | Exact finite filtering tests, including impossible observations. |
 | Continuous kernel | State measurability, integrability, supported operations, and error semantics. | A use-case decision and reference or statistical validation plan. |
 
 ## Decision procedure
 
 1. Add a proposed entry before a semantic implementation.
-2. State alternatives, assumptions, and proof obligations.
+2. State alternatives, assumptions, and required evidence.
 3. Link tests or benchmarks when the decision depends on evidence.
-4. Mark the entry accepted only after review.
-5. Add a new entry when later work reverses an accepted decision.
+4. Mark the entry accepted only after review records the selected outcome.
+5. Add a new entry when later work reverses a recorded decision.

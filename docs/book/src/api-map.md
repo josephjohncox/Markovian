@@ -34,13 +34,23 @@
 | Module | Purpose |
 | --- | --- |
 | `Markovian.Interpreter.Exact` | Exact traces and expected returns |
-| `Markovian.Compile.Exact` | Checked finite state and action compilation |
-| `Markovian.Interpreter.DynamicProgramming.Exact` | Finite-horizon backward induction |
+| `Markovian.Compile.Exact` | Policy-free exact MDP compilation and separate policy closure |
+| `Markovian.Interpreter.DynamicProgramming.Exact` | Finite-horizon policy evaluation |
 | `Markovian.Interpreter.Bellman.Exact` | Discounted contraction policy evaluation |
+| `Markovian.Interpreter.Control.Exact` | Exact value iteration, greedy extraction, and policy iteration |
 | `Markovian.Sampling` | Explicit generators and finite-support sampling |
 | `Markovian.Interpreter.Sampled` | Seeded sampled returns and traces |
-| `Markovian.Learning.QLearning` | Validated Q-tables and pure updates |
-| `Markovian.Learning.QLearning.Episodic` | Seeded bounded epsilon-greedy learning |
+| `Markovian.Interpreter.Sampled.Step` | One selected joint reward-successor sample |
+| `Markovian.Learning.Tabular` | Shared finite tables, rates, schedules, and observations |
+| `Markovian.Learning.EpsilonGreedy` | Canonical epsilon-greedy distribution and seeded sampler |
+| `Markovian.Learning.TD0` | Pure tabular state-value update |
+| `Markovian.Learning.TD0.Episodic` | Supplied-policy bounded TD(0) runner |
+| `Markovian.Learning.Sarsa` | Pure carried-next-action SARSA update |
+| `Markovian.Learning.Sarsa.Episodic` | Bounded epsilon-greedy SARSA runner |
+| `Markovian.Learning.ExpectedSarsa` | Pure expected epsilon-greedy SARSA update |
+| `Markovian.Learning.ExpectedSarsa.Episodic` | Bounded Expected SARSA runner |
+| `Markovian.Learning.QLearning` | Pure greedy-target Q-learning update |
+| `Markovian.Learning.QLearning.Episodic` | Bounded epsilon-greedy behavior runner |
 | `Markovian.POMDP.Exact` | Exact beliefs and post-transition filtering |
 | `Markovian.POMDP.Planning.Exact` | Bounded exact belief-policy evaluation |
 
@@ -78,6 +88,17 @@
 | Package and module | Purpose |
 | --- | --- |
 | `markovian-gpu: Markovian.Backend.GPU` | Optional CUDA dense application |
-| `markovian-neural: Markovian.Backend.Neural` | Stable softmax and gradient contracts |
+| `markovian-neural: Markovian.Backend.Neural.Approximation` | Explicit precision, error, and observation boundary |
+| `markovian-neural: Markovian.Backend.Neural.Numeric` | Opaque finite scalars, checked floating arithmetic, and tolerances |
+| `markovian-neural: Markovian.Backend.Neural.Dense` | Dense networks and manual VJPs |
+| `markovian-neural: Markovian.Backend.Neural.Categorical` | Stable categorical values and analytic gradients |
+| `markovian-neural: Markovian.Backend.Neural.Policy` | Linear categorical policies and scalar value functions |
+| `markovian-neural: Markovian.Backend.Neural.Reinforce` | Finite-episode linear REINFORCE updates |
+| `markovian-neural: Markovian.Backend.Neural.ActorCritic` | One-step linear actor-critic updates |
+| `markovian-neural: Markovian.Backend.Neural.Transition` | Immutable masked transition snapshots |
+| `markovian-neural: Markovian.Backend.Neural.Replay` | Bounded FIFO replay with stable IDs |
+| `markovian-neural: Markovian.Backend.Neural.TargetNetwork` | Hard, periodic, and Polyak synchronization |
+| `markovian-neural: Markovian.Backend.Neural.DQN` | Standard and Double-DQN batch updates |
+| `markovian-neural: Markovian.Backend.Neural` | Small façade that re-exports the neural modules |
 
 Use Haddock for complete signatures and error constructors. Use this book for semantic selection and composition rules.

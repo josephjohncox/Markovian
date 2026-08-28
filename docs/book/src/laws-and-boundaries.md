@@ -2,7 +2,7 @@
 
 This chapter states the equations that the implementation tests. It also states the equality relation and scalar assumptions for each equation.
 
-A test suite does not prove a theorem for every inhabitant of a Haskell type. The fixtures check representative finite witnesses, reordered layouts, noncommutative scalar multiplication where relevant, and explicit counterexamples. The class laws remain obligations on each admitted instance.
+A test suite does not prove a theorem for every inhabitant of a Haskell type. The fixtures check representative finite witnesses, reordered layouts, noncommutative scalar multiplication where relevant, and explicit counterexamples. Each instance must satisfy the class laws.
 
 ## Notation and equality
 
@@ -87,6 +87,67 @@ V^{\pi}_{H}(s_0).
 The fixture has expected reward `5` and one transition in every trace.
 
 **Executable evidence:** [`testExactKernelLaws`](https://github.com/josephjohncox/Markovian/blob/main/test/Main.hs#L1875) and [`testExactTraceExpectation`](https://github.com/josephjohncox/Markovian/blob/main/test/Main.hs#L712).
+
+## Exact discounted control bounds
+
+For a policy-free compiled finite MDP, define the Bellman optimality operator:
+
+\\[
+(T_*V)(s)=\max_{a\in A(s)}
+\sum_{r,s'}K(s,a)(r,s')\left(r+\gamma V(s')\right).
+\\]
+
+Terminal values remain fixed at their payoffs. With `0 <= gamma < 1`, `T_*` is a contraction in sup norm.
+
+For residual `delta = ||T_*V - V||_infinity`, the implemented value bound is:
+
+\\[
+\lVert V-V^*\rVert_\infty\le\frac{\delta}{1-\gamma}.
+\\]
+
+The greedy policy from `V` has the implemented performance bound:
+
+\\[
+\lVert V^*-V^{\pi_V}\rVert_\infty
+\le\frac{2\gamma\delta}{(1-\gamma)^2}.
+\\]
+
+Action maxima use model availability order and strict greater-than replacement. Exact ties retain the first available action.
+
+Policy iteration solves fixed-policy equations over signed rationals. It then replaces a policy action only when an exact action value strictly improves.
+
+**Executable evidence:** `test/ExactControl.hs` in the source distribution.
+
+## Tabular one-step targets
+
+All tabular updates use `x' = x + alpha * (y - x)`. Their continuing targets differ:
+
+\\[
+\begin{aligned}
+y_{\mathrm{TD(0)}}&=r+\gamma V(s'),\\
+y_{\mathrm{SARSA}}&=r+\gamma Q(s',a'),\\
+y_{\mathrm{Expected\ SARSA}}&=r+\gamma\sum_a\pi_\epsilon(a\mid s')Q(s',a),\\
+y_{\mathrm{Q-learning}}&=r+\gamma\max_a Q(s',a).
+\end{aligned}
+\\]
+
+All four terminal targets are:
+
+\\[
+y_{\mathrm{terminal}}=r+\gamma g(s').
+\\]
+
+The root tests compare pure targets and exact seeded traces. They do not assert learning convergence.
+
+**Executable evidence:** `test/TabularLearning.hs` in the source distribution.
+
+## Neural derivative and update boundaries
+
+The neural package tests dense input and parameter VJPs, categorical Jacobians, and selected-action score gradients with central finite differences.
+
+The tests also check REINFORCE, actor-critic, replay, target synchronization, and DQN update fixtures. These are approximate `Double` checks with explicit tolerances. They do not prove all-input derivatives or training convergence.
+
+**Executable evidence:** [`backends/markovian-neural/test`](https://github.com/josephjohncox/Markovian/tree/main/backends/markovian-neural/test).
 
 ## Why floating kernels do not claim literal associativity
 

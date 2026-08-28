@@ -230,7 +230,7 @@ jobs:
             | grep -F "HLint v${MARKOVIAN_HLINT_VERSION}"
           test "$(mdbook --version)" = \
             "mdbook v${MARKOVIAN_MDBOOK_VERSION}"
-          hlint src backends/*/src test/AcyclicOpenSystems.hs
+          hlint src backends/*/src test backends/*/test
           bash -n \
             scripts/bootstrap-tools \
             scripts/check-book \

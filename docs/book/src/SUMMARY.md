@@ -14,8 +14,9 @@
 
 - [Probability values, distributions, and kernels](./probability-kernels.md)
 - [Rewards, terminals, policies, and objectives](./model-semantics.md)
-- [Exact evaluators and compilation](./exact-evaluation.md)
-- [Sampling and Q-learning](./sampling-learning.md)
+- [Control and learning taxonomy](./control-learning-taxonomy.md)
+- [Exact evaluation and control](./exact-evaluation.md)
+- [Sampling and tabular learning](./sampling-learning.md)
 - [POMDP filtering and planning](./pomdp.md)
 
 # Algebra and composition

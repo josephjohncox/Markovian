@@ -1,0 +1,10 @@
+# Law fixtures intentionally contain the expressions named by their laws.
+- ignore: {name: Avoid lambda, within: [Legacy]}
+- ignore: {name: Functor law, within: [Legacy]}
+- ignore: {name: "Monad law, left identity", within: [Legacy]}
+- ignore: {name: "Monad law, right identity", within: [Legacy]}
+- ignore: {name: Take on a non-positive, within: [Legacy]}
+- ignore: {name: Use >=>, within: [Legacy]}
+- ignore: {name: Use isNothing, within: [Legacy]}
+- ignore: {name: Use lambda-case, within: [Legacy, ExactControl, TabularLearning]}
+- ignore: {name: Use list comprehension, within: [ExactControl]}

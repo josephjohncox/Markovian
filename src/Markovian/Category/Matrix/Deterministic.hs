@@ -3,7 +3,7 @@
 {- | Proof-carrying deterministic finite matrices.
 
 Only this refinement, rather than an arbitrary stochastic matrix whose current
-denotation happens to be Dirac, authorizes deterministic copy-naturality
+denotation happens to be Dirac, is required for deterministic copy-naturality
 reasoning.
 -}
 module Markovian.Category.Matrix.Deterministic (

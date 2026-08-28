@@ -7,6 +7,10 @@ module Markovian.Interpreter.Sampled (
 ) where
 
 import Markovian.Horizon (horizonValue)
+import Markovian.Interpreter.Sampled.Step (
+    SampledStepError (..),
+    sampleMDPStep,
+ )
 import Markovian.MDP (
     ActionId,
     Decision (..),
@@ -14,9 +18,7 @@ import Markovian.MDP (
     ModelError,
     inspectMDP,
     mdpInitialState,
-    stepMDP,
  )
-import Markovian.MRP (successorState, transitionReward)
 import Markovian.Objective (
     FiniteObjective,
     discountValue,
@@ -121,13 +123,11 @@ sampleReturnFrom objective model selectedPolicy initial generator =
                     let selected = policyActions selectedPolicy state
                     mapPolicyError (validatePolicySupport available selected)
                     (selectedAction, afterAction) <- mapSamplingError (sampleFiniteDist currentGenerator selected)
-                    transition <- mapModelError (stepMDP model state selectedAction)
-                    (outcome, afterTransition) <- mapSamplingError (sampleFiniteDist afterAction transition)
-                    let reward = transitionReward outcome
-                        successor = successorState outcome
+                    (step, afterTransition) <- mapStepError (sampleMDPStep model state selectedAction afterAction)
+                    let reward = traceTransitionReward step
+                        successor = traceSuccessorState step
                         nextAccumulated = accumulated + discountPower * rewardValue reward
                         nextPower = discountPower * discount
-                        step = TraceStep selectedAction reward successor
                     _ <- validatedReward nextAccumulated
                     go
                         (remaining - 1)
@@ -150,3 +150,9 @@ mapPolicyError = either (Left . SampledPolicyError) Right
 
 mapSamplingError :: Either SamplingError value -> Either (SampledEvaluationError action) value
 mapSamplingError = either (Left . SampledSamplingError) Right
+
+mapStepError :: Either (SampledStepError action) value -> Either (SampledEvaluationError action) value
+mapStepError = either convert Right
+  where
+    convert (SampledStepModelError err) = Left (SampledModelError err)
+    convert (SampledStepSamplingError err) = Left (SampledSamplingError err)

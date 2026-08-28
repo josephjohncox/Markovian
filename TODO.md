@@ -26,7 +26,7 @@ Status terms: `DONE`, `NEXT`, `READY`, `BLOCKED`.
   - Added a pinned mdBook user and contributor guide for the complete public semantic stack.
   - Added repository-owned link, include, math-delimiter, version, and HTML build checks.
   - Added an equation-level law catalogue, executable fixture links, derived mathematical insights, and an annotated bibliography.
-  - Added the book gate to CI, Pages, and the source-distribution manifest.
+  - Added the book check to CI, Pages, and the source-distribution manifest.
 - [ ] **GitHub Pages publication.** `BLOCKED` until Pages uses GitHub Actions and a successful `main` run publishes the configured URL.
 
 ## P2: Bounded interpreters
@@ -38,16 +38,16 @@ Risks: reward timing, horizon boundaries, discount placement, and generator owne
   - Define generator ownership and returned generator state.
   - Sample only positive support exposed by `FiniteDist`.
   - Preserve the exact evaluator's terminal, horizon, reward, and discount semantics.
-  - Acceptance: equal seeds produce equal traces and returns.
-  - Acceptance: support-membership tests replace frequency thresholds.
-  - Acceptance: terminal, horizon-zero, weighted, and self-loop examples pass.
+  - Required evidence: equal seeds produce equal traces and returns.
+  - Required evidence: support-membership tests replace frequency thresholds.
+  - Required evidence: terminal, horizon-zero, weighted, and self-loop examples pass.
 - [x] **P2.3 Add structured traces and errors.**
   - Include action ID, transition reward, successor state, and stop reason.
   - Keep model, policy, objective, conditioning, and sampling errors distinct.
-  - Acceptance: no interpreter uses partial indexing, partial maxima, global randomness, or unchecked normalization.
-  - Acceptance: exact expectation of bounded trace observables matches direct evaluation.
+  - Required evidence: no interpreter uses partial indexing, partial maxima, global randomness, or unchecked normalization.
+  - Required evidence: exact expectation of bounded trace observables matches direct evaluation.
 
-P2 gate: `DONE`. Exact and sampling interpreters implement the same terminal-before-horizon, reward-timing, and discount semantics.
+P2 status: `DONE`. Exact and sampling interpreters implement the same terminal-before-horizon, reward-timing, and discount semantics.
 
 ## P3: Finite-state compilation and Bellman solvers
 
@@ -61,8 +61,13 @@ P2 gate: `DONE`. Exact and sampling interpreters implement the same terminal-bef
   - Require `ContractionDiscount`.
   - Clamp terminal values to terminal payoffs.
   - State the norm, tolerance, residual, and stopping bound.
+- [x] **P3.4 Add policy-free exact compilation and exact control.**
+  - Compile all model-available actions and preserve joint outcomes.
+  - Close a compiled policy once before policy evaluation.
+  - Add bounded rational value iteration with residual and policy bounds.
+  - Add bounded deterministic policy iteration with rational linear solves.
 
-P3 gate: `DONE`. Compiled closure and finite dynamic programming agree with direct exact evaluation on finite reference fixtures. The exact Bellman solver reports a sup-norm residual and contraction stopping bound.
+P3 status: `DONE`. Exact tests cover policy-free compilation, control bounds, deterministic ties, permutations, and agreement between policy and value iteration.
 
 ## P4: Learning
 
@@ -72,13 +77,20 @@ P3 gate: `DONE`. Compiled closure and finite dynamic programming agree with dire
 - [x] **P4.2 Implement one pure Q-update.**
   - No partial action maximum.
   - No update from an unavailable action.
-  - Acceptance: deterministic algebraic tests cover terminal and continuing targets.
+  - Required evidence: deterministic algebraic tests cover terminal and continuing targets.
 - [x] **P4.3 Add seeded episodic Q-learning.**
-  - Use the validated MDP and sampling interpreter.
+  - Use the validated MDP and sampled-step interpreter.
   - Return structured traces and final generator state.
-  - Acceptance: equal seeds produce equal updates and tables.
+  - Required evidence: equal seeds produce equal updates and tables.
+- [x] **P4.4 Add shared tabular learning foundations.**
+  - Share Q-values, V-values, observations, rates, schedules, and epsilon-greedy behavior.
+  - Sample each joint reward-successor outcome through one explicit-generator step.
+- [x] **P4.5 Add TD(0), SARSA, and Expected SARSA.**
+  - Keep terminal bootstraps separate from continuing bootstraps.
+  - Preserve on-policy carried-action and expected-distribution semantics.
+  - Add bounded resumable episodic runners for all four tabular methods.
 
-P4 gate: `DONE`. Learning behavior is explicit, bounded, seeded, and compared with deterministic scripted fixtures.
+P4 status: `DONE`. Deterministic tests cover distinct continuing targets, common terminal timing, seeded behavior, carried actions, bounds, failures, and split-run equality.
 
 ## P5: POMDPs
 
@@ -89,7 +101,7 @@ P4 gate: `DONE`. Learning behavior is explicit, bounded, seeded, and compared wi
   - Test prediction, conditioning, normalization, and impossible observations.
 - [x] **P5.3 Add belief-state planning only after filtering laws pass.**
 
-P5 gate: `DONE`. Prediction, post-transition conditioning, impossible observations, normalization, and bounded belief planning pass exact deterministic fixtures.
+P5 status: `DONE`. Prediction, post-transition conditioning, impossible observations, normalization, and bounded belief planning pass exact deterministic fixtures.
 
 ## P6: Compiler and accelerated backends
 
@@ -101,30 +113,32 @@ P5 gate: `DONE`. Prediction, post-transition conditioning, impossible observatio
 - [x] **P6.3 Add GPU and neural packages outside the semantic core.**
   - Require CPU/GPU differential tests and transfer-inclusive benchmarks.
   - Define approximation, normalization, gradient, and estimator assumptions.
+  - The neural package now includes checked dense networks, linear policy-gradient updates, replay, target networks, and one DQN batch update.
+  - Neural evidence uses hand calculations, finite differences, and deterministic differential fixtures. It makes no training-performance claim.
   - The 2026-08-26 sample-bearing run used one excluded warmup and 20 measured runs on an NVIDIA GB10.
   - The transfer-inclusive mean was `267.843920400 ms`, and sample standard deviation was `3.025869898 ms`.
   - The [evidence record](docs/evidence/CUDA-2026-08-26.md) retains raw samples and older mean-only execution records.
   - These local measurements are not general performance claims.
   - Hosted three-package evidence: <https://github.com/josephjohncox/Markovian/actions/runs/32998596001>.
 
-P6 gate: `DONE`. Exact IR laws, full-tensor copy, symmetric monoidal coherence maps, deterministic copy naturality, shared-draw counterexamples, dense CPU differential tests, actual CUDA differential execution, transfer-inclusive benchmarking, and neural normalization and gradient contracts pass.
+P6 status: `DONE`. Exact IR, CUDA, neural numerical, policy-gradient, replay, target-network, and DQN fixtures are implemented. Current local validation status belongs in `docs/CONTEXT.md`.
 
 ## Exact semantic tower roadmap
 
-D-038 authorizes this roadmap in dependency order. A later stage cannot weaken the exact-law boundary established by an earlier stage.
+D-038 defines this roadmap in dependency order. A later stage cannot weaken the exact-law boundary established by an earlier stage.
 
 - [x] **S1 Algebraic foundation.** Add duplicate-free finite sets, nonempty finite objects, lawful scalar classes, exact nonnegative rationals, opaque raw matrices, stochastic and deterministic refinements, and exact convex enrichment. Each finite-witness module exports `sameFiniteLayout` and retains its descriptive alias. Nominal roles protect proof refinements, and convex validation uses a fixed exact sum. Tests cover the canonical layout API, representative scalar fixtures, nontrivial and noncommutative dagger fixtures, biproduct decomposition, compact and trace laws, stochastic closure, deterministic subcategory and embedding laws, convex laws, and the transpose-normalization counterexample.
 - [x] **S2 Exact Bayesian layer.** Added normalized priors, positive support restriction, exact pushforward and joints, structured conditioning, prior-indexed Bayesian inversion, almost-sure equality, checked Bayesian-channel composition, and differential POMDP integration. Exact tests cover joint balance, identity, composition reversal, tensor, double inversion, zero-evidence behavior, and almost-sure uniqueness.
 - [x] **S3 Purity-indexed stochastic circuits.** Added recursive deterministic and stochastic syntax, structural folds, exact matrix and kernel interpretation, explicit sharing and fanout, deterministic-only copy optimization, exact convex choice, dense CPU lowering, an approximation boundary, differential legacy-IR tests, and purity compile-fail evidence.
-- [x] **S4 Deterministic categorical compiler.** Added the approved first-order fragment with identity, composition, products, pairing, projections, and finite quoted tables. Compilation tests cover composition, tensor, pairing, projections, and independent finite-table denotation.
+- [x] **S4 Deterministic categorical compiler.** Added the supported first-order fragment with identity, composition, products, pairing, projections, and finite quoted tables. Compilation tests cover composition, tensor, pairing, projections, and independent finite-table denotation.
 - [x] **S5 Structured-cospan open syntax.** Added finite typed interfaces, directed labelled hypergraphs, total structure maps, explicit quotient pushouts and cocone factors, structured-cospan gluing, disjoint-union tensor, boundary reversal, and commuting open-system cells with vertical, horizontal, tensor, and interchange evidence.
 - [x] **S6 Partial acyclic open interpretation.** Added opaque boundary-functional DAG validation, stable topological schedules, cycle witnesses, and named finite assignments. Added signature-keyed local circuits, aggregate purity, and exact live-frontier matrix interpretation. Bounded differential tests compare this interpretation with the complete-valuation equation and direct matrix paths. Tests distinguish stored sharing, independent execution, and discard. `OpenCircuit` remains the unchanged global-decoration API. Arbitrary cyclic graphs, feedback, continuous-time black-boxing, and unrestricted MDP black-boxing remain deferred.
 
-S6 gate: `DONE`.
+S6 status: `DONE`.
 
-**NEXT:** Select a new task that passes the admission gates. No post-S6 implementation stage is currently authorized.
+**NEXT:** Select a new task that meets the requirements below. No further control, tabular-learning, or neural training stage is currently planned.
 
-## Admission gates
+## Requirements for new work
 
 - Continuous kernels require a concrete use case plus measurability and integration contracts.
 - Recursion schemes require explicit recursive syntax and termination or productivity evidence.
