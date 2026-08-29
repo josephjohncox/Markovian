@@ -284,29 +284,33 @@ A backend cannot ignore layout. It must either require `sameFiniteLayout` or app
 
 See [Mac Lane on categorical isomorphism and coherence](references.md#mac-lane-categories-and-monoidal-coherence) and [Fong–Spivak on compositional representations](references.md#fong-and-spivak-applied-category-theory).
 
-## 10. Three reversals live in three different contexts
+## 10. Four reversals live in four different contexts
 
 ### Implemented fact
 
-Markovian has three separate operations:
+Markovian has four separate operations:
 
 1. conjugate transpose of a raw matrix
 2. prior-indexed Bayesian inversion
 3. reversal of structured-cospan boundary legs
+4. manual reverse derivatives through neural-network VJPs
 
 ### Deduction
 
-The word “reverse” hides three distinct dependencies.
+The word “reverse” hides four distinct dependencies.
 
 - Matrix dagger needs an involutive scalar.
 - Bayesian inversion needs a state and positive evidence.
 - Boundary reversal needs an interface presentation.
+- A reverse derivative needs a primal point, a local derivative, an output cotangent, and additive cotangent accumulation.
 
-A universal reversal interface would erase exactly the data that distinguishes the operations.
+A universal reversal interface would erase exactly the data that distinguishes the operations. An adjoint functor is a fifth mathematical use of “adjoint,” but it is a hom-set correspondence rather than one of these value-level operations.
 
 ### Boundary
 
-No equation in one context transfers automatically to either of the others.
+No equation in one context transfers automatically to any of the others. In particular, backpropagation is not Bayesian inversion and a neural VJP does not add a dagger to stochastic kernels.
+
+See [Categorical structure of learning and neural networks](categorical-learning.md#four-meanings-of-adjoint-or-reverse).
 
 ## 11. Exact semantics acts as an executable specification
 
@@ -326,6 +330,75 @@ Exact reference agreement on bounded fixtures does not prove scalability, numeri
 
 See [Higham](references.md#higham-floating-point-stability) and [Goldberg](references.md#goldberg-floating-point-arithmetic).
 
+## 12. One diagonal governs sharing forward and accumulation backward
+
+### Implemented fact
+
+Circuit sharing uses one forward diagonal after one computation. Dense neural references compute VJPs and aggregate one complete parameter gradient before applying an atomic update.
+
+### Deduction
+
+For differentiable deterministic structure, the reverse derivative of the diagonal adds cotangents:
+
+\\[
+R[\Delta_X](x,\bar x_1,\bar x_2)=\bar x_1+\bar x_2.
+\\]
+
+The same structural node therefore has two compatible readings:
+
+- forward: one value has multiple consumers;
+- reverse: every consumer contributes to one shared source sensitivity.
+
+This connects probabilistic correlation accounting with neural parameter-sharing accounting. Replacing sharing by repeated execution can change both the joint distribution and the gradient.
+
+### Boundary
+
+The reverse equation requires differentiable additive structure. It is not a law of arbitrary stochastic kernels. Score-function estimators remain necessary at discrete sampling nodes.
+
+See [Categorical structure of learning and neural networks](categorical-learning.md#diagonals-parameter-sharing-and-gradient-accumulation) and [Cockett and colleagues](references.md#cockett-and-colleagues-reverse-derivatives).
+
+## 13. Exact support can compile approximate action masks
+
+### Implemented fact
+
+Exact finite models retain validated action availability and positive support. Neural policies and DQN transitions use explicit nonempty ordered action masks.
+
+### Deduction
+
+A lowering pass can derive each neural action mask from the exact model's available-action witness. Softmax normalization, score gradients, greedy selection, and bootstrap maxima then range over exactly the actions permitted by the semantic model.
+
+This is a near-free correctness gain: the exact layer already contains the support evidence. Reusing it prevents unavailable actions from receiving probability or entering a target maximum.
+
+### Boundary
+
+The current packages test common masks but do not yet expose one public compiler from every exact MDP state to a neural observation and mask. Feature extraction and state abstraction remain user-supplied and can still merge states with incompatible action sets.
+
+## 14. Approximate interpreters should satisfy commuting-square tests
+
+### Implemented fact
+
+Exact kernels, dense rational lowering, sampled execution, CUDA application, and selected neural updates already have bounded differential fixtures.
+
+### Deduction
+
+Each approximate backend can be tested as a square:
+
+\\[
+\begin{array}{ccc}
+X_{\mathrm{exact}} & \xrightarrow{F_{\mathrm{exact}}} & Y_{\mathrm{exact}} \\\\
+\downarrow L_X && \downarrow L_Y \\\\
+X_{\mathrm{approx}} & \xrightarrow{F_{\mathrm{approx}}} & Y_{\mathrm{approx}}.
+\end{array}
+\\]
+
+The proof obligation is not literal equality. It is the backend's declared observation relation between `L_Y(F_exact x)` and `F_approx(L_X x)`.
+
+This pattern composes. If two adjacent approximate squares satisfy compatible error contracts, the composite has an explicit accumulated obligation. It supplies a disciplined route from denotational laws to backend tests without claiming that floating arithmetic inherits exact equality.
+
+### Boundary
+
+Error composition is backend-specific. Absolute bounds, relative bounds, probabilistic confidence statements, and optimizer convergence cannot be merged through one universal rule.
+
 ## Summary
 
 The strongest deductions come from refusing to collapse adjacent layers:
@@ -337,5 +410,8 @@ The strongest deductions come from refusing to collapse adjacent layers:
 - raw trace versus Bellman fixed points separates finite contraction from recursion
 - semantic support versus finite layout separates meaning from storage
 - structured cospan composition versus acyclic denotation separates topology from execution
+- forward diagonals versus reverse accumulation connects sharing with tied-parameter gradients
+- exact availability versus approximate masks turns support evidence into backend constraints
+- exact denotation versus approximate observation turns semantic laws into commuting-square tests
 
 These distinctions are standard mathematics applied as software boundaries. Their combination gives a precise guide for future extensions.

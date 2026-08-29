@@ -2,8 +2,9 @@
 {- | Framework-independent 'Double' policy-gradient references.
 
 The package keeps approximate numerical work outside the exact root semantic
-core. It provides stable categorical operations, checked row-major dense
-networks with manual VJPs, policy-gradient updates, bounded replay, target
+core. It provides stable categorical operations, checked information
+quantities and logit gradients, checked row-major dense networks with manual
+VJPs, policy-gradient updates, bounded replay, target
 networks, and one atomic DQN batch step. It uses neither tensors nor automatic
 differentiation.
 -}
@@ -13,6 +14,7 @@ module Markovian.Backend.Neural (
     module Markovian.Backend.Neural.Categorical,
     module Markovian.Backend.Neural.Dense,
     module Markovian.Backend.Neural.DQN,
+    module Markovian.Backend.Neural.Information,
     module Markovian.Backend.Neural.Numeric,
     module Markovian.Backend.Neural.Optimizer,
     module Markovian.Backend.Neural.Policy,
@@ -27,6 +29,7 @@ import Markovian.Backend.Neural.Approximation
 import Markovian.Backend.Neural.Categorical
 import Markovian.Backend.Neural.Dense
 import Markovian.Backend.Neural.DQN
+import Markovian.Backend.Neural.Information
 import Markovian.Backend.Neural.Numeric
 import Markovian.Backend.Neural.Optimizer
 import Markovian.Backend.Neural.Policy

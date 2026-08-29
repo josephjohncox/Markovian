@@ -38,6 +38,7 @@ It implements:
 
 - stable softmax and log-softmax;
 - analytic categorical Jacobians and selected-action score gradients;
+- entropy, cross entropy, KL divergence, mutual information, and analytic logit gradients;
 - dense networks with manual vector-Jacobian products;
 - masked linear categorical policies and scalar linear value functions;
 - an explicit approximation boundary with precision, error, and observation policies;
@@ -99,6 +100,19 @@ For selected available action `a`, the score gradient is computed only over the 
 \\]
 
 `maximumCategoricalError` compares exact rational masses with approximate masses in max norm. It does not establish a global approximation guarantee.
+
+## Approximate information quantities
+
+`Markovian.Backend.Neural.Information` computes entropy, cross entropy, KL divergence, and finite joint mutual information from stable categorical logits. It also exposes the entropy logit gradient and the fused target-to-prediction cross-entropy gradient.
+
+```haskell
+entropy <- entropyFromLogits logits
+divergence <- klDivergenceFromLogits sourceLogits targetLogits
+gradient <-
+  crossEntropyPredictionGradient targetLogits predictionLogits
+```
+
+These values use checked `Double` arithmetic because logarithms of rational probabilities are generally irrational. Product-additivity, shift-invariance, decomposition, and finite-difference fixtures are described in [Information theory for finite stochastic models](information-theory.md). The categorical reason VJPs, parameter sharing, and fused gradients compose is developed in [Categorical structure of learning and neural networks](categorical-learning.md).
 
 ## REINFORCE with an optional baseline
 
@@ -219,12 +233,12 @@ y=r+\gamma\max_{a'\in M(s')}Q_{\theta^-}(s',a').
 For Double DQN:
 
 \\[
-a^*=\underset{a'\in M(s')}{\operatorname{arg\\,max}}
+a^{\star}=\underset{a'\in M(s')}{\operatorname{arg\\,max}}
 Q^{\mathrm{online}}(s',a'),
 \\]
 
 \\[
-y=r+\gamma Q_{\theta^-}(s',a^*).
+y=r+\gamma Q_{\theta^-}(s',a^{\star}).
 \\]
 
 A terminal target is `r + gamma * g`. Maxima range only over the stored mask. Strict greater-than replacement retains the first mask entry on ties.
@@ -263,4 +277,7 @@ These tests support the implemented finite fixtures. They do not establish conve
 - [Lin: experience replay](references.md#lin-experience-replay)
 - [Mnih and colleagues: DQN](references.md#mnih-and-colleagues-dqn)
 - [van Hasselt and colleagues: Double DQN](references.md#van-hasselt-and-colleagues-double-dqn)
+- [Shannon: information theory](references.md#shannon-information-theory)
+- [Perrone: Markov categories and entropy](references.md#perrone-markov-categories-and-entropy)
+- [Cockett and colleagues: reverse derivatives](references.md#cockett-and-colleagues-reverse-derivatives)
 - [Higham: floating-point stability](references.md#higham-floating-point-stability)

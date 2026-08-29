@@ -25,8 +25,9 @@ Status terms: `DONE`, `NEXT`, `READY`, `BLOCKED`.
 - [x] **Documentation stack.**
   - Added a pinned mdBook user and contributor guide for the complete public semantic stack.
   - Added repository-owned link, include, math-delimiter, local-MathJax digest, source-to-HTML equation-count, version, and HTML build checks.
-  - Added foundation chapters for algebra, category theory, measure theory, and categorical probability.
+  - Added foundation chapters for algebra, category theory, measure theory, categorical probability, information theory, and categorical learning.
   - Added an equation-level law catalogue, executable fixture links, derived mathematical insights, guided reading routes, and an annotated bibliography.
+  - Added browser-startup recovery and validation for TeX altered by Markdown emphasis or smart punctuation.
   - Added the book check to CI, Pages, and the source-distribution manifest.
 - [x] **GitHub Pages publication.** GitHub Actions publishes successful `main` documentation builds at <https://josephjohncox.github.io/Markovian/>.
 
@@ -114,7 +115,7 @@ P5 status: `DONE`. Prediction, post-transition conditioning, impossible observat
 - [x] **P6.3 Add GPU and neural packages outside the semantic core.**
   - Require CPU/GPU differential tests and transfer-inclusive benchmarks.
   - Define approximation, normalization, gradient, and estimator assumptions.
-  - The neural package now includes checked dense networks, linear policy-gradient updates, replay, target networks, and one DQN batch update.
+  - The neural package now includes checked dense networks, approximate categorical information quantities and gradients, linear policy-gradient updates, replay, target networks, and one DQN batch update.
   - Neural evidence uses hand calculations, finite differences, and deterministic differential fixtures. It makes no training-performance claim.
   - The 2026-08-26 sample-bearing run used one excluded warmup and 20 measured runs on an NVIDIA GB10.
   - The transfer-inclusive mean was `267.843920400 ms`, and sample standard deviation was `3.025869898 ms`.
@@ -137,7 +138,28 @@ D-038 defines this roadmap in dependency order. A later stage cannot weaken the 
 
 S6 status: `DONE`.
 
-**NEXT:** Select a new task that meets the requirements below. No further control, tabular-learning, or neural training stage is currently planned.
+## S7: Approximation and categorical-learning case studies
+
+- [x] **S7.1 Add information-theory and categorical-learning foundations.**
+  - Separate entropy, divergence, reverse derivatives, linear adjoints, adjoint functors, Bayesian inversion, and optimizer dynamics.
+  - Add checked categorical entropy, cross entropy, KL divergence, mutual information, and analytic logit gradients outside the exact core.
+  - Require decomposition, product, invariance, and finite-difference evidence.
+- [ ] **S7.2 Add reproducible inventory-control benchmarks.** `NEXT`
+  - Encode a small Clark--Scarf serial periodic-review model with explicit demand, lead-time, holding, shortage, and event-timing assumptions.
+  - Compare an echelon base-stock policy with the exact finite MDP oracle on a bounded instance before scaling approximately.
+  - Encode Doğru's one-warehouse multi-retailer balance assumption as a named relaxation, not as the physical transition model.
+  - Compare the relaxed policy with a bounded physical allocation model and report value error, policy regret, state count, runtime, and truncation mass.
+  - Add the fixed-batch `(R,nQ)` newsvendor equations as a separate benchmark with discrete-demand inequalities.
+  - Pin every published parameter table or state clearly when a fixture is synthetic.
+- [ ] **S7.3 Add categorical cost and rewrite interpreters.** `READY`
+  - Fold circuit syntax into primitive-count, duplicate-work, and live-width reports.
+  - Implement only proof-carrying rewrites: identities, deterministic share-versus-fanout, and tested softmax/cross-entropy fusion.
+  - Compare exact denotation before and after each structural rewrite and benchmark only after semantic equality passes.
+- [ ] **S7.4 Add typed parametric reverse circuits.** `BLOCKED`
+  - First specify parameter products, cotangent types, primitive VJP obligations, diagonal accumulation, optimizer state, and numerical equality.
+  - Do not identify reverse differentiation with Bayesian inversion or matrix dagger.
+
+**NEXT:** Implement S7.2's smallest exact Clark--Scarf fixture and benchmark schema before adding a large approximate solver.
 
 ## Requirements for new work
 

@@ -4,7 +4,7 @@ Markovian is a greenfield Haskell framework for finite stochastic models. It pro
 
 The framework separates mathematical meaning from execution. Exact rational code defines the reference behavior. Floating, sampled, GPU, and neural code cross explicit approximation boundaries.
 
-Readers who know basic mathematics but want the structures connected explicitly should start with [Algebra behind the implementation](algebra-primer.md), [Category theory behind the interfaces](category-primer.md), [Measure theory and the finite specialization](measure-theory-primer.md), and [Categorical probability: the bridge](categorical-probability.md). Each chapter links its claims to primary references and to the corresponding Markovian APIs.
+Readers who know basic mathematics but want the structures connected explicitly should start with [Algebra behind the implementation](algebra-primer.md), [Category theory behind the interfaces](category-primer.md), [Measure theory and the finite specialization](measure-theory-primer.md), and [Categorical probability: the bridge](categorical-probability.md). Continue with [Information theory for finite stochastic models](information-theory.md) and [Categorical structure of learning and neural networks](categorical-learning.md) for entropy, reverse derivatives, diagonals, parameter sharing, and optimization. Each chapter links its claims to primary references and to the corresponding Markovian APIs.
 
 ## What the framework prevents
 
@@ -41,19 +41,20 @@ The book classifies control and learning methods along three independent axes:
 
 Exact value iteration and policy iteration are model-based. The TD, policy-gradient, and DQN updates use observed transitions or episodes.
 
-Read [Control and learning taxonomy](control-learning-taxonomy.md) before selecting a learning API.
+Read [Control and learning taxonomy](control-learning-taxonomy.md) before selecting a learning API. Read [Information theory](information-theory.md) for entropy, KL, and data processing, and [Categorical learning](categorical-learning.md) for VJPs, adjoints, sharing, and optimizer boundaries.
 
-## Three operations called reversal
+## Four operations called reversal
 
-The framework uses separate APIs for three unrelated operations.
+The framework keeps four unrelated operations separate.
 
 | Operation | Required data | Meaning |
 | --- | --- | --- |
 | Matrix transpose or conjugate transpose | A raw semiring matrix | Reverse source and target indexes |
 | Bayesian inversion | A prior and a stochastic channel | Infer a supported source from an observed target |
 | Open-boundary reversal | A structured cospan | Swap the input and output boundary legs |
+| Reverse derivative | A differentiable map, primal point, and output cotangent | Propagate sensitivity through a local derivative adjoint |
 
-No common `Dagger` class joins these operations.
+No common `Dagger` or reversal class joins these operations.
 
 ## How to read this book
 

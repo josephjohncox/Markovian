@@ -16,6 +16,8 @@
 - [Category theory behind the interfaces](./category-primer.md)
 - [Measure theory and the finite specialization](./measure-theory-primer.md)
 - [Categorical probability: the bridge](./categorical-probability.md)
+- [Information theory for finite stochastic models](./information-theory.md)
+- [Categorical structure of learning and neural networks](./categorical-learning.md)
 
 # Models and evaluation
 

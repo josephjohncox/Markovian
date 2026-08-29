@@ -28,7 +28,7 @@ This command performs these checks:
 2. Validate local Markdown links and anchors.
 3. Validate escaped and balanced display-math delimiters.
 4. Build the complete HTML book.
-5. Verify the pinned local MathJax digest, generated local script tags, and every source-to-generated display block.
+5. Verify the pinned local MathJax digest, generated local script tags, supported Markdown-to-TeX recovery markup, and every source-to-generated display block.
 
 CI runs the same command.
 
@@ -62,7 +62,9 @@ V(s)=\sum_x p(x)r(x).
 
 Do not write a single-backslash delimiter or `$$`. The [mdBook MathJax guide](https://rust-lang.github.io/mdBook/format/mathjax.html) documents this requirement.
 
-`check-book-links` rejects single-backslash and unbalanced delimiters. `check-book` verifies the pinned local MathJax 3.2.2 digest, requires the generated local configuration and SVG bundle tags, rejects the external CDN loader, and checks that every source display block survives in its generated chapter HTML.
+`check-book-links` rejects single-backslash and unbalanced delimiters. Markdown also consumes TeX punctuation escapes. Write two source backslashes for commands such as `\\,`, `\\!`, and `\\{`. Use `\star` or `\ast` instead of a bare `*`, because Markdown can turn paired stars into emphasis across a formula.
+
+mdBook can also turn paired TeX subscripts into `<em>` elements and ASCII primes into smart punctuation. The local MathJax configuration restores those forms before typesetting. `check-book` rejects unsupported generated tags and verifies that every source display block survives in its generated chapter HTML. A release check executes all generated equations through MathJax startup and requires no raw delimiters or MathJax errors.
 
 The bundle, license, source URL, and digest are recorded under `docs/book/theme/vendor/mathjax`. Update them together. Do not replace the versioned local bundle with an unpinned network URL.
 

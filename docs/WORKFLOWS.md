@@ -138,7 +138,7 @@ python3 /home/josephcox/.pi/agent/skills/ste-writing/scripts/ste-lint.py \
 
 The writer must read both outputs. A file list alone is not a content review.
 
-`scripts/check-book` verifies local chapter links, anchors, include targets, the pinned `mdbook` version, the vendored MathJax digest, local generated script tags, absence of the external loader, every source-to-generated display-math block, and the complete HTML build.
+`scripts/check-book` verifies local chapter links, anchors, include targets, the pinned `mdbook` version, the vendored MathJax digest, local generated script tags, absence of the external loader, every source-to-generated display-math block, supported Markdown-to-TeX recovery markup, and the complete HTML build. Before publication, execute the generated pages through MathJax startup and require one rendered container per display block, no raw delimiters, and no MathJax errors.
 
 Do not claim a Haskell build result for documentation-only work unless the current revision produced it.
 
@@ -392,7 +392,7 @@ D-038 work follows the S1 through S6 roadmap in `TODO.md`.
 
 ## 11. New-feature evidence workflow
 
-P0 through P6, the greenfield cleanup, and exact semantic-tower stages S1 through S6 are `DONE`. D-023 through D-046 define the implemented contracts. Focused root modules cover exact control and tabular learning. Focused neural modules cover finite differences, policy gradients, replay, target networks, and DQN. No further training stage is planned. Arbitrary cyclic graph semantics, feedback, continuous-time black-boxing, unrestricted MDP black-boxing, tensor frameworks, autodiff, and device execution remain deferred.
+P0 through P6, the greenfield cleanup, exact semantic-tower stages S1 through S6, and S7.1 information and categorical-learning foundations are `DONE`. D-023 through D-048 define the implemented contracts. Focused root modules cover exact control and tabular learning. Focused neural modules cover finite differences, categorical information, policy gradients, replay, target networks, and DQN. S7.2 inventory benchmarks are next. Arbitrary cyclic graph semantics, feedback, continuous-time black-boxing, unrestricted MDP black-boxing, general autodiff, tensor frameworks, and device execution remain deferred.
 
 A new feature must use this sequence:
 
@@ -406,6 +406,9 @@ A new feature must use this sequence:
 8. For sampled learning, record exact seeded generator states and split-run equality.
 9. For neural derivatives, record the finite-difference tolerance and every checked parameter or input coordinate.
 10. For replay or target updates, record ordering, eviction, successful-update count, and failed-update scheduling fixtures.
+11. For information quantities, record logarithm base, support behavior, decomposition laws, product laws, and finite-difference evidence.
+12. For named inventory benchmarks, reproduce the source model's timing and assumptions, expose every relaxation, compare with a bounded exact oracle, and report truncation mass, value error, policy regret, state count, and runtime.
+13. For categorical rewrites, name the law and evidence that authorizes the rewrite. Purity-indexed deterministic rewrites and approximate fusions require different equality contracts.
 
 Do not widen the finite semantic core for speculative abstractions without recorded requirements and evidence.
 

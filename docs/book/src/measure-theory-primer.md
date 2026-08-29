@@ -74,13 +74,13 @@ Markovian usually works directly with distributions and kernels, without represe
 A measurable function transports a measure from `X` to `Y`. The pushforward is:
 
 \\[
-f_*\mu(B)=\mu(f^{-1}(B)).
+f_{\ast}\mu(B)=\mu(f^{-1}(B)).
 \\]
 
 For finite mass functions:
 
 \\[
-(f_*p)(y)=\sum_{x:f(x)=y}p(x).
+(f_{\ast}p)(y)=\sum_{x:f(x)=y}p(x).
 \\]
 
 This is the deterministic `map` operation on exact distributions. It is also multiplication by the one-hot stochastic matrix induced by `f`.

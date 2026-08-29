@@ -3,7 +3,8 @@ name:          markovian-neural
 version:       0.1.0.0
 synopsis:      Framework-independent neural RL references for Markovian
 description:
-  Checked dense networks, policy gradients, replay, target networks, and DQN reference computations.
+  Checked dense networks, categorical information, policy gradients, replay,
+  target networks, and DQN reference computations.
 
 category:      Math
 license:       BSD-3-Clause
@@ -27,6 +28,7 @@ library
     Markovian.Backend.Neural.Categorical
     Markovian.Backend.Neural.Dense
     Markovian.Backend.Neural.DQN
+    Markovian.Backend.Neural.Information
     Markovian.Backend.Neural.Numeric
     Markovian.Backend.Neural.Optimizer
     Markovian.Backend.Neural.Policy
@@ -47,6 +49,7 @@ test-suite markovian-neural-test
     ActorCritic
     DenseFiniteDifference
     DQN
+    Information
     PolicyGradient
     Reinforce
     ReplayTarget

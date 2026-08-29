@@ -11,8 +11,11 @@ Each route starts with background and ends at the source closest to Markovian's 
 - **Categorical probability:** [Giry](#giry-probability-as-a-monad) → [Moggi](#moggi-kleisli-semantics) → [Fritz](#fritz-markov-categories) → [Cho and Jacobs](#cho-and-jacobs-disintegration-and-bayesian-inversion)
 - **Matrix and path algebra:** [Mohri](#mohri-semiring-path-algorithms) → [Droste, Kuich, and Vogler](#droste-kuich-and-vogler-weighted-automata) → [Joyal, Street, and Verity](#joyal-street-and-verity-traced-monoidal-categories)
 - **Open composition:** [Fong and Spivak](#fong-and-spivak-applied-category-theory) → [Fong](#fong-decorated-cospans) → [Baez and Courser](#baez-and-courser-structured-cospans)
+- **Information theory:** [Shannon](#shannon-information-theory) → [Cover and Thomas](#cover-and-thomas-information-theory) → [Baez, Fritz, and Leinster](#baez-fritz-and-leinster-entropy) → [Perrone](#perrone-markov-categories-and-entropy)
+- **Categorical learning:** [Fong, Spivak, and Tuyéras](#fong-spivak-and-tuyeras-backprop) → [Cockett and colleagues](#cockett-and-colleagues-reverse-derivatives) → [Cruttwell and colleagues](#cruttwell-and-colleagues-gradient-learning)
+- **Inventory control examples:** [Clark and Scarf](#clark-and-scarf-multi-echelon-inventory) → [Doğru](#dogru-multi-retailer-inventory) → [Doğru, van Houtum, and de Kok](#dogru-van-houtum-and-de-kok-fixed-batches)
 
-The book chapters [Algebra behind the implementation](algebra-primer.md), [Category theory behind the interfaces](category-primer.md), [Measure theory and the finite specialization](measure-theory-primer.md), and [Categorical probability: the bridge](categorical-probability.md) explain how these sources connect to the code.
+The book chapters [Algebra behind the implementation](algebra-primer.md), [Category theory behind the interfaces](category-primer.md), [Measure theory and the finite specialization](measure-theory-primer.md), [Categorical probability: the bridge](categorical-probability.md), [Information theory for finite stochastic models](information-theory.md), and [Categorical structure of learning and neural networks](categorical-learning.md) explain how these sources connect to the code.
 
 ## Category theory and string diagrams
 
@@ -57,6 +60,50 @@ This survey connects equations in monoidal, traced, compact, and dagger categori
 Brendan Fong and David I. Spivak. *An Invitation to Applied Category Theory: Seven Sketches in Compositionality*. Cambridge University Press, 2019. [Free author PDF](https://dspivak.net/7Sketches.pdf). [arXiv:1803.05316](https://arxiv.org/abs/1803.05316).
 
 Chapters 5 and 6 develop signal-flow diagrams, props, cospans, hypergraph categories, and electrical circuits. The book gives a broader compositional context for Markovian circuits and open systems.
+
+## Information theory and categorical learning
+
+### Shannon: information theory
+
+Claude E. Shannon. “A mathematical theory of communication.” *Bell System Technical Journal* 27, 1948, pages 379–423 and 623–656. [DOI 10.1002/j.1538-7305.1948.tb01338.x](https://doi.org/10.1002/j.1538-7305.1948.tb01338.x). [Direct PDF](https://people.math.harvard.edu/~ctm/home/text/others/shannon/entropy/entropy.pdf).
+
+Sections 6–12 introduce entropy, joint and conditional entropy, and channel capacity. Later sections state the noisy-channel results. This is the primary source for the finite logarithmic quantities used in the information-theory chapter.
+
+### Cover and Thomas: information theory
+
+Thomas M. Cover and Joy A. Thomas. *Elements of Information Theory*. Second edition, Wiley, 2006. [DOI 10.1002/047174882X](https://doi.org/10.1002/047174882X).
+
+Chapters 2 and 4 develop entropy, relative entropy, mutual information, chain rules, sufficient statistics, and the data-processing inequality. Chapter 12 connects information theory to statistical inference. Use it for proofs and equality conditions that the book only sketches.
+
+### Baez, Fritz, and Leinster: entropy
+
+John C. Baez, Tobias Fritz, and Tom Leinster. “A characterization of entropy in terms of information loss.” *Entropy* 13(11), 2011, pages 1945–1957. [DOI 10.3390/e13111945](https://doi.org/10.3390/e13111945). [arXiv:1106.1791](https://arxiv.org/abs/1106.1791).
+
+The paper characterizes Shannon information loss for measure-preserving maps between finite probability spaces using functoriality, convex linearity, and continuity. The hypotheses matter: this is not a uniqueness theorem for every possible information functional.
+
+### Perrone: Markov categories and entropy
+
+Paolo Perrone. “Markov categories and entropy.” *IEEE Transactions on Information Theory* 70(3), 2024, pages 1671–1692. [DOI 10.1109/TIT.2023.3328825](https://doi.org/10.1109/TIT.2023.3328825). [arXiv:2212.11719](https://arxiv.org/abs/2212.11719).
+
+Perrone formulates divergences and derived entropy and mutual-information quantities in enriched Markov categories and proves categorical data-processing results. The finite specialization connects these constructions directly to Markovian channels.
+
+### Fong, Spivak, and Tuyeras: backprop
+
+Brendan Fong, David I. Spivak, and Rémy Tuyéras. “Backprop as functor: a compositional perspective on supervised learning.” *34th Annual ACM/IEEE Symposium on Logic in Computer Science*, 2019. [DOI 10.1109/LICS.2019.8785665](https://doi.org/10.1109/LICS.2019.8785665). [arXiv:1711.10455](https://arxiv.org/abs/1711.10455).
+
+The paper organizes learners into a symmetric monoidal category and shows how gradient descent and backpropagation arise compositionally. It motivates separating parameterized implementation, backward request, and parameter update.
+
+### Cockett and colleagues: reverse derivatives
+
+J. Robin B. Cockett, Geoffrey S. H. Cruttwell, Jonathan Gallagher, Jean-Simon Pacaud Lemay, Benjamin MacAdam, Gordon D. Plotkin, and Dorette Pronk. “Reverse derivative categories.” *Computer Science Logic 2020*, LIPIcs 152, article 18, 2020. [DOI 10.4230/LIPIcs.CSL.2020.18](https://doi.org/10.4230/LIPIcs.CSL.2020.18). [Direct PDF](https://drops.dagstuhl.de/storage/00lipics/lipics-vol152-csl2020/LIPIcs.CSL.2020.18/LIPIcs.CSL.2020.18.pdf).
+
+This paper axiomatizes reverse differentiation and derives reverse chain, copy, and additive-accumulation laws. It is the main reference for interpreting VJPs compositionally without identifying reverse differentiation with inversion.
+
+### Cruttwell and colleagues: gradient learning
+
+Geoffrey S. H. Cruttwell, Bruno Gavranović, Neil Ghani, Paul Wilson, and Fabio Zanasi. “Categorical foundations of gradient-based learning.” In *Programming Languages and Systems: ESOP 2022*, LNCS 13240, pages 1–28. [DOI 10.1007/978-3-030-99336-8_1](https://doi.org/10.1007/978-3-030-99336-8_1). [arXiv:2103.01931](https://arxiv.org/abs/2103.01931).
+
+The paper combines parameterization, lenses, and reverse-derivative structure to model gradient-based learners and optimizers compositionally. It provides the broader framework for the proposed parametric-circuit and checked-optimizer extensions.
 
 ## Probability kernels, Markov categories, and Bayes
 
@@ -148,7 +195,25 @@ Daphne Koller and Nir Friedman. *Probabilistic Graphical Models: Principles and 
 
 Chapters 9 and 10 explain exact inference, variable elimination, clique trees, and the sum-product pattern. This is the standard algorithmic context for the live-frontier acyclic interpreter.
 
-## MDPs, POMDPs, and learning
+## MDPs, POMDPs, inventory control, and learning
+
+### Clark and Scarf: multi-echelon inventory
+
+Andrew J. Clark and Herbert Scarf. “Optimal policies for a multi-echelon inventory problem.” *Management Science* 6(4), 1960, pages 475–490. [DOI 10.1287/mnsc.6.4.475](https://doi.org/10.1287/mnsc.6.4.475).
+
+Clark and Scarf derive optimal echelon base-stock structure for a serial periodic-review inventory model under their stated demand, lead-time, holding-cost, and shortage-cost assumptions. A Markovian reproduction must encode those timing assumptions explicitly rather than label an arbitrary inventory MDP “Clark--Scarf.”
+
+### Dogru: multi-retailer inventory
+
+Mustafa Kemal Doğru. *Optimal Control of One-Warehouse Multi-Retailer Systems: An Assessment of the Balance Assumption*. PhD thesis, Eindhoven University of Technology, 2006. [DOI 10.6100/IR601558](https://doi.org/10.6100/IR601558). [University record](https://research.tue.nl/en/publications/optimal-control-of-one-warehouse-multi-retailer-systems-an-assess/).
+
+The thesis studies centralized periodic-review control of one warehouse and multiple retailers, including the balance assumption, base-stock policies, newsvendor inequalities, and numerical comparisons with dynamic-programming solutions. The balance assumption can permit allocations unavailable in the physical system, so it must be represented as an explicit approximation rather than hidden in a transition kernel.
+
+### Dogru, van Houtum, and de Kok: fixed batches
+
+M. K. Doğru, G. J. van Houtum, and A. G. de Kok. “Newsvendor equations for optimal reorder levels of serial inventory systems with fixed batch sizes.” *Operations Research Letters* 36(5), 2008, pages 551–556. [DOI 10.1016/j.orl.2008.06.003](https://doi.org/10.1016/j.orl.2008.06.003). [University author copy](https://pure.tue.nl/ws/files/2166749/614894.pdf).
+
+The paper relates optimal echelon-stock `(R,nQ)` reorder levels to newsvendor equalities for continuous demand and inequalities for discrete demand under fixed-batch serial-system assumptions. These results provide a second reproducible inventory benchmark distinct from the unbatched Clark--Scarf model.
 
 ### Puterman: Markov decision processes
 
@@ -275,6 +340,9 @@ Goldberg gives a practical account of representation, rounding, guard digits, an
 | Convex mixtures | Fritz on convex spaces, Jacobs |
 | Structured cospans and double cells | Baez–Courser, Fong |
 | Acyclic sum-product interpretation | Koller–Friedman Chs. 9–10 |
+| Entropy, KL, mutual information, and data processing | Shannon, Cover–Thomas, Baez–Fritz–Leinster, Perrone |
+| Reverse derivatives and compositional learning | Fong–Spivak–Tuyéras, Cockett and colleagues, Cruttwell and colleagues |
+| Serial and multi-retailer inventory examples | Clark–Scarf, Doğru, Doğru–van Houtum–de Kok |
 | Finite and discounted MDP evaluation and control | Puterman Chs. 4 and 6, Bellman |
 | POMDP belief filtering | Kaelbling–Littman–Cassandra |
 | TD(0), SARSA, Expected SARSA, and Q-learning | Sutton, Rummery–Niranjan, van Seijen and colleagues, Watkins–Dayan |

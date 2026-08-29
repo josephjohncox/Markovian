@@ -1,6 +1,6 @@
 # Category theory behind the interfaces
 
-This chapter assumes that the reader knows the definitions of a category and a functor, but may not know why they matter for stochastic software. It connects categorical vocabulary directly to Markovian's finite types.
+This chapter assumes that the reader knows the definitions of a category and a functor, but may not know why they matter for stochastic software. It connects categorical vocabulary directly to Markovian's finite types. The consequences for entropy, reverse derivatives, parameter sharing, and optimization are developed in [Information theory for finite stochastic models](information-theory.md) and [Categorical structure of learning and neural networks](categorical-learning.md).
 
 ## Category: objects, morphisms, and composition
 
@@ -292,4 +292,5 @@ No row of this table inherits every structure from another row.
 2. Read [Selinger](references.md#selinger-graphical-languages) for monoidal diagrams.
 3. Read [Fritz](references.md#fritz-markov-categories), especially §§2–3, 11, and 13.
 4. Read [Categorical probability: the bridge](categorical-probability.md) for the connection to measure kernels.
-5. Use the [law catalogue](laws-and-boundaries.md) to find executable finite witnesses.
+5. Read [Information theory](information-theory.md) for channel observables and [categorical learning](categorical-learning.md) for reverse derivatives, diagonals, and optimization.
+6. Use the [law catalogue](laws-and-boundaries.md) to find executable finite witnesses.

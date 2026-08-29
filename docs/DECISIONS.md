@@ -609,7 +609,7 @@ Provide standard and Double-DQN targets over explicit nonempty action masks. Eva
 
 **Decision:** Disable mdBook's external MathJax 2 loader. Commit the complete MathJax 3.2.2 SVG bundle and its Apache-2.0 license under `docs/book/theme/vendor`. Load the local configuration before the local bundle through `additional-js`. Pin the bundle digest in `toolchain.env`.
 
-Extend `scripts/check-book` to verify the MathJax digest, reject the external loader, require the generated local script tags, and compare every source display-math block with its generated chapter HTML.
+Extend `scripts/check-book` to verify the MathJax digest, reject the external loader, require the generated local script tags, and compare every source display-math block with its generated chapter HTML. Before MathJax startup, recover TeX subscripts and ASCII primes that mdBook can transform into emphasis tags or smart punctuation. Reject unsupported generated tags and ambiguous bare TeX stars.
 
 Add separate foundation chapters for algebra, category theory, measure theory, and categorical probability. State the finite specialization, the categorical structure at each refinement layer, and the analytic requirements that do not disappear under categorical notation. Link explanations to the implementation chapters, the law catalogue, and annotated primary or standard references.
 
@@ -617,7 +617,25 @@ Add separate foundation chapters for algebra, category theory, measure theory, a
 
 **Consequences:** The source distribution grows by the vendored bundle. Updating MathJax requires an explicit version, digest, license, local build, and Pages check. Documentation equations continue to use mdBook's required double-backslash display delimiters. A mathematical claim should link to its internal explanation and then to a direct primary or standard source where practical.
 
-**Required evidence:** `scripts/check-book` verifies the local loader and all display blocks. Local links and anchors must pass. The source archive must contain the configuration, bundle, license, and foundation chapters. A publication claim requires a successful Pages run and reachable rendered pages.
+**Required evidence:** `scripts/check-book` verifies the local loader and all display blocks. Local links and anchors must pass. A browser-startup check must turn every generated display block into one MathJax container with no raw delimiters or MathJax errors. The source archive must contain the configuration, bundle, license, and foundation chapters. A publication claim requires a successful Pages run and reachable rendered pages.
+
+### D-048: Keep information observables and reverse learning structure explicit
+
+**Status:** Accepted
+
+**Decision:** Add separate information-theory and categorical-learning foundation chapters. Distinguish linear adjoints, reverse derivatives, adjoint functors, and prior-indexed Bayesian inversion. Treat losses and optimizer updates as additional structure rather than consequences of forward categorical composition.
+
+Keep exact finite states, channels, supports, sharing, and tensor factorization in the rational semantic layer. Evaluate Shannon entropy, cross entropy, KL divergence, mutual information, and their logit gradients in the optional checked-`Double` neural package because logarithms of rational probabilities are generally irrational.
+
+Use the forward diagonal to represent shared values and parameters. In a future differentiable interpreter, require its reverse rule to accumulate cotangents from every consumer. Permit deterministic share-versus-fanout rewrites only with purity evidence. Use exact availability evidence to derive approximate action masks when a concrete lowering supplies the feature map.
+
+Treat Clark--Scarf and Doğru inventory models as named benchmark families only when their event timing, lead times, costs, demand assumptions, policy class, and approximation assumptions are explicit. In particular, represent Doğru's balance assumption as a named relaxation and compare it with a bounded physical allocation model; do not hide the relaxation inside a kernel.
+
+**Rationale:** Information quantities make channel loss and representation quality measurable, while reverse-derivative structure explains compositional VJPs, tied-parameter accumulation, and fusion. Keeping these layers separate prevents four incompatible meanings of “reverse” from entering one API. Named operational-research benchmarks provide stronger approximation evidence than synthetic training curves when their assumptions are reproduced exactly.
+
+**Consequences:** The exact core acquires no logarithm, autodiff, tensor, or optimizer dependency. `markovian-neural` gains finite information references and gradients but no convergence claim. A future parametric-circuit API must state parameter products, cotangent objects, primitive reverse laws, optimizer state, and numerical equality before implementation. Inventory approximation work begins with a small exact oracle and deterministic error report.
+
+**Required evidence:** Information fixtures cover uniform entropy, shift invariance, product additivity, cross-entropy decomposition, self-KL, independent and shared mutual information, shape failures, and central finite differences for entropy and cross-entropy gradients. Categorical rewrites require exact denotational equality or an explicit approximate commuting-square relation. Inventory benchmarks require exact bounded comparisons, truncation-mass reporting, policy regret, runtime, and direct source citations for published parameters.
 
 ## Required evidence for advanced work
 

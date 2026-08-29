@@ -12,7 +12,7 @@ Capability labels in this repository have these meanings:
 
 ## Documentation
 
-[The Markovian Book](docs/book/src/introduction.md) is the user and contributor guide. It covers model construction, exact evaluation, learning, POMDPs, matrices, Bayesian inference, circuits, open systems, and optional backends. Foundation chapters explain the [algebra](docs/book/src/algebra-primer.md), [category theory](docs/book/src/category-primer.md), [measure theory](docs/book/src/measure-theory-primer.md), and [categorical probability](docs/book/src/categorical-probability.md) behind those APIs. The book also gives an equation-level [law catalogue](docs/book/src/laws-and-boundaries.md), [derived mathematical insights](docs/book/src/categorical-insights.md), and an annotated [bibliography with guided reading routes](docs/book/src/references.md).
+[The Markovian Book](docs/book/src/introduction.md) is the user and contributor guide. It covers model construction, exact evaluation, learning, POMDPs, matrices, Bayesian inference, circuits, open systems, and optional backends. Foundation chapters explain the [algebra](docs/book/src/algebra-primer.md), [category theory](docs/book/src/category-primer.md), [measure theory](docs/book/src/measure-theory-primer.md), [categorical probability](docs/book/src/categorical-probability.md), [information theory](docs/book/src/information-theory.md), and [categorical structure of learning](docs/book/src/categorical-learning.md) behind those APIs. The book also gives an equation-level [law catalogue](docs/book/src/laws-and-boundaries.md), [derived mathematical insights](docs/book/src/categorical-insights.md), and an annotated [bibliography with guided reading routes](docs/book/src/references.md).
 
 Build the searchable HTML book with the pinned documentation tool:
 
@@ -78,7 +78,7 @@ Raw or cyclic `OpenSystem` values cannot use this interpreter. Feedback, trace, 
 The semantic core depends only on `base`. GPU runtimes and neural contracts remain outside it in separate packages:
 
 - `backends/markovian-gpu` provides an optional CUDA 13 driver backend, CPU/GPU differential tests, and a transfer-inclusive benchmark;
-- `backends/markovian-neural` provides checked dense networks with manual VJPs, stable categorical operations, linear REINFORCE and actor-critic updates, replay storage, target networks, and one standard or Double-DQN batch update.
+- `backends/markovian-neural` provides checked dense networks with manual VJPs, stable categorical operations, approximate entropy/cross-entropy/KL/mutual-information calculations and gradients, linear REINFORCE and actor-critic updates, replay storage, target networks, and one standard or Double-DQN batch update.
 
 The neural package is an experimental `Double` reference. It has no tensor framework, autodiff, device runtime, environment runner, or complete trainer. Its finite-difference and worked-example tests do not support convergence, scalability, or production claims.
 

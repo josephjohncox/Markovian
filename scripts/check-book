@@ -34,6 +34,7 @@ mdbook build "$project_root/docs/book"
 test -f "$project_root/docs/book/build/index.html"
 grep -Fq 'theme/mathjax-config-' "$project_root/docs/book/build/index.html"
 grep -Fq 'theme/vendor/mathjax/tex-svg-full-' "$project_root/docs/book/build/index.html"
+grep -Fq 'restoreMarkdownMath' "$project_root/docs/book/build/theme/mathjax-config-"*.js
 if grep -RFq 'cdnjs.cloudflare.com/ajax/libs/mathjax' "$project_root/docs/book/build"; then
   echo "The generated book still depends on external MathJax." >&2
   exit 1
@@ -41,6 +42,7 @@ fi
 
 python3 - "$project_root/docs/book/src" "$project_root/docs/book/build" <<'PY'
 from pathlib import Path
+import html
 import re
 import sys
 
@@ -82,8 +84,22 @@ for chapter in source.glob("*.md"):
             f"{chapter.name}: expected {expected_blocks} display-math blocks in generated HTML but found {len(rendered)}"
         )
     for index, block in enumerate(rendered, start=1):
-        if re.search(r"</?(?:a|code|em|strong)\\b", block):
-            raise SystemExit(f"{chapter.name}: display-math block {index} contains Markdown-generated HTML markup")
+        tags = set(re.findall(r"</?([A-Za-z][A-Za-z0-9-]*)\b", block))
+        unsupported_tags = tags - {"em", "strong"}
+        if unsupported_tags:
+            raise SystemExit(
+                f"{chapter.name}: display-math block {index} contains unsupported Markdown HTML tags "
+                f"{sorted(unsupported_tags)}"
+            )
+        recovered = re.sub(r"<em>", "_", block)
+        recovered = re.sub(r"</em>", "_", recovered)
+        recovered = re.sub(r"<strong>", "**", recovered)
+        recovered = re.sub(r"</strong>", "**", recovered)
+        recovered = html.unescape(recovered).replace("’", "'")
+        if re.search(r"</?[A-Za-z][^>]*>", recovered):
+            raise SystemExit(
+                f"{chapter.name}: display-math block {index} was not fully recovered from Markdown markup"
+            )
     checked += expected_blocks
 if checked == 0:
     raise SystemExit("No display-math blocks were checked.")

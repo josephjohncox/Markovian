@@ -111,7 +111,7 @@ Q_V(s,a)=
 The optimality backup is:
 
 \\[
-(T_*V)(s)=\max_{a\in A(s)}Q_V(s,a).
+(T_{\star}V)(s)=\max_{a\in A(s)}Q_V(s,a).
 \\]
 
 Construct a bounded configuration and run it:
@@ -131,23 +131,23 @@ The initial vector contains terminal payoffs and zero continuing values. A zero 
 The report includes the validated configuration, backup count, exact values, initial-state value, residual, bounds, and stop reason. Define:
 
 \\[
-\delta_*=\lVert T_*V-V\rVert_{\infty}.
+\delta_{\star}=\lVert T_{\star}V-V\rVert_{\infty}.
 \\]
 
 The value error satisfies:
 
 \\[
-\lVert V-V^*\rVert_{\infty}
+\lVert V-V^{\star}\rVert_{\infty}
 \le
-\frac{\delta_*}{1-\gamma}.
+\frac{\delta_{\star}}{1-\gamma}.
 \\]
 
 The greedy policy obtained from `V` has the reported performance bound:
 
 \\[
-\lVert V^*-V^{\pi_V}\rVert_{\infty}
+\lVert V^{\star}-V^{\pi_V}\rVert_{\infty}
 \le
-\frac{2\gamma\delta_*}{(1-\gamma)^2}.
+\frac{2\gamma\delta_{\star}}{(1-\gamma)^2}.
 \\]
 
 A finite iterate is not called an exact optimum. Read `exactValueIterationStopReason` and both bounds before using its greedy policy.

@@ -657,7 +657,7 @@ markovian-gpu              optional CUDA driver backend
 markovian-neural           framework-independent checked neural reference updates
 ```
 
-The root package depends only on `base`. The neural package depends only on `base` and the root `Markovian` package so it can reuse the explicit approximation boundary. Neither package imports a tensor, autodiff, device, or global-randomness framework.
+The root package depends only on `base`. The released neural library also depends only on `base`; a separately flagged integration test depends on the root `Markovian` package for exact-versus-neural differential fixtures. Neither library imports a tensor, autodiff, device, or global-randomness framework.
 
 ### 11.3 Public API policy
 
@@ -720,7 +720,9 @@ Every neural backend must define:
 - Device precision and reproducibility when a device exists.
 - Failure behavior for NaN, infinity, or invalid support.
 
-The `markovian-neural` package uses checked `Double` arithmetic and reuses the root approximation boundary. It implements an opaque finite scalar, stable softmax, analytic categorical gradients, row-major dense networks, manual VJPs, and pure SGD. Dense layers use `tanh` hidden activations and a linear output head.
+The `markovian-neural` package uses checked `Double` arithmetic behind a package-local approximation boundary compatible with the root contract. It implements an opaque finite scalar, stable softmax, analytic categorical gradients, approximate entropy, cross entropy, KL divergence, mutual information, entropy and cross-entropy logit gradients, row-major dense networks, manual VJPs, and pure SGD. Dense layers use `tanh` hidden activations and a linear output head.
+
+Information quantities remain outside the exact rational core because logarithms of rational probabilities are generally irrational. Reverse derivatives remain distinct from raw matrix dagger, categorical adjunctions, and prior-indexed Bayesian inversion. A future parametric-circuit layer must state parameter products, cotangent types, diagonal gradient accumulation, primitive VJP obligations, and optimizer dynamics separately.
 
 REINFORCE and actor-critic use masked linear categorical policies and linear scalar value functions. Unavailable outputs receive zero score gradient. Their actor, baseline, and critic gradients use immutable pre-update snapshots. REINFORCE includes the outer discount power for the discounted start-return objective. Truncated episodes require an explicit boundary bootstrap.
 

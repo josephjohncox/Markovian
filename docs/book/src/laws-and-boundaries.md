@@ -95,7 +95,7 @@ The fixture has expected reward `5` and one transition in every trace.
 For a policy-free compiled finite MDP, define the Bellman optimality operator:
 
 \\[
-(T_*V)(s)=\max_{a\in A(s)}
+(T_{\star}V)(s)=\max_{a\in A(s)}
 \sum_{r,s'}K(s,a)(r,s')\left(r+\gamma V(s')\right).
 \\]
 
@@ -104,13 +104,13 @@ Terminal values remain fixed at their payoffs. With `0 <= gamma < 1`, `T_*` is a
 For residual `delta = ||T_*V - V||_infinity`, the implemented value bound is:
 
 \\[
-\lVert V-V^*\rVert_\infty\le\frac{\delta}{1-\gamma}.
+\lVert V-V^{\star}\rVert_\infty\le\frac{\delta}{1-\gamma}.
 \\]
 
 The greedy policy from `V` has the implemented performance bound:
 
 \\[
-\lVert V^*-V^{\pi_V}\rVert_\infty
+\lVert V^{\star}-V^{\pi_V}\rVert_\infty
 \le\frac{2\gamma\delta}{(1-\gamma)^2}.
 \\]
 
@@ -443,7 +443,6 @@ Identity, composition, and tensor preserve normalization. For composition,
 \sum_yK_{xy}\sum_zL_{yz}=
 \sum_yK_{xy}=
 1.
-
 \\]
 
 The stochastic fixtures check identity, associativity, tensor interchange, and closure of copy and discard.
@@ -695,5 +694,5 @@ The equations above follow standard structures from category theory, categorical
 - [Probability kernels, Markov categories, and Bayes](references.md#probability-kernels-markov-categories-and-bayes)
 - [Semirings, matrices, and convexity](references.md#semirings-matrices-and-convexity)
 - [Open systems and compositional networks](references.md#open-systems-and-compositional-networks)
-- [MDPs, POMDPs, and learning](references.md#mdps-pomdps-and-learning)
+- [MDPs, POMDPs, inventory control, and learning](references.md#mdps-pomdps-inventory-control-and-learning)
 - [Numerical computation](references.md#numerical-computation)

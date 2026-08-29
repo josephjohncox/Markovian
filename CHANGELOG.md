@@ -2,8 +2,9 @@
 
 ## 0.1.0.0 — Unreleased
 
-- Expanded the book with foundations chapters for algebra, category theory, measure theory, and categorical probability. Added internal concept links, guided reading routes, direct primary-source links, an explicit law catalogue, derivations, executable fixtures, and derived categorical insights.
-- Replaced mdBook's external MathJax 2 loader with a pinned local MathJax 3.2.2 SVG bundle. Added digest, local-loader, external-loader rejection, delimiter, and source-to-generated equation-count checks.
+- Expanded the book with foundations chapters for algebra, category theory, measure theory, categorical probability, information theory, and categorical learning. Added internal concept links, guided reading routes, direct primary-source links, an explicit law catalogue, derivations, executable fixtures, and derived categorical insights.
+- Added checked approximate entropy, cross-entropy, KL-divergence, mutual-information, entropy-gradient, and fused cross-entropy-gradient references to `markovian-neural`, with product, decomposition, invariance, and finite-difference tests.
+- Replaced mdBook's external MathJax 2 loader with a pinned local MathJax 3.2.2 SVG bundle. Added pre-typesetting recovery for Markdown-altered TeX, digest, local-loader, external-loader rejection, delimiter, generated-markup, and source-to-generated equation-count checks.
 - Added a pinned mdBook documentation stack with a checked user and contributor book, local-link validation, CI builds, semantic guides, recipes, and project-reference appendices. Added a SHA-pinned GitHub Pages workflow and published the book at <https://josephjohncox.github.io/Markovian/>.
 - Added validated floating and exact finite probability distributions.
 - Added one-layer MRP and MDP interfaces with explicit transition rewards.

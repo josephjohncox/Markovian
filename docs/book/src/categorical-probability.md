@@ -2,7 +2,7 @@
 
 Measure theory describes probability through sigma-algebras, measures, and integrals. Category theory describes how probabilistic processes compose. Markovian's finite exact semantics sits where these descriptions coincide.
 
-This chapter connects the two views. Read [Category theory behind the interfaces](category-primer.md) and [Measure theory and the finite specialization](measure-theory-primer.md) first if either vocabulary is unfamiliar.
+This chapter connects the two views. Read [Category theory behind the interfaces](category-primer.md) and [Measure theory and the finite specialization](measure-theory-primer.md) first if either vocabulary is unfamiliar. [Information theory for finite stochastic models](information-theory.md) then assigns entropy, divergence, and mutual information to these finite states and channels, while [Categorical structure of learning and neural networks](categorical-learning.md) explains reverse derivatives and optimization without conflating them with Bayesian inversion.
 
 ## Three presentations of one finite channel
 

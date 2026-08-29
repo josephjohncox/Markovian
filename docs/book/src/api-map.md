@@ -92,6 +92,7 @@
 | `markovian-neural: Markovian.Backend.Neural.Numeric` | Opaque finite scalars, checked floating arithmetic, and tolerances |
 | `markovian-neural: Markovian.Backend.Neural.Dense` | Dense networks and manual VJPs |
 | `markovian-neural: Markovian.Backend.Neural.Categorical` | Stable categorical values and analytic gradients |
+| `markovian-neural: Markovian.Backend.Neural.Information` | Checked entropy, cross entropy, KL divergence, mutual information, and logit gradients |
 | `markovian-neural: Markovian.Backend.Neural.Policy` | Linear categorical policies and scalar value functions |
 | `markovian-neural: Markovian.Backend.Neural.Reinforce` | Finite-episode linear REINFORCE updates |
 | `markovian-neural: Markovian.Backend.Neural.ActorCritic` | One-step linear actor-critic updates |
