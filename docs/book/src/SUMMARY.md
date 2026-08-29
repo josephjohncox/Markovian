@@ -26,6 +26,7 @@
 - [Rewards, terminals, policies, and objectives](./model-semantics.md)
 - [Control and learning taxonomy](./control-learning-taxonomy.md)
 - [Exact evaluation and control](./exact-evaluation.md)
+- [Bounded serial-inventory benchmark](./inventory-control.md)
 - [Sampling and tabular learning](./sampling-learning.md)
 - [POMDP filtering and planning](./pomdp.md)
 

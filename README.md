@@ -12,7 +12,7 @@ Capability labels in this repository have these meanings:
 
 ## Documentation
 
-[The Markovian Book](docs/book/src/introduction.md) is the user and contributor guide. It covers model construction, exact evaluation, learning, POMDPs, matrices, Bayesian inference, circuits, open systems, and optional backends. Foundation chapters explain the [algebra](docs/book/src/algebra-primer.md), [category theory](docs/book/src/category-primer.md), [measure theory](docs/book/src/measure-theory-primer.md), [categorical probability](docs/book/src/categorical-probability.md), [information theory](docs/book/src/information-theory.md), [categorical structure of learning](docs/book/src/categorical-learning.md), and [polarity, push-pull duality, and game semantics](docs/book/src/polarity-and-games.md) behind those APIs. The book also gives an equation-level [law catalogue](docs/book/src/laws-and-boundaries.md), [derived mathematical insights](docs/book/src/categorical-insights.md), and an annotated [bibliography with guided reading routes](docs/book/src/references.md).
+[The Markovian Book](docs/book/src/introduction.md) is the user and contributor guide. It covers model construction, exact evaluation, the [bounded serial-inventory benchmark](docs/book/src/inventory-control.md), learning, POMDPs, matrices, Bayesian inference, circuits, open systems, and optional backends. Foundation chapters explain the [algebra](docs/book/src/algebra-primer.md), [category theory](docs/book/src/category-primer.md), [measure theory](docs/book/src/measure-theory-primer.md), [categorical probability](docs/book/src/categorical-probability.md), [information theory](docs/book/src/information-theory.md), [categorical structure of learning](docs/book/src/categorical-learning.md), and [polarity, push-pull duality, and game semantics](docs/book/src/polarity-and-games.md) behind those APIs. The book also gives an equation-level [law catalogue](docs/book/src/laws-and-boundaries.md), [derived mathematical insights](docs/book/src/categorical-insights.md), and an annotated [bibliography with guided reading routes](docs/book/src/references.md).
 
 Build the searchable HTML book with the pinned documentation tool:
 
@@ -40,6 +40,7 @@ The public book is <https://josephjohncox.github.io/Markovian/>. [Pages run 3312
 - separate compiled policy closure for finite-horizon and discounted Bellman policy evaluation;
 - exact discounted value iteration with residual, value-error, and greedy-policy bounds;
 - exact deterministic policy iteration with signed rational policy solves;
+- a synthetic bounded two-echelon serial-inventory fixture with finite-horizon backward induction, exhaustive duplicate-free base-stock comparison, checked widened-bound evidence, and deterministic reporting;
 - shared validated tabular Q-values, V-values, rates, schedules, and observations;
 - pure terminal-aware TD(0), SARSA, Expected SARSA, and Q-learning updates;
 - seeded bounded resumable episodic runners with explicit generator ownership;
@@ -49,6 +50,7 @@ The public book is <https://josephjohncox.github.io/Markovian/>. [Pages run 3312
 - lawful semiring, involution, exact positivity, and convex scalar contracts with an opaque nonnegative rational implementation;
 - opaque source-by-target semiring matrices with checked indexing, composition, tensor, biproduct, transpose, conjugate transpose, compact structure, and trace;
 - exact normalized stochastic matrices, proof-carrying deterministic matrices, and exact convex mixtures;
+- checked signed rational finite payoffs, exact payoff pullback, and state-payoff pairing;
 - exact priors, positive supports, pushforward, joints, conditioning, and support-restricted Bayesian inversion;
 - checked Bayesian channels with explicit prior flow and prior-indexed almost-sure equality;
 - raw purity-indexed stochastic-circuit syntax with explicit sharing, fanout, structural maps, and exact convex choice;
@@ -57,13 +59,16 @@ The public book is <https://josephjohncox.github.io/Markovian/>. [Pages run 3312
 - directed circuit-decorated open topology with no invented reverse denotation;
 - a separately validated boundary-functional finite DAG fragment with exact local-circuit semantics;
 - a finite symmetric monoidal Markov IR with explicit object witnesses, full-tensor copy, fanout, symmetry, associators, and unitors;
+- a small optional typed parametric reverse interpreter with explicit parameter products, cotangent-module witnesses, captured primitive pullbacks, and diagonal cotangent accumulation;
 - standard probability-monad, Kleisli `Category`, `Arrow`, and `ArrowChoice` instances;
 - dense rational CPU lowering with denotational differential tests;
 - structured model, policy, sampling, compilation, solver, arithmetic, normalization, and conditioning errors.
 
 Raw matrices can use empty objects. The vacuous empty-to-empty stochastic arrow is also valid, but a stochastic arrow from a nonempty source to an empty target is not. Normalized states, distributions, priors, and other probability-bearing finite objects remain nonempty. Both finite-witness modules export `sameFiniteLayout` as the canonical layout comparison. `sameFiniteSetLayout` and `sameFiniteObjectLayout` remain descriptive aliases. `matrixEquivalent` is labelled extensional equality; `sameMatrixLayout` compares the represented witnesses and row layout. Stochastic matrices deliberately have no transpose, dagger, compact, trace, or raw-addition API because those operations do not generally preserve normalization. Nominal roles protect stochastic, deterministic, and convex proofs from `coerce`. Copy-naturality reasoning requires the proof-carrying deterministic refinement.
 
-Bayesian inversion is prior-indexed and maps positive output support to positive input support. It does not fill zero-evidence rows and is not matrix conjugate transpose. `BayesianChannel` composition checks its middle prior and has no plain `Category` or dagger instance. Exact POMDP filtering delegates to the same pushforward and conditioning algebra.
+`Markovian.Category.Payoff.Exact` represents a total exact rational payoff on an explicit finite set. `pullbackPayoff` computes conditional expected payoff against a normalized stochastic matrix, and `pairStatePayoff` evaluates a normalized singleton-source state against a payoff. The exact fixtures cover signed payoffs, identity, contravariant composition, reordered layouts, empty finite pullback, and the state-payoff pairing law.
+
+Payoff pullback needs no prior and does not produce a posterior. Bayesian inversion is prior-indexed and maps positive output support to positive input support. It does not fill zero-evidence rows and is not matrix conjugate transpose. `BayesianChannel` composition checks its middle prior and has no plain `Category` or dagger instance. Exact POMDP filtering delegates to the same pushforward and conditioning algebra.
 
 Circuit purity records provenance. Only deterministic syntax can use copy-naturality optimization. `shareCircuit` performs one stochastic execution and copies its result; `fanoutCircuit` performs conditionally independent branch executions. Exact circuit interpretation and dense CPU lowering share one nonnegative-rational matrix denotation. Floating, CUDA, and neural backends require an explicit approximation relation and do not inherit exact-law claims.
 
@@ -78,9 +83,9 @@ Raw or cyclic `OpenSystem` values cannot use this interpreter. Feedback, trace, 
 The semantic core depends only on `base`. GPU runtimes and neural contracts remain outside it in separate packages:
 
 - `backends/markovian-gpu` provides an optional CUDA 13 driver backend, CPU/GPU differential tests, and a transfer-inclusive benchmark;
-- `backends/markovian-neural` provides checked dense networks with manual VJPs, stable categorical operations, approximate entropy/cross-entropy/KL/mutual-information calculations and gradients, linear REINFORCE and actor-critic updates, replay storage, target networks, and one standard or Double-DQN batch update.
+- `backends/markovian-neural` provides checked dense networks with manual VJPs, typed parametric reverse composition, stable categorical operations, approximate entropy/cross-entropy/KL/mutual-information calculations and gradients, linear REINFORCE and actor-critic updates, replay storage, target networks, and one standard or Double-DQN batch update.
 
-The neural package is an experimental `Double` reference. It has no tensor framework, autodiff, device runtime, environment runner, or complete trainer. Its finite-difference and worked-example tests do not support convergence, scalability, or production claims.
+The reverse interpreter keeps primal and cotangent types distinct, combines independent parameters as nested pairs, and declares zero, addition, scalar action, and equality for each cotangent space. Primitive pullbacks must be additive and homogeneous; input and parameter diagonals use the declared addition. It computes sensitivities only. The neural package remains an experimental numerical reference with no tensor framework, general autodiff, device runtime, environment runner, or complete trainer. Its exact scalar, finite-difference, and worked-example tests do not support convergence, scalability, or production claims.
 
 The CUDA package flag is disabled by default so ordinary builds require no GPU toolkit. On a CUDA host, run:
 
@@ -100,6 +105,18 @@ CUDA 13.0 `nvcc` V13.0.88 was available at `/usr/local/cuda/bin/nvcc`. This comm
 ```sh
 backends/markovian-gpu/scripts/build-ptx
 ```
+
+## Inventory benchmark
+
+Run the bounded serial-inventory benchmark with:
+
+```sh
+cabal bench inventory-control-bench --project-file=cabal.project.ci
+```
+
+The executable uses one excluded warm-up and twenty complete measured build, solve, and report samples. It prints raw nanosecond samples, sample statistics, compiler and platform metadata, complete parameters, and model size. Every sample must reproduce the same exact semantic report.
+
+This is a **synthetic bounded serial fixture**. Demand is a geometric law conditioned on its configured finite cap. The report separates retained mass, omitted mass, and horizon exceedance probability. Exact values apply only to the conditional bounded-demand model, and truncation probability is not a value-error bound. The primary-versus-widened check validates equal model provenance, a larger order cap, and period-wise target-set widening before it can report stability. The semantic report prints both complete model parameter sets and target grids. The timing output is reproducibility evidence, not a performance comparison.
 
 ## Example
 
@@ -129,8 +146,8 @@ cabal haddock all \
 ! grep -nE '(^|[[:space:]])Warning:' haddock.log
 cabal build all --project-file=cabal.project.ci --prefer-oldest
 cabal test all --project-file=cabal.project.ci --prefer-oldest
-hlint src backends/*/src test backends/*/test
-find src app test backends -type f -name '*.hs' -print0 \
+hlint src bench backends/*/src test backends/*/test
+find src app bench test backends -type f -name '*.hs' -print0 \
   | sort -z \
   | xargs -0 fourmolu --mode check
 bash -n \

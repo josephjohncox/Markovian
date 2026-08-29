@@ -26,8 +26,12 @@ Use this table to select the smallest correct abstraction.
 | Run bounded resumable tabular episodes | The corresponding `.Episodic` module |
 | Update a POMDP belief | `filterExactBelief` |
 | Plan with a finite belief policy | `Markovian.POMDP.Planning.Exact` |
+| Build and solve the bounded serial-inventory fixture | `Markovian.Benchmark.Inventory.Serial.Exact` |
+| Render its primary-versus-widened report | `Markovian.Benchmark.Inventory.Report` |
 | Compose exact weighted linear maps | `Markovian.Category.Matrix` |
 | Represent a normalized finite channel | `Markovian.Category.Matrix.Stochastic` |
+| Pull an exact finite payoff backward | `pullbackPayoff` in `Markovian.Category.Payoff.Exact` |
+| Pair an exact state matrix with a payoff | `pairStatePayoff` in `Markovian.Category.Payoff.Exact` |
 | Prove that a channel is deterministic | `Markovian.Category.Matrix.Deterministic` |
 | Mix channels with exact weights | `Markovian.Category.Convex.Exact` |
 | Infer inputs from observations | `Markovian.Bayesian.Exact` |
@@ -40,6 +44,7 @@ Use this table to select the smallest correct abstraction.
 | Lower an exact circuit to dense rows | `Markovian.Backend.CPU.Exact` |
 | Apply a dense matrix with CUDA | `Markovian.Backend.GPU` |
 | Evaluate a checked dense neural network | `Markovian.Backend.Neural.Dense` |
+| Compose typed primitive VJPs | `Markovian.Backend.Neural.Reverse` |
 | Apply a finite REINFORCE update | `Markovian.Backend.Neural.Reinforce` |
 | Apply a one-step actor-critic update | `Markovian.Backend.Neural.ActorCritic` |
 | Store explicit replay snapshots | `Markovian.Backend.Neural.Replay` |
@@ -59,6 +64,8 @@ Read [Control and learning taxonomy](control-learning-taxonomy.md) for the model
 ## Do not substitute these APIs
 
 Do not use matrix transpose for inference. Use `bayesianInverse` with an explicit prior.
+
+Do not use `bayesianInverse` to evaluate a payoff. Use `pullbackPayoff`; it needs no prior and returns a payoff, not a posterior.
 
 Do not use raw matrix trace for stochastic feedback. Use bounded recursion or a justified fixed-point solver.
 

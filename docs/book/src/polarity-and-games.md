@@ -42,8 +42,6 @@ The notation `K_*` and `K^*` is conventional, but overloaded. It does not mean t
 
 ## Pushforward is prediction
 
-Markovian already implements the forward side.
-
 A `Prior x` is an exact finite state. A `StochasticMatrix NonNegativeRational x y` is a channel. The function `pushforward` composes them.
 
 This operation models:
@@ -89,6 +87,8 @@ p(x)K(y\mid x)=q(y)K^{\sharp}_p(x\mid y).
 
 The pointwise ratio determines an inverse only where `q(y)` is positive. At zero-evidence outputs, different versions can satisfy the balance equation. Markovian removes that ambiguity by restricting the inverse to positive support.
 
+Markovian implements **payoff pullback** as `pullbackPayoff` in `Markovian.Category.Payoff.Exact`. It separately implements prior-indexed Bayesian inversion as `bayesianInverse`. An `ExactPayoff y` is a total signed `Rational`-valued function on an explicit finite set. Its checked table constructor rejects duplicate, outside, and missing labels. Pullback checks target-object alignment and returns an `ExactPayoff x`.
+
 The three operations have different types:
 
 | Operation | Input | Output | Extra data |
@@ -123,15 +123,35 @@ Markovian stores reward and successor together. Its actual backup therefore uses
 
 This is pullback-like expectation plus explicit reward timing. It is not a categorical trace. The pullback law alone supplies neither fixed-point existence nor convergence. Infinite-horizon evaluation needs additional hypotheses, such as discount contraction or suitable properness or transience conditions. Finite-horizon evaluation uses bounded backward recursion instead.
 
-This viewpoint suggests a useful API split:
+The current APIs keep the split explicit:
 
 ```haskell
-pushState     :: Channel x y -> State x     -> State y
-pullPayoff    :: Channel x y -> Payoff y    -> Payoff x
-bayesReverse  :: Prior x   -> Channel x y   -> BayesianInverse x y
+pushforward ::
+    Eq y =>
+    Prior x ->
+    StochasticMatrix NonNegativeRational x y ->
+    Either BayesianError (Prior y)
+
+pullbackPayoff ::
+    Eq y =>
+    StochasticMatrix NonNegativeRational x y ->
+    ExactPayoff y ->
+    Either PayoffPullbackError (ExactPayoff x)
+
+bayesianInverse ::
+    (Eq x, Eq y) =>
+    Prior x ->
+    StochasticMatrix NonNegativeRational x y ->
+    Either BayesianError (BayesianInverse x y)
 ```
 
-These are design signatures, not current public declarations. The current exact API exposes `pushforward` and prior-indexed `bayesianInverse`. Bellman interpreters implement the payoff calculation inside their validated model contracts.
+`pairStatePayoff` accepts a normalized state matrix `1 -> X` and an `ExactPayoff X`. The exact fixtures check
+
+\\[
+\operatorname{pair}(K_{\ast}p,u)=\operatorname{pair}(p,K^{\ast}u).
+\\]
+
+Bellman interpreters still implement reward and discount inside their validated model contracts. The payoff API does not erase that additional structure.
 
 ## Tangent push and cotangent pull
 
@@ -337,9 +357,9 @@ The table records analogies of shape. It does not assert one shared category or 
 
 The push-pull view suggests changes that can be tested.
 
-### Separate state and payoff transformers
+### Extend state and payoff transformers
 
-Expose a checked finite payoff pullback beside exact state pushforward. Test the pairing law on every finite fixture.
+The checked exact finite payoff pullback and representative pairing fixtures are implemented. Future state-like APIs can reuse the pairing contract when they expose a normalized singleton-source matrix. Reward-bearing Bellman refactoring requires separate timing and discount evidence.
 
 ### Factor Bellman code through payoff pullback
 
@@ -347,7 +367,7 @@ A common expectation operator could serve finite-horizon evaluation, policy eval
 
 ### Index protocol ownership
 
-A future interaction syntax could distinguish policy choices, environment outcomes, observations, rewards, and terminal responses at the type level.
+No interaction syntax is implemented. An ownership index alone would be decorative. A first finite protocol must also define legal and terminal histories, strategy behavior on every owned move, composition through a shared boundary, and observational equality. Until one such protocol is selected, this work remains blocked and cannot support claims about game semantics, open games, equilibria, or multi-agent stochastic games.
 
 ### Compile paired interpreters
 

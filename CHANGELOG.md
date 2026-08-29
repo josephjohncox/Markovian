@@ -4,6 +4,7 @@
 
 - Expanded the book with foundation chapters for algebra, category theory, measure theory, categorical probability, information theory, categorical learning, polarity, push-pull duality, and game semantics. Added internal concept links, guided reading routes, direct primary-source links, an explicit law catalogue, derivations, executable fixtures, and derived categorical insights. Mathematical, pedagogical, and implementation-grounding reviews corrected the new chapter and improved the foundation narrative without removing its substantive content.
 - Added checked approximate entropy, cross-entropy, KL-divergence, mutual-information, entropy-gradient, and fused cross-entropy-gradient references to `markovian-neural`, with product, decomposition, invariance, and finite-difference tests.
+- Added a small typed parametric reverse interpreter to `markovian-neural` with explicit parameter products, cotangent-module witnesses, captured primitive pullbacks, input and parameter diagonal accumulation, exact module and VJP laws, and nonlinear finite-difference evidence.
 - Replaced mdBook's external MathJax 2 loader with a pinned local MathJax 3.2.2 SVG bundle. Added pre-typesetting recovery for Markdown-altered TeX, digest, local-loader, external-loader rejection, delimiter, generated-markup, and source-to-generated equation-count checks.
 - Added a pinned mdBook documentation stack with a checked user and contributor book, local-link validation, CI builds, semantic guides, recipes, and project-reference appendices. Added a SHA-pinned GitHub Pages workflow and published the book at <https://josephjohncox.github.io/Markovian/>.
 - Added validated floating and exact finite probability distributions.
@@ -15,6 +16,7 @@
 - Added validated exact finite compilation and unindexed-transition rejection.
 - Added policy-free exact MDP compilation with separate compiled policy closure.
 - Added bounded exact value iteration with residual and policy bounds, deterministic greedy extraction, and exact rational policy iteration.
+- Added a synthetic bounded two-echelon serial-inventory fixture with conditioned geometric demand, exact finite-horizon backward induction, exhaustive duplicate-free base-stock comparison, checked widened-bound provenance, deterministic reporting, and a reproducible one-warm-up, twenty-sample benchmark.
 - Added shared sampled-step and tabular foundations, pure TD(0), SARSA, Expected SARSA, and Q-learning updates, plus bounded resumable episodic runners.
 - Added exact finite POMDP prediction, conditioning, filtering, and bounded belief planning.
 - Added typed exact categorical syntax and dense rational CPU lowering.
@@ -22,6 +24,7 @@
 - Added finite sets, nonempty finite objects, lawful scalar capabilities, and exact nonnegative rational scalars.
 - Added opaque raw semiring matrices with tensor, biproduct, dagger, compact, and trace operations.
 - Added normalized stochastic, proof-carrying deterministic, and exact convex matrix refinements with nominal roles and fixed exact coefficient validation.
+- Added checked signed rational finite payoffs, exact payoff pullback through stochastic matrices, and exact state-payoff pairing laws.
 - Added exact priors, positive supports, pushforward, joints, conditioning, prior-indexed Bayesian inversion, almost-sure equality, and checked Bayesian channels.
 - Delegated exact POMDP prediction and conditioning to the shared Bayesian algebra without changing filtering behavior.
 - Validate each exact distribution weight before duplicate aggregation, so a positive duplicate cannot hide a negative entry.

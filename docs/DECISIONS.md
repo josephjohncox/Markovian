@@ -653,6 +653,58 @@ Treat game semantics and compositional games as research guides for typed protoc
 
 **Required evidence:** The chapter must type every direction-changing operation, distinguish implemented APIs from design signatures, state the state-payoff and tangent-cotangent pairing laws, and include counterclaims for unsupported game semantics. A future payoff interpreter requires exact finite pairing tests. A future game interpreter requires strategy-composition laws and finite interaction fixtures.
 
+### D-050: Add exact finite payoff pullback without widening reversal semantics
+
+**Status:** Accepted
+
+**Decision:** Add an opaque `ExactPayoff` as a total `Rational`-valued function on an explicit `FiniteSet`. Validate table construction by rejecting duplicate labels, labels outside the represented set, and missing labels. Keep the total function constructor and permit the empty finite payoff.
+
+Pull a payoff backward through `StochasticMatrix NonNegativeRational source target` by exact conditional expectation. Pair a payoff with a normalized state matrix only when that matrix has represented source `[()]` and the state and payoff objects agree. Return structured object and state-source mismatches.
+
+Use signed `Rational` payoff values instead of claiming that the nonnegative scalar hierarchy supports general payoffs. Do not add a generic ring class without another owned use case. Keep state pushforward in the existing exact state API. Keep prior-indexed Bayesian inversion, support restriction, division, and zero-evidence behavior in `Markovian.Bayesian.Exact`; payoff pullback neither imports nor re-exports inversion.
+
+**Rationale:** Finite conditional expectation needs only a normalized channel, a finite target, and exact scalar multiplication. General utilities can be negative, while `ExactNonNegativeSemifield` deliberately excludes additive inverses. A specialized rational payoff is therefore the weakest lawful implementation of the requested exact push-pull tranche.
+
+**Consequences:** `Markovian.Category.Payoff.Exact` exposes checked construction, observation, extensional equality, pullback, and state pairing. The exact API supports empty finite pullback, but probability-bearing states still require the represented singleton unit source. This tranche does not identify pullback with transpose, dagger, Bayesian inversion, cotangent pullback, or Bellman backup with rewards. Circuit cost reports and rewrite certificates remain later S7.3 work.
+
+**Required evidence:** Deterministic fixtures cover signed and hand-calculated values, table failures, empty pullback, identity, contravariant composition, state-payoff pairing, object mismatches, singleton state-source validation, and layout reordering. The pairing fixture uses existing exact prior pushforward but no Bayesian inverse.
+
+### D-051: Bound the first serial-inventory benchmark and keep its provenance synthetic
+
+**Status:** Accepted
+
+**Decision:** Add a two-echelon serial periodic-review fixture with a positive finite horizon, exact finite-horizon discount in `[0,1]`, finite supplier-order and demand caps, nonnegative rational holding and backlog costs, and complete reachable-support enumeration. Demand is the geometric law `P(D=d)=2^-(d+1)` conditioned on `0 <= d <= demandCap`. Report retained mass, omitted mass, and `1 - retainedMass^horizon` separately from exact conditional-model values. Do not call this fixture Clark--Scarf because the complete source equations and event timing have not been verified.
+
+At each period, receive the outstanding supplier order, choose a capped supplier order and a physically feasible internal shipment, observe demand, charge successor-state holding or backlog cost, and place the new supplier order in the one-period due field. A zero-period state is terminal with zero payoff. Enumerate every reachable successor without clamping or redirection and reject explicit state, state-action, and target-grid budget overruns.
+
+Use exact backward induction over the decreasing period field for the finite-horizon oracle; contraction refinement does not belong in the model API, and discount `1` is valid. Exhaustively compare period-specific bounded base-stock schedules over duplicate-free canonically ordered candidate sets. Keep solutions opaque, retain initial-state, model, grid, and solver provenance, and derive costs and regrets from returns.
+
+Make primary-versus-widened comparison checked. Require equal initial state, horizon, discount, demand cap, and costs; a strict order-cap increase; period-wise candidate supersets with at least one strict widening; and completed solver status. Return an error instead of stability evidence when these conditions fail. Build the deterministic report only from this validated comparison and include both complete model parameters and target grids.
+
+**Rationale:** This fixture exercises existing finite MDP and exact-control contracts without importing an approximate solver or asserting unverified published equations. Conditional bounded demand makes exact enumeration possible, while explicit omitted mass prevents bounded-model exactness from being mistaken for unbounded-model accuracy.
+
+**Consequences:** `Markovian.Benchmark.Inventory.Serial.Exact` and `Markovian.Benchmark.Inventory.Report` are root-package modules. The deterministic executable runs one excluded warm-up and twenty complete measured build, solve, and report samples with no benchmark-framework dependency. Its timing is reproducibility evidence, not a performance comparison. The named multi-retailer balance relaxation, average-reward claims, fixed-batch equations, and source-verified published serial model remain deferred.
+
+**Required evidence:** Hand calculations cover timing and cost, shipment conservation, supplier delay, physical feasibility, demand normalization and truncation mass, reachable closure, and terminal timing. Exact tests compare backward induction with an independent finite-horizon maximizer, accept unit discount, check clipped base-stock feasibility and nonnegative regret, pin a small target schedule, reject malformed constructors and schedule budgets, validate widening provenance, and golden-test deterministic reporting. The benchmark must print raw samples, sample statistics, toolchain metadata, complete model and grid parameters, and unchanged exact semantics across timing samples.
+
+### D-052: Bound parametric reversal to explicit typed VJP composition
+
+**Status:** Accepted
+
+**Decision:** Add `Markovian.Backend.Neural.Reverse` to the optional framework-independent neural package, not the exact semantic core. Represent a parametric reverse circuit with separate scalar, parameter, input, output, and cotangent types. A primitive declares cotangent-space witnesses and returns its primal output with the pullback captured at that point instead of supplying unrelated forward and reverse callbacks.
+
+A cotangent-space witness provides zero, checked addition, scalar multiplication, equality, and exact-versus-approximate equality metadata. Addition must be a commutative monoid, scalar multiplication must satisfy the module laws, and primitive pullbacks must preserve zero and addition and be homogeneous over that same scalar type. Sequential and parallel composition use explicit nested pair products. Input and parameter diagonals use the witness addition; arbitrary associative merges do not define VJP diagonal rules.
+
+Keep optimizers, tensors, tapes, general autodiff, devices, and stochastic estimators outside this interpreter. The circuit computes sensitivities only; it neither updates parameters nor differentiates stochastic samples. Use literal `Rational` equality for exact scalar composition and diagonal fixtures. For the nonlinear `Double` fixture, compare the composite VJP with central differences using step scale `1e-6`, absolute tolerance `2e-10`, and relative tolerance `2e-8`.
+
+Do not add a typed interaction layer in this tranche. It remains blocked until one finite protocol defines move ownership, legal and terminal histories, strategy composition, and observational equality. An ownership index by itself would not establish game semantics, open games, equilibria, or multi-agent stochastic games.
+
+**Rationale:** The existing dense backend already provides manual input and parameter VJPs, and the documentation already fixes the reverse chain and diagonal-addition laws. A small generic interpreter can therefore expose those obligations without introducing an autodiff language or weakening the exact core. Explicit products and explicit additions make parameter ownership and accumulation inspectable.
+
+**Consequences:** The new module is an executable typed reverse interpreter, not a symbolic AST, optimizer, tensor backend, or universal reverse-derivative category. Primitive additivity and homogeneity plus cotangent module laws remain constructor obligations checked by fixtures, not proofs inferred by Haskell. A wider reverse syntax remains blocked until its primitive set, primal storage policy, backend arithmetic, and equality relation are owned.
+
+**Required evidence:** Exact rational fixtures cover zero, additive identity, associativity, commutativity, scalar distributivity, primitive VJP zero/additivity/homogeneity, composition identities and associativity, independent parameter products, parallel products, identity/input/parameter diagonals, and composed error propagation. Nonlinear composed and input-diagonal `Double` fixtures use central finite differences. Full neural tests and warning-free Haddock must pass.
+
 ## Required evidence for advanced work
 
 | Feature | Required evidence before implementation | Implementation evidence |

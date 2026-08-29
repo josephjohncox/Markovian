@@ -53,6 +53,8 @@
 | `Markovian.Learning.QLearning.Episodic` | Bounded epsilon-greedy behavior runner |
 | `Markovian.POMDP.Exact` | Exact beliefs and post-transition filtering |
 | `Markovian.POMDP.Planning.Exact` | Bounded exact belief-policy evaluation |
+| `Markovian.Benchmark.Inventory.Serial.Exact` | Synthetic bounded serial fixture, exact oracle, and base-stock comparison |
+| `Markovian.Benchmark.Inventory.Report` | Deterministic primary-versus-widened inventory report |
 
 ## Matrices, Bayes, and circuits
 
@@ -60,6 +62,7 @@
 | --- | --- |
 | `Markovian.Category.Matrix` | Raw finite semiring matrices |
 | `Markovian.Category.Matrix.Stochastic` | Exactly normalized matrices |
+| `Markovian.Category.Payoff.Exact` | Checked exact finite payoffs, pullback, and state pairing |
 | `Markovian.Category.Matrix.Deterministic` | Proof-carrying one-hot matrices |
 | `Markovian.Category.Convex.Exact` | Exact convex channel mixtures |
 | `Markovian.Bayesian.Exact` | Priors, conditioning, and inversion |
@@ -91,6 +94,7 @@
 | `markovian-neural: Markovian.Backend.Neural.Approximation` | Explicit precision, error, and observation boundary |
 | `markovian-neural: Markovian.Backend.Neural.Numeric` | Opaque finite scalars, checked floating arithmetic, and tolerances |
 | `markovian-neural: Markovian.Backend.Neural.Dense` | Dense networks and manual VJPs |
+| `markovian-neural: Markovian.Backend.Neural.Reverse` | Typed parametric VJP composition with cotangent-module witnesses and diagonal addition |
 | `markovian-neural: Markovian.Backend.Neural.Categorical` | Stable categorical values and analytic gradients |
 | `markovian-neural: Markovian.Backend.Neural.Information` | Checked entropy, cross entropy, KL divergence, mutual information, and logit gradients |
 | `markovian-neural: Markovian.Backend.Neural.Policy` | Linear categorical policies and scalar value functions |

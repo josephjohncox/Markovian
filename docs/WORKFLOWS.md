@@ -392,7 +392,7 @@ D-038 work follows the S1 through S6 roadmap in `TODO.md`.
 
 ## 11. New-feature evidence workflow
 
-P0 through P6, the greenfield cleanup, exact semantic-tower stages S1 through S6, and S7.1 information, categorical-learning, polarity, and game-semantic foundations are `DONE`. D-023 through D-049 define the implemented contracts. Focused root modules cover exact control and tabular learning. Focused neural modules cover finite differences, categorical information, policy gradients, replay, target networks, and DQN. S7.2 inventory benchmarks are next. Arbitrary cyclic graph semantics, feedback, continuous-time black-boxing, unrestricted MDP black-boxing, general autodiff, tensor frameworks, and device execution remain deferred.
+P0 through P6, the greenfield cleanup, exact semantic-tower stages S1 through S6, and S7.1 information, categorical-learning, polarity, and game-semantic foundations are `DONE`. The bounded S7.3 push-pull slice, S7.2 synthetic inventory benchmark, and S7.4 bounded reverse interpreter are implemented under D-050 through D-052. Focused root modules cover exact control, exact push-pull, inventory, and tabular learning. Focused neural modules cover parametric reverse laws, finite differences, categorical information, policy gradients, replay, target networks, and DQN. The next implementation task is S7.3 circuit cost interpretation and proof-carrying rewrites. Arbitrary cyclic graph semantics, feedback, continuous-time black-boxing, unrestricted MDP black-boxing, general autodiff, tensor frameworks, and device execution remain deferred.
 
 A new feature must use this sequence:
 
@@ -407,10 +407,10 @@ A new feature must use this sequence:
 9. For neural derivatives, record the finite-difference tolerance and every checked parameter or input coordinate.
 10. For replay or target updates, record ordering, eviction, successful-update count, and failed-update scheduling fixtures.
 11. For information quantities, record logarithm base, support behavior, decomposition laws, product laws, and finite-difference evidence.
-12. For a push-pull pair, state both transformer types, their pairing law, and whether the backward value is a payoff, cotangent, posterior, or utility.
+12. For a push-pull pair, state both transformer types, their pairing law, and whether the backward value is a payoff, cotangent, posterior, or utility. Test exact object alignment, layout reordering, identity, composition direction, and pairing where those laws apply. Do not present payoff pullback as prior-indexed Bayesian inversion.
 13. For game semantics, define arenas, move ownership, legal plays, strategy composition, and observational equality before implementation.
-12. For named inventory benchmarks, reproduce the source model's timing and assumptions, expose every relaxation, compare with a bounded exact oracle, and report truncation mass, value error, policy regret, state count, and runtime.
-13. For categorical rewrites, name the law and evidence that authorizes the rewrite. Purity-indexed deterministic rewrites and approximate fusions require different equality contracts.
+14. For named inventory benchmarks, reproduce the source model's timing and assumptions, expose every relaxation, compare with a bounded exact oracle, and report truncation mass, value error, policy regret, state count, and runtime.
+15. For categorical rewrites, name the law and evidence that authorizes the rewrite. Purity-indexed deterministic rewrites and approximate fusions require different equality contracts.
 
 Do not widen the finite semantic core for speculative abstractions without recorded requirements and evidence.
 

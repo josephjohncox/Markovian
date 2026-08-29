@@ -36,6 +36,7 @@ The root package currently contains:
 - Exact discounted Bellman policy evaluation with sup-norm stopping bounds.
 - Exact discounted value iteration with residual, value-error, and greedy-policy bounds.
 - Exact deterministic policy iteration with signed rational linear solves.
+- A synthetic bounded serial-inventory fixture with exact oracle and base-stock comparison, conditional-demand mass reporting, widened-bound diagnostics, and deterministic timing output.
 - Shared validated Q-tables, V-tables, rates, schedules, observations, and epsilon-greedy behavior.
 - Pure TD(0), SARSA, Expected SARSA, and Q-learning updates.
 - Bounded seeded and resumable episodic runners for all four tabular methods.
@@ -45,6 +46,7 @@ The root package currently contains:
 - Law-documented semiring, involution, exact positivity, and convex scalar contracts.
 - Opaque finite semiring matrices with semantic reindexing, tensor, biproduct, dagger, compact structure, and trace.
 - Exact nonnegative stochastic matrices, proof-carrying deterministic matrices, and exact convex mixtures.
+- Checked exact rational finite payoffs, contravariant payoff pullback, and exact state-payoff pairing.
 - Dense row-major rational CPU lowering with exact denotational differential tests.
 
 The current `FiniteDist` constructor preserves labeled duplicate entries. It removes input zero weights and positive weights whose normalized `Double` mass rounds to zero. Floating constructors canonicalize negative zero. Optional CUDA execution and neural numerical updates live in separate backend packages.
@@ -156,6 +158,16 @@ Stochastic endpoints use `FiniteSet` because the empty-to-empty normalized arrow
 
 S1 does not compare transpose with Bayesian inversion because S2 owns priors, positive support, exact division, and zero-evidence errors. S1 exact-law-tests a raw transpose normalization counterexample. S2 defines prior-indexed Bayesian inversion as a separate normalized operation on restricted support and exact-law-tests its stated fixtures.
 
+#### 3.5.1 Exact state-payoff push-pull
+
+`ExactPayoff value` is an opaque total rational-valued function on an explicit `FiniteSet`. The checked table constructor rejects duplicate labels, labels outside the represented set, and missing labels. The function constructor is total by evaluation over the finite witness. Empty payoff sets are valid. Payoffs are signed and need not normalize.
+
+For a normalized channel `K : X -> Y`, `pullbackPayoff K u` computes `x -> sum_y K(x,y) * u(y)`. It checks the channel target against the payoff object and returns a payoff on the channel source. Identity and composition are exact fixture laws; composition reverses because pullback is contravariant.
+
+`pairStatePayoff` accepts a normalized state matrix with represented source `[()]` and a payoff on the same target. It computes `sum_x p(x) * u(x)` exactly. With the existing state pushforward, fixtures check `pair (pushforward p K) u = pair p (pullbackPayoff K u)`, including reordered layouts and signed payoffs.
+
+This API uses `Rational` rather than the nonnegative scalar class because general payoffs can be negative and the current scalar hierarchy intentionally has no additive inverses. It does not generalize to an unsupported ring abstraction. Payoff pullback requires no prior, performs no support restriction or division, and remains separate from prior-indexed Bayesian inversion. This tranche does not refactor reward-bearing Bellman backups through the payoff API.
+
 ### 3.6 Exact Bayesian structure
 
 A `Prior a` is a normalized state from the singleton object to an explicit nonempty finite object. Construction accepts exact rational masses, aggregates duplicate labels extensionally, rejects negative or outside labels, and requires total mass one. Each prior stores a positive `Support a` in parent-object layout order.
@@ -216,7 +228,7 @@ The supported fragment provides exact identity, sequential composition after nam
 
 ### 3.9 Evidence classification and proof boundary
 
-Opaque smart constructors and nominal roles establish their represented validation invariants by construction. Direct circuit-fold and open-decoration delegation is also by construction. Algebraic, categorical, Bayesian, compiler, and open-system equations are exact-law-tested on the stated finite fixtures unless a section explicitly says otherwise. Differential claims are fixture-based comparisons with an independent existing path.
+Opaque smart constructors and nominal roles establish their represented validation invariants by construction. Direct circuit-fold and open-decoration delegation is also by construction. Algebraic, categorical, push-pull, Bayesian, compiler, and open-system equations are exact-law-tested on the stated finite fixtures unless a section explicitly says otherwise. Differential claims are fixture-based comparisons with an independent existing path.
 
 The scalar classes cannot enforce their documented laws for third-party instances. Generic matrix, stochastic, deterministic, and convex closure therefore remains conditional on lawful scalar instances. The repository has no quantified or machine-checked theorem for all finite objects, all circuits, all finite DAG networks, all compiler terms, all POMDPs, pushout universality, natural associator or unitor families, or pseudo-double-category coherence. Compiler soundness and finite pushout universality are algebraically argued and fixture-tested, not universally proved. `CircuitAlgebra` remains an unchecked operation record. The open API remains a double fragment and is not promoted to a double category.
 
@@ -500,6 +512,31 @@ For control, the optimality operator maximizes exact action values over each sta
 
 Exact policy iteration selects the first available initial action, solves each fixed policy over signed rationals, and selects the first exact maximizer. Value and policy iteration both have explicit limits.
 
+### 7.1 Bounded serial-inventory benchmark
+
+The first inventory fixture is a synthetic bounded two-echelon model, not a source-verified named model. A state at the start of a period is `(t, u, a, i)`: periods remaining, upstream on-hand inventory, the supplier order due now, and downstream net inventory. An action is `(q, x)`, where `0 <= q <= orderCap` and `0 <= x <= u + a`.
+
+After receiving `a`, the model ships `x`, observes conditioned bounded demand `d`, and moves to:
+
+```text
+u' = u + a - x
+a' = q
+i' = i + x - d
+t' = t - 1
+```
+
+It charges
+
+```text
+h0 * u' + (h0 + h1) * max(i', 0) + p * max(-i', 0)
+```
+
+as a negative transition reward. A state with `t = 0` is terminal with zero payoff. Successors are neither clamped nor redirected. Breadth-first reachability closes the exact support before solving and enforces explicit small state and state-action budgets.
+
+Demand starts from `P(D=d)=2^-(d+1)` and is conditioned on `0 <= d <= demandCap`. Exact probabilities, returns, costs, and regrets therefore apply only to this conditional bounded model. The report gives one-period retained and omitted mass and `1 - retainedMass^horizon`. That truncation probability is not a value-error bound.
+
+The oracle uses exact finite-horizon backward induction over the decreasing `periodsRemaining` field, so the model accepts exact discount `1` without imposing a contraction solver boundary. Period-specific base-stock schedules are enumerated over duplicate-free, canonically ordered finite target sets. Supplier orders and internal shipments are clipped only at the action boundary; states are not clipped. Opaque solutions retain initial-state, model, target-grid, and solver provenance and derive redundant costs and regrets. Comparison returns a checked witness only after model equality, strict order-cap increase, period-wise target-set inclusion, actual grid widening, and completed solver status are established.
+
 Undiscounted cyclic systems need separate properness conditions. The implementation must reject or isolate cases without a stated convergence contract.
 
 ## 8. Finite and continuous models
@@ -588,6 +625,8 @@ Markovian.Algebra.NonNegativeRational exact nonnegative scalar implementation
 Markovian.Backend.CPU.Exact dense rational CPU lowering
 Markovian.Bayesian.Exact exact priors, support, conditioning, and inversion
 Markovian.Bayesian.Channel.Exact checked prior-flow channel composition
+Markovian.Benchmark.Inventory.Serial.Exact bounded synthetic serial model, exact oracle, and base-stock comparison
+Markovian.Benchmark.Inventory.Report deterministic conditional-model and widened-bound report
 Markovian.Circuit raw purity-indexed stochastic-circuit AST and unchecked fold algebra
 Markovian.Circuit.Compile.Deterministic first-order quoted-table compilation
 Markovian.Circuit.Interpret.Exact exact matrix and kernel algebra
@@ -606,6 +645,7 @@ Markovian.Category.Matrix opaque finite semiring matrices
 Markovian.Category.Matrix.Stochastic normalized exact nonnegative matrices
 Markovian.Category.Matrix.Deterministic proof-carrying one-hot matrices
 Markovian.Category.Convex.Exact exact convex families and mixtures
+Markovian.Category.Payoff.Exact checked signed rational payoffs, pullback, and state pairing
 Markovian.Compile.Exact     policy-free exact MDP compilation and compiled policy closure
 Markovian.Probability       opaque floating probability and distribution types
 Markovian.Probability.Exact exact rational probability and distribution types
@@ -720,9 +760,11 @@ Every neural backend must define:
 - Device precision and reproducibility when a device exists.
 - Failure behavior for NaN, infinity, or invalid support.
 
-The `markovian-neural` package uses checked `Double` arithmetic behind a package-local approximation boundary compatible with the root contract. It implements an opaque finite scalar, stable softmax, analytic categorical gradients, approximate entropy, cross entropy, KL divergence, mutual information, entropy and cross-entropy logit gradients, row-major dense networks, manual VJPs, and pure SGD. Dense layers use `tanh` hidden activations and a linear output head.
+The `markovian-neural` package uses checked `Double` arithmetic behind a package-local approximation boundary compatible with the root contract. It implements an opaque finite scalar, stable softmax, analytic categorical gradients, approximate entropy, cross entropy, KL divergence, mutual information, entropy and cross-entropy logit gradients, row-major dense networks, manual VJPs, a small typed parametric reverse interpreter, and pure SGD. Dense layers use `tanh` hidden activations and a linear output head.
 
-Information quantities remain outside the exact rational core because logarithms of rational probabilities are generally irrational. Reverse derivatives remain distinct from raw matrix dagger, categorical adjunctions, and prior-indexed Bayesian inversion. State pushforward is implemented, while a general payoff pullback remains future work. Game arenas, strategies, best responses, and equilibria are not part of the current semantics. A future parametric-circuit layer must state parameter products, cotangent types, diagonal gradient accumulation, primitive VJP obligations, and optimizer dynamics separately.
+`Markovian.Backend.Neural.Reverse` keeps parameter, input, output, scalar, and cotangent types distinct. Sequential and parallel composition use explicit nested pair products for independent parameters. Input and parameter diagonals use addition from a `CotangentSpace` witness that also declares zero, scalar multiplication, and exact or documented approximate equality. A primitive returns its output and captured pullback together. Its pullback must preserve zero and addition and be homogeneous over that scalar structure. The interpreter computes no update and has no tape, tensor, device, stochastic-gradient, or automatic-differentiation semantics. Exact `Rational` fixtures check module and VJP laws; nonlinear `Double` composition and diagonal fixtures use the tolerance fixed by D-052.
+
+Information quantities remain outside the exact rational core because logarithms of rational probabilities are generally irrational. Reverse derivatives remain distinct from raw matrix dagger, categorical adjunctions, prior-indexed Bayesian inversion, and exact payoff pullback. State pushforward and exact finite payoff pullback are implemented as separate operations. Game arenas, strategies, best responses, and equilibria are not part of the current semantics. A general reverse-circuit syntax remains blocked on an owned primitive set, primal storage policy, backend arithmetic, and equality relation. A finite interaction protocol remains blocked until it defines move ownership, legal and terminal histories, strategy composition, and observational equality.
 
 REINFORCE and actor-critic use masked linear categorical policies and linear scalar value functions. Unavailable outputs receive zero score gradient. Their actor, baseline, and critic gradients use immutable pre-update snapshots. REINFORCE includes the outer discount power for the discounted start-return objective. Truncated episodes require an explicit boundary bootstrap.
 

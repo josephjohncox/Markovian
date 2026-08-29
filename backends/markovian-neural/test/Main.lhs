@@ -5,6 +5,7 @@ import qualified ActorCritic
 import qualified DenseFiniteDifference
 import qualified DQN
 import qualified Information
+import qualified ParametricReverse
 import qualified PolicyGradient
 import qualified Reinforce
 import qualified ReplayTarget
@@ -14,6 +15,7 @@ main = do
     PolicyGradient.tests
     Information.tests
     DenseFiniteDifference.tests
+    ParametricReverse.tests
     Reinforce.tests
     ActorCritic.tests
     ReplayTarget.tests

@@ -147,7 +147,9 @@ The root tests compare pure targets and exact seeded traces. They do not assert 
 
 The neural package tests dense input and parameter VJPs, categorical Jacobians, and selected-action score gradients with central finite differences.
 
-The tests also check REINFORCE, actor-critic, replay, target synchronization, and DQN update fixtures. These are approximate `Double` checks with explicit tolerances. They do not prove all-input derivatives or training convergence.
+The typed parametric reverse fixtures use literal rational equality to check cotangent zero, additive identity, associativity, commutativity, scalar distributivity, primitive VJP zero/additivity/homogeneity, composition identities and associativity, independent parameter products, tensor products, and identity/input/parameter diagonals. Nonlinear composition and input-diagonal fixtures use central differences. Failure fixtures cover primitive evaluation, composition, tensor, shared parameters, and diagonal addition. These fixtures test declared `CotangentSpace` operations and supplied primitives; the generic constructor does not prove their module or pullback laws.
+
+The tests also check REINFORCE, actor-critic, replay, target synchronization, and DQN update fixtures. The floating checks use explicit tolerances. They do not prove all-input derivatives or training convergence.
 
 **Executable evidence:** [`backends/markovian-neural/test`](https://github.com/josephjohncox/Markovian/tree/main/backends/markovian-neural/test).
 
@@ -548,6 +550,36 @@ in general. The right side introduces cross terms `Kᵢ ⊗ Lⱼ`. It represents
 The same distinction applies to correlated composition pairs. This is another form of the shared-versus-independent randomness boundary.
 
 **Executable evidence:** [`testConvex`](https://github.com/josephjohncox/Markovian/blob/main/test/AlgebraicFoundation.hs#L559-L693).
+
+## Exact state-payoff push-pull laws
+
+For a normalized channel `K : X -> Y`, an exact state `p` on `X`, and a signed rational payoff `u` on `Y`, the payoff pullback is
+
+\\[
+(K^{\ast}u)(x)=\sum_y K(y\mid x)u(y).
+\\]
+
+The fixtures check identity and contravariant composition:
+
+\\[
+\mathrm{id}^{\ast}u=u,
+\\]
+
+\\[
+(L\circ K)^{\ast}u=K^{\ast}(L^{\ast}u).
+\\]
+
+They also check the exact pairing law:
+
+\\[
+\langle K_{\ast}p,u\rangle_Y=\langle p,K^{\ast}u\rangle_X.
+\\]
+
+The evidence includes signed hand calculations, empty finite pullback, reordered layouts, complete-table validation, object mismatch errors, and singleton state-source validation. These equations are fixture laws, not a machine-checked theorem for every scalar type. The implementation specializes payoff values to `Rational`; it does not claim that the nonnegative scalar hierarchy has additive inverses.
+
+Payoff pullback uses no prior, support restriction, division, or posterior. The following Bayesian laws are separate.
+
+**Executable evidence:** [`PushPullExact`](https://github.com/josephjohncox/Markovian/blob/main/test/PushPullExact.hs).
 
 ## Bayesian inversion laws
 

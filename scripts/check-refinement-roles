@@ -21,6 +21,7 @@ for rejected_coercion in \
   breakStochasticSource \
   breakDeterministicSource \
   breakConvexSource \
+  breakPayoffSource \
   breakPriorSource \
   breakSupportSource \
   breakPosteriorSource \

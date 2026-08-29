@@ -1,0 +1,41 @@
+inventory benchmark report
+provenance: synthetic bounded serial fixture
+exactness boundary: exact values apply only to the conditional bounded-demand model
+initial state: SerialInventoryState {periodsRemaining = 2, upstreamOnHand = 1, supplierOrderDue = 0, downstreamNetInventory = 0}
+primary parameters: horizon=2, discount=1/2, orderCap=1, demandCap=1, h0=1/1, h1=1/1, p=4/1
+widened parameters: horizon=2, discount=1/2, orderCap=2, demandCap=1, h0=1/1, h1=1/1, p=4/1
+primary target grid (period 1 upward): [[(0,0),(0,1),(0,2),(1,0),(1,1),(1,2),(2,0),(2,1),(2,2)],[(0,0),(0,1),(0,2),(1,0),(1,1),(1,2),(2,0),(2,1),(2,2)]]
+widened target grid (period 1 upward): [[(0,0),(0,1),(0,2),(0,3),(1,0),(1,1),(1,2),(1,3),(2,0),(2,1),(2,2),(2,3),(3,0),(3,1),(3,2),(3,3)],[(0,0),(0,1),(0,2),(0,3),(1,0),(1,1),(1,2),(1,3),(2,0),(2,1),(2,2),(2,3),(3,0),(3,1),(3,2),(3,3)]]
+solver method: exact backward induction over periodsRemaining
+event timing: receive supplierOrderDue; choose supplierOrder q and downstreamShipment x; ship x; observe demand; charge successor holding/backlog cost; set supplierOrderDue'=q
+transition equations: upstreamOnHand'=upstreamOnHand+supplierOrderDue-x; downstreamNetInventory'=downstreamNetInventory+x-demand; periodsRemaining'=periodsRemaining-1
+cost equation: h0*upstreamOnHand' + (h0+h1)*max(downstreamNetInventory',0) + p*max(-downstreamNetInventory',0)
+discount convention: transition reward is negative cost; each successor value is multiplied by 1/2
+terminal convention: periodsRemaining=0 has zero terminal payoff and no action
+one-period retained demand mass: 3/4
+one-period omitted demand mass: 1/4
+horizon exceedance probability: 7/16
+normalized bounded demand probabilities: 0:2/3, 1:1/3
+primary oracle return: -2/1
+primary oracle cost: 2/1
+primary base-stock return: -2/1
+primary base-stock cost: 2/1
+primary initial-state value error: 0/1
+primary policy regret: 0/1
+primary selected targets (period 1 upward): (0,0) :| [(0,1)]
+primary target grid binds: no
+primary order cap binds: no
+primary model size: states=31, state-actions=36
+primary solver status: SerialInventoryBackwardInductionComplete
+widened oracle return: -2/1
+widened oracle cost: 2/1
+widened base-stock return: -2/1
+widened base-stock cost: 2/1
+widened initial-state value error: 0/1
+widened policy regret: 0/1
+widened selected targets (period 1 upward): (0,0) :| [(0,1)]
+widened target grid binds: no
+widened order cap binds: no
+widened model size: states=64, state-actions=96
+widened solver status: SerialInventoryBackwardInductionComplete
+primary versus widened bounds: stable

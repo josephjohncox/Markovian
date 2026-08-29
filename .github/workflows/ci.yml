@@ -58,7 +58,9 @@ jobs:
           done
 
       - name: Build without compiler warnings
-        run: cabal build all --project-file=cabal.project.ci
+        run: |
+          cabal build all --project-file=cabal.project.ci
+          cabal build inventory-control-bench --project-file=cabal.project.ci
 
       - name: Reject refinement coercions
         run: scripts/check-refinement-roles
@@ -77,6 +79,9 @@ jobs:
           cabal test all \
             --project-file=cabal.project.ci \
             --test-show-details=direct
+
+      - name: Run inventory benchmark semantic checks
+        run: cabal bench inventory-control-bench --project-file=cabal.project.ci
 
       - name: Build warning-free Haddocks
         run: |
@@ -111,6 +116,10 @@ jobs:
               cabal check
               cabal build all
               cabal test all --test-show-details=direct
+              if grep -q '^benchmark inventory-control-bench' Markovian.cabal 2>/dev/null; then
+                cabal build inventory-control-bench
+                cabal bench inventory-control-bench
+              fi
             )
           done
 
@@ -230,7 +239,7 @@ jobs:
             | grep -F "HLint v${MARKOVIAN_HLINT_VERSION}"
           test "$(mdbook --version)" = \
             "mdbook v${MARKOVIAN_MDBOOK_VERSION}"
-          hlint src backends/*/src test backends/*/test
+          hlint src bench backends/*/src test backends/*/test
           bash -n \
             scripts/bootstrap-tools \
             scripts/check-book \
@@ -243,10 +252,10 @@ jobs:
           # Fourmolu 0.20 cannot parse LaTeX-style literate Haskell. GHC and
           # HLint still check these three production and test sources.
           literate_source_count="$(
-            find src app test backends -type f -name '*.lhs' | wc -l
+            find src app bench test backends -type f -name '*.lhs' | wc -l
           )"
           test "${literate_source_count}" -eq 3
-          find src app test backends -type f -name '*.hs' -print0 \
+          find src app bench test backends -type f -name '*.hs' -print0 \
             | sort -z \
             | xargs -0 fourmolu --mode check
           cabal-fmt --check \

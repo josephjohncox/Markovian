@@ -53,6 +53,7 @@ extra-source-files:
   test/compile-fail/CircuitPurity.hs
   test/compile-fail/PushoutKind.hs
   test/compile-fail/RefinementRoles.hs
+  test/golden/inventory-report.txt
   toolchain.env
 
 source-repository head
@@ -70,6 +71,8 @@ library
     Markovian.Backend.CPU.Exact
     Markovian.Bayesian.Channel.Exact
     Markovian.Bayesian.Exact
+    Markovian.Benchmark.Inventory.Report
+    Markovian.Benchmark.Inventory.Serial.Exact
     Markovian.Category.Convex.Exact
     Markovian.Category.Finite.Exact
     Markovian.Category.Finite.Object
@@ -77,6 +80,7 @@ library
     Markovian.Category.Matrix
     Markovian.Category.Matrix.Deterministic
     Markovian.Category.Matrix.Stochastic
+    Markovian.Category.Payoff.Exact
     Markovian.Circuit
     Markovian.Circuit.Compile.Deterministic
     Markovian.Circuit.Interpret.Approximate
@@ -132,6 +136,17 @@ library
   hs-source-dirs:   src
   default-language: GHC2021
 
+benchmark inventory-control-bench
+  import:           warnings
+  type:             exitcode-stdio-1.0
+  main-is:          Main.hs
+  build-depends:
+    , base       >=4.17.2.1 && <4.20
+    , Markovian
+
+  hs-source-dirs:   bench/Inventory
+  default-language: GHC2021
+
 executable Sample
   import:           warnings
   main-is:          Main.hs
@@ -151,8 +166,10 @@ test-suite Markovian-test
     AlgebraicFoundation
     BayesianExact
     ExactControl
+    InventoryBenchmark
     Legacy
     OpenSystems
+    PushPullExact
     StochasticCircuit
     TabularLearning
 

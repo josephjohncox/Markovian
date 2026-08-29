@@ -147,6 +147,14 @@ then
 
 The reverse pass is compositional because the chain rule is compositional. A category with a reverse-derivative operation axiomatizes this behavior without committing to one tensor library or tape representation.
 
+### The bounded typed interpreter
+
+`Markovian.Backend.Neural.Reverse` implements this chain rule for a small framework-independent fragment. `ParametricReverseCircuit error scalar p pBar x xBar y yBar` keeps every primal, cotangent, and common scalar type explicit. A primitive supplies cotangent-space witnesses and returns its primal output with a pullback captured at that point.
+
+Sequential composition combines independent parameter objects as `(p, q)` and returns cotangents `(pBar, qBar)`. `tensorReverseCircuit` does the same for independent inputs. `pairReverseCircuit` sends one input to two branches and uses the declared cotangent addition for the reverse input diagonal. `shareParametersReverseCircuit` does the same for a parameter diagonal.
+
+A `CotangentSpace` declares zero, checked addition, scalar multiplication, and exact or documented approximate equality. Addition must form a commutative monoid, scalar multiplication must satisfy the module laws, and primitive pullbacks must preserve zero and addition and be homogeneous over the same scalar type. The module does not infer or prove these laws. Exact `Rational` fixtures test the module and VJP laws, identities, composition, diagonals, and failures. Nonlinear `Double` composition and diagonal fixtures use the central-difference tolerance in D-052. The interpreter has no optimizer, tape, tensor, device, or stochastic-estimator semantics.
+
 ## Four meanings of “adjoint” or “reverse”
 
 The following operations are related by notation but are not interchangeable.
@@ -446,15 +454,14 @@ An exact finite channel identifies impossible actions or observations before a f
 
 The current types support several conservative additions.
 
-1. **A parametric-circuit layer** with typed parameter products and explicit sharing.
-2. **Primitive reverse rules** returning input and parameter VJPs, interpreted compositionally.
-3. **A checked optimizer state** separate from the differentiated program.
-4. **A graph-cost interpreter** over `CircuitAlgebra` that counts primitive work, copied values, and maximum live width before execution.
-5. **A rewrite certificate** recording which deterministic copy, identity, associativity, or fusion law justified an optimization.
-6. **Exact-support-generated masks** for neural policy and DQN examples.
-7. **Commuting-square differential tests** for every approximate interpreter.
+1. Extend the implemented typed parametric reverse interpreter only when a new primitive has forward, input-VJP, parameter-VJP, and numerical-equality evidence.
+2. **A checked optimizer state** separate from the differentiated program.
+3. **A graph-cost interpreter** over `CircuitAlgebra` that counts primitive work, copied values, and maximum live width before execution.
+4. **A rewrite certificate** recording which deterministic copy, identity, associativity, or fusion law justified an optimization.
+5. **Exact-support-generated masks** for neural policy and DQN examples.
+6. **Commuting-square differential tests** for every approximate interpreter.
 
-The first acceptable implementation should remain finite and framework-independent. A tensor framework or GPU autodiff backend can implement the same interface later; it should not define the semantics.
+The implemented reverse subset has a fixed small combinator set and is framework-independent. A tensor framework or GPU autodiff backend can implement the same contracts later; it should not define the semantics.
 
 ## Boundaries
 

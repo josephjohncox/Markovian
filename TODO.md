@@ -146,23 +146,29 @@ S6 status: `DONE`.
   - Add checked categorical entropy, cross entropy, KL divergence, mutual information, and analytic logit gradients outside the exact core.
   - Ground the game-semantic material in arena, strategy, focusing, optic, and open-game references without claiming an implementation.
   - Require decomposition, product, invariance, pairing, and finite-difference evidence for future executable interpreters.
-- [ ] **S7.2 Add reproducible inventory-control benchmarks.** `NEXT`
-  - Encode a small Clark--Scarf serial periodic-review model with explicit demand, lead-time, holding, shortage, and event-timing assumptions.
-  - Compare an echelon base-stock policy with the exact finite MDP oracle on a bounded instance before scaling approximately.
-  - Encode Doğru's one-warehouse multi-retailer balance assumption as a named relaxation, not as the physical transition model.
-  - Compare the relaxed policy with a bounded physical allocation model and report value error, policy regret, state count, runtime, and truncation mass.
-  - Add the fixed-batch `(R,nQ)` newsvendor equations as a separate benchmark with discrete-demand inequalities.
-  - Pin every published parameter table or state clearly when a fixture is synthetic.
-- [ ] **S7.3 Add categorical cost, payoff, and rewrite interpreters.** `READY`
-  - Add a checked finite payoff pullback and test the exact state-payoff pairing law.
-  - Fold circuit syntax into primitive-count, duplicate-work, and live-width reports.
-  - Implement only proof-carrying rewrites: identities, deterministic share-versus-fanout, and tested softmax/cross-entropy fusion.
-  - Compare exact denotation before and after each structural rewrite and benchmark only after semantic equality passes.
+- [ ] **S7.2 Add reproducible inventory-control benchmarks.** `BLOCKED`
+  - [x] Add a bounded synthetic two-echelon serial fixture with explicit one-period supplier delay, event timing, successor costs, conditioned geometric demand, and truncation-mass reporting.
+  - [x] Compare period-specific bounded base-stock schedules with exact finite-horizon backward induction, retain opaque solution provenance, validate order-cap and target-set widening, and report exact regret, model size, solver status, and stability diagnostics.
+  - [x] Add a deterministic semantic report and a one-warm-up, twenty-sample reproducible benchmark with raw timing samples and sample statistics.
+  - [ ] Verify the complete Clark--Scarf equations, timing, and cost conventions from the primary source before adding that name to a fixture.
+  - [ ] Encode Doğru's one-warehouse multi-retailer balance assumption as a named relaxation, not as the physical transition model.
+  - [ ] Compare the relaxed policy with a bounded physical allocation model and report value error, policy regret, state count, runtime, and truncation mass.
+  - [ ] Add the fixed-batch `(R,nQ)` newsvendor equations as a separate benchmark with discrete-demand inequalities.
+  - [ ] Pin every published parameter table or state clearly; otherwise state that a fixture is synthetic.
+- [ ] **S7.3 Add categorical cost, payoff, and rewrite interpreters.** `NEXT`
+  - [x] Add a checked exact rational finite payoff, payoff pullback through exact stochastic matrices, and exact state-payoff pairing evidence.
+  - [ ] Fold circuit syntax into primitive-count, duplicate-work, and live-width reports.
+  - [ ] Implement only proof-carrying rewrites: identities, deterministic share-versus-fanout, and tested softmax/cross-entropy fusion.
+  - [ ] Compare exact denotation before and after each structural rewrite and benchmark only after semantic equality passes.
 - [ ] **S7.4 Add typed parametric reverse circuits.** `BLOCKED`
-  - First specify parameter products, cotangent types, primitive VJP obligations, diagonal accumulation, optimizer state, and numerical equality.
-  - Do not identify reverse differentiation with Bayesian inversion or matrix dagger.
+  - [x] Add a small framework-independent neural-backend interpreter with explicit nested-pair parameter products, distinct primal and cotangent types, cotangent-module witnesses, captured primitive pullbacks, input and parameter diagonal accumulation, exact module/VJP laws, and finite-difference fixtures.
+  - [ ] A general reverse-circuit syntax or autodiff lowering remains blocked until an owned primitive signature defines legal primitives, primal storage or recomputation, backend-specific cotangent modules, and numerical equality for every lowering.
+  - Keep optimizer state separate from differentiated circuits. Do not identify reverse differentiation with Bayesian inversion or matrix dagger.
+- [ ] **S7.5 Add finite typed interaction protocols.** `BLOCKED`
+  - No protocol is selected. Before implementation, define finite moves, move ownership, legal histories, terminal histories, strategy composition, and observational equality.
+  - Do not infer game semantics, open games, equilibria, or multi-agent stochastic games from an ownership index alone.
 
-**NEXT:** Implement S7.2's smallest exact Clark--Scarf fixture and benchmark schema before adding a large approximate solver.
+**NEXT:** Implement S7.3's exact circuit cost interpretation and first deterministic proof-carrying rewrite certificates. Keep stochastic copy naturality excluded.
 
 ## Requirements for new work
 

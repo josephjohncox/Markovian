@@ -7,6 +7,7 @@ import Markovian.Bayesian.Exact (BayesianInverse, Posterior, Prior, Support)
 import Markovian.Category.Convex.Exact (ConvexFamily)
 import Markovian.Category.Matrix.Deterministic (DeterministicMatrix)
 import Markovian.Category.Matrix.Stochastic (StochasticMatrix)
+import Markovian.Category.Payoff.Exact (ExactPayoff)
 import Markovian.Open.Acyclic (AcyclicOpenSystem)
 import Markovian.Open.Acyclic.Circuit.Exact (AcyclicOpenCircuit, Assignment, AssignmentObject, FiniteValueDomains, LabelCircuitTable)
 import Markovian.Open.Pushout (FinitePushout)
@@ -49,6 +50,9 @@ breakConvexSource ::
     ConvexFamily NonNegativeRational Bool target ->
     ConvexFamily NonNegativeRational DifferentSource target
 breakConvexSource = coerce
+
+breakPayoffSource :: ExactPayoff Bool -> ExactPayoff DifferentSource
+breakPayoffSource = coerce
 
 breakPriorSource :: Prior Bool -> Prior DifferentSource
 breakPriorSource = coerce

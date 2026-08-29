@@ -105,7 +105,7 @@ This paper axiomatizes reverse differentiation and derives reverse chain, copy, 
 
 Geoffrey S. H. Cruttwell, Bruno Gavranović, Neil Ghani, Paul Wilson, and Fabio Zanasi. “Categorical foundations of gradient-based learning.” In *Programming Languages and Systems: ESOP 2022*, LNCS 13240, pages 1–28. [DOI 10.1007/978-3-030-99336-8_1](https://doi.org/10.1007/978-3-030-99336-8_1). [arXiv:2103.01931](https://arxiv.org/abs/2103.01931).
 
-The paper combines parameterization, lenses, and reverse-derivative structure to model gradient-based learners and optimizers compositionally. It provides the broader framework for the proposed parametric-circuit and checked-optimizer extensions.
+The paper combines parameterization, lenses, and reverse-derivative structure to model gradient-based learners and optimizers compositionally. It provides the broader framework for the bounded parametric reverse interpreter and for any later checked-optimizer extension.
 
 ## Polarity, transformers, optics, and games
 
@@ -266,6 +266,12 @@ Daphne Koller and Nir Friedman. *Probabilistic Graphical Models: Principles and 
 Chapters 9 and 10 explain exact inference, variable elimination, clique trees, and the sum-product pattern. This is the standard algorithmic context for the live-frontier acyclic interpreter.
 
 ## MDPs, POMDPs, inventory control, and learning
+
+### Synthetic bounded serial fixture provenance
+
+The executable fixture in `Markovian.Benchmark.Inventory.Serial.Exact` is repository-authored and synthetic. Its conditioned geometric demand, one-period supplier delay, event order, costs, caps, and parameter values are stated in [Bounded serial-inventory benchmark](inventory-control.md). Its exact results apply only to that conditional bounded model.
+
+The fixture is not attributed to any publication. The complete equations, timing, and cost conventions of the named serial model below have not yet been verified against its primary article for executable reproduction. The multi-retailer balance relaxation and fixed-batch equations also remain unimplemented. These citations guide later source verification; they are not provenance for the current synthetic parameter table.
 
 ### Clark and Scarf: multi-echelon inventory
 

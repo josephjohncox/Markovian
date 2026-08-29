@@ -405,7 +405,7 @@ Error composition is backend-specific. Absolute bounds, relative bounds, probabi
 
 ### Implemented fact
 
-`Markovian.Bayesian.Exact.pushforward` sends an exact state through a normalized channel. Exact evaluation and Bellman interpreters compute expected future rewards from joint reward-successor outcomes. The library does not yet expose one general payoff-pullback API.
+`Markovian.Bayesian.Exact.pushforward` sends an exact state through a normalized channel. `Markovian.Category.Payoff.Exact.pullbackPayoff` sends a checked signed rational payoff backward through the same channel by conditional expectation. `pairStatePayoff` evaluates a normalized singleton-source state against a payoff on the same finite object. Exact evaluation and Bellman interpreters continue to compute reward-bearing backups from joint reward-successor outcomes.
 
 ### Deduction
 
@@ -425,7 +425,7 @@ They satisfy the exact pairing law
 \langle K_{\ast}p,u\rangle=\langle p,K^{\ast}u\rangle.
 \\]
 
-This law can test matrix orientation and finite layouts. It also gives a shared interface for dynamic programming without identifying payoff propagation with Bayesian inversion.
+Exact fixtures test this law, matrix orientation, signed values, and reordered finite layouts. The pullback API gives a reusable reward-free expectation operation without identifying payoff propagation with Bayesian inversion or claiming that Bellman backups contain no additional reward and discount structure.
 
 ### Boundary
 
