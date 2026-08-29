@@ -326,4 +326,7 @@ Category theory does not prove scalar arithmetic, measurability, numerical stabi
 2. Read [Kallenberg](references.md#kallenberg-foundations-of-modern-probability) or [Pollard](references.md#pollard-measure-theoretic-probability) for measure kernels and conditioning.
 3. Read [Giry](references.md#giry-probability-as-a-monad) for the probability monad.
 4. Read [Fritz](references.md#fritz-markov-categories) for Markov categories and [Cho–Jacobs](references.md#cho-and-jacobs-disintegration-and-bayesian-inversion) for Bayesian inversion.
-5. Return to the [law catalogue](laws-and-boundaries.md) to see which equations are implemented and tested exactly.
+5. Read [Information theory](information-theory.md) for channel observables and data processing.
+6. Read [Categorical learning](categorical-learning.md) for reverse derivatives, sharing, and optimization.
+7. Read [Polarity, push-pull duality, and games](polarity-and-games.md) to separate forward state propagation, backward payoff evaluation, and prior-indexed inference.
+8. Return to the [law catalogue](laws-and-boundaries.md) to see which equations are implemented and tested exactly.

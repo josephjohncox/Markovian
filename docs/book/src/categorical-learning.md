@@ -11,7 +11,7 @@ This chapter separates four structures that are often conflated:
 
 Markovian implements small finite reference instances of all four except a general automatic-differentiation language. The purpose of the categorical view is to identify laws and compiler opportunities, not to rename ordinary array programming.
 
-See [Fong, Spivak, and Tuyéras](references.md#fong-spivak-and-tuyeras-backprop), [Cockett and colleagues](references.md#cockett-and-colleagues-reverse-derivatives), and [Cruttwell and colleagues](references.md#cruttwell-and-colleagues-gradient-learning).
+See [Fong, Spivak, and Tuyéras](references.md#fong-spivak-and-tuyeras-backprop), [Cockett and colleagues](references.md#cockett-and-colleagues-reverse-derivatives), and [Cruttwell and colleagues](references.md#cruttwell-and-colleagues-gradient-learning). Read [Polarity, push-pull duality, and games](polarity-and-games.md) next for tangent-cotangent variance, logical polarity, and interaction protocols.
 
 ## Parameterized maps
 
@@ -58,9 +58,9 @@ g\diamond f:
 
 Associators and symmetries account for the necessary rearrangement of wires. This is why a list of untyped parameter arrays is weaker than a typed parameterized circuit: the latter records which parameters belong to which component and how composition combines them.
 
-## Losses are effects, not reverse maps
+## Losses are scalar-valued objectives, not reverse maps
 
-For a prediction `yHat` and target `y`, a scalar loss is an effect
+For a prediction `yHat` and target `y`, a scalar loss is a scalar-valued map
 
 \\[
 \ell:Y\otimes Y\longrightarrow \mathbb{R}.
@@ -420,6 +420,8 @@ These are cheap law-derived tests, not statistical convergence claims.
 
 ## New deductions from combining the layers
 
+The following deductions preview the consolidated catalogue in [Derived categorical and mathematical insights](categorical-insights.md#12-one-diagonal-governs-sharing-forward-and-accumulation-backward). They remain here to show how they arise from the learning construction.
+
 ### Sharing has both probabilistic and differential semantics
 
 The same diagonal means “one value with two consumers” in the forward stochastic circuit and “sum both consumer sensitivities” in reverse differentiation. This unifies correlation accounting and gradient accounting. Replacing sharing with repetition changes both the joint distribution and the update.
@@ -468,3 +470,5 @@ This chapter does not claim:
 - that an optimizer rewrite is sound without purity, shape, and numerical evidence.
 
 The categorical gain is compositional proof obligation and lawful reuse. Runtime gains occur only when those laws justify a concrete transformation such as VJP composition, deterministic sharing, fusion, elimination, or support masking.
+
+The next chapter places this backward flow beside payoff transformers, logical polarity, and game semantics. It keeps their shared interface shape separate from their different payloads and laws.

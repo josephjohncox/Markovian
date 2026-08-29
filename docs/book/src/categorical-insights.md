@@ -4,6 +4,8 @@ This chapter records deductions that become visible when the semantic layers are
 
 Each section distinguishes an implemented fact, a deduction, and a boundary. Definitions and background appear in [Algebra behind the implementation](algebra-primer.md), [Category theory behind the interfaces](category-primer.md), and [Categorical probability: the bridge](categorical-probability.md).
 
+The implemented facts also depend on [matrices](matrices.md), [circuits](circuits.md), [open systems](open-systems.md), and the [law catalogue](laws-and-boundaries.md). A first-time reader can treat this chapter as a preview and return after those implementation chapters.
+
 ## 1. Algebraic structure belongs at different refinement levels
 
 ### Implemented fact
@@ -399,6 +401,38 @@ This pattern composes. If two adjacent approximate squares satisfy compatible er
 
 Error composition is backend-specific. Absolute bounds, relative bounds, probabilistic confidence statements, and optimizer convergence cannot be merged through one universal rule.
 
+## 15. States and payoffs have opposite variance
+
+### Implemented fact
+
+`Markovian.Bayesian.Exact.pushforward` sends an exact state through a normalized channel. Exact evaluation and Bellman interpreters compute expected future rewards from joint reward-successor outcomes. The library does not yet expose one general payoff-pullback API.
+
+### Deduction
+
+A finite channel `K : X -> Y` can support two interpreters. State propagation follows the channel, while payoff evaluation runs against it:
+
+\\[
+K_{\ast}:\mathrm{State}(X)\longrightarrow\mathrm{State}(Y),
+\\]
+
+\\[
+K^{\ast}:\mathrm{Payoff}(Y)\longrightarrow\mathrm{Payoff}(X).
+\\]
+
+They satisfy the exact pairing law
+
+\\[
+\langle K_{\ast}p,u\rangle=\langle p,K^{\ast}u\rangle.
+\\]
+
+This law can test matrix orientation and finite layouts. It also gives a shared interface for dynamic programming without identifying payoff propagation with Bayesian inversion.
+
+### Boundary
+
+The backward payload matters. A payoff, cotangent, posterior, optimizer request, and game utility obey different laws. Opposite variance alone does not supply a dagger, inverse, lens, or game semantics.
+
+See [Polarity, push-pull duality, and games](polarity-and-games.md).
+
 ## Summary
 
 The strongest deductions come from refusing to collapse adjacent layers:
@@ -413,5 +447,6 @@ The strongest deductions come from refusing to collapse adjacent layers:
 - forward diagonals versus reverse accumulation connects sharing with tied-parameter gradients
 - exact availability versus approximate masks turns support evidence into backend constraints
 - exact denotation versus approximate observation turns semantic laws into commuting-square tests
+- state pushforward versus payoff pullback separates prediction from backward evaluation
 
 These distinctions are standard mathematics applied as software boundaries. Their combination gives a precise guide for future extensions.

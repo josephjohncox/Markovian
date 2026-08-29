@@ -637,6 +637,22 @@ Treat Clark--Scarf and Doğru inventory models as named benchmark families only 
 
 **Required evidence:** Information fixtures cover uniform entropy, shift invariance, product additivity, cross-entropy decomposition, self-KL, independent and shared mutual information, shape failures, and central finite differences for entropy and cross-entropy gradients. Categorical rewrites require exact denotational equality or an explicit approximate commuting-square relation. Inventory benchmarks require exact bounded comparisons, truncation-mass reporting, policy regret, runtime, and direct source citations for published parameters.
 
+### D-049: Treat polarity and push-pull structure as typed analogies, not one universal duality
+
+**Status:** Accepted
+
+**Decision:** Document state pushforward, payoff pullback, tangent push, cotangent pull, proof-theoretic polarity, game-semantic role reversal, optics, and open-game utility flow in one comparative chapter. Give each operation its own source and target types, required structure, equations, and failure boundaries.
+
+Use the exact state-payoff pairing law to motivate a future finite payoff interpreter. Keep Bayesian inversion prior-indexed and support-restricted. Keep cotangents signed and non-normalized. Do not treat chance as an adversarial player or call an MDP a stochastic game without explicit agents, strategy spaces, information, payoffs, and a solution concept.
+
+Treat game semantics and compositional games as research guides for typed protocol ownership. The current structured-cospan and stochastic-circuit APIs do not acquire arena, strategy, best-response, coutility, innocence, or equilibrium semantics through documentation alone.
+
+**Rationale:** The forward-backward shape recurs across probability, dynamic programming, differentiation, lenses, and games. A typed comparison reveals reusable API structure and pairing tests. Strict separation prevents the same visual reversal from collapsing expectation, inference, differentiation, logical negation, and strategic interaction.
+
+**Consequences:** The book gains a foundation chapter and primary references for focusing, call-by-push-value, predicate transformers, game semantics, polarized games, optics, and open games. S7.3 includes a checked finite payoff pullback and its exact pairing law. Any future game layer must define move ownership, legal interaction, strategy composition, and its observational equality before implementation.
+
+**Required evidence:** The chapter must type every direction-changing operation, distinguish implemented APIs from design signatures, state the state-payoff and tangent-cotangent pairing laws, and include counterclaims for unsupported game semantics. A future payoff interpreter requires exact finite pairing tests. A future game interpreter requires strategy-composition laws and finite interaction fixtures.
+
 ## Required evidence for advanced work
 
 | Feature | Required evidence before implementation | Implementation evidence |

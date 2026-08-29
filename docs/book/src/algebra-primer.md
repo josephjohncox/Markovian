@@ -261,6 +261,8 @@ The progression is capability-driven. An operation is placed at the weakest laye
 
 ## Reading route
 
+Continue the foundation route with [Category theory behind the interfaces](category-primer.md). Use the following sources and chapters for implementation details.
+
 1. Read [Leinster's free *Basic Category Theory*](references.md#leinster-basic-category-theory) for monoids, categories, products, and universal properties in context.
 2. Read [Mohri](references.md#mohri-semiring-path-algorithms) for semirings as path algebras.
 3. Read [Finite objects and semiring matrices](matrices.md) for Markovian's concrete API.

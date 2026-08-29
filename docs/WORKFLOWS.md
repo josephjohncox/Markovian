@@ -392,7 +392,7 @@ D-038 work follows the S1 through S6 roadmap in `TODO.md`.
 
 ## 11. New-feature evidence workflow
 
-P0 through P6, the greenfield cleanup, exact semantic-tower stages S1 through S6, and S7.1 information and categorical-learning foundations are `DONE`. D-023 through D-048 define the implemented contracts. Focused root modules cover exact control and tabular learning. Focused neural modules cover finite differences, categorical information, policy gradients, replay, target networks, and DQN. S7.2 inventory benchmarks are next. Arbitrary cyclic graph semantics, feedback, continuous-time black-boxing, unrestricted MDP black-boxing, general autodiff, tensor frameworks, and device execution remain deferred.
+P0 through P6, the greenfield cleanup, exact semantic-tower stages S1 through S6, and S7.1 information, categorical-learning, polarity, and game-semantic foundations are `DONE`. D-023 through D-049 define the implemented contracts. Focused root modules cover exact control and tabular learning. Focused neural modules cover finite differences, categorical information, policy gradients, replay, target networks, and DQN. S7.2 inventory benchmarks are next. Arbitrary cyclic graph semantics, feedback, continuous-time black-boxing, unrestricted MDP black-boxing, general autodiff, tensor frameworks, and device execution remain deferred.
 
 A new feature must use this sequence:
 
@@ -407,6 +407,8 @@ A new feature must use this sequence:
 9. For neural derivatives, record the finite-difference tolerance and every checked parameter or input coordinate.
 10. For replay or target updates, record ordering, eviction, successful-update count, and failed-update scheduling fixtures.
 11. For information quantities, record logarithm base, support behavior, decomposition laws, product laws, and finite-difference evidence.
+12. For a push-pull pair, state both transformer types, their pairing law, and whether the backward value is a payoff, cotangent, posterior, or utility.
+13. For game semantics, define arenas, move ownership, legal plays, strategy composition, and observational equality before implementation.
 12. For named inventory benchmarks, reproduce the source model's timing and assumptions, expose every relaxation, compare with a bounded exact oracle, and report truncation mass, value error, policy regret, state count, and runtime.
 13. For categorical rewrites, name the law and evidence that authorizes the rewrite. Purity-indexed deterministic rewrites and approximate fusions require different equality contracts.
 

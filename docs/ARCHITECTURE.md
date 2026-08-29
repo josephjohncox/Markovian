@@ -722,7 +722,7 @@ Every neural backend must define:
 
 The `markovian-neural` package uses checked `Double` arithmetic behind a package-local approximation boundary compatible with the root contract. It implements an opaque finite scalar, stable softmax, analytic categorical gradients, approximate entropy, cross entropy, KL divergence, mutual information, entropy and cross-entropy logit gradients, row-major dense networks, manual VJPs, and pure SGD. Dense layers use `tanh` hidden activations and a linear output head.
 
-Information quantities remain outside the exact rational core because logarithms of rational probabilities are generally irrational. Reverse derivatives remain distinct from raw matrix dagger, categorical adjunctions, and prior-indexed Bayesian inversion. A future parametric-circuit layer must state parameter products, cotangent types, diagonal gradient accumulation, primitive VJP obligations, and optimizer dynamics separately.
+Information quantities remain outside the exact rational core because logarithms of rational probabilities are generally irrational. Reverse derivatives remain distinct from raw matrix dagger, categorical adjunctions, and prior-indexed Bayesian inversion. State pushforward is implemented, while a general payoff pullback remains future work. Game arenas, strategies, best responses, and equilibria are not part of the current semantics. A future parametric-circuit layer must state parameter products, cotangent types, diagonal gradient accumulation, primitive VJP obligations, and optimizer dynamics separately.
 
 REINFORCE and actor-critic use masked linear categorical policies and linear scalar value functions. Unavailable outputs receive zero score gradient. Their actor, baseline, and critic gradients use immutable pre-update snapshots. REINFORCE includes the outer discount power for the discounted start-return objective. Truncated episodes require an explicit boundary bootstrap.
 
@@ -904,7 +904,7 @@ cabal haddock all --project-file=cabal.project.ci \
 scripts/check-book
 ```
 
-The book check validates local links, anchors, include targets, the pinned `mdbook` version, the pinned local MathJax digest and loader, every source-to-generated display-math block, and the complete HTML build. The published book includes foundation chapters for algebra, category theory, measure theory, and categorical probability, with internal concept links and direct primary-source reading routes. Haddock remains the API-signature reference.
+The book check validates local links, anchors, include targets, the pinned `mdbook` version, the pinned local MathJax digest and loader, every source-to-generated display-math block, and the complete HTML build. The published book includes foundation chapters for algebra, category theory, measure theory, categorical probability, information theory, categorical learning, polarity, push-pull duality, and game semantics. Internal links connect the narrative to APIs, boundaries, and direct primary-source reading routes. Haddock remains the API-signature reference.
 
 The separate `Pages` workflow runs the same book gate for each push to `main`. A manual deployment must also use `main`. Its build job uploads only the checked `docs/book/build` directory. Its deployment job consumes that artifact through the `github-pages` environment.
 

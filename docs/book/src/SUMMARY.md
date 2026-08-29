@@ -18,6 +18,7 @@
 - [Categorical probability: the bridge](./categorical-probability.md)
 - [Information theory for finite stochastic models](./information-theory.md)
 - [Categorical structure of learning and neural networks](./categorical-learning.md)
+- [Polarity, push-pull duality, and games](./polarity-and-games.md)
 
 # Models and evaluation
 

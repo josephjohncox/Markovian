@@ -4,7 +4,9 @@ Markovian is a greenfield Haskell framework for finite stochastic models. It pro
 
 The framework separates mathematical meaning from execution. Exact rational code defines the reference behavior. Floating, sampled, GPU, and neural code cross explicit approximation boundaries.
 
-Readers who know basic mathematics but want the structures connected explicitly should start with [Algebra behind the implementation](algebra-primer.md), [Category theory behind the interfaces](category-primer.md), [Measure theory and the finite specialization](measure-theory-primer.md), and [Categorical probability: the bridge](categorical-probability.md). Continue with [Information theory for finite stochastic models](information-theory.md) and [Categorical structure of learning and neural networks](categorical-learning.md) for entropy, reverse derivatives, diagonals, parameter sharing, and optimization. Each chapter links its claims to primary references and to the corresponding Markovian APIs.
+The foundation route starts with [algebra](algebra-primer.md), [category theory](category-primer.md), and [measure theory](measure-theory-primer.md). [Categorical probability](categorical-probability.md) then connects kernels, states, copying, and Bayesian inversion. [Information theory](information-theory.md) adds channel observables. [Categorical learning](categorical-learning.md) explains reverse derivatives, sharing, and optimization. [Polarity, push-pull duality, and games](polarity-and-games.md) then compares typed forward and backward flow across probability, learning, logic, and interaction.
+
+Each foundation chapter states its assumptions and unsupported generalizations. Each chapter also links its claims to primary references and relevant Markovian APIs.
 
 ## What the framework prevents
 
@@ -54,7 +56,7 @@ The framework keeps four unrelated operations separate.
 | Open-boundary reversal | A structured cospan | Swap the input and output boundary legs |
 | Reverse derivative | A differentiable map, primal point, and output cotangent | Propagate sensitivity through a local derivative adjoint |
 
-No common `Dagger` or reversal class joins these operations.
+No common `Dagger` or reversal class joins these operations. State pushforward and payoff pullback form another typed pair, but neither operation adds a fifth inverse. The [polarity and games chapter](polarity-and-games.md) explains this distinction.
 
 ## How to read this book
 
@@ -62,9 +64,11 @@ Read [First exact MDP](first-mdp.md) for an executable example. Read [Choose an 
 
 Read [Exact evaluation and control](exact-evaluation.md) for model-based methods. Read [Sampling and tabular learning](sampling-learning.md) for sample-based table updates.
 
-The model chapters explain rewards, policies, evaluation, learning, and partial observability. The algebra chapters explain matrices, Bayesian inference, circuits, and open systems.
+The model chapters explain rewards, policies, evaluation, learning, and partial observability. The composition chapters explain matrices, Bayesian inference, circuits, and open systems.
 
-The final chapters state the execution boundaries and unsupported claims. The project references include the complete architecture and decision records.
+Use the foundation chapters as a second route through the same software. They explain why the APIs separate exact values, channels, observations, reversals, and approximations.
+
+The final chapters state execution boundaries and unsupported claims. The project references include the complete architecture and decision records.
 
 ## Project status
 

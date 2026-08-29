@@ -6,16 +6,18 @@ This bibliography favors published papers, standard books, and freely available 
 
 Each route starts with background and ends at the source closest to Markovian's design.
 
-- **Category basics:** [Leinster](#leinster-basic-category-theory) → [Riehl](#riehl-category-theory-in-context) → [Mac Lane](#mac-lane-categories-and-monoidal-coherence) → [Selinger](#selinger-graphical-languages)
+- **Category basics:** [Leinster](#leinster-basic-category-theory) or [Riehl](#riehl-category-theory-in-context) → [Mac Lane](#mac-lane-categories-and-monoidal-coherence) → [Selinger](#selinger-graphical-languages)
 - **Measure kernels and conditioning:** [Pollard](#pollard-measure-theoretic-probability) → [Kallenberg](#kallenberg-foundations-of-modern-probability) → [Faden](#faden-regular-conditional-probabilities)
 - **Categorical probability:** [Giry](#giry-probability-as-a-monad) → [Moggi](#moggi-kleisli-semantics) → [Fritz](#fritz-markov-categories) → [Cho and Jacobs](#cho-and-jacobs-disintegration-and-bayesian-inversion)
 - **Matrix and path algebra:** [Mohri](#mohri-semiring-path-algorithms) → [Droste, Kuich, and Vogler](#droste-kuich-and-vogler-weighted-automata) → [Joyal, Street, and Verity](#joyal-street-and-verity-traced-monoidal-categories)
 - **Open composition:** [Fong and Spivak](#fong-and-spivak-applied-category-theory) → [Fong](#fong-decorated-cospans) → [Baez and Courser](#baez-and-courser-structured-cospans)
 - **Information theory:** [Shannon](#shannon-information-theory) → [Cover and Thomas](#cover-and-thomas-information-theory) → [Baez, Fritz, and Leinster](#baez-fritz-and-leinster-entropy) → [Perrone](#perrone-markov-categories-and-entropy)
 - **Categorical learning:** [Fong, Spivak, and Tuyéras](#fong-spivak-and-tuyeras-backprop) → [Cockett and colleagues](#cockett-and-colleagues-reverse-derivatives) → [Cruttwell and colleagues](#cruttwell-and-colleagues-gradient-learning)
+- **Polarity and game semantics:** [Girard](#girard-linear-logic) → [Andreoli](#andreoli-focusing) → [Hyland and Ong](#hyland-and-ong-game-semantics) → [Laurent](#laurent-polarized-games)
+- **Push-pull and compositional games:** [Kozen](#kozen-probabilistic-programs) → [Jacobs and Zanasi](#jacobs-and-zanasi-predicate-state-transformers) → [Riley](#riley-categories-of-optics) → [Ghani and colleagues](#ghani-and-colleagues-compositional-games)
 - **Inventory control examples:** [Clark and Scarf](#clark-and-scarf-multi-echelon-inventory) → [Doğru](#dogru-multi-retailer-inventory) → [Doğru, van Houtum, and de Kok](#dogru-van-houtum-and-de-kok-fixed-batches)
 
-The book chapters [Algebra behind the implementation](algebra-primer.md), [Category theory behind the interfaces](category-primer.md), [Measure theory and the finite specialization](measure-theory-primer.md), [Categorical probability: the bridge](categorical-probability.md), [Information theory for finite stochastic models](information-theory.md), and [Categorical structure of learning and neural networks](categorical-learning.md) explain how these sources connect to the code.
+The foundation chapters connect these sources to the code. Start with [algebra](algebra-primer.md), [category theory](category-primer.md), and [measure theory](measure-theory-primer.md). Then read [categorical probability](categorical-probability.md), [information theory](information-theory.md), [categorical learning](categorical-learning.md), and [polarity, push-pull duality, and games](polarity-and-games.md).
 
 ## Category theory and string diagrams
 
@@ -104,6 +106,74 @@ This paper axiomatizes reverse differentiation and derives reverse chain, copy, 
 Geoffrey S. H. Cruttwell, Bruno Gavranović, Neil Ghani, Paul Wilson, and Fabio Zanasi. “Categorical foundations of gradient-based learning.” In *Programming Languages and Systems: ESOP 2022*, LNCS 13240, pages 1–28. [DOI 10.1007/978-3-030-99336-8_1](https://doi.org/10.1007/978-3-030-99336-8_1). [arXiv:2103.01931](https://arxiv.org/abs/2103.01931).
 
 The paper combines parameterization, lenses, and reverse-derivative structure to model gradient-based learners and optimizers compositionally. It provides the broader framework for the proposed parametric-circuit and checked-optimizer extensions.
+
+## Polarity, transformers, optics, and games
+
+### Girard: linear logic
+
+Jean-Yves Girard. “Linear logic.” *Theoretical Computer Science* 50(1), 1987, pages 1–101. [DOI 10.1016/0304-3975(87)90045-4](https://doi.org/10.1016/0304-3975(87)90045-4).
+
+Girard introduces resource-sensitive connectives, linear negation, and the proof-theoretic structure behind later polarized systems. Read §§1–2 for the motivating logic and §5 for proof nets. The book uses linear duality only as a scoped comparison, not as a structure on normalized stochastic kernels.
+
+### Andreoli: focusing
+
+Jean-Marc Andreoli. “Logic programming with focusing proofs in linear logic.” *Journal of Logic and Computation* 2(3), 1992, pages 297–347. [DOI 10.1093/logcom/2.3.297](https://doi.org/10.1093/logcom/2.3.297).
+
+Andreoli develops focusing for linear logic. The focused normal form separates invertible and non-invertible proof phases and removes irrelevant proof-search permutations. This is the primary source for the chapter's account of logical polarity.
+
+### Levy: call-by-push-value
+
+Paul Blain Levy. *Call-by-Push-Value: A Functional/Imperative Synthesis*. Kluwer Academic Publishers, 2003. [Author's thesis PDF](https://pblevy.github.io/papers/thesisqmwphd.pdf). [Author's CBPV tutorial](https://pblevy.github.io/papers/cbpvefftt.pdf).
+
+Chapters 2–4 separate value types from computation types and embed call-by-value and call-by-name. Later chapters develop categorical and effectful models. Use this source to understand the value-computation distinction without identifying it with proof polarity or Player-Opponent polarity.
+
+### Kozen: probabilistic programs
+
+Dexter Kozen. “Semantics of probabilistic programs.” *Journal of Computer and System Sciences* 22(3), 1981, pages 328–350. [DOI 10.1016/0022-0000(81)90036-2](https://doi.org/10.1016/0022-0000(81)90036-2). [Author PDF](https://www.cs.cornell.edu/~kozen/Papers/ProbSem.pdf).
+
+Kozen presents probabilistic program semantics through measurable functions and linear operators on measures. The operator view supplies historical grounding for forward state transformation and backward expectation calculations.
+
+### Jacobs and Zanasi: predicate-state transformers
+
+Bart Jacobs and Fabio Zanasi. “A predicate/state transformer semantics for Bayesian learning.” *Electronic Notes in Theoretical Computer Science* 325, 2016, pages 185–200. [DOI 10.1016/j.entcs.2016.09.038](https://doi.org/10.1016/j.entcs.2016.09.038). [Author PDF](https://www.cs.ru.nl/B.Jacobs/PAPERS/A_predicate_state_transformer_semantics.pdf).
+
+The paper distinguishes forward state transformation from backward predicate transformation and relates both to conditioning. It is the closest reference for the finite state-payoff distinction in the polarity chapter.
+
+### Blass: games for linear logic
+
+Andreas Blass. “A game semantics for linear logic.” *Annals of Pure and Applied Logic* 56(1–3), 1992, pages 183–220. [DOI 10.1016/0168-0072(92)90073-9](https://doi.org/10.1016/0168-0072(92)90073-9).
+
+Blass gives an early dialogue-game interpretation of linear logic. The paper proves soundness and additive completeness under its stated strategy model, but its multiplicative interpretation has a known completeness boundary.
+
+### Hyland and Ong: game semantics
+
+J. Martin E. Hyland and C.-H. Luke Ong. “On full abstraction for PCF: I, II, and III.” *Information and Computation* 163(2), 2000, pages 285–408. [DOI 10.1006/inco.2000.2917](https://doi.org/10.1006/inco.2000.2917). [Author publication record](https://www.cs.ox.ac.uk/people/luke.ong/personal/publications/).
+
+The paper models PCF with arenas and innocent strategies and proves full-abstraction and universality results. Read §§2–3 for arenas, justified sequences, views, and strategies before reading the main definability arguments.
+
+### Abramsky, Jagadeesan, and Malacaria: game semantics
+
+Samson Abramsky, Radha Jagadeesan, and Pasquale Malacaria. “Full abstraction for PCF.” *Information and Computation* 163(2), 2000, pages 409–470. [DOI 10.1006/inco.2000.2930](https://doi.org/10.1006/inco.2000.2930). [arXiv:1311.6125](https://arxiv.org/abs/1311.6125).
+
+This independently developed game model uses history-free strategies and obtains full abstraction through an extensional quotient. Compare its strategy conditions with Hyland and Ong rather than treating “game semantics” as one unique construction.
+
+### Laurent: polarized games
+
+Olivier Laurent. “Polarized games.” *17th Annual IEEE Symposium on Logic in Computer Science*, 2002, pages 265–274. [DOI 10.1109/LICS.2002.1029835](https://doi.org/10.1109/LICS.2002.1029835). [Author PDF](https://perso.ens-lyon.fr/olivier.laurent/polgames.pdf).
+
+Laurent develops positive and negative games and models intuitionistic and polarized linear logic. It extends the chapter's separate discussions of proof polarity and game semantics. The chapter does not use Laurent's polarized-game construction as an implemented model.
+
+### Riley: categories of optics
+
+Mitchell Riley. “Categories of optics.” 2018. [arXiv:1809.00738](https://arxiv.org/abs/1809.00738).
+
+Riley gives a general optic construction that includes lenses and prisms and develops composition and lawfulness through categorical structure. Use §§2–3 for the construction. The chapter uses optics only as a common interface shape for typed bidirectional flow.
+
+### Ghani and colleagues: compositional games
+
+Neil Ghani, Jules Hedges, Viktor Winschel, and Philipp Zahn. “Compositional game theory.” *33rd Annual ACM/IEEE Symposium on Logic in Computer Science*, 2018, pages 472–481. [DOI 10.1145/3209108.3209165](https://doi.org/10.1145/3209108.3209165). [arXiv:1603.04641](https://arxiv.org/abs/1603.04641).
+
+The paper defines open games with strategy sets, play and coplay maps, and context-indexed best-response relations. Sequential and monoidal composition build larger games. Markovian currently has no best-response or equilibrium semantics.
 
 ## Probability kernels, Markov categories, and Bayes
 

@@ -1,6 +1,6 @@
 # Category theory behind the interfaces
 
-This chapter assumes that the reader knows the definitions of a category and a functor, but may not know why they matter for stochastic software. It connects categorical vocabulary directly to Markovian's finite types. The consequences for entropy, reverse derivatives, parameter sharing, and optimization are developed in [Information theory for finite stochastic models](information-theory.md) and [Categorical structure of learning and neural networks](categorical-learning.md).
+Prior familiarity with categories and functors helps, but this chapter restates the definitions needed for stochastic software. It connects categorical vocabulary directly to Markovian's finite types. Later chapters apply this vocabulary to [information theory](information-theory.md), [learning](categorical-learning.md), and [polarity, push-pull duality, and games](polarity-and-games.md).
 
 ## Category: objects, morphisms, and composition
 
@@ -52,6 +52,8 @@ A raw matrix is more general again. Its entries can be arbitrary semiring values
 This explains Markovian's refinement layers. Forgetting a deterministic proof gives a stochastic matrix. Forgetting normalization gives a raw nonnegative matrix. These are forgetful directions; the reverse direction requires evidence.
 
 ## The finite distribution functor and monad
+
+A functor maps objects and morphisms between categories while preserving identities and composition.
 
 Let `D(X)` be the finite probability distributions on `X`. A function `f : X → Y` pushes a distribution forward:
 
@@ -291,6 +293,9 @@ No row of this table inherits every structure from another row.
 1. Review [Leinster](references.md#leinster-basic-category-theory), Chapters 1 and 5, or [Riehl](references.md#riehl-category-theory-in-context), Chapters 1, 3, and 5.
 2. Read [Selinger](references.md#selinger-graphical-languages) for monoidal diagrams.
 3. Read [Fritz](references.md#fritz-markov-categories), especially §§2–3, 11, and 13.
-4. Read [Categorical probability: the bridge](categorical-probability.md) for the connection to measure kernels.
-5. Read [Information theory](information-theory.md) for channel observables and [categorical learning](categorical-learning.md) for reverse derivatives, diagonals, and optimization.
-6. Use the [law catalogue](laws-and-boundaries.md) to find executable finite witnesses.
+4. Read [Measure theory and the finite specialization](measure-theory-primer.md) for measures, kernels, and conditioning.
+5. Read [Categorical probability: the bridge](categorical-probability.md) for the connection between those kernels and categorical composition.
+6. Read [Information theory](information-theory.md) for channel observables.
+7. Read [Categorical learning](categorical-learning.md) for reverse derivatives, diagonals, and optimization.
+8. Read [Polarity, push-pull duality, and games](polarity-and-games.md) for state-payoff variance, logical polarity, and interaction.
+9. Use the [law catalogue](laws-and-boundaries.md) to find executable finite witnesses.

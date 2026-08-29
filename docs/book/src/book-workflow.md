@@ -101,6 +101,21 @@ Update all affected documents in one change:
 5. Add a decision to `docs/DECISIONS.md` for a new proof boundary.
 6. Update `docs/CONTEXT.md` and `TODO.md` when project state changes.
 
+## Review narrative coherence
+
+A technical chapter must fit the book, not only pass its local equations.
+
+1. State what the reader must already know.
+2. Connect the chapter to the previous concept before adding new notation.
+3. Give the finite Markovian case before a broader categorical analogy.
+4. Mark design sketches, implemented APIs, deductions, and unsupported extensions explicitly.
+5. Check that one term has one meaning across neighboring chapters.
+6. Add a reading route with a primary source or standard book for each new structure.
+7. Ask a mathematical reviewer to test claims and a pedagogical reviewer to test the learning sequence.
+8. Preserve correct existing material unless the review identifies a contradiction, unsupported claim, or narrative break.
+
+Record the review findings before publication. A prose review does not replace equation, link, build, or browser-rendering checks.
+
 ## Verify prose
 
 Use direct technical prose. Use one term for one concept. Keep procedures in numbered steps.

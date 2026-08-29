@@ -140,10 +140,12 @@ S6 status: `DONE`.
 
 ## S7: Approximation and categorical-learning case studies
 
-- [x] **S7.1 Add information-theory and categorical-learning foundations.**
+- [x] **S7.1 Add information-theory, categorical-learning, polarity, and game-semantic foundations.**
   - Separate entropy, divergence, reverse derivatives, linear adjoints, adjoint functors, Bayesian inversion, and optimizer dynamics.
+  - Separate state pushforward, payoff pullback, tangent push, cotangent pull, logical polarity, and Player-Opponent polarity.
   - Add checked categorical entropy, cross entropy, KL divergence, mutual information, and analytic logit gradients outside the exact core.
-  - Require decomposition, product, invariance, and finite-difference evidence.
+  - Ground the game-semantic material in arena, strategy, focusing, optic, and open-game references without claiming an implementation.
+  - Require decomposition, product, invariance, pairing, and finite-difference evidence for future executable interpreters.
 - [ ] **S7.2 Add reproducible inventory-control benchmarks.** `NEXT`
   - Encode a small Clark--Scarf serial periodic-review model with explicit demand, lead-time, holding, shortage, and event-timing assumptions.
   - Compare an echelon base-stock policy with the exact finite MDP oracle on a bounded instance before scaling approximately.
@@ -151,7 +153,8 @@ S6 status: `DONE`.
   - Compare the relaxed policy with a bounded physical allocation model and report value error, policy regret, state count, runtime, and truncation mass.
   - Add the fixed-batch `(R,nQ)` newsvendor equations as a separate benchmark with discrete-demand inequalities.
   - Pin every published parameter table or state clearly when a fixture is synthetic.
-- [ ] **S7.3 Add categorical cost and rewrite interpreters.** `READY`
+- [ ] **S7.3 Add categorical cost, payoff, and rewrite interpreters.** `READY`
+  - Add a checked finite payoff pullback and test the exact state-payoff pairing law.
   - Fold circuit syntax into primitive-count, duplicate-work, and live-width reports.
   - Implement only proof-carrying rewrites: identities, deterministic share-versus-fanout, and tested softmax/cross-entropy fusion.
   - Compare exact denotation before and after each structural rewrite and benchmark only after semantic equality passes.

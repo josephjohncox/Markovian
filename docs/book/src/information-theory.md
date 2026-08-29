@@ -129,7 +129,7 @@ KL divergence is not a metric: it is asymmetric and does not satisfy the triangl
 
 ## Channels and the data-processing inequality
 
-Suppose `X` and `Y` have a joint state and both are passed through a channel to form a less detailed observation. Information cannot increase merely by postprocessing:
+Suppose `X -> Y -> Z` is a Markov chain, so `Z` is obtained by postprocessing `Y`. Information cannot increase merely by postprocessing:
 
 \\[
 I(X;Z)\le I(X;Y)
@@ -306,3 +306,5 @@ This chapter does not claim:
 - that a small KL step guarantees a performance improvement without the assumptions of a specific theorem.
 
 The finite definitions are executable. Their continuous analogues require measure-theoretic care and often different invariance statements.
+
+Continue to [Categorical learning](categorical-learning.md) for information objectives and gradients. Then read [Polarity, push-pull duality, and games](polarity-and-games.md) for forward state propagation and backward payoff evaluation.
