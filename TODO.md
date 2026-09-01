@@ -139,9 +139,9 @@ D-038 defines this roadmap in dependency order. A later stage cannot weaken the 
 
 S6 status: `DONE`.
 
-## Integration repair status
+## Integration status
 
-D-053 is `DONE`. D-054 through D-060 have substantial implementations and focused fixtures, but remain `BLOCKED` at integration acceptance while their decisions are `Proposed`. Do not promote those decisions or describe the corresponding slices as accepted until both supported compilers, `--prefer-oldest`, warning-free Haddock, formatting, all four source archives and unpacked tests, every compile-fail boundary, all four inventory benchmarks, and deterministic semantic-report stability pass on the same revision.
+D-053 through D-060 are `DONE` and `Accepted`. Both supported compilers, `--prefer-oldest`, warning-free Haddock, formatting, all four source archives and unpacked tests, every compile-fail boundary, all four inventory benchmarks, and deterministic semantic-report stability passed locally and in hosted CI run `33467147313` on revision `993508f`.
 
 ## S7: Approximation and categorical-learning case studies
 
@@ -151,7 +151,7 @@ D-053 is `DONE`. D-054 through D-060 have substantial implementations and focuse
   - Add checked categorical entropy, cross entropy, KL divergence, mutual information, and analytic logit gradients outside the exact core.
   - Ground the game-semantic material in arena, strategy, focusing, optic, and open-game references without claiming an implementation.
   - Require decomposition, product, invariance, pairing, and finite-difference evidence for future executable interpreters.
-- [ ] **S7.2 Add reproducible inventory-control benchmarks.** `BLOCKED` at integration acceptance for D-055 through D-057.
+- [x] **S7.2 Add reproducible inventory-control benchmarks.**
   - [x] Add a bounded synthetic two-echelon serial fixture with explicit one-period supplier delay, event timing, successor costs, conditioned geometric demand, and truncation-mass reporting.
   - [x] Compare period-specific bounded base-stock schedules with exact finite-horizon backward induction, retain opaque solution provenance, validate order-cap and target-set widening, and report exact regret, model size, solver status, and stability diagnostics.
   - [x] Add a deterministic semantic report and a one-warm-up, twenty-sample reproducible benchmark with raw timing samples and sample statistics.
@@ -166,24 +166,24 @@ D-053 is `DONE`. D-054 through D-060 have substantial implementations and focuse
   - [x] Add opaque identity, reassociation, and deterministic fanout-to-share candidates; keep stochastic syntax excluded at construction.
   - [x] Issue checked witnesses only after bounded exact endpoint-layout and row-major matrix checks. Keep the checked-`Double` softmax/cross-entropy fusion separate and certificate-free.
   - [x] Produce deterministic cost/rewrite reports. Defer timing until a named optimizer and workload make a performance claim.
-- [ ] **S7.4 Add typed parametric reverse circuits.** `BLOCKED` at integration acceptance for D-058.
+- [x] **S7.4 Add typed parametric reverse circuits.**
   - [x] Add a small framework-independent neural-backend interpreter with explicit nested-pair parameter products, distinct primal and cotangent types, cotangent-module witnesses, captured primitive pullbacks, input and parameter diagonal accumulation, exact module/VJP laws, and finite-difference fixtures.
   - [x] Add D-058's finite acyclic syntax over caller-owned primitives, structural parameter ownership, checked finite primal and cotangent layouts, bounded preparation, and opaque stored or recomputed tapes.
   - [x] Check exact `Rational` composition, tensor, and diagonal fixtures, deterministic reports, compile-fail boundaries, and every input and parameter coordinate of a heterogeneous `Double` program under both tape policies.
   - Keep optimizer state separate from differentiated circuits. General autodiff lowering, recursion, cycles, tensors, and checkpoint scheduling remain out of scope. Do not identify reverse differentiation with Bayesian inversion or matrix dagger.
-- [ ] **S7.5 Add finite typed interaction protocols.** `BLOCKED` at integration acceptance for D-059.
+- [x] **S7.5 Add finite typed interaction protocols.**
   - [x] Add finite reachable acyclic arenas with explicit move ownership, alternation, opaque legal-history replay, and separate labelled and represented-layout equality.
   - [x] Add bounded prefix-closed strategies with exhaustive Opponent receptivity, one total Player response, copycat, partial synchronized hidden-middle composition, and exact external-prefix observational equality.
   - [x] Add ownership, illegal-history, prefix-closure, budget, layout, representative identity/associativity, congruence, deterministic-report, and compile-fail evidence.
   - Keep the result scoped to finite alternating protocols. It does not establish Hyland--Ong or AJM semantics, open games, equilibria, chance, or multi-agent stochastic games.
 
-- [ ] **S7.6 Add owner-refined finite open games.** `BLOCKED` at integration acceptance for D-060.
+- [x] **S7.6 Add owner-refined finite open games.**
   - [x] Add bounded total finite functions, concrete optics, owner-disjoint strategy products, play, coplay, sequential and tensor composition, and context-indexed best responses.
   - [x] Add exact `Rational` maximizing decisions, pure contextual equilibrium enumeration with all ties, owner-preserving observational equality, deterministic reports, and explicit layout diagnostics.
   - [x] Differential-test every represented two-player `2 x 2` payoff table over `{0,1}` and retain matching-pennies and non-credible-threat counterexamples.
   - Keep arena histories separate. Do not claim mixed, correlated, repeated, stochastic, Bayesian, continuous, subgame-perfect, or equilibrium-existence results.
 
-**NEXT:** Integration evidence and complete cross-package acceptance for D-053 through D-060.
+S7 status: `DONE` for the bounded scopes defined by D-048 through D-060. The research boundaries listed below remain out of scope.
 
 ## Requirements for new work
 

@@ -10,7 +10,7 @@ Capability labels in this repository have these meanings:
 - **Experimental:** the API is unreleased and can change without migration support.
 - **Out of scope:** no support claim exists for convergence, production training, tensor frameworks, autodiff, or neural devices.
 
-Integration acceptance is still open. D-053 is accepted. D-054 through D-060 remain proposed until the complete four-package compiler, lower-bound, Haddock, formatting, source-archive, compile-fail, benchmark, and deterministic-report gates pass. The implementation descriptions below report worktree capabilities, not release acceptance.
+D-053 through D-060 are accepted. The complete four-package compiler, lower-bound, Haddock, formatting, source-archive, compile-fail, benchmark, and deterministic-report gates passed locally and in hosted CI run `33467147313` on revision `993508f`.
 
 ## Documentation
 

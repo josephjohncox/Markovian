@@ -52,4 +52,4 @@
 - Corrected the CUDA evidence record to label variable local measurements and avoid a general performance claim.
 - Added CUDA benchmark warmup, raw-sample, range, and sample-standard-deviation reporting with a durable evidence record.
 - Added reproducible toolchain, package, documentation, and CI checks.
-- Reconciled four-package integration metadata and CI so the finite-game, reverse-program, and exact-support compile-fail boundaries and all four inventory semantic-report benchmarks run in the working tree and applicable unpacked source archives. D-054 through D-060 remain proposed pending the complete acceptance gate.
+- Reconciled four-package integration metadata and CI so the finite-game, reverse-program, and exact-support compile-fail boundaries and all four inventory semantic-report benchmarks run in the working tree and applicable unpacked source archives. Accepted D-054 through D-060 after the complete local matrix and hosted CI run `33467147313` passed on revision `993508f`.

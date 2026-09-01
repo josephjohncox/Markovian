@@ -725,7 +725,7 @@ No stochastic deduplication constructor exists. Construction provenance remains 
 
 ### D-054: Compile exact availability into sized structural neural masks
 
-**Status:** Proposed
+**Status:** Accepted
 
 **Decision:** Move `ActionMask` into `Markovian.Backend.Neural.Mask`. Store a positive complete output width, active count, and nonempty, duplicate-free active indices in model-defined order. Expose Boolean membership flags, checked gather, and checked scatter. Gather and scatter length checks consume at most the expected prefix plus one overrun witness, including for infinite inputs. Gather available logits and Q-values before softmax or argmax. Scatter policy score rows with literal positive `0.0` at unavailable outputs and reject nonfinite active values. Do not represent availability by multiplication or additive negative infinity.
 
@@ -739,7 +739,7 @@ Add `markovian-neural-bridge` as the only package that imports both the root and
 
 ### D-055: Specialize Clark--Scarf Section III to a bounded exact lattice
 
-**Status:** Proposed
+**Status:** Accepted
 
 **Decision:** Add a separate two-echelon implementation of Clark and Scarf's Section III state `(x1,w1,x2)`, with invariant `x2-x1-w1 >= 0`, beginning-of-period external order and downstream dispatch, complete backlog, two-period downstream and one-period upstream natural lead times, echelon-stock natural costs, and one demand draw shared by realized cost and successor. Use the 1960 article's equations (14), (15), (20), (21), and (26). Keep the existing synthetic serial benchmark unchanged.
 
@@ -757,7 +757,7 @@ This decision supports only “Clark–Scarf (1960), Section III, finite lattice
 
 ### D-056: Represent Doğru's balance assumption as an explicit bounded relaxation
 
-**Status:** Proposed
+**Status:** Accepted
 
 **Decision:** Implement only the two-retailer fragment with one period of supplier lead time and zero retailer lead time from Mustafa Kemal Doğru, *Optimal Control of One-Warehouse Multi-Retailer Systems: An Assessment of the Balance Assumption* (Eindhoven University of Technology, 2006), DOI `10.6100/IR601558`, Chapters 2--4. Keep physical actions with nonnegative shipments separate from balance-relaxed actions with signed shipments. In local coordinates use `w=I0-IP1-IP2`, so the source physical constraint in equations (4.5)--(4.7) is `s1+s2<=w+o`.
 
@@ -773,7 +773,7 @@ Use Chapter 4 scenario 2's exact displayed demand probabilities and coefficients
 
 ### D-057: Separate bounded fixed-batch execution from stationary newsvendor evidence
 
-**Status:** Proposed
+**Status:** Accepted
 
 **Decision:** Add a bounded two-stage serial specialization with `L1=0`, a positive configurable `L2`, integer-ratio batches `Q2=n*Q1`, explicit physical stage-1 releases, conditioned finite geometric demand, complete reachable layouts, exact finite-horizon backward induction, and explicit action, state, solver, grid, and convolution budgets. Keep the stationary subsystem costs and discrete newsvendor inequalities from Doğru, van Houtum, and de Kok (2005/2008) in a separate module and report section. Give stationary search a separate domain with explicit finite `R1` and `R2` layouts and declared Cartesian-product semantics; do not infer an unreported pair domain inside the solver.
 
@@ -787,7 +787,7 @@ The executable adaptation has no state redirection, no boundary clamping, and no
 
 ### D-058: Interpret finite owned reverse programs with explicit tapes
 
-**Status:** Proposed
+**Status:** Accepted
 
 **Decision:** Keep the reverse-program layer entirely in `markovian-neural`. Add `Markovian.Backend.Neural.Reverse.Program` as a finite acyclic GADT over a caller-owned primitive signature. Expose only primitive, identity, composition, tensor, shared-input pairing, and shared-parameter tensor smart constructors. Every primitive declares finite primal layouts, finite cotangent layouts, module-owner metadata, a structural parameter-ownership tree, an existing `ParametricReverseCircuit`, and either stored-pullback or primitive-recomputation tape policy.
 
@@ -807,7 +807,7 @@ The recomputation failure branch belongs to the distinct owner-supplied recomput
 
 ### D-059: Implement finite acyclic alternating interaction protocols
 
-**Status:** Proposed
+**Status:** Accepted
 
 **Decision:** Add `Markovian.Game.Arena` and `Markovian.Game.Strategy` to the exact, `base`-only root package. An arena has explicit finite position and move layouts, one initial position, and one owned edge for every represented move. Construction rejects outside endpoints, unreachable decoration, mixed ownership at a position, a Player-owned nonterminal initial position, nonalternating edges, and directed cycles. Opaque histories replay moves from the initial position and retain the reached position.
 
@@ -823,7 +823,7 @@ Composition requires labelled equivalence of the middle arenas. It enumerates bo
 
 ### D-060: Implement an owner-refined finite open-game fragment
 
-**Status:** Proposed
+**Status:** Accepted
 
 **Decision:** Add `Markovian.Game.Optic.Finite`, `Markovian.Game.Open.Finite`, and `Markovian.Game.Open.Exact` to the `base`-only exact core. A finite optic is only a checked concrete pair `P : X -> Y` and `C : X x R -> S`; it is not Riley's general residual/coend optic construction. A finite open game has an explicit finite strategy-profile layout with a structural decision-site ownership tree, total play and coplay tables, and a context-indexed best-response membership evaluator. It does not import arena histories.
 
