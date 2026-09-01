@@ -4,9 +4,9 @@
 The package keeps approximate numerical work outside the exact root semantic
 core. It provides stable categorical operations, checked information
 quantities and logit gradients, checked row-major dense networks with manual
-VJPs, typed parametric reverse circuits, policy-gradient updates, bounded
-replay, target networks, and one atomic DQN batch step. It uses neither tensors
-nor automatic differentiation.
+VJPs, typed parametric reverse circuits, bounded owned reverse programs,
+policy-gradient updates, bounded replay, target networks, and one atomic DQN
+batch step. It uses neither tensors nor automatic differentiation.
 -}
 module Markovian.Backend.Neural (
     module Markovian.Backend.Neural.ActorCritic,
@@ -21,6 +21,7 @@ module Markovian.Backend.Neural (
     module Markovian.Backend.Neural.Reinforce,
     module Markovian.Backend.Neural.Replay,
     module Markovian.Backend.Neural.Reverse,
+    module Markovian.Backend.Neural.Reverse.Program,
     module Markovian.Backend.Neural.TargetNetwork,
     module Markovian.Backend.Neural.Transition,
 ) where
@@ -37,6 +38,7 @@ import Markovian.Backend.Neural.Policy
 import Markovian.Backend.Neural.Reinforce
 import Markovian.Backend.Neural.Replay
 import Markovian.Backend.Neural.Reverse
+import Markovian.Backend.Neural.Reverse.Program
 import Markovian.Backend.Neural.TargetNetwork
 import Markovian.Backend.Neural.Transition
 \end{code}

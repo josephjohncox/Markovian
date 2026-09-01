@@ -27,6 +27,9 @@ Use this table to select the smallest correct abstraction.
 | Update a POMDP belief | `filterExactBelief` |
 | Plan with a finite belief policy | `Markovian.POMDP.Planning.Exact` |
 | Build and solve the bounded serial-inventory fixture | `Markovian.Benchmark.Inventory.Serial.Exact` |
+| Compare Doğru physical and balance-relaxed finite models | `Markovian.Benchmark.Inventory.Distribution.Dogru.Exact` |
+| Solve bounded two-stage fixed-batch execution | `Markovian.Benchmark.Inventory.Serial.FixedBatch.Exact` |
+| Check stationary fixed-batch subsystem inequalities | `Markovian.Benchmark.Inventory.Serial.FixedBatch.Newsvendor.Exact` |
 | Render its primary-versus-widened report | `Markovian.Benchmark.Inventory.Report` |
 | Compose exact weighted linear maps | `Markovian.Category.Matrix` |
 | Represent a normalized finite channel | `Markovian.Category.Matrix.Stochastic` |
@@ -38,12 +41,19 @@ Use this table to select the smallest correct abstraction.
 | Compose prior-indexed channels | `Markovian.Bayesian.Channel.Exact` |
 | Preserve shared stochastic results | `shareCircuit` |
 | Execute conditionally independent branches | `fanoutCircuit` or tensor |
+| Produce a bounded static circuit cost report | `Markovian.Circuit.Interpret.Cost` |
+| Check a deterministic structural rewrite exactly | `Markovian.Circuit.Rewrite.Deterministic.Exact` |
 | Compile finite deterministic structure | `Markovian.Circuit.Compile.Deterministic` |
 | Compose systems through boundaries | `Markovian.Open.StructuredCospan` |
 | Execute a validated finite DAG | `Markovian.Open.Acyclic.Circuit.Exact` |
+| Define a finite alternating protocol | `Markovian.Game.Arena` and `Markovian.Game.Strategy` |
+| Define an owned finite open game | `Markovian.Game.Open.Finite` |
+| Enumerate exact pure contextual equilibria | `Markovian.Game.Open.Exact` and `enumeratePureEquilibria` |
 | Lower an exact circuit to dense rows | `Markovian.Backend.CPU.Exact` |
 | Apply a dense matrix with CUDA | `Markovian.Backend.GPU` |
 | Evaluate a checked dense neural network | `Markovian.Backend.Neural.Dense` |
+| Construct or inspect a sized structural action mask | `Markovian.Backend.Neural.Mask` |
+| Compile exact action availability for a neural head | `Markovian.Backend.Neural.Bridge.ExactSupportMask` |
 | Compose typed primitive VJPs | `Markovian.Backend.Neural.Reverse` |
 | Apply a finite REINFORCE update | `Markovian.Backend.Neural.Reinforce` |
 | Apply a one-step actor-critic update | `Markovian.Backend.Neural.ActorCritic` |
@@ -71,6 +81,8 @@ Do not use raw matrix trace for stochastic feedback. Use bounded recursion or a 
 
 Do not use `fanoutCircuit c c` when both consumers must see the same random value. Use `shareCircuit c`.
 
+Do not treat a lower declared circuit cost as rewrite evidence. Construct a deterministic candidate and run the exact checker first.
+
 Do not compare finite supports when storage order matters. Use `sameFiniteLayout`.
 
 Do not call a finite value-iteration result an exact optimum. Report its stop reason and residual bounds.
@@ -80,3 +92,9 @@ Do not use Q-learning epsilon in the greedy target. Epsilon belongs to its behav
 Do not treat a horizon stop as a terminal state. REINFORCE requires an explicit truncated-boundary bootstrap.
 
 Do not use the CUDA or neural result as the semantic reference. Compare it with exact or checked CPU execution.
+
+Do not use arena histories as open-game strategies. The protocol and open-game modules are separate formalisms.
+
+Do not call a pure contextual equilibrium mixed or subgame perfect. Matching pennies has no result in the implemented pure solution concept, and sequential composition can retain non-credible threats.
+
+Do not mask logits or Q-values by multiplication. Gather available values through a sized structural mask. Use the bridge when the availability comes from a compiled exact MDP.

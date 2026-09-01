@@ -12,3 +12,7 @@ package markovian-neural
   flags: +markovian-integration
   ghc-options: -Werror
   tests: True
+
+package markovian-neural-bridge
+  ghc-options: -Werror
+  tests: True

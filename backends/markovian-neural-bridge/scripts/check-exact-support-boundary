@@ -1,0 +1,38 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+package_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "${package_dir}"
+
+log_file="$(mktemp)"
+trap 'rm -f "${log_file}"' EXIT
+
+if cabal exec -- ghc \
+  -fno-code \
+  -fmax-errors=100 \
+  -package Markovian \
+  -package markovian-neural-bridge \
+  test/compile-fail/ExactSupportRoles.hs >"${log_file}" 2>&1; then
+  echo "Exact action witnesses accepted representational relabelling." >&2
+  exit 1
+fi
+
+for rejected_coercion in \
+  breakActionId \
+  breakFiniteActionIndex \
+  breakActionOutputLayout \
+  breakExactSupportMask; do
+  if ! grep -F "${rejected_coercion}" "${log_file}" >/dev/null; then
+    cat "${log_file}" >&2
+    echo "The expected ${rejected_coercion} role error was absent." >&2
+    exit 1
+  fi
+done
+
+if ! grep -F "Couldn't match type" "${log_file}" >/dev/null; then
+  cat "${log_file}" >&2
+  echo "The exact-support fixture failed for a reason other than nominal roles." >&2
+  exit 1
+fi
+
+echo "PASS: exact action IDs, indexes, output layouts, and support masks reject relabelling"

@@ -4,7 +4,12 @@ set -euo pipefail
 log_file="$(mktemp)"
 trap 'rm -f "${log_file}"' EXIT
 
-if cabal exec --project-file=cabal.project.ci -- ghc \
+project_args=()
+if [[ -f cabal.project && -f cabal.project.ci ]]; then
+  project_args+=(--project-file=cabal.project.ci)
+fi
+
+if cabal exec "${project_args[@]}" -- ghc \
   -fno-code \
   -package Markovian \
   test/compile-fail/CircuitPurity.hs >"${log_file}" 2>&1; then
@@ -12,7 +17,15 @@ if cabal exec --project-file=cabal.project.ci -- ghc \
   exit 1
 fi
 
-for rejected_operation in badCopyRewrite badStrengthen badPurityCoerce; do
+for rejected_operation in \
+  badCopyRewrite \
+  badStrengthen \
+  badPurityCoerce \
+  badDeduplicationCertificate \
+  badDiracStochasticCertificate \
+  badEndpointCoerce \
+  UnsafeDeterministicRewrite \
+  UnsafeCheckedDeterministicRewrite; do
   if ! grep -F "${rejected_operation}" "${log_file}" >/dev/null; then
     cat "${log_file}" >&2
     echo "The expected ${rejected_operation} purity error was absent." >&2
@@ -26,4 +39,4 @@ if ! grep -F "Couldn't match type" "${log_file}" >/dev/null; then
   exit 1
 fi
 
-echo "PASS: stochastic circuits cannot use deterministic copy rewrites or strengthening"
+echo "PASS: circuit purity, endpoint roles, and rewrite-certificate opacity"

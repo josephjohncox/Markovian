@@ -2,6 +2,7 @@ module DQN (tests) where
 
 import Markovian.Backend.Neural (
     DQNConfig,
+    DQNError (..),
     DQNTargetSelection (..),
     DenseNetwork,
     NeuralTransition,
@@ -42,8 +43,8 @@ tests = do
 
 targetChecks :: IO ()
 targetChecks = do
-    currentMask <- requireRight "current mask" (mkActionMask [0, 1])
-    successorMask <- requireRight "successor mask" (mkActionMask [0, 1])
+    currentMask <- requireRight "current mask" (mkActionMask 2 [0, 1])
+    successorMask <- requireRight "successor mask" (mkActionMask 2 [0, 1])
     online <- requireRight "online target fixture" (mkDenseNetwork 2 [] 2 [0, 2, 0, 1, 0, 0])
     target <- requireRight "target target fixture" (mkDenseNetwork 2 [] 2 [0, 4, 0, 5, 0, 0])
     continuing <-
@@ -60,9 +61,9 @@ targetChecks = do
 
 maskTieChecks :: IO ()
 maskTieChecks = do
-    sourceMask <- requireRight "tie source mask" (mkActionMask [0, 1])
-    reverseMask <- requireRight "reverse tie mask" (mkActionMask [1, 0])
-    forwardMask <- requireRight "forward tie mask" (mkActionMask [0, 1])
+    sourceMask <- requireRight "tie source mask" (mkActionMask 2 [0, 1])
+    reverseMask <- requireRight "reverse tie mask" (mkActionMask 2 [1, 0])
+    forwardMask <- requireRight "forward tie mask" (mkActionMask 2 [0, 1])
     online <- requireRight "tie online" (mkDenseNetwork 2 [] 2 (replicate 6 0))
     target <- requireRight "tie target" (mkDenseNetwork 2 [] 2 [0, 4, 0, 5, 0, 0])
     reverseTransition <- requireRight "reverse tie transition" (mkContinuingTransition [1, 0] sourceMask 0 0 [0, 1] reverseMask)
@@ -71,10 +72,18 @@ maskTieChecks = do
     forwardTarget <- requireRight "forward tie target" (dqnTransitionTarget 1 DoubleDQN online target forwardTransition)
     assertClose "mask-order tie selects first reverse entry" 0 5 reverseTarget
     assertClose "mask-order tie selects first forward entry" 0 4 forwardTarget
+    wrongWidth <- requireRight "wrong-width DQN mask" (mkActionMask 3 [0, 1])
+    wrongWidthTransition <-
+        requireRight
+            "wrong-width DQN transition"
+            (mkContinuingTransition [1, 0] sourceMask 0 0 [0, 1] wrongWidth)
+    case dqnTransitionTarget 1 DoubleDQN online target wrongWidthTransition of
+        Left (DQNMaskWidthMismatch 2 3) -> pure ()
+        result -> assert ("wrong-width DQN mask was accepted: " ++ show result) False
 
 batchFiniteDifference :: IO ()
 batchFiniteDifference = do
-    mask <- requireRight "finite-difference mask" (mkActionMask [0, 1])
+    mask <- requireRight "finite-difference mask" (mkActionMask 2 [0, 1])
     first <- requireRight "finite-difference first" (mkContinuingTransition [1, 0] mask 0 1.5 [0, 1] mask)
     second <- requireRight "finite-difference second" (mkTerminalTransition [0, 1] mask 1 (-0.25) 1)
     let transitions = [first, second]
@@ -99,7 +108,7 @@ batchFiniteDifference = do
 
 batchSnapshotCheck :: IO ()
 batchSnapshotCheck = do
-    mask <- requireRight "snapshot mask" (mkActionMask [0, 1])
+    mask <- requireRight "snapshot mask" (mkActionMask 2 [0, 1])
     first <- requireRight "snapshot first transition" (mkTerminalTransition [1, 0] mask 0 2 0)
     second <- requireRight "snapshot second transition" (mkTerminalTransition [1, 0] mask 0 4 0)
     online <- requireRight "snapshot online" (mkDenseNetwork 2 [] 2 (replicate 6 0))
@@ -116,7 +125,7 @@ batchSnapshotCheck = do
 
 tinyLearningStep :: IO ()
 tinyLearningStep = do
-    mask <- requireRight "tiny mask" (mkActionMask [0, 1])
+    mask <- requireRight "tiny mask" (mkActionMask 2 [0, 1])
     transition <- requireRight "tiny transition" (mkTerminalTransition [1, 0] mask 0 2 0)
     online <- requireRight "tiny online" (mkDenseNetwork 2 [] 2 (replicate 6 0))
     target <- requireRight "tiny target" (mkDenseNetwork 2 [] 2 (replicate 6 0))

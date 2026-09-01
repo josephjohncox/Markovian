@@ -30,6 +30,15 @@ import Markovian.Backend.Neural.Categorical (
     selectedActionLogProbability,
     selectedActionLogProbabilityGradient,
  )
+import Markovian.Backend.Neural.Mask (
+    ActionMask,
+    ActionMaskError,
+    actionMaskContains,
+    actionMaskIndices,
+    actionMaskWidth,
+    gatherActionMask,
+    scatterActionMask,
+ )
 import Markovian.Backend.Neural.Numeric (
     NeuralNumericError,
     checkedAdd,
@@ -37,11 +46,6 @@ import Markovian.Backend.Neural.Numeric (
     checkedSum,
     validateFinite,
     validateFiniteVector,
- )
-import Markovian.Backend.Neural.Transition (
-    ActionMask,
-    actionMaskContains,
-    actionMaskIndices,
  )
 
 -- | Shape, categorical, and finite-arithmetic failures.
@@ -52,8 +56,9 @@ data NeuralPolicyError
     | PolicyParameterShapeMismatch !Int !Int
     | PolicyFeatureShapeMismatch !Int !Int
     | PolicyGradientShapeMismatch !Int !Int
-    | PolicyActionMaskIndexOutOfBounds !Int !Int
+    | PolicyActionMaskWidthMismatch !Int !Int
     | PolicyActionNotInMask !Int
+    | PolicyActionMaskFailure !ActionMaskError
     | InvalidValueFeatureCount !Int
     | ValueParameterShapeMismatch !Int !Int
     | ValueFeatureShapeMismatch !Int !Int
@@ -119,33 +124,29 @@ linearPolicyScoreGradient :: LinearCategoricalPolicy -> [Double] -> ActionMask -
 linearPolicyScoreGradient policy features mask action = do
     (maskedLogits, localAction) <- maskedPolicyLogits policy features mask action
     maskedGradient <- mapCategorical (selectedActionLogProbabilityGradient maskedLogits localAction)
-    let indices = actionMaskIndices mask
-        globalGradient =
-            [ maybe 0 (maskedGradient !!) (elemIndex globalAction indices)
-            | globalAction <- [0 .. linearPolicyActionCount policy - 1]
-            ]
-    fmap
-        concat
-        ( traverse
-            (\score -> traverse (mapNumeric . checkedMultiply "linear policy score gradient" score) features)
-            globalGradient
-        )
+    globalGradient <- mapMask (scatterActionMask mask maskedGradient)
+    rows <-
+        traverse
+            ( \(globalAction, score) ->
+                if actionMaskContains globalAction mask
+                    then traverse (mapNumeric . checkedMultiply "linear policy score gradient" score) features
+                    else Right (replicate (linearPolicyFeatureCount policy) 0.0)
+            )
+            (zip [0 ..] globalGradient)
+    Right (concat rows)
 
 maskedPolicyLogits :: LinearCategoricalPolicy -> [Double] -> ActionMask -> Int -> Either NeuralPolicyError ([Double], Int)
-maskedPolicyLogits policy features mask action = do
-    logits <- linearPolicyLogits policy features
-    traverse_ (validateMaskIndex (length logits)) (actionMaskIndices mask)
-    if actionMaskContains action mask
-        then case elemIndex action (actionMaskIndices mask) of
-            Just localAction -> Right (fmap (logits !!) (actionMaskIndices mask), localAction)
-            Nothing -> Left (PolicyActionNotInMask action)
-        else Left (PolicyActionNotInMask action)
-  where
-    validateMaskIndex count index
-        | index >= count = Left (PolicyActionMaskIndexOutOfBounds index count)
-        | otherwise = Right ()
-
-    traverse_ operation = foldr (\value rest -> operation value >> rest) (Right ())
+maskedPolicyLogits policy features mask action
+    | actionMaskWidth mask /= linearPolicyActionCount policy =
+        Left (PolicyActionMaskWidthMismatch (linearPolicyActionCount policy) (actionMaskWidth mask))
+    | otherwise = do
+        logits <- linearPolicyLogits policy features
+        maskedLogits <- mapMask (gatherActionMask mask logits)
+        if actionMaskContains action mask
+            then case elemIndex action (actionMaskIndices mask) of
+                Just localAction -> Right (maskedLogits, localAction)
+                Nothing -> Left (PolicyActionNotInMask action)
+            else Left (PolicyActionNotInMask action)
 
 -- | Apply one checked gradient-ascent step.
 applyLinearPolicyAscent :: Double -> [Double] -> LinearCategoricalPolicy -> Either NeuralPolicyError LinearCategoricalPolicy
@@ -241,3 +242,6 @@ mapCategorical = either (Left . CategoricalPolicyFailure) Right
 
 mapNumeric :: Either NeuralNumericError value -> Either NeuralPolicyError value
 mapNumeric = either (Left . PolicyNumericFailure) Right
+
+mapMask :: Either ActionMaskError value -> Either NeuralPolicyError value
+mapMask = either (Left . PolicyActionMaskFailure) Right

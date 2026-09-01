@@ -46,14 +46,21 @@ extra-source-files:
   scripts/check-book
   scripts/check-book-links
   scripts/check-circuit-purity
+  scripts/check-game-core-boundary
   scripts/check-refinement-roles
   scripts/install-doc-tools
   test/compile-fail/AcyclicProofBoundary.hs
   test/compile-fail/AcyclicPurity.hs
   test/compile-fail/CircuitPurity.hs
+  test/compile-fail/GameCoreBoundary.hs
   test/compile-fail/PushoutKind.hs
   test/compile-fail/RefinementRoles.hs
+  test/golden/clark-scarf-1960-report.txt
+  test/golden/dogru-inventory-report.txt
+  test/golden/fixed-batch-rnq-report.txt
   test/golden/inventory-report.txt
+  test/golden/open-game-matching-pennies.txt
+  test/golden/open-game-prisoners-dilemma.txt
   toolchain.env
 
 source-repository head
@@ -71,8 +78,16 @@ library
     Markovian.Backend.CPU.Exact
     Markovian.Bayesian.Channel.Exact
     Markovian.Bayesian.Exact
+    Markovian.Benchmark.Inventory.ClarkScarf1960.Finite.Exact
+    Markovian.Benchmark.Inventory.ClarkScarf1960.Oracle.Exact
+    Markovian.Benchmark.Inventory.ClarkScarf1960.Report
+    Markovian.Benchmark.Inventory.Distribution.Dogru.Exact
+    Markovian.Benchmark.Inventory.Distribution.Dogru.Report
     Markovian.Benchmark.Inventory.Report
     Markovian.Benchmark.Inventory.Serial.Exact
+    Markovian.Benchmark.Inventory.Serial.FixedBatch.Exact
+    Markovian.Benchmark.Inventory.Serial.FixedBatch.Newsvendor.Exact
+    Markovian.Benchmark.Inventory.Serial.FixedBatch.Report
     Markovian.Category.Convex.Exact
     Markovian.Category.Finite.Exact
     Markovian.Category.Finite.Object
@@ -84,8 +99,16 @@ library
     Markovian.Circuit
     Markovian.Circuit.Compile.Deterministic
     Markovian.Circuit.Interpret.Approximate
+    Markovian.Circuit.Interpret.Cost
     Markovian.Circuit.Interpret.Exact
+    Markovian.Circuit.Rewrite.Deterministic
+    Markovian.Circuit.Rewrite.Deterministic.Exact
     Markovian.Compile.Exact
+    Markovian.Game.Arena
+    Markovian.Game.Open.Exact
+    Markovian.Game.Open.Finite
+    Markovian.Game.Optic.Finite
+    Markovian.Game.Strategy
     Markovian.Horizon
     Markovian.Interpreter.Bellman.Exact
     Markovian.Interpreter.Control.Exact
@@ -136,6 +159,39 @@ library
   hs-source-dirs:   src
   default-language: GHC2021
 
+benchmark clark-scarf-1960-bench
+  import:           warnings
+  type:             exitcode-stdio-1.0
+  main-is:          Main.hs
+  build-depends:
+    , base       >=4.17.2.1 && <4.20
+    , Markovian
+
+  hs-source-dirs:   bench/ClarkScarf1960
+  default-language: GHC2021
+
+benchmark dogru-inventory-bench
+  import:           warnings
+  type:             exitcode-stdio-1.0
+  main-is:          Main.hs
+  build-depends:
+    , base       >=4.17.2.1 && <4.20
+    , Markovian
+
+  hs-source-dirs:   bench/DogruInventory
+  default-language: GHC2021
+
+benchmark fixed-batch-rnq-bench
+  import:           warnings
+  type:             exitcode-stdio-1.0
+  main-is:          Main.hs
+  build-depends:
+    , base       >=4.17.2.1 && <4.20
+    , Markovian
+
+  hs-source-dirs:   bench/FixedBatchRnQ
+  default-language: GHC2021
+
 benchmark inventory-control-bench
   import:           warnings
   type:             exitcode-stdio-1.0
@@ -165,7 +221,13 @@ test-suite Markovian-test
     AcyclicOpenSystems
     AlgebraicFoundation
     BayesianExact
+    CircuitCostRewrite
+    ClarkScarf1960
+    DogruInventoryBenchmark
     ExactControl
+    FiniteOpenGames
+    FixedBatchRnQ
+    GameCore
     InventoryBenchmark
     Legacy
     OpenSystems

@@ -306,7 +306,7 @@ These conditions are semantic assumptions, not automatic consequences of the are
 
 They offer a useful analogy for Markovian protocols. An observation arrives after a transition. An action belongs to the policy. A stochastic outcome belongs to the environment model. Terminal states reject further steps. These ownership and timing rules resemble a typed interaction protocol.
 
-The current library does not encode them as game-semantic arenas or strategies.
+Markovian now encodes a smaller finite alternating protocol with deterministic total Player response and exhaustive Opponent receptivity. It does not encode justification, views, innocence, bracketing, or either cited full game-semantic model. See [Finite alternating interaction protocols](finite-interaction-protocols.md).
 
 ## MDPs are not automatically games
 
@@ -335,9 +335,9 @@ This architecture is relevant to Markovian because it separates:
 - local decision rules;
 - open boundaries.
 
-However, Markovian's structured cospans are topological objects, and its stochastic circuits denote channels. They do not carry best-response relations or equilibria. A future game layer would need new semantic data and new laws.
+Markovian's structured cospans remain topological objects, and its stochastic circuits remain channels. Separately, `Markovian.Game.Open.Finite` now provides explicitly bounded finite strategies, owned decision sites, play, coplay, context-indexed best responses, and pure contextual equilibrium enumeration. See [Finite open games and pure equilibria](finite-open-games.md).
 
-The practical opportunity is a typed protocol layer above the existing kernels. Such a layer could reuse finite carriers and exact outcomes while adding player ownership and solution concepts explicitly.
+This new layer does not turn kernels into players. It has no chance, mixed strategy, stochastic game, incomplete information, or subgame-perfect solver. It also remains separate from arena histories.
 
 ## A compact duality map
 
@@ -367,7 +367,9 @@ A common expectation operator could serve finite-horizon evaluation, policy eval
 
 ### Index protocol ownership
 
-No interaction syntax is implemented. An ownership index alone would be decorative. A first finite protocol must also define legal and terminal histories, strategy behavior on every owned move, composition through a shared boundary, and observational equality. Until one such protocol is selected, this work remains blocked and cannot support claims about game semantics, open games, equilibria, or multi-agent stochastic games.
+`Markovian.Game.Arena` and `Markovian.Game.Strategy` implement a finite protocol in which ownership has executable consequences. Opaque histories replay moves, checked strategies are receptive and deterministic, and bounded composition synchronizes and hides literal middle identities before revalidation. Exact external-prefix equality is explicit.
+
+This protocol implementation does not turn stochastic outcomes into Opponent choices. It has no justification pointers, chance, payoff, best response, equilibrium, or multi-agent stochastic-game semantics. The separate finite open-game modules define their own play, coplay, ownership, and best-response data without importing arena histories.
 
 ### Compile paired interpreters
 
@@ -399,7 +401,7 @@ This chapter does not claim:
 - that a cotangent is a probability predicate;
 - that logical polarity has one fixed meaning across all calculi;
 - that Haskell's ordinary function arrow is a linear implication;
-- that Markovian currently implements game semantics or open games;
+- that Markovian's finite protocol or finite open-game fragments establish Hyland--Ong or AJM game semantics;
 - that an MDP is a two-player stochastic game;
 - that open-system boundary reversal swaps strategic roles;
 - that a shared diagram removes the need for domain-specific laws.
@@ -414,5 +416,5 @@ The grounded claim is smaller. Typed direction exposes who supplies information,
 4. Read [Kozen](references.md#kozen-probabilistic-programs) and [Jacobs and Zanasi](references.md#jacobs-and-zanasi-predicate-state-transformers) for state and predicate transformers.
 5. Read [Hyland and Ong](references.md#hyland-and-ong-game-semantics) or [Abramsky, Jagadeesan, and Malacaria](references.md#abramsky-jagadeesan-and-malacaria-game-semantics) for PCF game models.
 6. Read [Laurent](references.md#laurent-polarized-games) for polarized games.
-7. Read [Riley](references.md#riley-categories-of-optics) and [Ghani and colleagues](references.md#ghani-and-colleagues-compositional-games) for optics and open games.
+7. Read [Riley](references.md#riley-categories-of-optics) and [Ghani and colleagues](references.md#ghani-and-colleagues-compositional-games) for optics and open games, then compare the bounded implementation in [Finite open games and pure equilibria](finite-open-games.md).
 8. Return to [categorical learning](categorical-learning.md) for VJPs, diagonals, and optimization.

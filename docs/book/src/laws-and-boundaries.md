@@ -149,9 +149,28 @@ The neural package tests dense input and parameter VJPs, categorical Jacobians, 
 
 The typed parametric reverse fixtures use literal rational equality to check cotangent zero, additive identity, associativity, commutativity, scalar distributivity, primitive VJP zero/additivity/homogeneity, composition identities and associativity, independent parameter products, tensor products, and identity/input/parameter diagonals. Nonlinear composition and input-diagonal fixtures use central differences. Failure fixtures cover primitive evaluation, composition, tensor, shared parameters, and diagonal addition. These fixtures test declared `CotangentSpace` operations and supplied primitives; the generic constructor does not prove their module or pullback laws.
 
-The tests also check REINFORCE, actor-critic, replay, target synchronization, and DQN update fixtures. The floating checks use explicit tolerances. They do not prove all-input derivatives or training convergence.
+The finite reverse-program fixtures additionally check represented primal and cotangent layouts, structural owner products, duplicate independent owner rejection, matching shared ownership, exact preparation boundaries, deterministic traversal errors and reports, typed stored and recomputed tapes, repeated tape use, composition and tensor laws through explicit pair bijections, and two- and three-way diagonal accumulation. A heterogeneous nonlinear program checks every represented input and parameter coordinate under both tape policies with step `1e-6 * max 1 |x|`, absolute tolerance `2e-10`, and relative tolerance `2e-8`. A literal floating reassociation counterexample remains unequal. Compile-fail fixtures protect typed intermediates, parameter products, tape endpoints, and constructor opacity.
+
+The tests also check REINFORCE, actor-critic, replay, target synchronization, and DQN update fixtures. The floating checks use explicit tolerances. They provide local evidence for supplied VJPs. They do not prove all-input derivatives, general autodiff, checkpoint optimality, or training convergence.
 
 **Executable evidence:** [`backends/markovian-neural/test`](https://github.com/josephjohncox/Markovian/tree/main/backends/markovian-neural/test).
+
+## Exact availability to neural mask boundary
+
+A neural `ActionMask` validates a positive complete output width and nonempty ordered active indices. Its Boolean flags describe membership in global output order. The ordered index list separately controls deterministic argmax tie breaking. Equal flags therefore do not imply equal represented masks. Gather and scatter inspect no more than the expected input plus one overrun witness, so an infinite input is rejected without an unrestricted `length`. Scatter also rejects nonfinite active values.
+
+The bridge checks two independent obligations:
+
+1. the policy or dense output width equals the exact global action cardinality;
+2. the bridge layout and compiled model have the same represented global action order.
+
+For a continuing state, membership agrees exactly with compiled availability, and availability order is unchanged. A terminal state has no mask. Complete bridge compilation uses explicit state, cumulative action-entry, and conservative traversal-work limits. It preflights the complete model before it returns a collection. Policy and DQN consumers gather before softmax or argmax. Policy scattering writes literal positive `0.0` on every unavailable parameter row. Nominal roles prevent representational action relabelling across the root, finite-index, output-layout, and support-mask witnesses.
+
+A numeric-zero counterexample uses negative available Q-values. Multiplication changes an unavailable value to zero, which can exceed every available value. The structural gather excludes that output. Bridge differential fixtures also compare policy score gradients with central differences and a masked one-step DQN maximum with an explicitly converted exact rational maximum.
+
+These fixtures do not prove feature-map consistency, differentiation through masks, neural convergence, or a general masked-network VJP.
+
+**Executable evidence:** [`backends/markovian-neural/test/ActionMask.hs`](https://github.com/josephjohncox/Markovian/blob/main/backends/markovian-neural/test/ActionMask.hs) and [`backends/markovian-neural-bridge/test/Main.hs`](https://github.com/josephjohncox/Markovian/blob/main/backends/markovian-neural-bridge/test/Main.hs).
 
 ## Why floating kernels do not claim literal associativity
 
@@ -645,6 +664,22 @@ These laws are dagger-like only after the prior, support restriction, and almost
 
 **Executable evidence:** [`testBayesianInversionLaws` and `testAlmostSureAndChannels`](https://github.com/josephjohncox/Markovian/blob/main/test/BayesianExact.hs#L155-L323).
 
+## Fixed-batch finite and stationary differentials
+
+The finite execution fixtures check batch congruence, material conservation, exact supplier delay, complete reachable closure, and same-demand cost/successor pairing. Independent recursive calculations agree with both the finite-horizon oracle and a fixed-policy evaluator.
+
+The stationary module checks the exact forward difference
+
+\\[
+c_i(\ldots,R_i)=C_i(\ldots,R_i+1)-C_i(\ldots,R_i)
+\\]
+
+and Theorem 1's equivalent weak and strict discrete inequalities. An independently enumerated two-stage law agrees with the implemented shortfall recursion. A fixture pins a discrete plateau where the weak condition holds and the strict condition does not. The unit-batch fixture checks `S=R+1`.
+
+These are finite exact fixtures under the reported conditioned demand and grid. They do not prove an unbounded minimizer, continuous equality, average-cost convergence, or optimality of a constant `(R,nQ)` policy for the finite-horizon oracle. A pinned counterexample has different finite-horizon and stationary selections.
+
+**Executable evidence:** [`FixedBatchRnQ.hs`](https://github.com/josephjohncox/Markovian/blob/main/test/FixedBatchRnQ.hs).
+
 ## Circuit interpretation laws
 
 For the exact interpreter `⟦-⟧`, the fixtures check
@@ -668,6 +703,42 @@ They also check symmetry involution, associator and unitor round trips, copy coc
 The deterministic compiler preserves identity, composition, products, pairing, and projections. Pairing compiles through copy followed by tensor.
 
 **Executable evidence:** [`testHomomorphismAndCoherence` and `testMonoidalCoherence`](https://github.com/josephjohncox/Markovian/blob/main/test/StochasticCircuit.hs#L194-L369), plus [`testDeterministicCompilation`](https://github.com/josephjohncox/Markovian/blob/main/test/StochasticCircuit.hs#L465).
+
+## Bounded circuit costs and deterministic rewrites
+
+The cost interpreter tests additive caller-owned work for sequence and tensor. It also tests the elaborations
+
+\\[
+\operatorname{share}(f)=f;\operatorname{copy}
+\\]
+
+and
+
+\\[
+\operatorname{fanout}(f,g)=\operatorname{copy};(f\otimes g).
+\\]
+
+A raw syntax node is charged before descent. Exceeding the node, declared-work, layout-cardinality, matrix-cell, or owner-entry limit returns no report. Convex cost includes every represented branch, including a zero-coefficient branch. These rules define repository accounting, not categorical complexity.
+
+The exact rewrite checker tests
+
+\\[
+\mathrm{id};f=f,
+\qquad
+f;\mathrm{id}=f,
+\\]
+
+\\[
+(f;g);h=f;(g;h),
+\\]
+
+and deterministic copy naturality. It requires represented endpoint equality and literal row-major matrix equality in addition to labelled extensional equality. The four represented Boolean total functions and a compiled deterministic term exercise the copy fixture.
+
+The counterexamples are part of the contract: a shared fair coin differs from two executions; stochastic provenance remains stochastic for a Dirac denotation; zero declared cost grants no certificate; reordered primitive layouts fail exact checking; and explicit checker exhaustion returns no witness. Compile-fail evidence keeps candidate and checked constructors opaque and rejects stochastic deduplication.
+
+Mac Lane, Chapter I §1, supplies the category assumptions for identity and associativity. Mac Lane, Chapter VII §§1–2, and Selinger supply the stated monoidal setting. Fritz §3 supplies the deterministic restriction on copy-preserving maps in a Markov category. None of these sources defines Markovian's cost report or proves every Haskell fixture.
+
+**Executable evidence:** [`CircuitCostRewrite.hs`](https://github.com/josephjohncox/Markovian/blob/main/test/CircuitCostRewrite.hs) and [`check-circuit-purity`](https://github.com/josephjohncox/Markovian/blob/main/scripts/check-circuit-purity).
 
 ## Open-system and acyclic denotation laws
 
@@ -701,6 +772,42 @@ up to named-boundary reindexing where pushouts choose different carrier represen
 The interpreter also checks normalization, sharing, discard marginalization, conditional products, renaming invariance, boundary permutation invariance, and ready-edge schedule independence.
 
 **Executable evidence:** [`testOpenAssociativity`, `testDoubleInterchange`, and `testOpenCircuitDenotation`](https://github.com/josephjohncox/Markovian/blob/main/test/OpenSystems.hs#L353-L621), plus the [acyclic semantic fixtures](https://github.com/josephjohncox/Markovian/blob/main/test/AcyclicOpenSystems.hs#L810-L1247).
+
+## Finite alternating protocol laws
+
+For the represented finite fixtures, write `≈` for a successful bounded `observationallyEqual` check: exact equality of external prefix-closed play sets under labelled-equivalent endpoints. The tests check copycat identities and one representative associativity equation:
+
+\\[
+\operatorname{copycat}_A;\sigma\approx\sigma,
+\qquad
+\sigma;\operatorname{copycat}_B\approx\sigma,
+\\]
+
+\\[
+(\sigma;\tau);\upsilon\approx\sigma;(\tau;\upsilon).
+\\]
+
+They also check reflexivity, symmetry, transitivity, and congruence for successful representative compositions. Composition synchronizes literal middle move identities and hides them. It then validates prefix closure, exhaustive Opponent receptivity, and one total Player response again. Composition is partial: a hidden internal interaction can leave an invalid visible Player position, which is rejected. Work or result exhaustion returns no strategy. These fixtures do not prove closure, unrestricted associativity, or category laws.
+
+This equality is not contextual equivalence, an AJM quotient, payoff equivalence, or bisimulation. The fixtures do not establish a `Category` instance or universal associativity. The arena has no justification pointers or views, so the laws do not establish Hyland--Ong semantics, AJM semantics, innocence, bracketing, full abstraction, open-game best response, or equilibrium.
+
+**Executable evidence:** `test/GameCore.hs` and `scripts/check-game-core-boundary`.
+
+## Finite open-game laws and counterexamples
+
+For a represented context `(x,k)`, pure equilibrium is checked by
+
+\\[
+(\sigma,\sigma)\in B(x,k).
+\\]
+
+Sequential play and coplay, incumbent continuation transformation, and tensor's fixed-other-incumbent continuations follow Definitions 9 and 12 of Ghani and colleagues on the represented finite carriers. Concrete optic identity and associativity fixtures use labelled extensional equality. Open-game identity uses an explicit strategy-unit bijection; no `Category` instance or literal nested-product equality is claimed.
+
+Observational equality checks play, coplay, owner support, and every best-response membership under a supplied finite strategy bijection. A counterexample gives two games with identical play and coplay but different best-response relations; equality rejects them. Matching pennies has no pure equilibrium. A sequential entry-deterrence fixture retains a non-credible threat, showing that the enumerator is not subgame perfect.
+
+All two-player `2 x 2` payoff tables over the represented utility carrier `{0,1}` are compared with independent unilateral-deviation enumeration. This is exhaustive differential evidence for that finite carrier, not a universal equilibrium theorem.
+
+**Executable evidence:** `test/FiniteOpenGames.hs` and the two open-game golden reports.
 
 ## What the tests do and do not establish
 

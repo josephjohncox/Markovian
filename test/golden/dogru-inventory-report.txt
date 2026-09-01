@@ -1,0 +1,44 @@
+Doğru (2006), Chapters 2–4, two-retailer finite-horizon adaptation.
+primary source: Mustafa Kemal Doğru, Optimal Control of One-Warehouse Multi-Retailer Systems: An Assessment of the Balance Assumption, 2006, DOI 10.6100/IR601558
+source crosswalk: balance relaxation equations (2.3)–(2.5), printed page 24, and equations (2.6)–(2.7), printed page 26; balanced policy Theorem 2.9, page 30; physicalized LB heuristic section 3.3.4, page 53; physical timing and equations (4.5)–(4.7), pages 82–87; average-cost objective equation (4.11), page 92; Table 4.1, page 95; Table 4.3, page 98; scenario-2 discussion and base stocks, pages 112–114
+implemented fragment: N=2, l0=1, l1=l2=0, exact finite horizon
+scope boundary: finite-horizon adaptation, not reproduction of published average costs
+scope boundary: no average-cost convergence, unrestricted return, continuous demand, or generic multi-retailer optimality claim
+coordinate map: w=I0-IP1-IP2, hence source physical capacity is s1+s2<=w+o
+physical actions: q>=0, s1>=0, s2>=0, s1+s2<=w+o
+balance-relaxed actions: q>=0, signed s1 and s2, s1+s2<=w+o, repository lower bound si>=-returnCap
+event timing: observe state and known due order o; choose supplier order q and shipments s1,s2; receive the due supplier order and zero-lead retailer shipments; observe independent demands; incur end-period cost paired with its successor
+successor: w'=w+o-s1-s2, o'=q, i1'=i1+s1-d1, i2'=i2+s2-d2
+cost: h0*w'+(h0+h1)*max(i1',0)+p1*max(-i1',0)+(h0+h2)*max(i2',0)+p2*max(-i2',0)
+boundary behavior: complete reachable closure, no state clamping, no redirected successor
+terminal convention: no order when one period remains; no terminal salvage
+scenario 2 source label: cv_i=2 (label only, not the exact coefficient of variation of the displayed finite law)
+source coefficients: h0=9/10, h1=h2=1/10, p1=p2=4, y0*=y1*=y2*=3
+independent marginal demand: 0:39/50, 1:7/100, 2:7/100, 3:2/25
+exact marginal mean: 9/20
+exact marginal second moment: 107/100
+exact marginal variance: 347/400
+omitted demand mass: 0/1
+primary parameters: horizon=2, orderCap=4, returnCap=1, h0=9/10, h1=h2=1/10, p1=p2=4/1, stateBudget=100000, stateActionBudget=5000000, solverWorkBudget=200000000
+widened parameters: horizon=2, orderCap=5, returnCap=2, h0=9/10, h1=h2=1/10, p1=p2=4/1, stateBudget=100000, stateActionBudget=5000000, solverWorkBudget=200000000
+initial state: DogruState {dogruPeriodsRemaining = 2, dogruWarehouseStock = 0, dogruSupplierOrderDue = 0, dogruRetailer1Inventory = -1, dogruRetailer2Inventory = 1}
+bounded relaxed oracle C_R: 742797/100000
+bounded physical oracle C_P: 113477/10000
+relaxed balanced base-stock policy cost: 742797/100000
+physicalized LB heuristic C_H: 1157133/100000
+relaxation error C_P-C_R: 391973/100000
+policy regret C_H-C_P: 22363/100000
+total gap C_H-C_R: 12948/3125
+source-compatible bounded epsilon*=100*(C_P-C_R)/C_R: 39197300/742797%
+source-compatible bounded epsilon=100*(C_H-C_R)/C_R: 13811200/247599%
+separate policy regret percentage=100*(C_H-C_P)/C_P: 223630/113477%
+primary layouts: physical states=476, relaxed states=1355, physical state-actions=565, relaxed state-actions=7280
+primary checked solver work: 251040
+primary order cap selected: yes
+primary relaxed-return cap selected: yes
+widened exact costs: C_R=742797/100000, C_P=113477/10000, C_H=1157133/100000
+widened layouts: physical states=621, relaxed states=3105, physical state-actions=902, relaxed state-actions=42990
+widened order cap selected: no
+widened relaxed-return cap selected: no
+widened-bound diagnostic: stable and nonbinding
+diagnostic boundary: finite widening is evidence, not proof of an unbounded relaxed or physical optimum

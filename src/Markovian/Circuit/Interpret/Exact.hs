@@ -16,6 +16,7 @@ module Markovian.Circuit.Interpret.Exact (
     exactCircuitAlgebra,
     interpretExactCircuit,
     interpretDeterministicCircuit,
+    interpretDeterministicCircuitWithNodeLimit,
     interpretExactMatrix,
     runExactCircuit,
 ) where
@@ -30,6 +31,7 @@ import Markovian.Category.Matrix.Deterministic
 import Markovian.Category.Matrix.Stochastic
 import Markovian.Circuit
 import Markovian.Probability.Exact
+import Numeric.Natural (Natural)
 
 {- | Primitive denotations for the exact algebra. The separate fields make
 a dishonest deterministic tag impossible without forging a deterministic
@@ -121,6 +123,22 @@ interpretDeterministicCircuit ::
         (DeterministicMatrix NonNegativeRational source target)
 interpretDeterministicCircuit primitives circuit = do
     interpreted <- foldCircuit (exactCircuitAlgebra primitives) circuit
+    case interpreted of
+        ExactDeterministicArrow arrow -> Right arrow
+
+{- | Bounded deterministic interpretation. Raw syntax constructors are charged
+before descent; primitive callbacks retain ownership of their own resource
+use and termination.
+-}
+interpretDeterministicCircuitWithNodeLimit ::
+    Natural ->
+    ExactPrimitiveInterpreter primitive primitiveError ->
+    Circuit primitive 'Deterministic source target ->
+    Either
+        (BoundedCircuitFoldError (ExactCircuitInterpretationError primitiveError))
+        (DeterministicMatrix NonNegativeRational source target)
+interpretDeterministicCircuitWithNodeLimit limit primitives circuit = do
+    (_, interpreted) <- foldCircuitWithNodeLimit limit (exactCircuitAlgebra primitives) circuit
     case interpreted of
         ExactDeterministicArrow arrow -> Right arrow
 

@@ -1,0 +1,7 @@
+Finite pure contextual equilibrium report
+represented profiles: 4
+relation checks: 4
+profile limit: 1000000
+relation limit: 1000000
+completed: True
+equilibria: []

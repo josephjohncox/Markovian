@@ -27,6 +27,7 @@
 - [Control and learning taxonomy](./control-learning-taxonomy.md)
 - [Exact evaluation and control](./exact-evaluation.md)
 - [Bounded serial-inventory benchmark](./inventory-control.md)
+- [Fixed-batch execution and newsvendor evidence](./fixed-batch-inventory.md)
 - [Sampling and tabular learning](./sampling-learning.md)
 - [POMDP filtering and planning](./pomdp.md)
 
@@ -37,6 +38,8 @@
 - [Bayesian inference](./bayesian.md)
 - [Stochastic circuits and deterministic compilation](./circuits.md)
 - [Open systems and acyclic networks](./open-systems.md)
+- [Finite alternating interaction protocols](./finite-interaction-protocols.md)
+- [Finite open games and pure equilibria](./finite-open-games.md)
 - [Derived categorical and mathematical insights](./categorical-insights.md)
 
 # Execution and assurance

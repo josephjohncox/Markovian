@@ -1,0 +1,35 @@
+Clark–Scarf (1960), Section III, finite lattice specialization.
+primary source: Andrew J. Clark and Herbert Scarf, Management Science 6(4), 1960, 475–490, DOI 10.1287/mnsc.6.4.475
+inspected scan SHA-256: b64d82098b47dffa7cc4b87a4bbc6c833bb90295ccbede0a1897c8af44956239
+source crosswalk: timing and state pages 481–482; joint recursion equation (14) page 482; isolated recursion equation (15) page 482; decomposition equations (20), (21), and (26) pages 483–484
+source assumptions represented: beginning-of-period action; independent period demand; complete backlog; two-period downstream and one-period upstream natural lead times; echelon-stock natural costs; linear internal transport; optional highest-echelon setup cost
+repository deductions: integer lattice; finite rational demand sum; external-order cap; isolated-target cap; finite reachable closure; explicit state, state-action, and solver-work budgets
+scope boundary: not a published numeric reproduction; the paper supplies no numeric oracle
+scope boundary: no continuous-demand, average-cost, branching, generic multi-echelon, or unbounded-optimality claim
+boundary behavior: no state clamping and no redirected successor
+event timing: observe (x1,w1,x2); choose external order z and dispatch target y; charge action and beginning-stock natural costs; observe one demand; pair its realized shortage cost with successor (x1+w1-D,y-x1-w1,x2+z-D)
+state invariant: x2-x1-w1 >= 0
+equation (1) finite form: h*max(x,0)+p*max(D-x,0)
+equation (14) finite form: minimize c(z)+c1*(y-x1-w1)+L1(x1)+L2(x2)+alpha*E[C(n-1,x1+w1-D,y-x1-w1,x2+z-D)]
+primary parameters: horizon=3, discount=1/1, orderCap=2, isolatedTargetCap=4, K=0/1, c=0/1, c1=0/1, h1=1/1, p1=4/1, h2=1/1, p2=0/1, stateBudget=100000, stateActionBudget=3000000, solverWorkBudget=100000000000
+widened parameters: horizon=3, discount=1/1, orderCap=3, isolatedTargetCap=5, K=0/1, c=0/1, c1=0/1, h1=1/1, p1=4/1, h2=1/1, p2=0/1, stateBudget=100000, stateActionBudget=3000000, solverWorkBudget=100000000000
+initial state: ClarkScarfState {clarkScarfPeriodsRemaining = 3, clarkScarfDownstreamNetStock = 0, clarkScarfDownstreamInTransit = 0, clarkScarfEchelonTwoStock = 1}
+conditioned demand: 0:1/2, 1:1/2
+retained one-period mass: 3/4
+omitted one-period mass: 1/4
+horizon exceedance mass (not a value-error bound): 37/64
+three exact paths: generic ExactMDP backward induction; direct equation (14); equations (15)/(20)/(21)/(26) decomposition
+primary initial exact cost: 21/2
+decomposed policy cost in joint model: 21/2
+decomposed policy exact regret: 0/1
+maximum exact path differential: 0/1
+primary layout counts: states=264, state-actions=654
+primary checked work bound: 6101879472
+primary order cap selected: no
+primary isolated-target cap selected: no
+widened initial exact cost: 21/2
+widened layout counts: states=507, state-actions=1812
+widened order cap selected: no
+widened isolated-target cap selected: no
+widened-bound diagnostic: stable and nonbinding
+diagnostic boundary: widening is finite evidence, not an unbounded proof

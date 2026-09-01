@@ -4,11 +4,8 @@ Action masks preserve caller order. They are nonempty and duplicate-free, so
 that order can define deterministic tie-breaking without a global action order.
 -}
 module Markovian.Backend.Neural.Transition (
+    module Markovian.Backend.Neural.Mask,
     TransitionError (..),
-    ActionMask,
-    mkActionMask,
-    actionMaskIndices,
-    actionMaskContains,
     SuccessorSnapshot,
     foldSuccessorSnapshot,
     NeuralTransition,
@@ -21,6 +18,7 @@ module Markovian.Backend.Neural.Transition (
     transitionSuccessor,
 ) where
 
+import Markovian.Backend.Neural.Mask
 import Markovian.Backend.Neural.Numeric (
     NeuralNumericError,
     validateFinite,
@@ -29,38 +27,10 @@ import Markovian.Backend.Neural.Numeric (
 
 -- | Snapshot validation failures.
 data TransitionError
-    = EmptyActionMask
-    | NegativeActionIndex !Int !Int
-    | DuplicateActionIndex !Int
-    | EmptyFeatureVector !String
+    = EmptyFeatureVector !String
     | SelectedActionNotInMask !Int
     | TransitionNumericFailure !NeuralNumericError
     deriving (Eq, Show)
-
--- | A nonempty, duplicate-free ordered set of nonnegative output indices.
-newtype ActionMask = ActionMask [Int]
-    deriving (Eq, Show)
-
--- | Construct an ordered action mask.
-mkActionMask :: [Int] -> Either TransitionError ActionMask
-mkActionMask [] = Left EmptyActionMask
-mkActionMask indices = do
-    validateIndices 0 [] indices
-    Right (ActionMask indices)
-  where
-    validateIndices _ _ [] = Right ()
-    validateIndices position seen (index : remaining)
-        | index < 0 = Left (NegativeActionIndex position index)
-        | index `elem` seen = Left (DuplicateActionIndex index)
-        | otherwise = validateIndices (position + 1) (index : seen) remaining
-
--- | Indices in caller-defined mask order.
-actionMaskIndices :: ActionMask -> [Int]
-actionMaskIndices (ActionMask indices) = indices
-
--- | Test membership in a mask.
-actionMaskContains :: Int -> ActionMask -> Bool
-actionMaskContains index = elem index . actionMaskIndices
 
 -- | Terminal payoff or a continuing successor observation and action mask.
 data SuccessorSnapshot

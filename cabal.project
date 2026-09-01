@@ -2,6 +2,7 @@ packages: .
 optional-packages:
   backends/markovian-gpu
   backends/markovian-neural
+  backends/markovian-neural-bridge
 write-ghc-environment-files: never
 
 package Markovian

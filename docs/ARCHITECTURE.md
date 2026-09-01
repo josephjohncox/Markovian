@@ -31,12 +31,13 @@ The root package currently contains:
 - Structured action-labeled traces with terminal and horizon stop reasons.
 - Exact bounded trace enumeration for expectation cross-checks.
 - Duplicate-free finite state and action indexes with policy-free exhaustive exact MDP compilation.
+- Explicit labelled-support and represented-layout comparison for global action indexes.
 - Separate compiled policy closure that produces a compiled MRP.
 - Exact finite-horizon dynamic programming over compiled policy models.
 - Exact discounted Bellman policy evaluation with sup-norm stopping bounds.
 - Exact discounted value iteration with residual, value-error, and greedy-policy bounds.
 - Exact deterministic policy iteration with signed rational linear solves.
-- A synthetic bounded serial-inventory fixture with exact oracle and base-stock comparison, conditional-demand mass reporting, widened-bound diagnostics, and deterministic timing output.
+- A synthetic bounded serial-inventory fixture, a source-crosswalked Clark--Scarf (1960) finite specialization, a source-crosswalked bounded Doğru physical-versus-balance-relaxed comparison, and a two-stage fixed-batch finite execution with separate stationary newsvendor evidence. Each has explicit finite layouts, budgets, deterministic reports, and separate timing output.
 - Shared validated Q-tables, V-tables, rates, schedules, observations, and epsilon-greedy behavior.
 - Pure TD(0), SARSA, Expected SARSA, and Q-learning updates.
 - Bounded seeded and resumable episodic runners for all four tabular methods.
@@ -47,6 +48,7 @@ The root package currently contains:
 - Opaque finite semiring matrices with semantic reindexing, tensor, biproduct, dagger, compact structure, and trace.
 - Exact nonnegative stochastic matrices, proof-carrying deterministic matrices, and exact convex mixtures.
 - Checked exact rational finite payoffs, contravariant payoff pullback, and exact state-payoff pairing.
+- Finite alternating protocols plus a separate bounded owner-refined finite open-game fragment with exact pure contextual equilibrium enumeration.
 - Dense row-major rational CPU lowering with exact denotational differential tests.
 
 The current `FiniteDist` constructor preserves labeled duplicate entries. It removes input zero weights and positive weights whose normalized `Double` mass rounds to zero. Floating constructors canonicalize negative zero. Optional CUDA execution and neural numerical updates live in separate backend packages.
@@ -190,7 +192,13 @@ Structural nodes remain visible in the syntax: identity, composition, tensor, sy
 
 `copyNaturalDeterministic` implements the copy-naturality rewrite only for deterministic syntax. Compile-fail tests reject its use on stochastic syntax and reject purity strengthening. A stochastic primitive remains stochastic even if one interpreter currently returns a Dirac kernel.
 
-`CircuitAlgebra` lists unchecked fold operations. It is not evidence of categorical or convex laws. `foldCircuit` derives sharing as composition followed by copy. It derives fanout as copy followed by tensor and composition, so interpreters cannot assign independent meanings to those nodes. The exact algebra requires deterministic primitive interpretations to return `DeterministicMatrix NonNegativeRational` and stochastic primitive interpretations to return `StochasticMatrix NonNegativeRational`. It checks primitive endpoint layouts and evaluates convex choice through exact convex enrichment. Selected fixtures exact-law-test the stated operation-preservation and coherence equations for this algebra only; they do not establish a universal theorem.
+`CircuitAlgebra` lists unchecked fold operations. It is not evidence of categorical or convex laws. `foldCircuit` derives sharing as composition followed by copy. It derives fanout as copy followed by tensor and composition, so interpreters cannot assign independent meanings to those nodes. `foldCircuitWithNodeLimit` charges each raw constructor before descent, traverses left to right, and separates node exhaustion from algebra failure. It returns no partial result. Primitive callbacks still own their internal termination and resource use.
+
+The exact algebra requires deterministic primitive interpretations to return `DeterministicMatrix NonNegativeRational` and stochastic primitive interpretations to return `StochasticMatrix NonNegativeRational`. It checks primitive endpoint layouts and evaluates convex choice through exact convex enrichment. Selected fixtures exact-law-test the stated operation-preservation and coherence equations for this algebra only; they do not establish a universal theorem.
+
+`Markovian.Circuit.Interpret.Cost` uses caller-owned primitive and table charges plus framework-owned structural counts. All counts and limits use `Natural`. Convex choice charges every represented branch, including a zero-coefficient branch. Owner totals retain first-occurrence order. The reported `maximumLiveLayoutCardinality` is only the maximum represented finite-object cardinality in the elaborated fold; it is not measured heap liveness, the acyclic interpreter's live frontier, runtime, or asymptotic complexity. Maximum represented matrix cells is separately bounded.
+
+`Markovian.Circuit.Rewrite.Deterministic` constructs opaque candidates for identity removal, composition reassociation, and deterministic fanout-to-share deduplication. `Markovian.Circuit.Rewrite.Deterministic.Exact` issues an opaque witness only after bounded analysis, exact outer layout checks, exact one-hot matrix equivalence, and literal row-major matrix-layout equality. Cost comparison follows semantic checking and can report zero or negative improvement. Stochastic syntax cannot construct the deduplication candidate, even if one interpreter gives it a Dirac denotation.
 
 `lowerExactCircuit` converts the same exact denotation to the existing source-by-target row-major `DenseExactKernel`. Dense compatibility storage requires nonempty endpoints; the raw circuit AST and matrix layers still permit empty finite boundaries. Differential tests compare circuit sharing and fanout with both `denoteExactIR` and `lowerExactIR`.
 
@@ -539,6 +547,33 @@ The oracle uses exact finite-horizon backward induction over the decreasing `per
 
 Undiscounted cyclic systems need separate properness conditions. The implementation must reject or isolate cases without a stated convergence contract.
 
+### 7.2 Clark--Scarf 1960 finite specialization
+
+The named inventory implementation is separate from the synthetic fixture. It follows Clark and Scarf (1960), Section III, pages 481--484. Its beginning-of-period state is `(t,x1,w1,x2)`, where `w1` is downstream stock in transit and `x2` is echelon-2 stock. Construction enforces `x2-x1-w1 >= 0`. An action selects an external order `z` and a downstream post-dispatch target `y` with `x1+w1 <= y <= x2`.
+
+For one demand draw `D`, the successor is `(t-1,x1+w1-D,y-x1-w1,x2+z-D)`. The outcome stores this successor with the realized equation-(1) holding and shortage cost for the same `D`. Thus reward and successor correlation is not reconstructed from independent marginals. External orders augment echelon 2 next period; the new downstream dispatch remains in transit while old `w1` reaches downstream.
+
+The implementation replaces source integrals with exact finite rational sums. The integer lattice, conditioned finite demand, retained-mass diagnostic, order and isolated-target caps, and all computation budgets are repository assumptions. Reachability is complete within those bounds. There is no state clamping or successor redirection.
+
+The oracle compares, at every represented reachable state, generic exact-MDP backward induction, a direct equation-(14) calculation, and the equations-(15)/(20)/(21)/(26) decomposition. It evaluates the decomposed policy in the joint model and requires literal rational equality and zero regret. A checked widened-cap comparison requires strict widening and reports whether the widened policy selects either boundary. This remains finite diagnostic evidence, not an unbounded proof.
+
+### 7.3 Fixed-batch two-stage execution and stationary evidence
+
+`Markovian.Benchmark.Inventory.Serial.FixedBatch.Exact` specializes the source serial system to `L1=0`, positive `L2`, and `Q2=n*Q1`. A validated state is `(t,x1,x2,pipeline)`. The pipeline has exactly `L2` batch-congruent entries and its head is due after the current ordering decision. A physical action releases a `Q1` multiple no larger than `x2+a0` and places an external `Q2` multiple under an explicit batch cap.
+
+One demand draw determines both the successor and its realized exact cost:
+
+```text
+x2' = x2 + a0 - q1
+x1' = x1 + q1 - D
+pipeline' = tail pipeline ++ [q2]
+cost = h2*x2' + (h1+h2)*max(x1',0) + p*max(-x1',0)
+```
+
+Reachability is complete for the bounded action and conditioned-demand system. State, state-action, solver-work, reorder-grid, lead-time, demand-outcome, and convolution limits are explicit. No successor is clamped or redirected. Terminal pipeline has no salvage.
+
+`Markovian.Benchmark.Inventory.Serial.FixedBatch.Newsvendor.Exact` is separate. It implements finite exact sums for the stationary subsystem shortfalls, equation-(9) costs, equation-(13)/(14) forward differences, and Theorem 1's weak and strict discrete inequalities. Its search domain has separate finite `R1` and `R2` layouts with declared Cartesian-product semantics. The solver memoizes each required shortfall law, charges every generated law term once plus one lead-demand convolution, and rejects the complete charge before construction. A solution retains its parameter and domain provenance. The report checks that provenance against its associated execution fixture and renders a separate checked finite/stationary selection counterexample. This does not transfer Chen's infinite-horizon optimality result to the finite-horizon oracle or implement the continuous equality in Theorem 2.
+
 ## 8. Finite and continuous models
 
 ### 8.1 Finite models
@@ -627,10 +662,26 @@ Markovian.Bayesian.Exact exact priors, support, conditioning, and inversion
 Markovian.Bayesian.Channel.Exact checked prior-flow channel composition
 Markovian.Benchmark.Inventory.Serial.Exact bounded synthetic serial model, exact oracle, and base-stock comparison
 Markovian.Benchmark.Inventory.Report deterministic conditional-model and widened-bound report
+Markovian.Benchmark.Inventory.ClarkScarf1960.Finite.Exact exact finite Section III state, timing, transitions, and layouts
+Markovian.Benchmark.Inventory.ClarkScarf1960.Oracle.Exact equations (14), (15), (20), (21), and (26) differential oracle
+Markovian.Benchmark.Inventory.ClarkScarf1960.Report deterministic cited finite-bound report
+Markovian.Benchmark.Inventory.Distribution.Dogru.Exact bounded physical and signed-relaxed Doğru adaptation
+Markovian.Benchmark.Inventory.Distribution.Dogru.Report deterministic cited physical-versus-relaxed report
+Markovian.Benchmark.Inventory.Serial.FixedBatch.Exact bounded two-stage physical execution and finite-horizon oracle
+Markovian.Benchmark.Inventory.Serial.FixedBatch.Newsvendor.Exact separate exact stationary subsystem evidence
+Markovian.Benchmark.Inventory.Serial.FixedBatch.Report deterministic execution, widening, truncation, and stationary report
 Markovian.Circuit raw purity-indexed stochastic-circuit AST and unchecked fold algebra
 Markovian.Circuit.Compile.Deterministic first-order quoted-table compilation
-Markovian.Circuit.Interpret.Exact exact matrix and kernel algebra
+Markovian.Circuit.Interpret.Exact exact matrix and bounded deterministic algebra
+Markovian.Circuit.Interpret.Cost bounded caller-owned static accounting
 Markovian.Circuit.Interpret.Approximate floating and backend approximation boundary
+Markovian.Circuit.Rewrite.Deterministic opaque deterministic rewrite candidates
+Markovian.Circuit.Rewrite.Deterministic.Exact bounded exact rewrite witnesses and post-check costs
+Markovian.Game.Arena bounded finite alternating arenas and legal-history replay
+Markovian.Game.Strategy bounded receptive strategies and partial hidden-middle composition
+Markovian.Game.Optic.Finite bounded finite functions, bijections, and concrete optics
+Markovian.Game.Open.Finite owner-refined finite open games and checked structural equality
+Markovian.Game.Open.Exact exact rational decisions, contexts, and equilibrium reports
 Markovian.Open.Interface finite typed interfaces and vertical maps
 Markovian.Open.Hypergraph finite typed hypergraphs and structure maps
 Markovian.Open.Pushout explicit finite typed quotient pushouts
@@ -646,7 +697,7 @@ Markovian.Category.Matrix.Stochastic normalized exact nonnegative matrices
 Markovian.Category.Matrix.Deterministic proof-carrying one-hot matrices
 Markovian.Category.Convex.Exact exact convex families and mixtures
 Markovian.Category.Payoff.Exact checked signed rational payoffs, pullback, and state pairing
-Markovian.Compile.Exact     policy-free exact MDP compilation and compiled policy closure
+Markovian.Compile.Exact     policy-free exact MDP compilation, action layouts, and compiled policy closure
 Markovian.Probability       opaque floating probability and distribution types
 Markovian.Probability.Exact exact rational probability and distribution types
 Markovian.Reward            floating reward and terminal-payoff values
@@ -683,21 +734,22 @@ Markovian.Learning.QLearning pure greedy-target action-value update
 Markovian.Learning.QLearning.Episodic bounded epsilon-greedy behavior runner
 ```
 
-Internal representations use `Markovian.Internal.*`. The package does not expose those modules.
+The package keeps `Markovian.Category.Finite.Set.Internal` and `Markovian.Category.Matrix.Stochastic.Internal` as non-exposed implementation modules.
 
 Learning modules depend on model and interpreter modules. Model modules do not depend on learning modules. Applications contain examples only. Tests contain executable contracts.
 
 ### 11.2 Package map
 
-The implemented project has three packages:
+The implemented project has four packages:
 
 ```text
 Markovian                  semantic core, exact interpreters, tabular learning, and exact CPU lowering
 markovian-gpu              optional CUDA driver backend
 markovian-neural           framework-independent checked neural reference updates
+markovian-neural-bridge    exact action-layout and availability adapter for neural heads
 ```
 
-The root package depends only on `base`. The released neural library also depends only on `base`; a separately flagged integration test depends on the root `Markovian` package for exact-versus-neural differential fixtures. Neither library imports a tensor, autodiff, device, or global-randomness framework.
+The root package and released neural library each depend only on `base`. The bridge imports both libraries; neither library imports the bridge or the other library. A separately flagged neural integration test also compares the root and neural packages. No library imports a tensor, autodiff, device, or global-randomness framework.
 
 ### 11.3 Public API policy
 
@@ -760,13 +812,37 @@ Every neural backend must define:
 - Device precision and reproducibility when a device exists.
 - Failure behavior for NaN, infinity, or invalid support.
 
-The `markovian-neural` package uses checked `Double` arithmetic behind a package-local approximation boundary compatible with the root contract. It implements an opaque finite scalar, stable softmax, analytic categorical gradients, approximate entropy, cross entropy, KL divergence, mutual information, entropy and cross-entropy logit gradients, row-major dense networks, manual VJPs, a small typed parametric reverse interpreter, and pure SGD. Dense layers use `tanh` hidden activations and a linear output head.
+The `markovian-neural` package uses checked `Double` arithmetic behind a package-local approximation boundary compatible with the root contract. It implements an opaque finite scalar, stable softmax, analytic categorical gradients, approximate entropy, cross entropy, KL divergence, mutual information, entropy and cross-entropy logit gradients, row-major dense networks, manual VJPs, typed parametric reverse circuits, finite owned reverse programs, and pure SGD. Dense layers use `tanh` hidden activations and a linear output head.
 
-`Markovian.Backend.Neural.Reverse` keeps parameter, input, output, scalar, and cotangent types distinct. Sequential and parallel composition use explicit nested pair products for independent parameters. Input and parameter diagonals use addition from a `CotangentSpace` witness that also declares zero, scalar multiplication, and exact or documented approximate equality. A primitive returns its output and captured pullback together. Its pullback must preserve zero and addition and be homogeneous over that scalar structure. The interpreter computes no update and has no tape, tensor, device, stochastic-gradient, or automatic-differentiation semantics. Exact `Rational` fixtures check module and VJP laws; nonlinear `Double` composition and diagonal fixtures use the tolerance fixed by D-052.
+`Markovian.Backend.Neural.Reverse` keeps parameter, input, output, scalar, and cotangent types distinct. Sequential and parallel composition use explicit nested pair products for independent parameters. Input and parameter diagonals use addition from a `CotangentSpace` witness. A primitive returns its output and captured pullback together. Its pullback must preserve zero and addition and be homogeneous over that scalar structure.
 
-Information quantities remain outside the exact rational core because logarithms of rational probabilities are generally irrational. Reverse derivatives remain distinct from raw matrix dagger, categorical adjunctions, prior-indexed Bayesian inversion, and exact payoff pullback. State pushforward and exact finite payoff pullback are implemented as separate operations. Game arenas, strategies, best responses, and equilibria are not part of the current semantics. A general reverse-circuit syntax remains blocked on an owned primitive set, primal storage policy, backend arithmetic, and equality relation. A finite interaction protocol remains blocked until it defines move ownership, legal and terminal histories, strategy composition, and observational equality.
+`Markovian.Backend.Neural.Reverse.Program` is a finite acyclic GADT over a caller-owned primitive signature. It supports only primitive, identity, composition, tensor, shared-input pairing, and shared-parameter tensor. Primitive definitions declare finite primal spaces, finite cotangent modules, exact or approximate equality, structural parameter ownership, and one stored-pullback or recomputation policy. Preparation checks program node/depth, primitive, unique-owner, extent, and separate layout/ownership structural node/depth limits before producing an opaque prepared tree. Structural nodes are charged before descent. Recomputation is a distinct typed owner-supplied operation, not a second call to the forward callback. Opaque typed tapes are self-contained. Reverse diagonals validate and add every branch contribution. Exact `Rational` fixtures check representative composition, tensor, and diagonal laws. One heterogeneous `Double` fixture checks every input and parameter coordinate under both policies with D-052's tolerances.
 
-REINFORCE and actor-critic use masked linear categorical policies and linear scalar value functions. Unavailable outputs receive zero score gradient. Their actor, baseline, and critic gradients use immutable pre-update snapshots. REINFORCE includes the outer discount power for the discounted start-return objective. Truncated episodes require an explicit boundary bootstrap.
+Information quantities remain outside the exact rational core because logarithms of rational probabilities are generally irrational. Reverse programs interpret supplied VJPs; they do not differentiate arbitrary Haskell and provide no optimizer, tensor runtime, device, stochastic-gradient, recursion, cycle, checkpoint scheduler, or universal autodiff semantics. Reverse derivatives remain distinct from raw matrix dagger, categorical adjunctions, prior-indexed Bayesian inversion, and exact payoff pullback. State pushforward and exact finite payoff pullback are implemented as separate operations.
+
+## 14. Finite alternating interaction protocols
+
+`Markovian.Game.Arena` owns finite position and move layouts, move edges, and `Opponent` or `Player` ownership. Its opaque bounded constructor establishes reachability, one owner at each nonterminal position, an Opponent-owned initial turn, alternation, and color-DFS acyclicity. `LegalHistory` is opaque bounded replay evidence. Labelled arena equality and represented-layout equality are separate bounded checked operations.
+
+`Markovian.Game.Strategy` reverses domain ownership and retains codomain ownership. A checked strategy is a bounded finite prefix set that is exhaustive at Opponent turns and total and single-valued at Player turns. Copycat mirrors literal move identities. Composition synchronizes a common middle identity, hides the middle, canonicalizes visible traces, and revalidates the result. One operation-wide conservative work account includes synchronization, deduplication, replay, comparisons, extensions, membership, and final validation. Composition is partial and can reject a hidden internal deadlock. Exhaustion returns no strategy. Reports are deterministic structural evidence without timing fields.
+
+Observational equality means literal equality of external finite prefix sets under labelled-equivalent endpoints. It is not contextual equivalence or an extensional game-semantic quotient. The layer has no chance, payoff, best response, equilibrium, justification pointers, views, innocence, bracketing, cycle, recursion, or full-abstraction claim.
+
+### 14.1 Owner-refined finite open games
+
+`Markovian.Game.Optic.Finite` stores bounded total finite functions, explicit bijections, and concrete pairs `P : X -> Y` and `C : X x R -> S`. It does not implement arbitrary residual or coend optics. `Markovian.Game.Open.Finite` stores finite strategy profiles with structural owner trees, total play and coplay tables, and context-indexed best-response membership. It does not import arena histories.
+
+Sequential composition uses the incumbent downstream strategy in the continuation passed upstream. Tensor composition holds the other incumbent play fixed. Both reject owner overlap because coordinated deviations by one owner across several sites are not implemented. Exact decisions in `Markovian.Game.Open.Exact` enumerate represented functions and compare `Rational` continuation values literally. Ties retain all maximizers.
+
+Every table, product, function-space, equilibrium, and equality traversal has an explicit `Natural` preflight bound. Pure contextual equilibria satisfy `(sigma,sigma) in B(x,k)`. Strategy schemas retain a structural ownership tree. Observational equality accepts only structural leaf-preserving witnesses, canonicalizes continuations, and strictly checks play, coplay, and best-response membership over every represented finite continuation. Performed counters describe forced checks. Layout equality remains separate. No `Category` instance is exposed.
+
+This fragment has no equilibrium-existence result, mixed or correlated equilibrium, chance, repeated or stochastic game, incomplete information, continuous strategy space, subgame-perfect solver, disintegration, or MDP-agent integration. Matching pennies has no pure equilibrium, and the sequential fixture records a non-credible-threat counterexample.
+
+`Markovian.Backend.Neural.Mask` stores a positive complete output width and nonempty ordered active indices. Boolean flags encode membership in global output order. Checked gathering occurs before softmax or argmax. The package does not multiply logits or Q-values by numeric masks and does not add negative infinity. Checked scattering uses positive `0.0` at unavailable positions.
+
+`markovian-neural-bridge` owns exact-to-neural support compilation. It binds a root `FiniteActionIndex` to the actual width of a linear policy or dense head, rejects reordered global layouts, preserves each continuing state's exact availability and tie order, and returns a distinct terminal branch. Complete compilation preflights explicit state, cumulative action-entry, and conservative traversal-work limits and returns no partial collection after exhaustion. It converts action indexes to machine indexes only after range checks. Nominal roles protect action IDs, finite indexes, output layouts, and support masks from representational relabelling. The bridge performs no rational-to-`Double` approximation and supplies no feature map. The root and neural packages remain independent; only this bridge depends on both.
+
+REINFORCE and actor-critic use masked linear categorical policies and linear scalar value functions. Unavailable parameter rows receive canonical positive-zero score derivatives. Their actor, baseline, and critic gradients use immutable pre-update snapshots. REINFORCE includes the outer discount power for the discounted start-return objective. Truncated episodes require an explicit boundary bootstrap.
 
 Replay is a positive-capacity FIFO buffer with monotonic IDs and explicit ordered ID selection. It has no random sampler. Target networks support hard, periodic hard, and Polyak synchronization. Failed updates do not advance target schedules.
 
@@ -774,7 +850,7 @@ DQN supports standard and Double-DQN targets over nonempty ordered action masks.
 
 The package has no tensor framework, autodiff, device execution, environment runner, or complete trainer. Its finite-difference and deterministic fixtures do not support convergence, calibration, scalability, or production claims.
 
-## 14. Categorical compiler IR
+## 15. Categorical compiler IR
 
 D-035 supersedes the compiler deferral in D-009 and the unaccepted proposal in D-018 for the exact finite fragment.
 
@@ -796,7 +872,7 @@ The dense CPU backend lowers exact denotation into a source-by-target rational m
 
 Compiler tests must check structure preservation and observational equivalence. Optimizer tests must include random-sharing counterexamples.
 
-## 15. Guidance for advanced abstractions
+## 16. Guidance for advanced abstractions
 
 ### 15.1 Recursion schemes
 
@@ -855,7 +931,7 @@ A matrix backend can use eigendecomposition only after it checks the required ma
 
 Ready when: tests compare with a direct or iterative reference solver. A benchmark must show a benefit on representative models.
 
-## 16. External package recommendations
+## 17. External package recommendations
 
 These are candidates, not current dependencies. This list does not change the Cabal dependencies.
 
@@ -872,7 +948,7 @@ Prefer `base` and `Data.List.NonEmpty` for the first value types. Use `container
 
 The current sampler uses a package-owned SplitMix64 stream implemented with `base`. Add `random` only when interoperability supplies an owned use case that the explicit `Generator` API cannot meet.
 
-## 17. Testing strategy
+## 18. Testing strategy
 
 ### 17.1 Test layers
 
@@ -919,7 +995,7 @@ The exact sample has one transition reward `2`, discount `1/2`, and terminal pay
 
 The randomized exact policy fixture chooses rewards `2` and `8` with masses `1/4` and `3/4`. Its conditional expected reward is `13/2`.
 
-## 18. CI and release gates
+## 19. CI and release gates
 
 The pinned local environment and hosted CI run these commands. Every completion claim records output from the current revision.
 
@@ -938,11 +1014,23 @@ hlint src
 fourmolu --mode check $(git ls-files '*.hs')
 cabal-fmt --check Markovian.cabal \
   backends/markovian-gpu/markovian-gpu.cabal \
-  backends/markovian-neural/markovian-neural.cabal
+  backends/markovian-neural/markovian-neural.cabal \
+  backends/markovian-neural-bridge/markovian-neural-bridge.cabal
 cabal build all --prefer-oldest --project-file=cabal.project.ci
 cabal test all --prefer-oldest --project-file=cabal.project.ci
 cabal haddock all --project-file=cabal.project.ci \
   --enable-documentation --haddock-all --haddock-hyperlink-source
+scripts/check-refinement-roles
+scripts/check-circuit-purity
+scripts/check-acyclic-proof-boundary
+scripts/check-acyclic-purity
+scripts/check-game-core-boundary
+bash backends/markovian-neural/scripts/check-reverse-program-boundary
+bash backends/markovian-neural-bridge/scripts/check-exact-support-boundary
+cabal bench inventory-control-bench --project-file=cabal.project.ci
+cabal bench clark-scarf-1960-bench --project-file=cabal.project.ci
+cabal bench dogru-inventory-bench --project-file=cabal.project.ci
+cabal bench fixed-batch-rnq-bench --project-file=cabal.project.ci
 scripts/check-book
 ```
 
@@ -954,7 +1042,7 @@ Only the deployment job has Pages and OIDC write permissions. All workflow actio
 
 The Pages workflow does not replace compiler, lower-bound, source, Haddock, or source-distribution evidence. A completion claim records those CI results separately when the change requires them.
 
-The source-distribution job runs `cabal check`, creates an archive, unpacks it, then builds and tests the unpacked tree.
+The source-distribution job creates all four package archives, unpacks them, and runs package checks, builds, tests, applicable compile-fail boundaries, and all four inventory semantic-report benchmarks from the unpacked sources. Product and traversal limits must reject before returning partial evidence.
 
 The compiler matrix tests GHC 9.4.8 and 9.8.4. Add more compilers only after their package bounds and full checks pass.
 
@@ -964,7 +1052,7 @@ A semantic change also requires a recorded technical decision, updated invariant
 
 A public API or release change also requires README updates and a factual changelog entry.
 
-## 19. Architecture compliance
+## 20. Architecture compliance
 
 A review fails when source, package metadata, tests, and durable documents disagree.
 

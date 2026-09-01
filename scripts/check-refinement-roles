@@ -5,7 +5,12 @@ log_file="$(mktemp)"
 kind_log_file="$(mktemp)"
 trap 'rm -f "${log_file}" "${kind_log_file}"' EXIT
 
-if cabal exec --project-file=cabal.project.ci -- ghc \
+project_args=()
+if [[ -f cabal.project && -f cabal.project.ci ]]; then
+  project_args+=(--project-file=cabal.project.ci)
+fi
+
+if cabal exec "${project_args[@]}" -- ghc \
   -fno-code \
   -fmax-errors=100 \
   -package Markovian \
@@ -49,7 +54,7 @@ if ! grep -F "Couldn't match type" "${log_file}" >/dev/null; then
   exit 1
 fi
 
-if cabal exec --project-file=cabal.project.ci -- ghc \
+if cabal exec "${project_args[@]}" -- ghc \
   -fno-code \
   -package Markovian \
   test/compile-fail/PushoutKind.hs >"${kind_log_file}" 2>&1; then

@@ -196,7 +196,8 @@ hlint src
 fourmolu --mode check $(git ls-files '*.hs')
 cabal-fmt --check Markovian.cabal \
   backends/markovian-gpu/markovian-gpu.cabal \
-  backends/markovian-neural/markovian-neural.cabal
+  backends/markovian-neural/markovian-neural.cabal \
+  backends/markovian-neural-bridge/markovian-neural-bridge.cabal
 ```
 
 ### 4.4 Dependency or bounds changes
@@ -226,11 +227,13 @@ Compile all README examples. Review the exposed module list and package metadata
 Run all prior checks. Then run:
 
 ```sh
-cabal check
-cabal sdist --output-directory=dist-sdist
+for dir in . backends/markovian-gpu backends/markovian-neural backends/markovian-neural-bridge; do
+  (cd "$dir" && cabal check)
+done
+cabal sdist all --output-directory=dist-sdist
 ```
 
-Unpack the generated archive in a clean temporary directory. Build and test that unpacked tree.
+Require exactly four archives. Unpack them in clean temporary directories. Build and test every package, run each applicable compile-fail boundary, and run all four inventory semantic-report benchmarks from the unpacked root archive.
 
 Do not add a release date, tag, or success claim before this evidence exists.
 
@@ -392,7 +395,7 @@ D-038 work follows the S1 through S6 roadmap in `TODO.md`.
 
 ## 11. New-feature evidence workflow
 
-P0 through P6, the greenfield cleanup, exact semantic-tower stages S1 through S6, and S7.1 information, categorical-learning, polarity, and game-semantic foundations are `DONE`. The bounded S7.3 push-pull slice, S7.2 synthetic inventory benchmark, and S7.4 bounded reverse interpreter are implemented under D-050 through D-052. Focused root modules cover exact control, exact push-pull, inventory, and tabular learning. Focused neural modules cover parametric reverse laws, finite differences, categorical information, policy gradients, replay, target networks, and DQN. The next implementation task is S7.3 circuit cost interpretation and proof-carrying rewrites. Arbitrary cyclic graph semantics, feedback, continuous-time black-boxing, unrestricted MDP black-boxing, general autodiff, tensor frameworks, and device execution remain deferred.
+P0 through P6, the greenfield cleanup, exact semantic-tower stages S1 through S6, and source for implementation slices S7.1 through S7.6 are present in the shared tree. The repository now has four packages: the root, GPU, neural, and neural-bridge packages. D-053 is accepted; D-054 through D-060 remain proposed and blocked at integration acceptance until the complete final gate passes. D-057 keeps bounded two-stage fixed-batch execution separate from stationary newsvendor evidence on explicit Cartesian `R1`/`R2` layouts. D-058 is implemented rather than the next implementation task. The next phase is cross-package integration evidence for D-053 through D-060; decision status remains subject to the complete acceptance gate. Arbitrary cyclic graph semantics, feedback, continuous-time black-boxing, unrestricted MDP black-boxing, general autodiff, tensor frameworks, and device execution remain deferred.
 
 A new feature must use this sequence:
 
@@ -401,7 +404,7 @@ A new feature must use this sequence:
 3. State required laws, differential tests, or estimator assumptions before implementation.
 4. Keep hardware, framework, and runtime dependencies outside the semantic core.
 5. Add deterministic reference evidence before statistical or benchmark evidence.
-6. Run both compiler versions, all three package tests, source distributions, and every applicable backend differential test.
+6. Run both compiler versions, all four package tests, source distributions, every applicable backend differential test, the game boundary script, and all four named inventory benchmarks (`inventory-control-bench`, `clark-scarf-1960-bench`, `dogru-inventory-bench`, and `fixed-batch-rnq-bench`). Repeat the tests and inventory semantic-report stability checks from unpacked source archives.
 7. For exact control, record residual, bound, tie-order, terminal, and iteration-limit fixtures.
 8. For sampled learning, record exact seeded generator states and split-run equality.
 9. For neural derivatives, record the finite-difference tolerance and every checked parameter or input coordinate.

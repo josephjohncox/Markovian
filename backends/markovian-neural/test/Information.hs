@@ -1,13 +1,17 @@
 module Information (tests) where
 
+import Data.List (transpose)
 import Markovian.Backend.Neural (
     NeuralInformationError (..),
+    categoricalFromLogits,
     crossEntropyFromLogits,
     crossEntropyPredictionGradient,
     entropyFromLogits,
     entropyLogitGradient,
     klDivergenceFromLogits,
     mutualInformationFromJointLogits,
+    neuralProbabilities,
+    neuralSoftmaxJacobian,
  )
 import TestSupport (
     assert,
@@ -24,6 +28,7 @@ tests = do
     productCheck
     mutualInformationChecks
     gradientChecks
+    fusionChecks
     rejectionChecks
     putStrLn "PASS: categorical information"
 
@@ -106,6 +111,35 @@ gradientChecks = do
     assertCloseWith "entropy gradient is shift orthogonal" 1e-14 1e-14 0 (sum entropyGradient)
     assertCloseWith "cross-entropy gradient is shift orthogonal" 1e-14 1e-14 0 (sum crossEntropyGradient)
 
+fusionChecks :: IO ()
+fusionChecks = do
+    let target = [0.6, -0.7, 0.1]
+        prediction = [-0.2, 0.9, 0.4]
+        shiftedPrediction = fmap (+ 100) prediction
+    fused <- requireRight "fused cross-entropy VJP" (crossEntropyPredictionGradient target prediction)
+    targetCategorical <- requireRight "fusion target" (categoricalFromLogits target)
+    predictionCategorical <- requireRight "fusion prediction" (categoricalFromLogits prediction)
+    let explicit =
+            explicitJacobianVjp
+                (neuralProbabilities targetCategorical)
+                (neuralProbabilities predictionCategorical)
+                (neuralSoftmaxJacobian predictionCategorical)
+    assertVectorCloseWith "q-p equals explicit Jacobian VJP" 2e-15 2e-15 fused explicit
+    shifted <- requireRight "finite-logit shifted fusion" (crossEntropyPredictionGradient target shiftedPrediction)
+    assertVectorCloseWith "finite-logit fusion is shift invariant" 2e-14 2e-14 fused shifted
+
+    underflowTarget <- requireRight "underflow target" (categoricalFromLogits [0, -1000])
+    underflowPrediction <- requireRight "underflow prediction" (categoricalFromLogits [-1000, 0])
+    underflowFused <- requireRight "underflow fused VJP" (crossEntropyPredictionGradient [0, -1000] [-1000, 0])
+    let underflowExplicit =
+            explicitJacobianVjp
+                (neuralProbabilities underflowTarget)
+                (neuralProbabilities underflowPrediction)
+                (neuralSoftmaxJacobian underflowPrediction)
+    assert "extreme prediction did not underflow" (neuralProbabilities underflowPrediction == [0, 1])
+    assert "fused underflow gradient became non-finite" (not (any isNonFinite underflowFused))
+    assert "explicit underflow Jacobian VJP stayed spuriously finite" (any isNonFinite underflowExplicit)
+
 rejectionChecks :: IO ()
 rejectionChecks = do
     case crossEntropyFromLogits [0, 0] [0, 0, 0] of
@@ -120,6 +154,24 @@ rejectionChecks = do
     case mutualInformationFromJointLogits 2 2 [0, 0, 0] of
         Left (InformationJointShapeMismatch 4 3) -> pure ()
         result -> assert ("mutual information accepted a malformed joint: " ++ show result) False
+    case crossEntropyPredictionGradient [0, 0] [0 / 0, 0] of
+        Left (InformationCategorical _) -> pure ()
+        result -> assert ("fusion accepted NaN logits: " ++ show result) False
+    case crossEntropyPredictionGradient [0, 0] [1 / 0, 0] of
+        Left (InformationCategorical _) -> pure ()
+        result -> assert ("fusion accepted infinite logits: " ++ show result) False
+
+explicitJacobianVjp :: [Double] -> [Double] -> [[Double]] -> [Double]
+explicitJacobianVjp target prediction jacobian =
+    [ sum
+        [ derivative * (negate expected / predicted)
+        | (derivative, expected, predicted) <- zip3 column target prediction
+        ]
+    | column <- transpose jacobian
+    ]
+
+isNonFinite :: Double -> Bool
+isNonFinite value = isNaN value || isInfinite value
 
 finiteDifferenceVector ::
     String ->

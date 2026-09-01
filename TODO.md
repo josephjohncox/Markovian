@@ -115,13 +115,14 @@ P5 status: `DONE`. Prediction, post-transition conditioning, impossible observat
 - [x] **P6.3 Add GPU and neural packages outside the semantic core.**
   - Require CPU/GPU differential tests and transfer-inclusive benchmarks.
   - Define approximation, normalization, gradient, and estimator assumptions.
-  - The neural package now includes checked dense networks, approximate categorical information quantities and gradients, linear policy-gradient updates, replay, target networks, and one DQN batch update.
+  - The neural package now includes checked dense networks, approximate categorical information quantities and gradients, sized structural action masks, linear policy-gradient updates, replay, target networks, and one DQN batch update.
+  - A separate bridge checks exact global action layouts against actual neural heads and compiles exact availability order without numeric masking or fabricated terminal masks.
   - Neural evidence uses hand calculations, finite differences, and deterministic differential fixtures. It makes no training-performance claim.
   - The 2026-08-26 sample-bearing run used one excluded warmup and 20 measured runs on an NVIDIA GB10.
   - The transfer-inclusive mean was `267.843920400 ms`, and sample standard deviation was `3.025869898 ms`.
   - The [evidence record](docs/evidence/CUDA-2026-08-26.md) retains raw samples and older mean-only execution records.
   - These local measurements are not general performance claims.
-  - Hosted three-package evidence: <https://github.com/josephjohncox/Markovian/actions/runs/32998596001>.
+  - Historical pre-bridge three-package evidence: <https://github.com/josephjohncox/Markovian/actions/runs/32998596001>.
 
 P6 status: `DONE`. Exact IR, CUDA, neural numerical, policy-gradient, replay, target-network, and DQN fixtures are implemented. Current local validation status belongs in `docs/CONTEXT.md`.
 
@@ -138,6 +139,10 @@ D-038 defines this roadmap in dependency order. A later stage cannot weaken the 
 
 S6 status: `DONE`.
 
+## Integration repair status
+
+D-053 is `DONE`. D-054 through D-060 have substantial implementations and focused fixtures, but remain `BLOCKED` at integration acceptance while their decisions are `Proposed`. Do not promote those decisions or describe the corresponding slices as accepted until both supported compilers, `--prefer-oldest`, warning-free Haddock, formatting, all four source archives and unpacked tests, every compile-fail boundary, all four inventory benchmarks, and deterministic semantic-report stability pass on the same revision.
+
 ## S7: Approximation and categorical-learning case studies
 
 - [x] **S7.1 Add information-theory, categorical-learning, polarity, and game-semantic foundations.**
@@ -146,29 +151,39 @@ S6 status: `DONE`.
   - Add checked categorical entropy, cross entropy, KL divergence, mutual information, and analytic logit gradients outside the exact core.
   - Ground the game-semantic material in arena, strategy, focusing, optic, and open-game references without claiming an implementation.
   - Require decomposition, product, invariance, pairing, and finite-difference evidence for future executable interpreters.
-- [ ] **S7.2 Add reproducible inventory-control benchmarks.** `BLOCKED`
+- [ ] **S7.2 Add reproducible inventory-control benchmarks.** `BLOCKED` at integration acceptance for D-055 through D-057.
   - [x] Add a bounded synthetic two-echelon serial fixture with explicit one-period supplier delay, event timing, successor costs, conditioned geometric demand, and truncation-mass reporting.
   - [x] Compare period-specific bounded base-stock schedules with exact finite-horizon backward induction, retain opaque solution provenance, validate order-cap and target-set widening, and report exact regret, model size, solver status, and stability diagnostics.
   - [x] Add a deterministic semantic report and a one-warm-up, twenty-sample reproducible benchmark with raw timing samples and sample statistics.
-  - [ ] Verify the complete Clark--Scarf equations, timing, and cost conventions from the primary source before adding that name to a fixture.
-  - [ ] Encode Doğru's one-warehouse multi-retailer balance assumption as a named relaxation, not as the physical transition model.
-  - [ ] Compare the relaxed policy with a bounded physical allocation model and report value error, policy regret, state count, runtime, and truncation mass.
-  - [ ] Add the fixed-batch `(R,nQ)` newsvendor equations as a separate benchmark with discrete-demand inequalities.
-  - [ ] Pin every published parameter table or state clearly; otherwise state that a fixture is synthetic.
-- [ ] **S7.3 Add categorical cost, payoff, and rewrite interpreters.** `NEXT`
+  - [x] Add the source-crosswalked Clark--Scarf (1960), Section III, finite lattice specialization with exact equations (14), (15), (20), (21), and (26), zero-regret policy evaluation, explicit layouts and budgets, retained-mass reporting, and widened-cap diagnostics.
+  - [x] Encode Doğru's one-warehouse multi-retailer balance assumption as a named relaxation, not as the physical transition model.
+  - [x] Compare the relaxed policy with a bounded physical allocation model and report value error, policy regret, state count, runtime, and truncation mass.
+  - [x] Add the fixed-batch `(R,nQ)` newsvendor equations as a separate benchmark with discrete-demand inequalities.
+  - [x] Pin every published parameter table or state clearly; otherwise state that a fixture is synthetic.
+- [x] **S7.3 Add categorical cost, payoff, and rewrite interpreters.**
   - [x] Add a checked exact rational finite payoff, payoff pullback through exact stochastic matrices, and exact state-payoff pairing evidence.
-  - [ ] Fold circuit syntax into primitive-count, duplicate-work, and live-width reports.
-  - [ ] Implement only proof-carrying rewrites: identities, deterministic share-versus-fanout, and tested softmax/cross-entropy fusion.
-  - [ ] Compare exact denotation before and after each structural rewrite and benchmark only after semantic equality passes.
-- [ ] **S7.4 Add typed parametric reverse circuits.** `BLOCKED`
+  - [x] Fold circuit syntax into bounded primitive, table, owner-work, structural-operation, represented-layout, and matrix-cell reports.
+  - [x] Add opaque identity, reassociation, and deterministic fanout-to-share candidates; keep stochastic syntax excluded at construction.
+  - [x] Issue checked witnesses only after bounded exact endpoint-layout and row-major matrix checks. Keep the checked-`Double` softmax/cross-entropy fusion separate and certificate-free.
+  - [x] Produce deterministic cost/rewrite reports. Defer timing until a named optimizer and workload make a performance claim.
+- [ ] **S7.4 Add typed parametric reverse circuits.** `BLOCKED` at integration acceptance for D-058.
   - [x] Add a small framework-independent neural-backend interpreter with explicit nested-pair parameter products, distinct primal and cotangent types, cotangent-module witnesses, captured primitive pullbacks, input and parameter diagonal accumulation, exact module/VJP laws, and finite-difference fixtures.
-  - [ ] A general reverse-circuit syntax or autodiff lowering remains blocked until an owned primitive signature defines legal primitives, primal storage or recomputation, backend-specific cotangent modules, and numerical equality for every lowering.
-  - Keep optimizer state separate from differentiated circuits. Do not identify reverse differentiation with Bayesian inversion or matrix dagger.
-- [ ] **S7.5 Add finite typed interaction protocols.** `BLOCKED`
-  - No protocol is selected. Before implementation, define finite moves, move ownership, legal histories, terminal histories, strategy composition, and observational equality.
-  - Do not infer game semantics, open games, equilibria, or multi-agent stochastic games from an ownership index alone.
+  - [x] Add D-058's finite acyclic syntax over caller-owned primitives, structural parameter ownership, checked finite primal and cotangent layouts, bounded preparation, and opaque stored or recomputed tapes.
+  - [x] Check exact `Rational` composition, tensor, and diagonal fixtures, deterministic reports, compile-fail boundaries, and every input and parameter coordinate of a heterogeneous `Double` program under both tape policies.
+  - Keep optimizer state separate from differentiated circuits. General autodiff lowering, recursion, cycles, tensors, and checkpoint scheduling remain out of scope. Do not identify reverse differentiation with Bayesian inversion or matrix dagger.
+- [ ] **S7.5 Add finite typed interaction protocols.** `BLOCKED` at integration acceptance for D-059.
+  - [x] Add finite reachable acyclic arenas with explicit move ownership, alternation, opaque legal-history replay, and separate labelled and represented-layout equality.
+  - [x] Add bounded prefix-closed strategies with exhaustive Opponent receptivity, one total Player response, copycat, partial synchronized hidden-middle composition, and exact external-prefix observational equality.
+  - [x] Add ownership, illegal-history, prefix-closure, budget, layout, representative identity/associativity, congruence, deterministic-report, and compile-fail evidence.
+  - Keep the result scoped to finite alternating protocols. It does not establish Hyland--Ong or AJM semantics, open games, equilibria, chance, or multi-agent stochastic games.
 
-**NEXT:** Implement S7.3's exact circuit cost interpretation and first deterministic proof-carrying rewrite certificates. Keep stochastic copy naturality excluded.
+- [ ] **S7.6 Add owner-refined finite open games.** `BLOCKED` at integration acceptance for D-060.
+  - [x] Add bounded total finite functions, concrete optics, owner-disjoint strategy products, play, coplay, sequential and tensor composition, and context-indexed best responses.
+  - [x] Add exact `Rational` maximizing decisions, pure contextual equilibrium enumeration with all ties, owner-preserving observational equality, deterministic reports, and explicit layout diagnostics.
+  - [x] Differential-test every represented two-player `2 x 2` payoff table over `{0,1}` and retain matching-pennies and non-credible-threat counterexamples.
+  - Keep arena histories separate. Do not claim mixed, correlated, repeated, stochastic, Bayesian, continuous, subgame-perfect, or equilibrium-existence results.
+
+**NEXT:** Integration evidence and complete cross-package acceptance for D-053 through D-060.
 
 ## Requirements for new work
 

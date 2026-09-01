@@ -36,7 +36,7 @@ terminalWorkedUpdate = do
     config <- requireRight "terminal actor-critic config" (mkActorCriticConfig 0.5 0.1 0.2)
     policy <- requireRight "terminal actor policy" (mkLinearCategoricalPolicy 2 1 [0, 0])
     valueFunction <- requireRight "terminal critic" (mkLinearValueFunction 1 [2])
-    mask <- requireRight "terminal actor mask" (mkActionMask [0, 1])
+    mask <- requireRight "terminal actor mask" (mkActionMask 2 [0, 1])
     let transition = ActorCriticTransition [3] mask 0 1 (ActorCriticTerminal 4)
     update <- requireRight "terminal actor-critic update" (updateActorCritic config policy valueFunction transition)
     assertClose "terminal target" 1e-14 3 (actorCriticTarget update)
@@ -52,7 +52,7 @@ continuingTargetAndDetachment = do
     config <- requireRight "continuing config" (mkActorCriticConfig 0.5 0 0)
     policy <- requireRight "continuing policy" (mkLinearCategoricalPolicy 2 1 [0, 0])
     valueFunction <- requireRight "continuing critic" (mkLinearValueFunction 1 [2])
-    mask <- requireRight "continuing actor mask" (mkActionMask [0, 1])
+    mask <- requireRight "continuing actor mask" (mkActionMask 2 [0, 1])
     let transition = ActorCriticTransition [3] mask 1 1 (ActorCriticContinuing [4])
     update <- requireRight "continuing update" (updateActorCritic config policy valueFunction transition)
     assertClose "continuing detached target" 1e-14 5 (actorCriticTarget update)
@@ -62,7 +62,7 @@ continuingTargetAndDetachment = do
 finiteDifferenceGradients :: IO ()
 finiteDifferenceGradients = do
     config <- requireRight "finite-difference actor-critic config" (mkActorCriticConfig 0.7 0 0)
-    mask <- requireRight "finite-difference actor mask" (mkActionMask [0, 1])
+    mask <- requireRight "finite-difference actor mask" (mkActionMask 2 [0, 1])
     let policyParameters = [0.2, -0.1, -0.4, 0.3]
         valueParameters = [0.5, -0.2]
         features = [1.2, -0.7]
@@ -98,8 +98,8 @@ failureChecks = do
     config <- requireRight "failure config" (mkActorCriticConfig 0.9 0.1 0.1)
     policy <- requireRight "failure policy" (mkLinearCategoricalPolicy 2 1 [0, 0])
     valueFunction <- requireRight "failure critic" (mkLinearValueFunction 1 [0])
-    fullMask <- requireRight "failure actor mask" (mkActionMask [0, 1])
-    onlyFirst <- requireRight "restricted actor mask" (mkActionMask [0])
+    fullMask <- requireRight "failure actor mask" (mkActionMask 2 [0, 1])
+    onlyFirst <- requireRight "restricted actor mask" (mkActionMask 2 [0])
     case updateActorCritic config policy valueFunction (ActorCriticTransition [1] fullMask 2 0 (ActorCriticTerminal 0)) of
         Left _ -> assertVectorClose "failed actor update changed source" 0 [0, 0] (linearPolicyParameters policy)
         Right _ -> assert "out-of-range actor action succeeded" False

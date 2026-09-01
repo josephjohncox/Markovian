@@ -14,15 +14,32 @@ return a primal output and its captured pullback together; it does not perform
 automatic differentiation or prove callback laws.
 -}
 module Markovian.Backend.Neural.Reverse (
+    FiniteLayout,
+    unitFiniteLayout,
+    finiteLayout,
+    productFiniteLayout,
+    finiteLayoutDescription,
+    finiteLayoutExtent,
+    FiniteLayoutStructureError (..),
+    checkedFiniteLayout,
     CotangentEqualityMode (..),
     CotangentSpace,
     cotangentSpace,
+    declaredCotangentSpace,
     cotangentZero,
     addCotangents,
     scaleCotangent,
+    validateCotangent,
     cotangentsEquivalent,
     cotangentEqualityMode,
+    cotangentFiniteLayout,
+    cotangentModuleOwner,
+    sameCotangentLayout,
+    compatibleCotangentSpace,
     ParametricReverseCircuit,
+    reverseParameterCotangentSpace,
+    reverseInputCotangentSpace,
+    reverseOutputCotangentSpace,
     ReverseEvaluation,
     reverseEvaluation,
     primitiveReverseCircuit,
@@ -36,6 +53,85 @@ module Markovian.Backend.Neural.Reverse (
     applyReverseVJP,
 ) where
 
+import Data.Maybe (isJust)
+import Numeric.Natural (Natural)
+
+-- | Structural metadata for one finite represented layout.
+data FiniteLayout
+    = UnitFiniteLayout
+    | AtomicFiniteLayout !String !Natural
+    | ProductFiniteLayout FiniteLayout FiniteLayout
+    deriving (Eq, Show)
+
+-- | The zero-coordinate unit layout.
+unitFiniteLayout :: FiniteLayout
+unitFiniteLayout = UnitFiniteLayout
+
+-- | Declare a named finite atomic layout. Names must be nonempty.
+finiteLayout :: String -> Natural -> Maybe FiniteLayout
+finiteLayout "" _ = Nothing
+finiteLayout name extent = Just (AtomicFiniteLayout name extent)
+
+-- | Ordered structural product; products are not flattened or reassociated.
+productFiniteLayout :: FiniteLayout -> FiniteLayout -> FiniteLayout
+productFiniteLayout = ProductFiniteLayout
+
+-- | Stable structural layout description.
+finiteLayoutDescription :: FiniteLayout -> String
+finiteLayoutDescription UnitFiniteLayout = "unit"
+finiteLayoutDescription (AtomicFiniteLayout name extent) = name ++ "[" ++ show extent ++ "]"
+finiteLayoutDescription (ProductFiniteLayout left right) =
+    "(" ++ finiteLayoutDescription left ++ " * " ++ finiteLayoutDescription right ++ ")"
+
+-- | Number of represented scalar coordinates.
+finiteLayoutExtent :: FiniteLayout -> Natural
+finiteLayoutExtent UnitFiniteLayout = 0
+finiteLayoutExtent (AtomicFiniteLayout _ extent) = extent
+finiteLayoutExtent (ProductFiniteLayout left right) = finiteLayoutExtent left + finiteLayoutExtent right
+
+{- | Exhaustion while traversing finite-layout structure.  These limits are
+separate from the represented scalar extent because zero-extent products
+still consume structure.
+-}
+data FiniteLayoutStructureError
+    = FiniteLayoutNodeLimitExceeded !Natural
+    | FiniteLayoutDepthLimitExceeded !Natural
+    deriving (Eq, Show)
+
+{- | Traverse and rebuild a layout under explicit structural node and depth
+limits.  The returned extent, node count, and depth are computed during the
+same traversal.  A node is charged before its children are inspected, so a
+cyclic or infinitely deep value is rejected without an unbounded description,
+equality, or extent pass.
+-}
+checkedFiniteLayout ::
+    Natural ->
+    Natural ->
+    FiniteLayout ->
+    Either FiniteLayoutStructureError (FiniteLayout, Natural, Natural, Natural)
+checkedFiniteLayout nodeLimit depthLimit layout = do
+    (checked, extent, nodes, depth, _) <- go 1 0 layout
+    Right (checked, extent, nodes, depth)
+  where
+    go depth used current
+        | used >= nodeLimit = Left (FiniteLayoutNodeLimitExceeded nodeLimit)
+        | depth > depthLimit = Left (FiniteLayoutDepthLimitExceeded depthLimit)
+        | otherwise =
+            let charged = used + 1
+             in case current of
+                    UnitFiniteLayout -> Right (UnitFiniteLayout, 0, 1, depth, charged)
+                    AtomicFiniteLayout name extent -> Right (AtomicFiniteLayout name extent, extent, 1, depth, charged)
+                    ProductFiniteLayout left right -> do
+                        (checkedLeft, leftExtent, leftNodes, leftDepth, afterLeft) <- go (depth + 1) charged left
+                        (checkedRight, rightExtent, rightNodes, rightDepth, afterRight) <- go (depth + 1) afterLeft right
+                        Right
+                            ( ProductFiniteLayout checkedLeft checkedRight
+                            , leftExtent + rightExtent
+                            , 1 + leftNodes + rightNodes
+                            , max depth (max leftDepth rightDepth)
+                            , afterRight
+                            )
+
 -- | Whether cotangent laws use exact equality or a documented approximation.
 data CotangentEqualityMode
     = ExactCotangentEquality
@@ -47,8 +143,11 @@ data CotangentSpace error scalar cotangent = CotangentSpaceWitness
     { spaceZero :: !cotangent
     , spaceAdd :: cotangent -> cotangent -> Either error cotangent
     , spaceScale :: scalar -> cotangent -> Either error cotangent
+    , spaceValidate :: cotangent -> Either error ()
     , spaceEquivalent :: cotangent -> cotangent -> Bool
     , spaceEqualityMode :: !CotangentEqualityMode
+    , spaceLayout :: !(Maybe FiniteLayout)
+    , spaceOwner :: !(Maybe String)
     }
 
 {- | Declare one cotangent module.
@@ -64,7 +163,29 @@ cotangentSpace ::
     (cotangent -> cotangent -> Bool) ->
     CotangentEqualityMode ->
     CotangentSpace error scalar cotangent
-cotangentSpace = CotangentSpaceWitness
+cotangentSpace zero add scale equivalent equalityMode =
+    CotangentSpaceWitness zero add scale (const (Right ())) equivalent equalityMode Nothing Nothing
+
+{- | Declare a finite cotangent module for prepared reverse programs.
+
+The owner key identifies the supplied module operations. Reusing a key for
+inequivalent operations is a primitive-author error; function equality cannot
+be inferred by Haskell. The older 'cotangentSpace' remains available, but its
+undeclared layout is rejected by program preparation.
+-}
+declaredCotangentSpace ::
+    String ->
+    FiniteLayout ->
+    (cotangent -> Either error ()) ->
+    cotangent ->
+    (cotangent -> cotangent -> Either error cotangent) ->
+    (scalar -> cotangent -> Either error cotangent) ->
+    (cotangent -> cotangent -> Bool) ->
+    CotangentEqualityMode ->
+    Maybe (CotangentSpace error scalar cotangent)
+declaredCotangentSpace "" _ _ _ _ _ _ _ = Nothing
+declaredCotangentSpace owner layout validate zero add scale equivalent equalityMode =
+    Just (CotangentSpaceWitness zero add scale validate equivalent equalityMode (Just layout) (Just owner))
 
 -- | Read the additive identity.
 cotangentZero :: CotangentSpace error scalar cotangent -> cotangent
@@ -86,6 +207,10 @@ scaleCotangent ::
     Either error cotangent
 scaleCotangent = spaceScale
 
+-- | Validate one represented cotangent.
+validateCotangent :: CotangentSpace error scalar cotangent -> cotangent -> Either error ()
+validateCotangent = spaceValidate
+
 -- | Compare cotangents using the witness's exact or approximate equality.
 cotangentsEquivalent ::
     CotangentSpace error scalar cotangent ->
@@ -97,6 +222,29 @@ cotangentsEquivalent = spaceEquivalent
 -- | Read the equality mode used for cotangent laws.
 cotangentEqualityMode :: CotangentSpace error scalar cotangent -> CotangentEqualityMode
 cotangentEqualityMode = spaceEqualityMode
+
+-- | Read finite-layout metadata, if declared.
+cotangentFiniteLayout :: CotangentSpace error scalar cotangent -> Maybe FiniteLayout
+cotangentFiniteLayout = spaceLayout
+
+-- | Read the module-owner key, if declared.
+cotangentModuleOwner :: CotangentSpace error scalar cotangent -> Maybe String
+cotangentModuleOwner = spaceOwner
+
+-- | Compare represented cotangent layouts without comparing values.
+sameCotangentLayout :: CotangentSpace error scalar left -> CotangentSpace error scalar right -> Bool
+sameCotangentLayout left right = isJust (spaceLayout left) && spaceLayout left == spaceLayout right
+
+{- | Compare the metadata needed to connect two cotangent modules.
+
+This compares layout, owner key, and exact/approximate equality policy. The
+owner remains responsible for the laws and callback operations behind the key.
+-}
+compatibleCotangentSpace :: CotangentSpace error scalar left -> CotangentSpace error scalar right -> Bool
+compatibleCotangentSpace left right =
+    sameCotangentLayout left right
+        && spaceOwner left == spaceOwner right
+        && spaceEqualityMode left == spaceEqualityMode right
 
 -- | One primal output paired with its pullback at the captured primal point.
 data ReverseEvaluation error parameterCotangent inputCotangent output outputCotangent
@@ -143,6 +291,24 @@ primitiveReverseCircuit ::
     ) ->
     ParametricReverseCircuit error scalar parameter parameterCotangent input inputCotangent output outputCotangent
 primitiveReverseCircuit = ParametricReverseCircuit
+
+-- | Read the parameter-cotangent witness.
+reverseParameterCotangentSpace ::
+    ParametricReverseCircuit error scalar parameter parameterCotangent input inputCotangent output outputCotangent ->
+    CotangentSpace error scalar parameterCotangent
+reverseParameterCotangentSpace (ParametricReverseCircuit space _ _ _) = space
+
+-- | Read the input-cotangent witness.
+reverseInputCotangentSpace ::
+    ParametricReverseCircuit error scalar parameter parameterCotangent input inputCotangent output outputCotangent ->
+    CotangentSpace error scalar inputCotangent
+reverseInputCotangentSpace (ParametricReverseCircuit _ space _ _) = space
+
+-- | Read the output-cotangent witness.
+reverseOutputCotangentSpace ::
+    ParametricReverseCircuit error scalar parameter parameterCotangent input inputCotangent output outputCotangent ->
+    CotangentSpace error scalar outputCotangent
+reverseOutputCotangentSpace (ParametricReverseCircuit _ _ space _) = space
 
 -- | Identity map with the unit parameter object and no parameter cotangent.
 identityReverseCircuit ::
@@ -312,19 +478,22 @@ applyReverseVJP (ReverseEvaluationValue _ pullback) = pullback
 
 unitSpace :: CotangentSpace error scalar ()
 unitSpace =
-    cotangentSpace
+    CotangentSpaceWitness
         ()
         (\() () -> Right ())
         (\_ () -> Right ())
+        (\() -> Right ())
         (\() () -> True)
         ExactCotangentEquality
+        (Just unitFiniteLayout)
+        (Just "unit")
 
 productCotangentSpace ::
     CotangentSpace error scalar left ->
     CotangentSpace error scalar right ->
     CotangentSpace error scalar (left, right)
 productCotangentSpace leftSpace rightSpace =
-    cotangentSpace
+    CotangentSpaceWitness
         (cotangentZero leftSpace, cotangentZero rightSpace)
         ( \(leftA, rightA) (leftB, rightB) -> do
             left <- addCotangents leftSpace leftA leftB
@@ -336,11 +505,14 @@ productCotangentSpace leftSpace rightSpace =
             scaledRight <- scaleCotangent rightSpace scalar right
             Right (scaledLeft, scaledRight)
         )
+        (\(left, right) -> validateCotangent leftSpace left >> validateCotangent rightSpace right)
         ( \(leftA, rightA) (leftB, rightB) ->
             cotangentsEquivalent leftSpace leftA leftB
                 && cotangentsEquivalent rightSpace rightA rightB
         )
         (combineEqualityModes (cotangentEqualityMode leftSpace) (cotangentEqualityMode rightSpace))
+        (productFiniteLayout <$> cotangentFiniteLayout leftSpace <*> cotangentFiniteLayout rightSpace)
+        ((\left right -> "(" ++ left ++ " * " ++ right ++ ")") <$> cotangentModuleOwner leftSpace <*> cotangentModuleOwner rightSpace)
 
 combineEqualityModes :: CotangentEqualityMode -> CotangentEqualityMode -> CotangentEqualityMode
 combineEqualityModes ExactCotangentEquality ExactCotangentEquality = ExactCotangentEquality

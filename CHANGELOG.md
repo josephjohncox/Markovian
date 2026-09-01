@@ -4,7 +4,7 @@
 
 - Expanded the book with foundation chapters for algebra, category theory, measure theory, categorical probability, information theory, categorical learning, polarity, push-pull duality, and game semantics. Added internal concept links, guided reading routes, direct primary-source links, an explicit law catalogue, derivations, executable fixtures, and derived categorical insights. Mathematical, pedagogical, and implementation-grounding reviews corrected the new chapter and improved the foundation narrative without removing its substantive content.
 - Added checked approximate entropy, cross-entropy, KL-divergence, mutual-information, entropy-gradient, and fused cross-entropy-gradient references to `markovian-neural`, with product, decomposition, invariance, and finite-difference tests.
-- Added a small typed parametric reverse interpreter to `markovian-neural` with explicit parameter products, cotangent-module witnesses, captured primitive pullbacks, input and parameter diagonal accumulation, exact module and VJP laws, and nonlinear finite-difference evidence.
+- Added typed parametric reverse circuits and a finite owned reverse-program interpreter to `markovian-neural`, with declared finite primal and cotangent layouts, structural parameter ownership, bounded preparation, opaque stored or recomputed tapes, explicit diagonal accumulation, exact law fixtures, compile-fail boundaries, deterministic reports, and all-coordinate finite differences under both tape policies.
 - Replaced mdBook's external MathJax 2 loader with a pinned local MathJax 3.2.2 SVG bundle. Added pre-typesetting recovery for Markdown-altered TeX, digest, local-loader, external-loader rejection, delimiter, generated-markup, and source-to-generated equation-count checks.
 - Added a pinned mdBook documentation stack with a checked user and contributor book, local-link validation, CI builds, semantic guides, recipes, and project-reference appendices. Added a SHA-pinned GitHub Pages workflow and published the book at <https://josephjohncox.github.io/Markovian/>.
 - Added validated floating and exact finite probability distributions.
@@ -17,6 +17,9 @@
 - Added policy-free exact MDP compilation with separate compiled policy closure.
 - Added bounded exact value iteration with residual and policy bounds, deterministic greedy extraction, and exact rational policy iteration.
 - Added a synthetic bounded two-echelon serial-inventory fixture with conditioned geometric demand, exact finite-horizon backward induction, exhaustive duplicate-free base-stock comparison, checked widened-bound provenance, deterministic reporting, and a reproducible one-warm-up, twenty-sample benchmark.
+- Added a separate Clark--Scarf (1960), Section III, exact finite-lattice specialization with source page/equation crosswalk, explicit lead-time timing and finite layouts, generic/direct/decomposed exact oracle agreement, zero-regret policy evaluation, retained-mass and widened-cap diagnostics, deterministic reporting, and a one-warm-up, twenty-sample reproducibility benchmark.
+- Added Doğru's two-retailer balance assumption as a distinct bounded signed-action relaxation, with exact physical and relaxed oracles, balanced and physicalized policy evaluation, finite layouts and budgets, two-dimensional widening evidence, corrected thesis page crosswalk and event-order reporting, independent physical/relaxed recursion checks, deterministic reporting, and a reproducibility benchmark.
+- Added a bounded exact two-stage fixed-batch model with physical batch feasibility, explicit supplier lead time, conditioned demand, complete finite layouts, finite-horizon oracle and constant-policy comparison, checked action/grid and demand-cap diagnostics, and separate stationary subsystem costs and discrete newsvendor inequalities. Stationary search uses explicit Cartesian `R1`/`R2` layouts, memoized and exactly charged law construction, retained parameter/domain provenance, and a checked finite/stationary separation report. The deterministic benchmark uses one excluded warm-up and twenty stable semantic samples.
 - Added shared sampled-step and tabular foundations, pure TD(0), SARSA, Expected SARSA, and Q-learning updates, plus bounded resumable episodic runners.
 - Added exact finite POMDP prediction, conditioning, filtering, and bounded belief planning.
 - Added typed exact categorical syntax and dense rational CPU lowering.
@@ -29,9 +32,12 @@
 - Delegated exact POMDP prediction and conditioning to the shared Bayesian algebra without changing filtering behavior.
 - Validate each exact distribution weight before duplicate aggregation, so a positive duplicate cannot hide a negative entry.
 - Added recursive purity-indexed stochastic circuits with structural folds, explicit sharing and fanout, exact convex choice, and deterministic-only copy optimization.
+- Added a raw-node-bounded circuit fold, deterministic static cost reports with caller-owned charges, opaque identity/reassociation/deduplication candidates, and exact endpoint-layout and row-major matrix certificate checks.
 - Added exact circuit interpretation and dense CPU lowering through one nonnegative-rational matrix denotation, plus an explicit approximation boundary for floating and accelerator backends.
 - Added first-order deterministic compilation for identity, composition, products, pairing, projections, and finite quoted tables.
 - Added finite typed interfaces and directed hypergraphs, total type-preserving structure maps, explicit quotient pushouts, and checked cocone factorization.
+- Added finite reachable acyclic alternating arenas, opaque legal histories, bounded receptive deterministic strategies, copycat, synchronized hidden-middle composition, and exact external-prefix observational equality without a full game-semantics claim.
+- Added bounded total finite functions, concrete finite optics, owner-refined finite open games, exact rational decisions, pure contextual equilibrium enumeration, owner-preserving observational equality, deterministic reports, exhaustive binary-payoff differential evidence, and matching-pennies and non-credible-threat counterexamples.
 - Added structured-cospan composition, disjoint-union tensor, boundary reversal, commuting open-system cells, and double-interchange tests.
 - Canonicalized interface-map rows and pushout class members, made cocone and middle-map checks layout independent, protected pushout witness roles, and kept circuit state orientation unchanged under topological boundary reversal.
 - Protected `ExactBelief` state equality evidence with a nominal role and constrained pushout witness kinds.
@@ -40,7 +46,10 @@
 - Added an opaque boundary-functional acyclic open-system refinement, finite named assignments, signature-keyed local circuits, aggregate purity, and exact live-frontier matrix semantics with explicit sharing and discard behavior.
 - Corrected categorical copy to target the full tensor square with diagonal denotation.
 - Added separate optional CUDA and framework-independent neural packages.
-- Added checked dense networks with manual VJPs, stable categorical derivatives, linear REINFORCE and actor-critic updates, FIFO replay, target synchronization, and atomic standard or Double-DQN batch updates.
+- Added checked dense networks with manual VJPs, stable categorical derivatives, sized structural action masks, linear REINFORCE and actor-critic updates, FIFO replay, target synchronization, and atomic standard or Double-DQN batch updates.
+- Added bounded exact-support bridge preflight, nominal action-witness roles, bounded gather/scatter overrun detection, and nonfinite scatter rejection.
+- Added `markovian-neural-bridge`, which checks exact global action layout and neural head width, preserves each state's exact availability order, and represents terminal states without empty masks.
 - Corrected the CUDA evidence record to label variable local measurements and avoid a general performance claim.
 - Added CUDA benchmark warmup, raw-sample, range, and sample-standard-deviation reporting with a durable evidence record.
 - Added reproducible toolchain, package, documentation, and CI checks.
+- Reconciled four-package integration metadata and CI so the finite-game, reverse-program, and exact-support compile-fail boundaries and all four inventory semantic-report benchmarks run in the working tree and applicable unpacked source archives. D-054 through D-060 remain proposed pending the complete acceptance gate.

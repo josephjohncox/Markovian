@@ -60,7 +60,7 @@ rootAndNeuralUpdateAgree = do
         observation = ObservedTransition DifferentialSource selected reward DifferentialTerminal
     root <- requireRight "root Q update" (updateQ rate discount model observation emptyQTable)
 
-    mask <- requireRight "differential mask" (mkActionMask [0, 1])
+    mask <- requireRight "differential mask" (mkActionMask 2 [0, 1])
     transition <- requireRight "differential transition" (mkTerminalTransition [0] mask 0 2 0)
     online <- requireRight "differential online" (mkDenseNetwork 1 [] 2 [0, 0, 0, 0])
     target <- requireRight "differential target" (mkDenseNetwork 1 [] 2 [0, 0, 0, 0])

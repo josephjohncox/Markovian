@@ -1,0 +1,72 @@
+Fixed-batch (R,nQ) inventory evidence: bounded execution and stationary calculations.
+primary source: M. K. Doğru, G. J. van Houtum, and A. G. de Kok, Newsboy Characterizations for the Optimal Reorder Levels of Multi-Echelon Inventory Systems with Fixed Batch Sizes, BETA Working Paper 134, 22 February 2005
+journal source: Doğru, van Houtum, and de Kok, Operations Research Letters 36(5), 2008, 551-556, DOI 10.1016/j.orl.2008.06.003
+supporting sources: Chen, Management Science 44(12), 1998, S221-S234, DOI 10.1287/mnsc.44.12.S221; Chen, Operations Research 48(3), 2000, 376-389, DOI 10.1287/opre.48.3.376.12427; Puterman, Markov Decision Processes, 1994, Chapter 4
+source crosswalk: model and event order section 2 pages 4-5; stationary cost equations (3) and (9) pages 7 and 10; shortfall equations (10)-(12) pages 10-11; forward differences equations (13)-(14) pages 11-12; discrete weak/strict inequalities (17)-(21) pages 13-14; Q=1 relation S=R+1 page 15; continuous equality (22) page 16
+source assumptions: serial N-stage periodic review, integer-ratio batches, iid nonnegative discrete demand with positive mean and Pr(D=1)>0, deterministic lead times, complete backlog, positive echelon holding and backlog costs, centralized infinite-horizon average-cost control
+implemented execution fragment: two stages, L1=0, configurable positive L2, exact finite horizon, conditioned finite geometric demand
+scope boundary: Chen's infinite-horizon echelon-stock (R,nQ) optimality result is not transferred to the finite-horizon oracle
+scope boundary: no generic N-stage, unbounded-demand accuracy, average-reward convergence, continuous-demand equality, or unbounded minimizer claim
+repository-authored fixture: parameters and numeric results below are not a published table
+event timing: choose physical release q1 and external order q2; receive the known due stage-2 batch; release q1; observe one demand; assess end-of-period cost paired with the same successor
+action constraints: q1 is a Q1 multiple with 0<=q1<=x2+a0; q2 is a Q2 multiple with at most externalBatchCap batches; Q2=n*Q1
+positions: IP1=x1; IP2=x1+x2+sum(pipeline); order(y,R,Q)=0 for y>R and Q*(1+(R-y) div Q) otherwise
+successor: x2'=x2+a0-q1; x1'=x1+q1-D; pipeline'=tail(pipeline)++[q2]
+cost: h2*x2'+(h1+h2)*max(x1',0)+p*max(-x1',0)
+terminal convention: no action and zero payoff after the final transition; pipeline has no terminal salvage
+boundary behavior: complete reachable closure, no state clamping, no redirected successor
+primary parameters: horizon=3, L1=0, L2=2, Q1=1, Q2=2, externalBatchCap=2, demandCap=3, h1=1/1, h2=1/1, p=4/1, stateBudget=500000, stateActionBudget=20000000, solverWorkBudget=2000000000, gridBudget=1000, convolutionBudget=2000000
+widened action/grid parameters: horizon=3, L1=0, L2=2, Q1=1, Q2=2, externalBatchCap=3, demandCap=3, h1=1/1, h2=1/1, p=4/1, stateBudget=500000, stateActionBudget=20000000, solverWorkBudget=2000000000, gridBudget=1000, convolutionBudget=2000000
+demand-widened parameters: horizon=3, L1=0, L2=2, Q1=1, Q2=2, externalBatchCap=2, demandCap=4, h1=1/1, h2=1/1, p=4/1, stateBudget=500000, stateActionBudget=20000000, solverWorkBudget=2000000000, gridBudget=1000, convolutionBudget=2000000
+initial state: FixedBatchState {fixedBatchPeriodsRemaining = 3, fixedBatchStage1NetInventory = 0, fixedBatchStage2OnHand = 2, fixedBatchPipeline = [0,0]}
+conditioned demand: 0:8/15, 1:4/15, 2:2/15, 3:1/15
+retained one-period mass: 15/16
+omitted one-period mass: 1/16
+path exceedance probability: 721/4096
+truncation boundary: omitted mass and widened-demand deltas are not value-error bounds
+primary state layout cardinality: 1000
+primary action layout cardinality: 21
+primary state-action count: 2493
+primary reorder grid: [ReorderLevels {fixedBatchR1 = -2, fixedBatchR2 = -2},ReorderLevels {fixedBatchR1 = -2, fixedBatchR2 = -1},ReorderLevels {fixedBatchR1 = -2, fixedBatchR2 = 0},ReorderLevels {fixedBatchR1 = -2, fixedBatchR2 = 1},ReorderLevels {fixedBatchR1 = -2, fixedBatchR2 = 2},ReorderLevels {fixedBatchR1 = -2, fixedBatchR2 = 3},ReorderLevels {fixedBatchR1 = -2, fixedBatchR2 = 4},ReorderLevels {fixedBatchR1 = -1, fixedBatchR2 = -2},ReorderLevels {fixedBatchR1 = -1, fixedBatchR2 = -1},ReorderLevels {fixedBatchR1 = -1, fixedBatchR2 = 0},ReorderLevels {fixedBatchR1 = -1, fixedBatchR2 = 1},ReorderLevels {fixedBatchR1 = -1, fixedBatchR2 = 2},ReorderLevels {fixedBatchR1 = -1, fixedBatchR2 = 3},ReorderLevels {fixedBatchR1 = -1, fixedBatchR2 = 4},ReorderLevels {fixedBatchR1 = 0, fixedBatchR2 = -2},ReorderLevels {fixedBatchR1 = 0, fixedBatchR2 = -1},ReorderLevels {fixedBatchR1 = 0, fixedBatchR2 = 0},ReorderLevels {fixedBatchR1 = 0, fixedBatchR2 = 1},ReorderLevels {fixedBatchR1 = 0, fixedBatchR2 = 2},ReorderLevels {fixedBatchR1 = 0, fixedBatchR2 = 3},ReorderLevels {fixedBatchR1 = 0, fixedBatchR2 = 4},ReorderLevels {fixedBatchR1 = 1, fixedBatchR2 = -2},ReorderLevels {fixedBatchR1 = 1, fixedBatchR2 = -1},ReorderLevels {fixedBatchR1 = 1, fixedBatchR2 = 0},ReorderLevels {fixedBatchR1 = 1, fixedBatchR2 = 1},ReorderLevels {fixedBatchR1 = 1, fixedBatchR2 = 2},ReorderLevels {fixedBatchR1 = 1, fixedBatchR2 = 3},ReorderLevels {fixedBatchR1 = 1, fixedBatchR2 = 4},ReorderLevels {fixedBatchR1 = 2, fixedBatchR2 = -2},ReorderLevels {fixedBatchR1 = 2, fixedBatchR2 = -1},ReorderLevels {fixedBatchR1 = 2, fixedBatchR2 = 0},ReorderLevels {fixedBatchR1 = 2, fixedBatchR2 = 1},ReorderLevels {fixedBatchR1 = 2, fixedBatchR2 = 2},ReorderLevels {fixedBatchR1 = 2, fixedBatchR2 = 3},ReorderLevels {fixedBatchR1 = 2, fixedBatchR2 = 4},ReorderLevels {fixedBatchR1 = 3, fixedBatchR2 = -2},ReorderLevels {fixedBatchR1 = 3, fixedBatchR2 = -1},ReorderLevels {fixedBatchR1 = 3, fixedBatchR2 = 0},ReorderLevels {fixedBatchR1 = 3, fixedBatchR2 = 1},ReorderLevels {fixedBatchR1 = 3, fixedBatchR2 = 2},ReorderLevels {fixedBatchR1 = 3, fixedBatchR2 = 3},ReorderLevels {fixedBatchR1 = 3, fixedBatchR2 = 4},ReorderLevels {fixedBatchR1 = 4, fixedBatchR2 = -2},ReorderLevels {fixedBatchR1 = 4, fixedBatchR2 = -1},ReorderLevels {fixedBatchR1 = 4, fixedBatchR2 = 0},ReorderLevels {fixedBatchR1 = 4, fixedBatchR2 = 1},ReorderLevels {fixedBatchR1 = 4, fixedBatchR2 = 2},ReorderLevels {fixedBatchR1 = 4, fixedBatchR2 = 3},ReorderLevels {fixedBatchR1 = 4, fixedBatchR2 = 4}]
+finite-horizon oracle return: -10912/1125
+finite-horizon selected constant policy: ReorderLevels {fixedBatchR1 = 1, fixedBatchR2 = 2}
+finite-horizon selected-policy return: -10912/1125
+finite-horizon policy regret: 0/1
+oracle external cap selected: no
+policy external cap clipped: no
+policy physical release clipped: yes
+primary grid boundary selected: no
+checked finite-horizon solver work: 498600
+action/grid widening stable and nonbinding: yes
+widening detail: oracleChanged=no, policyChanged=no, levelsChanged=no, widenedCapSelected=no, widenedGridBinds=no
+widening boundary: finite diagnostics are not proof of an unbounded optimum
+demand-cap oracle-return delta: -35064608/33514875
+demand-cap policy-return delta: -35064608/33514875
+demand-cap regret delta: 0/1
+demand-cap selected levels changed: no
+demand-cap omitted mass change: 1/16 -> 1/32
+--- separate stationary newsvendor section ---
+stationary scope: exact finite sums for equations (9)-(14) and discrete inequalities (17)-(21), searched only on the reported Cartesian domain
+stationary Cartesian domain: R1=[-2,-1,0,1,2,3,4], R2=[-2,-1,0,1,2,3,4], semantics=R1×R2
+stationary selected levels: ReorderLevels {fixedBatchR1 = 1, fixedBatchR2 = 2}
+stationary subsystem C1: 5/3
+stationary subsystem C2: 814/225
+stationary forward differences: c1=3/5, c2=68/125
+stationary subsystem-1 inequality: Pr(B0=0)=14/15, rhs=5/6, weak=yes, strict=yes
+stationary subsystem-2 inequality: Pr(B0=0)=928/1125, rhs=826/1125, weak=yes, strict=yes
+stationary weak/strict witnesses: R1=(Just 1,Just 1), R2=(Just 2,Just 2)
+stationary domain boundary witness: no
+stationary checked generated finite-law terms: 496
+demand-widened stationary Cartesian domain: R1=[-2,-1,0,1,2,3,4], R2=[-2,-1,0,1,2,3,4], semantics=R1×R2
+demand-widened stationary selected levels: ReorderLevels {fixedBatchR1 = 1, fixedBatchR2 = 2}
+demand-widened stationary C2: 123398/29791
+demand-cap stationary C2 delta: 3514676/6702975
+demand-widened stationary subsystem-1 inequality: Pr(B0=0)=28/31, rhs=5/6, weak=yes, strict=yes
+demand-widened stationary subsystem-2 inequality: Pr(B0=0)=22528/29791, rhs=21178/29791, weak=yes, strict=yes
+demand-widened stationary weak/strict witnesses: R1=(Just 1,Just 1), R2=(Just 2,Just 2)
+--- checked finite/stationary separation witness ---
+separation parameters: horizon=2, L1=0, L2=2, Q1=1, Q2=2, externalBatchCap=2, demandCap=2, h1=1/1, h2=1/1, p=4/1, stateBudget=500000, stateActionBudget=20000000, solverWorkBudget=2000000000, gridBudget=1000, convolutionBudget=2000000
+separation finite-policy grid axes: R1=[-4,-3,-2,-1,0,1,2,3,4,5,6,7], R2=[-4,-3,-2,-1,0,1,2,3,4,5,6,7]
+separation stationary Cartesian domain: R1=[-4,-3,-2,-1,0,1,2,3,4,5,6,7], R2=[-4,-3,-2,-1,0,1,2,3,4,5,6,7], semantics=R1×R2
+separation witness: finite-horizon selected levels ReorderLevels {fixedBatchR1 = 0, fixedBatchR2 = -4}; stationary selected levels ReorderLevels {fixedBatchR1 = 0, fixedBatchR2 = 1}
+stationary boundary: Theorem 1 concerns the source stationary model; this finite conditioned-law calculation does not establish the continuous equality in Theorem 2

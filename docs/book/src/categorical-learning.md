@@ -147,13 +147,17 @@ then
 
 The reverse pass is compositional because the chain rule is compositional. A category with a reverse-derivative operation axiomatizes this behavior without committing to one tensor library or tape representation.
 
-### The bounded typed interpreter
+### The bounded typed interpreters
 
 `Markovian.Backend.Neural.Reverse` implements this chain rule for a small framework-independent fragment. `ParametricReverseCircuit error scalar p pBar x xBar y yBar` keeps every primal, cotangent, and common scalar type explicit. A primitive supplies cotangent-space witnesses and returns its primal output with a pullback captured at that point.
 
 Sequential composition combines independent parameter objects as `(p, q)` and returns cotangents `(pBar, qBar)`. `tensorReverseCircuit` does the same for independent inputs. `pairReverseCircuit` sends one input to two branches and uses the declared cotangent addition for the reverse input diagonal. `shareParametersReverseCircuit` does the same for a parameter diagonal.
 
-A `CotangentSpace` declares zero, checked addition, scalar multiplication, and exact or documented approximate equality. Addition must form a commutative monoid, scalar multiplication must satisfy the module laws, and primitive pullbacks must preserve zero and addition and be homogeneous over the same scalar type. The module does not infer or prove these laws. Exact `Rational` fixtures test the module and VJP laws, identities, composition, diagonals, and failures. Nonlinear `Double` composition and diagonal fixtures use the central-difference tolerance in D-052. The interpreter has no optimizer, tape, tensor, device, or stochastic-estimator semantics.
+`Markovian.Backend.Neural.Reverse.Program` adds a finite acyclic syntax over a caller-owned primitive GADT. Its only nodes are primitive, identity, composition, tensor, shared-input pairing, and shared-parameter tensor. Each primitive has structural parameter ownership and declared finite primal and cotangent layouts. Preparation checks node, primitive, depth, owner, primal-layout, and cotangent-layout limits. It rejects duplicate independent owners and mismatched shared ownership.
+
+A prepared program returns an opaque, typed, self-contained tape. A primitive either stores its forward captured pullback or supplies a distinct typed recomputation operation. A recomputed tape retains immutable parameters and input and compares the supplied operation's output under the declared exact or approximate relation before reverse use. This two-policy interpreter is not a checkpoint scheduler and does not implement Revolve.
+
+A `CotangentSpace` declares zero, checked addition, scalar multiplication, validation, and exact or documented approximate equality. Program preparation also requires a finite layout and a module-owner key. Addition must form a commutative monoid, scalar multiplication must satisfy the module laws, and primitive pullbacks must preserve zero and addition and be homogeneous over the same scalar type. The modules do not infer or prove these laws. Exact `Rational` fixtures test representative module, VJP, composition, tensor, diagonal, tape, ownership, and layout laws. One heterogeneous nonlinear `Double` program checks every input and parameter coordinate under both tape policies with the central-difference tolerance in D-052. These interpreters have no optimizer, tensor runtime, device, stochastic-estimator, recursion, or general automatic-differentiation semantics.
 
 ## Four meanings of “adjoint” or “reverse”
 
@@ -311,9 +315,9 @@ the composite reverse derivative simplifies to
 \frac{\partial\mathcal{L}}{\partial z_j}=q_j-p_j.
 \\]
 
-This fusion is both a proof and an optimization. A backend need not materialize the softmax Jacobian and then multiply it by a loss gradient. It can compute `q - p` directly, with improved cost and usually improved numerical behavior.
+For finite real logits, this algebraic formula permits an implementation that does not materialize the softmax Jacobian. `crossEntropyPredictionGradient` computes `q - p` in checked `Double` arithmetic. The floating implementation is approximate: it has no exact circuit certificate and makes no universal cost or stability claim.
 
-`crossEntropyPredictionGradient` implements this fused rule. A finite-difference fixture checks it against the unfused scalar objective.
+Fixtures compare it with an explicit Jacobian VJP, every coordinate's central difference, and a common finite-logit shift. They reject malformed and non-finite inputs. An extreme-logit fixture records the boundary where exponentiation underflows: the fused result remains finite while the explicitly formed loss-gradient/Jacobian path encounters non-finite intermediate values. This fixture is evidence for the represented inputs, not a universal numerical theorem.
 
 ## Score-function gradients for stochastic nodes
 
@@ -448,7 +452,7 @@ Acyclic probabilistic elimination stores a live frontier of random variables. Re
 
 ### Exact support can constrain approximate optimization
 
-An exact finite channel identifies impossible actions or observations before a floating learner runs. Masks can therefore be compiled from exact support, guaranteeing that softmax normalization and argmax operate only on semantically available actions. This removes one class of invalid exploration and target errors almost for free.
+An exact compiled MDP identifies available actions before a floating learner runs. `markovian-neural-bridge` checks the exact global action layout against an actual policy or dense head and preserves each state's availability order in a sized structural mask. Neural consumers gather available logits or Q-values before softmax or argmax. Terminal states remain explicit. This is a checked adapter contract, not a theorem about arbitrary feature maps or learned policies.
 
 ## Near-term Haskell extensions
 
@@ -456,9 +460,9 @@ The current types support several conservative additions.
 
 1. Extend the implemented typed parametric reverse interpreter only when a new primitive has forward, input-VJP, parameter-VJP, and numerical-equality evidence.
 2. **A checked optimizer state** separate from the differentiated program.
-3. **A graph-cost interpreter** over `CircuitAlgebra` that counts primitive work, copied values, and maximum live width before execution.
-4. **A rewrite certificate** recording which deterministic copy, identity, associativity, or fusion law justified an optimization.
-5. **Exact-support-generated masks** for neural policy and DQN examples.
+3. The implemented bounded graph-cost interpreter counts caller-owned primitive work, structural operations, represented layout cardinality, and matrix cells. Its layout metric is not runtime or heap liveness.
+4. The implemented exact checker covers identity, composition reassociation, and deterministic fanout-to-share candidates. Floating fusion remains outside this certificate API.
+5. The implemented exact-support bridge supplies sized policy and DQN masks while preserving package independence.
 6. **Commuting-square differential tests** for every approximate interpreter.
 
 The implemented reverse subset has a fixed small combinator set and is framework-independent. A tensor framework or GPU autodiff backend can implement the same contracts later; it should not define the semantics.

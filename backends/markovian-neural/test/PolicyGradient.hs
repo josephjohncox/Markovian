@@ -95,7 +95,7 @@ linearPolicyFiniteDifference = do
     let parameters = [0.2, -0.4, 0.7, 0.1, -0.3, 0.5]
         features = [1.0, -0.25]
         action = 2
-    mask <- requireRight "policy mask" (mkActionMask [2, 0])
+    mask <- requireRight "policy mask" (mkActionMask 3 [2, 0])
     policy <- requireRight "linear policy" (mkLinearCategoricalPolicy 3 2 parameters)
     analytic <- requireRight "linear policy score" (linearPolicyScoreGradient policy features mask action)
     numerical <-
@@ -157,14 +157,14 @@ rejectionChecks = do
         Left _ -> pure ()
         Right _ -> assert "wrong policy parameter shape was accepted" False
     policy <- requireRight "mask rejection policy" (mkLinearCategoricalPolicy 2 1 [0, 0])
-    onlyFirst <- requireRight "single-action mask" (mkActionMask [0])
+    onlyFirst <- requireRight "single-action mask" (mkActionMask 2 [0])
     case linearPolicyScoreGradient policy [1] onlyFirst 1 of
         Left (PolicyActionNotInMask 1) -> pure ()
         result -> assert ("unavailable policy action was accepted: " ++ show result) False
-    outOfBounds <- requireRight "out-of-bounds mask" (mkActionMask [2])
-    case linearPolicyScoreGradient policy [1] outOfBounds 2 of
-        Left (PolicyActionMaskIndexOutOfBounds 2 2) -> pure ()
-        result -> assert ("out-of-network policy mask was accepted: " ++ show result) False
+    wrongWidth <- requireRight "wrong-width mask" (mkActionMask 3 [2])
+    case linearPolicyScoreGradient policy [1] wrongWidth 2 of
+        Left (PolicyActionMaskWidthMismatch 2 3) -> pure ()
+        result -> assert ("wrong-width policy mask was accepted: " ++ show result) False
 
 expectedReward :: [Double] -> [Double] -> IO Double
 expectedReward logits rewards = do

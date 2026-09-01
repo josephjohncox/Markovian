@@ -39,6 +39,13 @@ import Markovian.Backend.Neural.Dense (
     denseParameterVJP,
     sameDenseTopology,
  )
+import Markovian.Backend.Neural.Mask (
+    ActionMask,
+    ActionMaskError (..),
+    actionMaskIndices,
+    actionMaskWidth,
+    gatherActionMask,
+ )
 import Markovian.Backend.Neural.Numeric (
     NeuralNumericError,
     checkedAdd,
@@ -61,9 +68,7 @@ import Markovian.Backend.Neural.TargetNetwork (
     targetNetworkSnapshot,
  )
 import Markovian.Backend.Neural.Transition (
-    ActionMask,
     NeuralTransition,
-    actionMaskIndices,
     foldSuccessorSnapshot,
     transitionAction,
     transitionActionMask,
@@ -77,7 +82,8 @@ data DQNError
     = InvalidDQNDiscount !Double
     | EmptyDQNBatch
     | DQNOnlineTargetTopologyMismatch
-    | DQNMaskIndexOutOfBounds !Int !Int
+    | DQNMaskWidthMismatch !Int !Int
+    | DQNMaskFailure !ActionMaskError
     | DQNSelectedActionOutOfBounds !Int !Int
     | DQNGradientShapeMismatch !Int !Int
     | DQNDenseFailure !DenseError
@@ -160,7 +166,9 @@ dqnTransitionTarget discount selection online target transition
                 onlineValues <- mapDense (denseForward online successorFeatures)
                 validateMask onlineValues mask
                 (selected, _) <- maskedArgmax onlineValues mask
-                Right (targetValues !! selected)
+                case valueAtIndex selected targetValues of
+                    Nothing -> Left (DQNSelectedActionOutOfBounds selected (length targetValues))
+                    Just value -> Right value
 
 -- | Pre-update detached targets, predictions, mean loss, and mean gradient.
 data DQNBatchEvaluation = DQNBatchEvaluation
@@ -265,23 +273,28 @@ updateDQNBatch config state transitions = do
             }
 
 maskedArgmax :: [Double] -> ActionMask -> Either DQNError (Int, Double)
-maskedArgmax values mask =
-    case actionMaskIndices mask of
-        [] -> Left EmptyDQNBatch -- impossible for a validated mask
-        first : remaining -> Right (foldl choose (first, values !! first) remaining)
+maskedArgmax values mask = do
+    gathered <- mapMask (gatherActionMask mask values)
+    case zip (actionMaskIndices mask) gathered of
+        [] -> Left (DQNMaskFailure EmptyActionMask) -- impossible for a validated mask
+        first : remaining -> Right (foldl choose first remaining)
   where
-    choose best@(_, bestValue) candidate =
-        let candidateValue = values !! candidate
-         in if candidateValue > bestValue then (candidate, candidateValue) else best
+    choose best@(_, bestValue) candidate@(_, candidateValue) =
+        if candidateValue > bestValue then candidate else best
 
 validateMask :: [Double] -> ActionMask -> Either DQNError ()
-validateMask values mask = go (actionMaskIndices mask)
+validateMask values mask
+    | length values == actionMaskWidth mask = Right ()
+    | otherwise = Left (DQNMaskWidthMismatch (length values) (actionMaskWidth mask))
+
+valueAtIndex :: Int -> [value] -> Maybe value
+valueAtIndex requested
+    | requested < 0 = const Nothing
+    | otherwise = go requested
   where
-    outputCount = length values
-    go [] = Right ()
-    go (index : remaining)
-        | index >= outputCount = Left (DQNMaskIndexOutOfBounds index outputCount)
-        | otherwise = go remaining
+    go _ [] = Nothing
+    go 0 (value : _) = Just value
+    go remaining (_ : values) = go (remaining - 1) values
 
 foldGradients :: Int -> [[Double]] -> Either DQNError [Double]
 foldGradients parameterCount = go (replicate parameterCount 0)
@@ -309,3 +322,6 @@ mapDense = either (Left . DQNDenseFailure) Right
 
 mapNumeric :: Either NeuralNumericError value -> Either DQNError value
 mapNumeric = either (Left . DQNNumericFailure) Right
+
+mapMask :: Either ActionMaskError value -> Either DQNError value
+mapMask = either (Left . DQNMaskFailure) Right

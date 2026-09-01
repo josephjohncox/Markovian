@@ -36,7 +36,7 @@ workedUpdate = do
     config <- requireRight "REINFORCE config" (mkReinforceConfig 2 0.5 0.1 0.2)
     policy <- requireRight "REINFORCE policy" (mkLinearCategoricalPolicy 2 1 [0, 0])
     baseline <- requireRight "REINFORCE baseline" (mkLinearValueFunction 1 [0.5])
-    mask <- requireRight "REINFORCE mask" (mkActionMask [0, 1])
+    mask <- requireRight "REINFORCE mask" (mkActionMask 2 [0, 1])
     let steps =
             [ ReinforceStep [1] mask 0 1
             , ReinforceStep [2] mask 1 2
@@ -60,7 +60,7 @@ workedUpdate = do
 finiteDifferenceGradients :: IO ()
 finiteDifferenceGradients = do
     config <- requireRight "finite-difference config" (mkReinforceConfig 2 0.9 0 0)
-    mask <- requireRight "finite-difference mask" (mkActionMask [0, 1])
+    mask <- requireRight "finite-difference mask" (mkActionMask 2 [0, 1])
     let parameters = [0.2, -0.1, -0.3, 0.4]
         baselineParameters = [0.25, -0.5]
         steps =
@@ -106,7 +106,7 @@ boundaryAndFailureChecks :: IO ()
 boundaryAndFailureChecks = do
     config <- requireRight "boundary config" (mkReinforceConfig 1 0.5 0.1 0.1)
     policy <- requireRight "boundary policy" (mkLinearCategoricalPolicy 2 1 [0, 0])
-    mask <- requireRight "boundary mask" (mkActionMask [0, 1])
+    mask <- requireRight "boundary mask" (mkActionMask 2 [0, 1])
     truncatedReturn <-
         requireRight "truncated return" (reinforceReturnToGo config [1] (TruncatedBoundary 4))
     assertVectorClose "truncated bootstrap return" 1e-14 [3] truncatedReturn

@@ -67,15 +67,41 @@ The structural fold preserves identity, composition, tensor, and the supported c
 
 Dense CPU lowering uses this same exact matrix denotation. It does not define a second circuit semantics.
 
-## Deterministic copy rewrite
+## Bounded cost reports
 
-The circuit optimizer can move a deterministic function through copy:
+`interpretCircuitCost` folds all represented syntax with an explicit raw-node limit. A `CircuitCostInterpreter` assigns an owner and `Natural` work charge to each deterministic primitive, stochastic primitive, and quoted table. The framework separately counts structural operations.
+
+```haskell
+report <- interpretCircuitCost limits costInterpreter circuit
+```
+
+Convex choice charges every represented branch. It does not weight work by the convex coefficient. Sharing and fanout use the same elaborations as every other circuit algebra. Owner totals retain first-occurrence order.
+
+`maximumLiveLayoutCardinality` is the largest represented finite-object cardinality encountered by the elaborated fold. It is not heap liveness, live-frontier width, runtime, or asymptotic complexity. `maximumRepresentedMatrixCells` is a separate static bound. Primitive callbacks own their internal termination and resource use.
+
+## Exact deterministic rewrite certificates
+
+For a deterministic map, copy naturality has the supported equation
 
 \\[
 \mathsf{copy}\circ f=(f\otimes f)\circ\mathsf{copy}.
 \\]
 
-The API accepts only deterministic syntax for this rewrite. It rejects a stochastic circuit at the type level.
+The public candidate constructors cover left identity, right identity, composition reassociation, and deterministic fanout changed to one execution followed by output copy.
+
+```haskell
+candidate = deduplicateDeterministicRewrite deterministicCircuit
+checked <- checkDeterministicRewrite rewriteLimits primitives candidate
+comparison <- compareCheckedRewriteCosts costLimits costInterpreter checked
+```
+
+The checker first performs bounded analysis. It then requires equal represented source and target layouts, exact deterministic matrix denotation under the supplied exact primitive interpreter, and equal row-major matrix layout. The final matrix-layout check is a redundant representation assertion that detects checker drift after the endpoint and denotation checks. Candidate and checked-witness constructors are private.
+
+A checked witness certifies only this bounded exact matrix interpretation. It does not certify a floating, approximate, stateful, or different primitive interpreter. Cost comparison follows semantic checking. A certificate can be cost-neutral or more expensive under a caller's declared charges. A lower or zero declared cost cannot authorize a rewrite. `chargedLeafOccurrenceReduction` includes both primitive nodes and quoted deterministic-table nodes.
+
+There is no stochastic deduplication constructor. A stochastic primitive remains excluded even when its current denotation is Dirac. For a fair coin, one execution followed by copy has diagonal support, while two executions have off-diagonal mass.
+
+The neural softmax/cross-entropy fusion is separate checked-`Double` code. Explicit-Jacobian, coordinate finite-difference, finite-shift, malformed-input, and underflow fixtures do not produce an exact circuit certificate.
 
 ## First-order deterministic compiler
 

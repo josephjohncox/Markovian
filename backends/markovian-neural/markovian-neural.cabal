@@ -1,18 +1,22 @@
-cabal-version: 3.0
-name:          markovian-neural
-version:       0.1.0.0
-synopsis:      Framework-independent neural RL references for Markovian
+cabal-version:      3.0
+name:               markovian-neural
+version:            0.1.0.0
+synopsis:           Framework-independent neural RL references for Markovian
 description:
   Checked dense networks, typed parametric reverse circuits, categorical
   information, policy gradients, replay, target networks, and DQN reference
   computations.
 
-category:      Math
-license:       BSD-3-Clause
-license-file:  LICENSE
-author:        Joseph Cox
-maintainer:    joseph@codensity.io
-build-type:    Simple
+category:           Math
+license:            BSD-3-Clause
+license-file:       LICENSE
+author:             Joseph Cox
+maintainer:         joseph@codensity.io
+build-type:         Simple
+extra-source-files:
+  scripts/check-reverse-program-boundary
+  test/compile-fail/ReverseProgramOpacity.hs
+  test/compile-fail/ReverseProgramTypes.hs
 
 flag markovian-integration
   description:
@@ -30,12 +34,14 @@ library
     Markovian.Backend.Neural.Dense
     Markovian.Backend.Neural.DQN
     Markovian.Backend.Neural.Information
+    Markovian.Backend.Neural.Mask
     Markovian.Backend.Neural.Numeric
     Markovian.Backend.Neural.Optimizer
     Markovian.Backend.Neural.Policy
     Markovian.Backend.Neural.Reinforce
     Markovian.Backend.Neural.Replay
     Markovian.Backend.Neural.Reverse
+    Markovian.Backend.Neural.Reverse.Program
     Markovian.Backend.Neural.TargetNetwork
     Markovian.Backend.Neural.Transition
 
@@ -48,6 +54,7 @@ test-suite markovian-neural-test
   type:             exitcode-stdio-1.0
   main-is:          Main.lhs
   other-modules:
+    ActionMask
     ActorCritic
     DenseFiniteDifference
     DQN
@@ -56,6 +63,7 @@ test-suite markovian-neural-test
     PolicyGradient
     Reinforce
     ReplayTarget
+    ReverseProgram
     TestSupport
 
   hs-source-dirs:   test

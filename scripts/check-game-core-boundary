@@ -1,0 +1,50 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+log_file="$(mktemp)"
+trap 'rm -f "${log_file}"' EXIT
+
+project_args=()
+if [[ -f cabal.project && -f cabal.project.ci ]]; then
+  project_args+=(--project-file=cabal.project.ci)
+fi
+
+if cabal exec "${project_args[@]}" -- ghc \
+  -fno-code \
+  -package Markovian \
+  test/compile-fail/GameCoreBoundary.hs >"${log_file}" 2>&1; then
+  echo "Opaque game witnesses or endpoint coercions were accepted." >&2
+  exit 1
+fi
+
+for rejected_operation in \
+  badArenaConstructor \
+  badHistoryConstructor \
+  badPlayConstructor \
+  badStrategyConstructor \
+  badArenaEndpointCoerce \
+  badArenaMoveCoerce \
+  badPlayDomainMoveCoerce \
+  badPlayCodomainPositionCoerce \
+  badPlayCodomainMoveCoerce \
+  badStrategyEndpointCoerce \
+  badStrategyMoveCoerce \
+  badStrategyCodomainCoerce \
+  Arena \
+  LegalHistory \
+  LegalPlay \
+  Strategy; do
+  if ! grep -F "${rejected_operation}" "${log_file}" >/dev/null; then
+    cat "${log_file}" >&2
+    echo "The expected ${rejected_operation} boundary error was absent." >&2
+    exit 1
+  fi
+done
+
+if ! grep -F "Couldn't match type" "${log_file}" >/dev/null; then
+  cat "${log_file}" >&2
+  echo "The fixture did not demonstrate nominal endpoint protection." >&2
+  exit 1
+fi
+
+echo "PASS: game arena, history, play, and strategy opacity and endpoint roles"

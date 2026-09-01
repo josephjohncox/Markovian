@@ -2,6 +2,8 @@
 {-# LANGUAGE GADTs #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE RoleAnnotations #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TupleSections #-}
 {-# LANGUAGE TypeFamilies #-}
 
 {- | Raw typed finite stochastic-circuit syntax.
@@ -42,7 +44,9 @@ module Markovian.Circuit (
     circuitTarget,
     circuitPurity,
     CircuitAlgebra (..),
+    BoundedCircuitFoldError (..),
     foldCircuit,
+    foldCircuitWithNodeLimit,
 ) where
 
 import Data.Kind (Type)
@@ -53,6 +57,7 @@ import Markovian.Category.Finite.Set
 import Markovian.Category.Finite.Set.Internal (FiniteSet (UnsafeFiniteSet))
 import Markovian.Category.Matrix
 import Markovian.Category.Matrix.Deterministic
+import Numeric.Natural (Natural)
 
 -- | Construction provenance for a circuit.
 data Purity = Deterministic | Stochastic
@@ -637,6 +642,157 @@ foldCircuit algebra circuit =
                     interpretedRight <- foldCircuit algebra right
                     parallel <- algebraTensor algebra interpretedLeft interpretedRight
                     algebraCompose algebra copied parallel
+
+{- | Failure of a bounded fold. A raw syntax node is charged before its
+children are inspected, so exhaustion never returns a partial denotation.
+-}
+data BoundedCircuitFoldError error
+    = CircuitFoldNodeLimitExceeded
+        { circuitFoldNodeLimit :: !Natural
+        , circuitFoldFirstExceededNode :: !Natural
+        }
+    | CircuitFoldAlgebraError !error
+    deriving (Eq, Show)
+
+{- | Fold recursive syntax with an explicit raw-node budget.
+
+Traversal is deterministic and left-to-right. The returned count is the number
+of raw syntax constructors visited. Sharing and fanout keep the elaborated
+meanings used by 'foldCircuit'; their derived copy, tensor, and composition
+operations do not consume additional raw-node budget.
+-}
+foldCircuitWithNodeLimit ::
+    forall primitive target error purity source result.
+    Natural ->
+    CircuitAlgebra primitive target error ->
+    Circuit primitive purity source result ->
+    Either
+        (BoundedCircuitFoldError error)
+        (Natural, target purity source result)
+foldCircuitWithNodeLimit limit algebra = foldBounded 0
+  where
+    foldBounded ::
+        Natural ->
+        Circuit primitive innerPurity innerSource innerTarget ->
+        Either
+            (BoundedCircuitFoldError error)
+            (Natural, target innerPurity innerSource innerTarget)
+    foldBounded visited circuit =
+        let next = visited + 1
+         in if next > limit
+                then Left (CircuitFoldNodeLimitExceeded limit next)
+                else case circuit of
+                    IdentityCircuit object ->
+                        (next,) <$> boundedAlgebra (algebraIdentity algebra object)
+                    PrimitiveCircuit purity source target primitive ->
+                        (next,) <$> boundedAlgebra (algebraPrimitive algebra purity source target primitive)
+                    TableCircuit table ->
+                        (next,) <$> boundedAlgebra (algebraDeterministicTable algebra table)
+                    ComposeCircuit _ _ first second -> do
+                        (afterFirst, interpretedFirst) <- foldBounded next first
+                        (afterSecond, interpretedSecond) <- foldBounded afterFirst second
+                        interpreted <- boundedAlgebra (algebraCompose algebra interpretedFirst interpretedSecond)
+                        Right (afterSecond, interpreted)
+                    TensorCircuit _ _ left right -> do
+                        (afterLeft, interpretedLeft) <- foldBounded next left
+                        (afterRight, interpretedRight) <- foldBounded afterLeft right
+                        interpreted <- boundedAlgebra (algebraTensor algebra interpretedLeft interpretedRight)
+                        Right (afterRight, interpreted)
+                    SymmetryCircuit left right _ _ ->
+                        (next,) <$> boundedAlgebra (algebraSymmetry algebra left right)
+                    AssociateCircuit first second third _ _ ->
+                        (next,) <$> boundedAlgebra (algebraAssociate algebra first second third)
+                    UnassociateCircuit first second third _ _ ->
+                        (next,) <$> boundedAlgebra (algebraUnassociate algebra first second third)
+                    LeftUnitorCircuit object _ ->
+                        (next,) <$> boundedAlgebra (algebraLeftUnitor algebra object)
+                    LeftUnitorInverseCircuit object _ ->
+                        (next,) <$> boundedAlgebra (algebraLeftUnitorInverse algebra object)
+                    RightUnitorCircuit object _ ->
+                        (next,) <$> boundedAlgebra (algebraRightUnitor algebra object)
+                    RightUnitorInverseCircuit object _ ->
+                        (next,) <$> boundedAlgebra (algebraRightUnitorInverse algebra object)
+                    CopyCircuit object _ ->
+                        (next,) <$> boundedAlgebra (algebraCopy algebra object)
+                    DiscardCircuit object ->
+                        (next,) <$> boundedAlgebra (algebraDiscard algebra object)
+                    ConvexCircuit _ _ terms -> do
+                        (afterTerms, interpretedTerms) <- foldTerms next terms
+                        interpreted <- boundedAlgebra (algebraConvexChoice algebra interpretedTerms)
+                        Right (afterTerms, interpreted)
+                    WeakenCircuit inner -> do
+                        (afterInner, interpretedInner) <- foldBounded next inner
+                        interpreted <- boundedAlgebra (algebraWeaken algebra interpretedInner)
+                        Right (afterInner, interpreted)
+                    ShareCircuit _ _ inner ->
+                        case circuitPurity inner of
+                            SDeterministic -> do
+                                (afterInner, interpretedInner) <- foldBounded next inner
+                                copied <- boundedAlgebra (algebraCopy algebra (circuitTarget inner))
+                                interpreted <- boundedAlgebra (algebraCompose algebra interpretedInner copied)
+                                Right (afterInner, interpreted)
+                            SStochastic -> do
+                                (afterInner, interpretedInner) <- foldBounded next inner
+                                copied <- boundedAlgebra (algebraCopy algebra (circuitTarget inner))
+                                interpreted <- boundedAlgebra (algebraCompose algebra interpretedInner copied)
+                                Right (afterInner, interpreted)
+                    FanoutCircuit source _ left right ->
+                        case (circuitPurity left, circuitPurity right) of
+                            (SDeterministic, SDeterministic) -> do
+                                copied <- boundedAlgebra (algebraCopy algebra source)
+                                (afterLeft, interpretedLeft) <- foldBounded next left
+                                (afterRight, interpretedRight) <- foldBounded afterLeft right
+                                parallel <- boundedAlgebra (algebraTensor algebra interpretedLeft interpretedRight)
+                                interpreted <- boundedAlgebra (algebraCompose algebra copied parallel)
+                                Right (afterRight, interpreted)
+                            (SDeterministic, SStochastic) -> do
+                                copied <- boundedAlgebra (algebraCopy algebra source)
+                                (afterLeft, interpretedLeft) <- foldBounded next left
+                                (afterRight, interpretedRight) <- foldBounded afterLeft right
+                                parallel <- boundedAlgebra (algebraTensor algebra interpretedLeft interpretedRight)
+                                interpreted <- boundedAlgebra (algebraCompose algebra copied parallel)
+                                Right (afterRight, interpreted)
+                            (SStochastic, SDeterministic) -> do
+                                copied <- boundedAlgebra (algebraCopy algebra source)
+                                (afterLeft, interpretedLeft) <- foldBounded next left
+                                (afterRight, interpretedRight) <- foldBounded afterLeft right
+                                parallel <- boundedAlgebra (algebraTensor algebra interpretedLeft interpretedRight)
+                                interpreted <- boundedAlgebra (algebraCompose algebra copied parallel)
+                                Right (afterRight, interpreted)
+                            (SStochastic, SStochastic) -> do
+                                copied <- boundedAlgebra (algebraCopy algebra source)
+                                (afterLeft, interpretedLeft) <- foldBounded next left
+                                (afterRight, interpretedRight) <- foldBounded afterLeft right
+                                parallel <- boundedAlgebra (algebraTensor algebra interpretedLeft interpretedRight)
+                                interpreted <- boundedAlgebra (algebraCompose algebra copied parallel)
+                                Right (afterRight, interpreted)
+
+    foldTerms ::
+        forall termSource termResult.
+        Natural ->
+        NonEmpty (NonNegativeRational, Circuit primitive 'Stochastic termSource termResult) ->
+        Either
+            (BoundedCircuitFoldError error)
+            (Natural, NonEmpty (NonNegativeRational, target 'Stochastic termSource termResult))
+    foldTerms visited ((coefficient, first) :| remaining) = do
+        (afterFirst, interpretedFirst) <- foldBounded visited first
+        (afterRemaining, interpretedRemaining) <- foldTermList afterFirst remaining
+        Right (afterRemaining, (coefficient, interpretedFirst) :| interpretedRemaining)
+
+    foldTermList ::
+        forall termSource termResult.
+        Natural ->
+        [(NonNegativeRational, Circuit primitive 'Stochastic termSource termResult)] ->
+        Either
+            (BoundedCircuitFoldError error)
+            (Natural, [(NonNegativeRational, target 'Stochastic termSource termResult)])
+    foldTermList visited [] = Right (visited, [])
+    foldTermList visited ((coefficient, circuit) : remaining) = do
+        (afterCircuit, interpreted) <- foldBounded visited circuit
+        (afterRemaining, interpretedRemaining) <- foldTermList afterCircuit remaining
+        Right (afterRemaining, (coefficient, interpreted) : interpretedRemaining)
+
+    boundedAlgebra = either (Left . CircuitFoldAlgebraError) Right
 
 validDomain :: (Eq source) => FiniteSet source -> [(source, target)] -> Bool
 validDomain source entries =

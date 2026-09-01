@@ -36,6 +36,7 @@ CUDA execution is approximate. It does not inherit exact rational circuit laws. 
 
 It implements:
 
+- sized structural action masks with checked gather and positive-zero scatter;
 - stable softmax and log-softmax;
 - analytic categorical Jacobians and selected-action score gradients;
 - entropy, cross entropy, KL divergence, mutual information, and analytic logit gradients;
@@ -84,6 +85,16 @@ For each layer, parameter order is all row-major weights followed by all biases.
 The implementation computes input and parameter vector-Jacobian products manually. Central finite-difference fixtures check every represented derivative with scaled absolute-plus-relative tolerances.
 
 `applySGD` computes every displacement from one pre-update parameter vector. It returns either one complete updated network or an error.
+
+## Finite owned reverse programs
+
+`Markovian.Backend.Neural.Reverse` provides typed `ParametricReverseCircuit` composition for callbacks that return a primal result and captured pullback together. `Markovian.Backend.Neural.Reverse.Program` adds a finite syntax over a caller-owned primitive GADT. It supports only primitive, identity, composition, tensor, shared-input pairing, and shared-parameter tensor.
+
+Every primitive declares structural parameter ownership and finite layouts for parameter, input, output, and all cotangents. Preparation has explicit program node/depth, primitive, owner, extent, and separate layout/ownership structural node/depth limits. Nodes are charged before descent, including zero-extent and owner-free products. Independent products reject repeated owner keys. A shared-parameter node requires the same complete ownership tree in both branches and adds both parameter cotangents.
+
+A successful forward run returns an opaque typed tape. `StoreCapturedPullback` retains the forward primitive's captured pullback. `RecomputePrimitive` requires a distinct typed owner-supplied recomputation operation; the tape retains immutable parameters, input, and output and checks the recomputed output before applying its pullback. A tape takes no separate program argument. Neither policy schedules checkpoints or estimates bytes.
+
+Exact fixtures check representative composition, tensor, symmetry, interchange, and diagonal laws through explicit pair rearrangements. A nonlinear fixture checks every input and parameter coordinate under both tape policies. These fixtures test supplied VJPs. They do not establish automatic differentiation of arbitrary Haskell.
 
 ## Stable categorical operations
 
@@ -150,7 +161,7 @@ The baseline ascent direction for negative half-squared error is:
 \sum_t (G_t-V(s_t))\nabla_w V_w(s_t).
 \\]
 
-Each policy observation carries a nonempty, duplicate-free ordered action mask. Softmax excludes unavailable outputs, and the score gradient is scattered back into global parameter order with zeros for unavailable actions.
+Each policy observation carries a positive complete output width and nonempty, duplicate-free ordered active indices. Softmax gathers available logits before normalization. The score gradient is scattered back into global parameter order with canonical positive `0.0` rows for unavailable actions.
 
 The actor treats the baseline as detached. Actor and baseline gradients use the same pre-update snapshots. The function returns both updated values only after all checks succeed.
 
@@ -220,6 +231,14 @@ A periodic hard schedule synchronizes after a successful post-update count divis
 
 Failed online updates do not call `afterSuccessfulUpdate`. They do not increment the count or trigger synchronization.
 
+## Exact-support bridge
+
+`markovian-neural-bridge` is the only package that imports both the root and neural libraries. It checks a `FiniteActionIndex` against an actual linear-policy or dense-head width. It then compiles each continuing state's exact availability order into a sized `ActionMask`. `SupportMaskLimits` bounds the complete state traversal, cumulative global and local action entries, and a conservative traversal-work charge. Compilation preflights these limits and returns no partial collection after exhaustion.
+
+For global layout `[A,B,C]` and exact local availability `[C,A]`, the bridge produces ordered indices `[2,0]` and flags `[true,false,true]`. It rejects a reordered global layout even when the labelled support is the same. A terminal state produces an explicit terminal result, not an empty all-false mask. Nominal roles prevent `coerce` from relabelling action IDs, finite action indexes, output layouts, or exact support masks.
+
+The bridge performs no rational-to-`Double` conversion and supplies no feature map. The adapter contract is repository-defined. Sutton and Barto §2.8, Mnih and colleagues (2015), and van Hasselt, Guez, and Silver (2016), §4 ground the policy, DQN, and Double-DQN consumers, not this compiler.
+
 ## DQN targets
 
 A `NeuralTransition` stores source features, source action mask, selected action, reward, and one successor snapshot. A terminal snapshot stores a payoff. A continuing snapshot stores successor features and a nonempty ordered action mask.
@@ -241,7 +260,7 @@ Q^{\mathrm{online}}(s',a'),
 y=r+\gamma Q_{\theta^-}(s',a^{\star}).
 \\]
 
-A terminal target is `r + gamma * g`. Maxima range only over the stored mask. Strict greater-than replacement retains the first mask entry on ties.
+A terminal target is `r + gamma * g`. Continuing maxima gather only the stored available outputs. Strict greater-than replacement retains the first ordered active index on ties. Multiplication by Boolean-as-numeric flags is not masking: it can make an unavailable zero exceed negative available Q-values.
 
 ## Atomic DQN batch update
 
@@ -280,4 +299,6 @@ These tests support the implemented finite fixtures. They do not establish conve
 - [Shannon: information theory](references.md#shannon-information-theory)
 - [Perrone: Markov categories and entropy](references.md#perrone-markov-categories-and-entropy)
 - [Cockett and colleagues: reverse derivatives](references.md#cockett-and-colleagues-reverse-derivatives)
+- [Griewank and Walther: evaluating derivatives](references.md#griewank-and-walther-evaluating-derivatives)
+- [Griewank and Walther: Revolve](references.md#griewank-and-walther-revolve)
 - [Higham: floating-point stability](references.md#higham-floating-point-stability)

@@ -1,0 +1,45 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+package_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "${package_dir}"
+
+check_failure() {
+  local fixture="$1"
+  shift
+  local log_file
+  log_file="$(mktemp)"
+  if cabal exec -- ghc \
+    -fno-code \
+    -fmax-errors=100 \
+    -package markovian-neural \
+    "${fixture}" >"${log_file}" 2>&1; then
+    rm -f "${log_file}"
+    echo "Reverse-program boundary fixture unexpectedly compiled: ${fixture}" >&2
+    exit 1
+  fi
+  for expected in "$@"; do
+    if ! grep -F "${expected}" "${log_file}" >/dev/null; then
+      cat "${log_file}" >&2
+      rm -f "${log_file}"
+      echo "Expected reverse-program rejection was absent: ${expected}" >&2
+      exit 1
+    fi
+  done
+  rm -f "${log_file}"
+}
+
+check_failure \
+  test/compile-fail/ReverseProgramOpacity.hs \
+  badProgramConstructor \
+  badTapeConstructor \
+  'does not export'
+
+check_failure \
+  test/compile-fail/ReverseProgramTypes.hs \
+  badIntermediateTypes \
+  badParameterProduct \
+  badTapeProgramMismatch \
+  "Couldn't match type"
+
+echo "PASS: reverse-program constructors, typed intermediates, parameter products, and tape endpoints"

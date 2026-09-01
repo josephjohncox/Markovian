@@ -1,6 +1,7 @@
 module ReplayTarget (tests) where
 
 import Markovian.Backend.Neural (
+    ActionMaskError (..),
     ReplacementMode (..),
     ReplayError (..),
     TargetNetworkError (..),
@@ -38,13 +39,13 @@ replayChecks = do
     case mkReplayBuffer 0 of
         Left (InvalidReplayCapacity 0) -> pure ()
         result -> assert ("zero replay capacity accepted: " ++ show result) False
-    case mkActionMask [] of
+    case mkActionMask 1 [] of
         Left EmptyActionMask -> pure ()
         result -> assert ("empty action mask accepted: " ++ show result) False
-    case mkActionMask [0, 0] of
+    case mkActionMask 1 [0, 0] of
         Left (DuplicateActionIndex 0) -> pure ()
         result -> assert ("duplicate action mask accepted: " ++ show result) False
-    mask <- requireRight "replay mask" (mkActionMask [0])
+    mask <- requireRight "replay mask" (mkActionMask 1 [0])
     case mkTerminalTransition [] mask 0 0 0 of
         Left (EmptyFeatureVector _) -> pure ()
         result -> assert ("empty transition features accepted: " ++ show result) False

@@ -12,7 +12,7 @@ Each route starts with background and ends at the source closest to Markovian's 
 - **Matrix and path algebra:** [Mohri](#mohri-semiring-path-algorithms) → [Droste, Kuich, and Vogler](#droste-kuich-and-vogler-weighted-automata) → [Joyal, Street, and Verity](#joyal-street-and-verity-traced-monoidal-categories)
 - **Open composition:** [Fong and Spivak](#fong-and-spivak-applied-category-theory) → [Fong](#fong-decorated-cospans) → [Baez and Courser](#baez-and-courser-structured-cospans)
 - **Information theory:** [Shannon](#shannon-information-theory) → [Cover and Thomas](#cover-and-thomas-information-theory) → [Baez, Fritz, and Leinster](#baez-fritz-and-leinster-entropy) → [Perrone](#perrone-markov-categories-and-entropy)
-- **Categorical learning:** [Fong, Spivak, and Tuyéras](#fong-spivak-and-tuyeras-backprop) → [Cockett and colleagues](#cockett-and-colleagues-reverse-derivatives) → [Cruttwell and colleagues](#cruttwell-and-colleagues-gradient-learning)
+- **Categorical learning and reverse traces:** [Fong, Spivak, and Tuyéras](#fong-spivak-and-tuyeras-backprop) → [Cockett and colleagues](#cockett-and-colleagues-reverse-derivatives) → [Griewank and Walther](#griewank-and-walther-evaluating-derivatives) → [Cruttwell and colleagues](#cruttwell-and-colleagues-gradient-learning)
 - **Polarity and game semantics:** [Girard](#girard-linear-logic) → [Andreoli](#andreoli-focusing) → [Hyland and Ong](#hyland-and-ong-game-semantics) → [Laurent](#laurent-polarized-games)
 - **Push-pull and compositional games:** [Kozen](#kozen-probabilistic-programs) → [Jacobs and Zanasi](#jacobs-and-zanasi-predicate-state-transformers) → [Riley](#riley-categories-of-optics) → [Ghani and colleagues](#ghani-and-colleagues-compositional-games)
 - **Inventory control examples:** [Clark and Scarf](#clark-and-scarf-multi-echelon-inventory) → [Doğru](#dogru-multi-retailer-inventory) → [Doğru, van Houtum, and de Kok](#dogru-van-houtum-and-de-kok-fixed-batches)
@@ -37,7 +37,7 @@ Chapters 1 and 3 cover categories, functors, natural transformations, limits, an
 
 Saunders Mac Lane. *Categories for the Working Mathematician*. Second edition, Graduate Texts in Mathematics 5, Springer, 1998. [DOI 10.1007/978-1-4757-4721-8](https://doi.org/10.1007/978-1-4757-4721-8).
 
-Chapter VII develops monoidal categories, associators, unitors, coherence, and symmetric monoidal structure. Use it for the categorical laws behind tensor, pentagon, triangle, and symmetry.
+Chapter I §1 states category identities and composition associativity. Chapter VII §§1–2 develops monoidal categories, associators, unitors, and coherence; later parts treat symmetric structure. Use only the assumptions of the cited section for each circuit law.
 
 ### Kelly and Laplaza: compact closed coherence
 
@@ -100,6 +100,18 @@ The paper organizes learners into a symmetric monoidal category and shows how gr
 J. Robin B. Cockett, Geoffrey S. H. Cruttwell, Jonathan Gallagher, Jean-Simon Pacaud Lemay, Benjamin MacAdam, Gordon D. Plotkin, and Dorette Pronk. “Reverse derivative categories.” *Computer Science Logic 2020*, LIPIcs 152, article 18, 2020. [DOI 10.4230/LIPIcs.CSL.2020.18](https://doi.org/10.4230/LIPIcs.CSL.2020.18). [Direct PDF](https://drops.dagstuhl.de/storage/00lipics/lipics-vol152-csl2020/LIPIcs.CSL.2020.18/LIPIcs.CSL.2020.18.pdf).
 
 This paper axiomatizes reverse differentiation and derives reverse chain, copy, and additive-accumulation laws. It is the main reference for interpreting VJPs compositionally without identifying reverse differentiation with inversion.
+
+### Griewank and Walther: evaluating derivatives
+
+Andreas Griewank and Andrea Walther. *Evaluating Derivatives: Principles and Techniques of Algorithmic Differentiation*. Second edition, SIAM, 2008. [DOI 10.1137/1.9780898717761](https://doi.org/10.1137/1.9780898717761).
+
+The book develops forward and reverse accumulation over finite computational traces and explains the storage-versus-recomputation trade-off. Markovian uses it to ground explicit reverse tapes only. The implementation accepts owner-supplied VJPs and does not differentiate arbitrary programs.
+
+### Griewank and Walther: Revolve
+
+Andreas Griewank and Andrea Walther. “Algorithm 799: Revolve: An implementation of checkpointing for the reverse or adjoint mode of computational differentiation.” *ACM Transactions on Mathematical Software* 26(1), 2000, pages 19–45. [DOI 10.1145/347837.347846](https://doi.org/10.1145/347837.347846).
+
+Revolve schedules checkpoints for reverse accumulation under storage constraints. It is a non-implemented contrast: Markovian offers only per-primitive stored-pullback and recomputation policies and makes no checkpoint-optimality claim.
 
 ### Cruttwell and colleagues: gradient learning
 
@@ -173,7 +185,19 @@ Riley gives a general optic construction that includes lenses and prisms and dev
 
 Neil Ghani, Jules Hedges, Viktor Winschel, and Philipp Zahn. “Compositional game theory.” *33rd Annual ACM/IEEE Symposium on Logic in Computer Science*, 2018, pages 472–481. [DOI 10.1145/3209108.3209165](https://doi.org/10.1145/3209108.3209165). [arXiv:1603.04641](https://arxiv.org/abs/1603.04641).
 
-The paper defines open games with strategy sets, play and coplay maps, and context-indexed best-response relations. Sequential and monoidal composition build larger games. Markovian currently has no best-response or equilibrium semantics.
+Definition 3 gives strategy sets, play and coplay maps, and context-indexed best-response relations. Definition 4 gives the decision open game specialized by `exactMaximizingDecision`. Definitions 9, 10, and 12 give sequential composition, strategy-bijection equivalence, and tensor. Theorems 2 and 3 treat simultaneous and sequential pure-strategy games. Section IX leaves mixed strategies and repeated games outside the paper's implemented scope. Markovian specializes these formulas to explicitly bounded finite carriers, preserves decision-site owner support, and enumerates pure contextual equilibria only.
+
+### Nash: non-cooperative games
+
+John F. Nash. “Non-cooperative games.” *Annals of Mathematics* 54(2), 1951, pages 286–295. [DOI 10.2307/1969529](https://doi.org/10.2307/1969529).
+
+Nash proves existence of an equilibrium in mixed strategies for finite games under the paper's assumptions. Markovian cites this result only to explain why matching pennies can lack a pure equilibrium. It implements no mixed strategy or equilibrium-existence theorem.
+
+### Escardo and Oliva: sequential games
+
+Martin Escardó and Paulo Oliva. “Sequential games and optimal strategies.” *Proceedings of the Royal Society A* 467, 2011, pages 1519–1545. [DOI 10.1098/rspa.2010.0471](https://doi.org/10.1098/rspa.2010.0471).
+
+The paper studies optimal strategies for sequential games through selection functions and explicitly distinguishes the stronger sequential objective from ordinary Nash equilibrium behavior. Markovian uses it only to mark the boundary: finite open-game equilibrium enumeration can retain non-credible threats and is not a subgame-perfect or backward-induction solver.
 
 ## Probability kernels, Markov categories, and Bayes
 
@@ -271,25 +295,49 @@ Chapters 9 and 10 explain exact inference, variable elimination, clique trees, a
 
 The executable fixture in `Markovian.Benchmark.Inventory.Serial.Exact` is repository-authored and synthetic. Its conditioned geometric demand, one-period supplier delay, event order, costs, caps, and parameter values are stated in [Bounded serial-inventory benchmark](inventory-control.md). Its exact results apply only to that conditional bounded model.
 
-The fixture is not attributed to any publication. The complete equations, timing, and cost conventions of the named serial model below have not yet been verified against its primary article for executable reproduction. The multi-retailer balance relaxation and fixed-batch equations also remain unimplemented. These citations guide later source verification; they are not provenance for the current synthetic parameter table.
+The synthetic fixture is not attributed to any publication. Separate implementations cover the finite-lattice Section III specialization, the multi-retailer balance relaxation, and the fixed-batch model below. None of those citations supplies provenance for the synthetic parameter table.
 
 ### Clark and Scarf: multi-echelon inventory
 
 Andrew J. Clark and Herbert Scarf. “Optimal policies for a multi-echelon inventory problem.” *Management Science* 6(4), 1960, pages 475–490. [DOI 10.1287/mnsc.6.4.475](https://doi.org/10.1287/mnsc.6.4.475).
 
-Clark and Scarf derive optimal echelon base-stock structure for a serial periodic-review inventory model under their stated demand, lead-time, holding-cost, and shortage-cost assumptions. A Markovian reproduction must encode those timing assumptions explicitly rather than label an arbitrary inventory MDP “Clark--Scarf.”
+Clark and Scarf derive the echelon decomposition for a serial periodic-review inventory model under their stated assumptions. Pages 476--479 state beginning-of-period purchasing, independent demands, complete backlog, linear internal transport, and echelon-stock natural costs. Pages 481--482 define the Section III two-echelon state `(x1,w1,x2)`, two-period downstream and one-period upstream natural lead times, and equations (11)--(15). Pages 483--484 give equations (20), (21), and (26) and Theorems 1--2. Markovian implements only an exact finite-lattice, finite-demand-sum specialization of those equations. The inspected scan at <http://dido.econ.yale.edu/~hes/pub/echelon1.pdf> has SHA-256 `b64d82098b47dffa7cc4b87a4bbc6c833bb90295ccbede0a1897c8af44956239`. The paper supplies no numerical oracle.
+
+### Arrow, Karlin, and Scarf: inventory background
+
+Kenneth J. Arrow, Samuel Karlin, and Herbert Scarf. *Studies in the Mathematical Theory of Inventory and Production*. Stanford University Press, 1958, Chapter 10. [Stanford University Press record](https://www.sup.org/books/economics-and-finance/studies-mathematical-theory-inventory-and-production).
+
+Clark and Scarf cite this chapter for the single-installation lead-time recursion summarized before their multi-echelon construction. Markovian uses the 1960 paper, not this chapter, as the direct source for the two-echelon state and decomposition equations.
 
 ### Dogru: multi-retailer inventory
 
 Mustafa Kemal Doğru. *Optimal Control of One-Warehouse Multi-Retailer Systems: An Assessment of the Balance Assumption*. PhD thesis, Eindhoven University of Technology, 2006. [DOI 10.6100/IR601558](https://doi.org/10.6100/IR601558). [University record](https://research.tue.nl/en/publications/optimal-control-of-one-warehouse-multi-retailer-systems-an-assess/).
 
-The thesis studies centralized periodic-review control of one warehouse and multiple retailers, including the balance assumption, base-stock policies, newsvendor inequalities, and numerical comparisons with dynamic-programming solutions. The balance assumption can permit allocations unavailable in the physical system, so it must be represented as an explicit approximation rather than hidden in a transition kernel.
+The thesis studies centralized periodic-review control of one warehouse and multiple retailers, including the balance assumption, base-stock policies, newsvendor inequalities, and numerical comparisons with dynamic-programming solutions. Equations (2.3)--(2.5) are on printed page 24, and equations (2.6)--(2.7) are on printed page 26; together they define the balance relaxation. Theorem 2.9 on page 30 states the balanced policy class. Section 3.3.4 on page 53 defines the physicalized LB heuristic. Pages 82--87 and equations (4.5)--(4.7) specify the physical timing and allocation constraints. Equation (4.11) on page 92 is the published average-cost objective. Table 4.1 is on page 95, Table 4.3 is on page 98, and the scenario-2 discussion and base stocks are on pages 112--114. These locations supply the implemented scenario row. The balance assumption can permit allocations unavailable in the physical system, so Markovian represents it as an explicit approximation rather than hiding it in a transition kernel.
+
+M. K. Doğru, A. G. de Kok, and G. J. van Houtum. “A numerical study on the effect of the balance assumption in one-warehouse multi-retailer inventory systems.” *Flexible Services and Manufacturing Journal* 21(3--4), 2010, pages 114--147. [DOI 10.1007/s10696-010-9064-1](https://doi.org/10.1007/s10696-010-9064-1).
+
+The journal article supports the later lower-bound and upper-bound numerical study. It does not replace the thesis's Chapter 4 comparison with the physical dynamic-programming optimum.
 
 ### Dogru, van Houtum, and de Kok: fixed batches
 
-M. K. Doğru, G. J. van Houtum, and A. G. de Kok. “Newsvendor equations for optimal reorder levels of serial inventory systems with fixed batch sizes.” *Operations Research Letters* 36(5), 2008, pages 551–556. [DOI 10.1016/j.orl.2008.06.003](https://doi.org/10.1016/j.orl.2008.06.003). [University author copy](https://pure.tue.nl/ws/files/2166749/614894.pdf).
+M. K. Doğru, G. J. van Houtum, and A. G. de Kok. *Newsboy Characterizations for the Optimal Reorder Levels of Multi-Echelon Inventory Systems with Fixed Batch Sizes*. BETA Working Paper 134, Eindhoven University of Technology, 22 February 2005. [University PDF](https://pure.tue.nl/ws/files/2050768/589423.pdf).
 
-The paper relates optimal echelon-stock `(R,nQ)` reorder levels to newsvendor equalities for continuous demand and inequalities for discrete demand under fixed-batch serial-system assumptions. These results provide a second reproducible inventory benchmark distinct from the unbatched Clark--Scarf model.
+Section 2, pages 4--5 states the serial model, integer-ratio batches, initial congruence, iid nonnegative discrete demand, complete backlog, deterministic lead times, positive echelon holding and penalty costs, centralized control, infinite-horizon average-cost objective, and period event order. Equations (3) and (9), pages 7 and 10, define the stationary and subsystem costs. Equations (10)--(14), pages 10--12, define subsystem shortfalls and forward differences. Theorem 1, equations (17)--(21), pages 13--14, gives weak and strict inequalities for discrete demand. Page 15 gives `S=R+1` when all batches equal one. Theorem 2, equation (22), page 16 requires continuous demand and is not implemented.
+
+M. K. Doğru, G. J. van Houtum, and A. G. de Kok. “Newsvendor equations for optimal reorder levels of serial inventory systems with fixed batch sizes.” *Operations Research Letters* 36(5), 2008, pages 551--556. [DOI 10.1016/j.orl.2008.06.003](https://doi.org/10.1016/j.orl.2008.06.003).
+
+Markovian implements a two-stage bounded finite-horizon execution and separate exact finite sums for the stationary subsystem equations. It does not transfer the source's infinite-horizon result to the finite-horizon oracle and does not implement the continuous equality.
+
+### Chen: echelon reorder points
+
+Fangruo Chen. “Echelon reorder points, installation reorder points, and the value of centralized demand information.” *Management Science* 44(12), 1998, pages S221--S234. [DOI 10.1287/mnsc.44.12.S221](https://doi.org/10.1287/mnsc.44.12.S221).
+
+Doğru, van Houtum, and de Kok use Chen's sequential one-dimensional stationary construction and effective reorder points. Markovian uses that result only in the separate stationary evidence module.
+
+Fangruo Chen. “Optimal policies for multi-echelon inventory problems with batch ordering.” *Operations Research* 48(3), 2000, pages 376--389. [DOI 10.1287/opre.48.3.376.12427](https://doi.org/10.1287/opre.48.3.376.12427).
+
+Chen proves an echelon-stock `(R,nQ)` policy result under the paper's infinite-horizon assumptions. That theorem does not establish optimality of Markovian's bounded finite-horizon constant policy.
 
 ### Puterman: Markov decision processes
 
@@ -319,7 +367,7 @@ The paper explains belief states, post-action observation updates, finite-horizo
 
 Richard S. Sutton and Andrew G. Barto. *Reinforcement Learning: An Introduction*. Second edition, MIT Press, 2018. [Official book page and PDF](http://incompleteideas.net/book/the-book-2nd.html).
 
-Chapter 3 defines finite MDPs. Chapter 4 covers dynamic programming. Chapter 6 covers temporal-difference learning, Sarsa, and Q-learning.
+Section 2.8 gives gradient-bandit softmax action probabilities. Chapter 3 defines finite MDPs. Chapter 4 covers dynamic programming. Chapter 6 covers temporal-difference learning, Sarsa, and Q-learning. The softmax formula grounds the neural policy consumer; Markovian's exact-support compiler is a repository adapter contract.
 
 ### Watkins and Dayan: Q-learning
 
@@ -373,7 +421,7 @@ This paper combines deep Q-learning, replay, and a target network. Markovian imp
 
 Hado van Hasselt, Arthur Guez, and David Silver. “Deep reinforcement learning with Double Q-learning.” *Proceedings of the AAAI Conference on Artificial Intelligence* 30(1), 2016. [arXiv:1509.06461](https://arxiv.org/abs/1509.06461). [AAAI paper](https://ojs.aaai.org/index.php/AAAI/article/view/10295).
 
-Double DQN selects the bootstrap action with the online network and evaluates it with the target network. Markovian implements this target rule over an explicit action mask.
+Section 4 defines Double DQN selection with the online network and evaluation with the target network. Markovian implements this target rule over an explicit action mask. The paper does not define Markovian's exact-layout bridge.
 
 ### Lillicrap and colleagues: soft target synchronization
 
@@ -388,6 +436,12 @@ Boris T. Polyak and Anatoli B. Juditsky. “Acceleration of stochastic approxima
 This paper is the primary source for Polyak–Ruppert iterate averaging. That averaging scheme is historically related terminology, but it is not the fixed-coefficient soft target update implemented here.
 
 ## Numerical computation
+
+### Goodfellow, Bengio, and Courville: deep learning
+
+Ian Goodfellow, Yoshua Bengio, and Aaron Courville. *Deep Learning*. MIT Press, 2016. [Publisher book](https://www.deeplearningbook.org/).
+
+Section 6.2.2.3 gives the finite-logit softmax and log-likelihood formulas used to derive the categorical cross-entropy gradient. Markovian uses this only for the formula; checked `Double` execution, underflow behavior, and rejection policy are repository-specific numerical contracts.
 
 ### Higham: floating-point stability
 
@@ -424,4 +478,5 @@ Goldberg gives a practical account of representation, rounding, guard digits, an
 | TD(0), SARSA, Expected SARSA, and Q-learning | Sutton, Rummery–Niranjan, van Seijen and colleagues, Watkins–Dayan |
 | REINFORCE and actor-critic | Williams, Sutton and colleagues, Konda–Tsitsiklis |
 | Replay, DQN, Double DQN, and target updates | Lin, Mnih and colleagues, van Hasselt and colleagues, Lillicrap and colleagues |
+| Finite-logit softmax and cross entropy | Goodfellow–Bengio–Courville §6.2.2.3 |
 | Floating approximation boundaries | Higham Ch. 2, Goldberg |

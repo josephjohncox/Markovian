@@ -4,7 +4,12 @@ set -euo pipefail
 log_file="$(mktemp)"
 trap 'rm -f "${log_file}"' EXIT
 
-if cabal exec --project-file=cabal.project.ci -- ghc \
+project_args=()
+if [[ -f cabal.project && -f cabal.project.ci ]]; then
+  project_args+=(--project-file=cabal.project.ci)
+fi
+
+if cabal exec "${project_args[@]}" -- ghc \
   -fno-code \
   -package Markovian \
   test/compile-fail/AcyclicProofBoundary.hs >"${log_file}" 2>&1; then

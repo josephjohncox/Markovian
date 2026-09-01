@@ -1,3 +1,5 @@
+{-# LANGUAGE RoleAnnotations #-}
+
 -- | One-step Markov decision process interfaces.
 module Markovian.MDP (
     ActionId,
@@ -21,6 +23,8 @@ import Markovian.Probability (FiniteDist)
 import Markovian.Reward (Reward)
 
 -- | The stable identity of an agent choice. It is not a stochastic outcome.
+type role ActionId nominal
+
 newtype ActionId action = ActionId action
     deriving (Eq, Ord, Show)
 

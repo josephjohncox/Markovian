@@ -1,3 +1,5 @@
+{-# LANGUAGE RoleAnnotations #-}
+
 {- | Policy-free finite compilation for exact Markov decision processes.
 
 Compilation validates explicit state and action indexes once, then stores every
@@ -16,6 +18,10 @@ module Markovian.Compile.Exact (
     stateAtIndex,
     FiniteActionIndex,
     finiteActionIndex,
+    finiteActionIndexValues,
+    finiteActionIndexCardinality,
+    sameFiniteActionIndex,
+    sameFiniteActionIndexLayout,
     lookupActionIndex,
     actionAtIndex,
     ExactMDPCompileError (..),
@@ -44,6 +50,7 @@ module Markovian.Compile.Exact (
     stepCompiledExactMRP,
 ) where
 
+import Data.Foldable (foldl')
 import Data.List.NonEmpty (NonEmpty (..))
 import Data.List.NonEmpty qualified as NonEmpty
 import Markovian.MDP (ActionId)
@@ -72,6 +79,7 @@ import Markovian.Probability.Exact (
     exactProbability,
  )
 import Markovian.Reward.Exact (ExactReward)
+import Numeric.Natural (Natural)
 
 -- | A zero-based state position in one compiled model.
 newtype StateIndex = StateIndex Integer
@@ -114,6 +122,8 @@ stateAtIndex (FiniteStateIndex values) (StateIndex requested) =
     valueAtPosition requested (NonEmpty.toList values)
 
 -- | A duplicate-free finite action-ID index. Terminal-only models may use an empty index.
+type role FiniteActionIndex nominal
+
 newtype FiniteActionIndex action = FiniteActionIndex [ActionId action]
     deriving (Eq, Show)
 
@@ -126,6 +136,26 @@ finiteActionIndex values =
     case firstDuplicate values of
         Just duplicate -> Left (DuplicateFiniteIndexValue duplicate)
         Nothing -> Right (FiniteActionIndex values)
+
+-- | Action IDs in represented global layout order.
+finiteActionIndexValues :: FiniteActionIndex action -> [ActionId action]
+finiteActionIndexValues (FiniteActionIndex values) = values
+
+-- | Number of represented global actions, without a machine-sized result.
+finiteActionIndexCardinality :: FiniteActionIndex action -> Natural
+finiteActionIndexCardinality =
+    foldl' (\count _ -> count + 1) 0 . finiteActionIndexValues
+
+-- | Compare labelled action support while ignoring represented order.
+sameFiniteActionIndex :: (Eq action) => FiniteActionIndex action -> FiniteActionIndex action -> Bool
+sameFiniteActionIndex left right =
+    finiteActionIndexCardinality left == finiteActionIndexCardinality right
+        && all (`elem` finiteActionIndexValues right) (finiteActionIndexValues left)
+
+-- | Compare represented global action layout exactly.
+sameFiniteActionIndexLayout :: (Eq action) => FiniteActionIndex action -> FiniteActionIndex action -> Bool
+sameFiniteActionIndexLayout left right =
+    finiteActionIndexValues left == finiteActionIndexValues right
 
 -- | Find one action ID's zero-based index.
 lookupActionIndex :: (Eq action) => FiniteActionIndex action -> ActionId action -> Maybe ActionIndex
