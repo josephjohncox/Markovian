@@ -177,21 +177,12 @@ jobs:
             --package-env="${RUNNER_TEMP}/markovian-doc-environment" \
             --enable-documentation \
             --overwrite-policy=always 2>&1 | tee haddock-install.log
-          python3 scripts/release_tool.py check-haddock-log haddock-install.log
+          python3 scripts/release_tool.py check-haddock-log \
+            haddock-install.log \
+            --sanitized-output haddock-install.checked.log
           python3 scripts/release_tool.py check-haddock-interfaces \
             "${RUNNER_TEMP}/markovian-doc-store"
-          # Reuse the installed dependency interfaces. The validated coverage
-          # log is used only to enforce complete public declaration coverage.
-          cabal --store-dir="${RUNNER_TEMP}/markovian-doc-store" \
-            haddock all -j1 \
-            --project-file=cabal.project.ci \
-            --haddock-hyperlink-source \
-            --haddock-for-hackage \
-            --haddock-options=--no-warnings > haddock-coverage.log 2>&1
-          python3 scripts/release_tool.py check-haddock-log \
-            haddock-coverage.log \
-            --sanitized-output haddock-coverage.checked.log
-          python3 scripts/check-haddock-coverage haddock-coverage.checked.log
+          python3 scripts/check-haddock-coverage haddock-install.checked.log
 
       - name: Build and test the source distribution
         run: |

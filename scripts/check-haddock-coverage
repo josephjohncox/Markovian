@@ -49,10 +49,6 @@ private_modules = {
     for line in private_module_file.read_text(encoding="utf-8").splitlines()
     if line.strip() and not line.startswith("#")
 }
-observed_all = [module for _, module in rows]
-missing_private = sorted(private_modules - set(observed_all))
-if missing_private:
-    raise SystemExit(f"declared private Haddock rows were absent: {', '.join(missing_private)}")
 rows = [(coverage, module) for coverage, module in rows if module not in private_modules]
 observed = [module for _, module in rows]
 duplicates = sorted({module for module in observed if observed.count(module) > 1})

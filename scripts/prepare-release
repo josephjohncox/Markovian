@@ -193,22 +193,12 @@ cabal --store-dir="${stage}/worktree-doc-store" install \
   --enable-documentation \
   --overwrite-policy=always 2>&1 | tee "${stage}/worktree-haddock-install.log"
 python3 scripts/release_tool.py check-haddock-log \
-  "${stage}/worktree-haddock-install.log"
+  "${stage}/worktree-haddock-install.log" \
+  --sanitized-output "${stage}/worktree-haddock-install.checked.log"
 python3 scripts/release_tool.py check-haddock-interfaces \
   "${stage}/worktree-doc-store"
-
-# Run serially so each local dependency interface exists before a dependent
-# package is documented. The coverage log must itself remain warning-free.
-cabal --store-dir="${stage}/worktree-doc-store" haddock all -j1 \
-  --project-file=cabal.project.ci \
-  --haddock-hyperlink-source \
-  --haddock-for-hackage \
-  --haddock-options=--no-warnings > "${stage}/worktree-haddock-coverage.log" 2>&1
-python3 scripts/release_tool.py check-haddock-log \
-  "${stage}/worktree-haddock-coverage.log" \
-  --sanitized-output "${stage}/worktree-haddock-coverage.checked.log"
 python3 scripts/check-haddock-coverage \
-  "${stage}/worktree-haddock-coverage.checked.log"
+  "${stage}/worktree-haddock-install.checked.log"
 
 cabal sdist all --output-directory="${stage}/archives-a"
 cabal sdist all --output-directory="${stage}/archives-b"
@@ -333,22 +323,12 @@ done < release/packages.tsv
     --overwrite-policy=always
 ) 2>&1 | tee "${stage}/archive-haddock.log"
 python3 scripts/release_tool.py check-haddock-log \
-  "${stage}/archive-haddock.log"
+  "${stage}/archive-haddock.log" \
+  --sanitized-output "${stage}/archive-haddock.checked.log"
 python3 scripts/release_tool.py check-haddock-interfaces \
   "${stage}/archive-doc-store"
-(
-  cd "${stage}/unpacked"
-  cabal --store-dir="${stage}/archive-doc-store" haddock all -j1 \
-    --project-file=cabal.project \
-    --haddock-hyperlink-source \
-    --haddock-for-hackage \
-    --haddock-options=--no-warnings
-) > "${stage}/archive-haddock-coverage.log" 2>&1
-python3 scripts/release_tool.py check-haddock-log \
-  "${stage}/archive-haddock-coverage.log" \
-  --sanitized-output "${stage}/archive-haddock-coverage.checked.log"
 python3 scripts/check-haddock-coverage \
-  "${stage}/archive-haddock-coverage.checked.log"
+  "${stage}/archive-haddock.checked.log"
 
 while IFS=$'\t' read -r package_name _package_dir version _dependency_tier; do
   if [[ -z "${package_name}" || "${package_name}" == \#* ]]; then
@@ -427,11 +407,9 @@ rm -rf \
 mv "${stage}/archives-a" "${stage}/archives"
 rm -f \
   "${stage}/archive-haddock.log" \
-  "${stage}/archive-haddock-coverage.log" \
-  "${stage}/archive-haddock-coverage.checked.log" \
+  "${stage}/archive-haddock.checked.log" \
   "${stage}/worktree-haddock-install.log" \
-  "${stage}/worktree-haddock-coverage.log" \
-  "${stage}/worktree-haddock-coverage.checked.log"
+  "${stage}/worktree-haddock-install.checked.log"
 (
   cd "${stage}"
   {

@@ -10,7 +10,7 @@ Release preparation creates checked local artifacts. It does not upload packages
 
 The preparation script requires a full lowercase 40-character commit object ID and a clean worktree at that exact commit. It refuses Hackage credentials and an existing output directory.
 
-The script runs package checks, tests, lower-bound resolution, boundaries, benchmarks, Haddock, and the book check. Its isolated Haddock installation rejects every build and Haddock warning and requires one interface per package. Cabal 3.16 emits a two-line missing-package-list advisory in the scrubbed home even when `active-repositories: :none`; the checker permits only that exact non-build advisory and records it in the log. A separate `--no-warnings` pass measures declaration coverage only. It then creates each source archive twice.
+The script runs package checks, tests, lower-bound resolution, boundaries, benchmarks, Haddock, and the book check. Its warning-enabled Haddock installation uses a fresh store, rejects every build and Haddock warning, requires one interface per package, and requires complete public declaration coverage from the same log. Cabal 3.16 emits a two-line missing-package-list advisory in the scrubbed home even when `active-repositories: :none`; the checker permits only that exact non-build advisory and removes it only from the derived coverage input. It then creates each source archive twice.
 
 The script compares archive bytes before extraction. It rejects traversal, links, duplicate entries, unsafe modes, credential-like names, and size-budget failures. Checked extraction writes regular files and directories only and verifies that the archive bytes did not change after validation.
 
