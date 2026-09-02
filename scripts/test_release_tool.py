@@ -197,10 +197,32 @@ class ReleaseToolTests(unittest.TestCase):
             release_tool.Component("benchmark", "demo", "speed", ("+slow-evidence",)),
         ]
         text = release_tool.archive_project_text(components)
+        self.assertIn("active-repositories: :none", text)
         self.assertIn("package *\n  ghc-options: -Werror\n  tests: True\n  benchmarks: True", text)
         self.assertIn("package markovian-neural\n  flags: +markovian-integration", text)
         self.assertIn("package demo\n  flags: +slow-evidence", text)
         self.assertEqual(text, release_tool.archive_project_text(list(reversed(components))))
+
+    def test_haddock_log_allows_only_exact_offline_cabal_advisory(self) -> None:
+        log = self.root / "haddock.log"
+        log.write_text("documentation complete\n", encoding="utf-8")
+        release_tool.check_haddock_log(log)
+        log.write_text(
+            "\n".join(release_tool.ALLOWED_CABAL_NO_INDEX_ADVISORY) + "\n",
+            encoding="utf-8",
+        )
+        release_tool.check_haddock_log(log)
+
+        log.write_text("Warning: missing link destination\n", encoding="utf-8")
+        with self.assertRaisesRegex(release_tool.ReleaseError, "unexpected build or Haddock"):
+            release_tool.check_haddock_log(log)
+
+        log.write_text(
+            release_tool.ALLOWED_CABAL_NO_INDEX_ADVISORY[0] + "\ntruncated\n",
+            encoding="utf-8",
+        )
+        with self.assertRaisesRegex(release_tool.ReleaseError, "unexpected build or Haddock"):
+            release_tool.check_haddock_log(log)
 
     def test_archive_consumer_project_uses_complete_dependency_closure(self) -> None:
         packages = [
@@ -227,6 +249,7 @@ class ReleaseToolTests(unittest.TestCase):
         text = release_tool.archive_consumer_project_text(
             self.root, self.root / "archives", packages, components, "gamma"
         )
+        self.assertIn("active-repositories: :none", text)
         self.assertIn("alpha-0.1.0.0", text)
         self.assertIn("beta-0.1.0.0", text)
         self.assertIn("gamma-0.1.0.0", text)

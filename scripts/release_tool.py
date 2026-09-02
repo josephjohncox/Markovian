@@ -26,6 +26,10 @@ MAX_COMPONENTS = 128
 MAX_ENTRIES = 4096
 MAX_COMPRESSED_BYTES = 16 * 1024 * 1024
 MAX_UNPACKED_BYTES = 64 * 1024 * 1024
+ALLOWED_CABAL_NO_INDEX_ADVISORY = (
+    "Warning: The package list for 'hackage.haskell.org' does not exist. Run 'cabal",
+    "update' to download it.",
+)
 REQUIRED_FIELDS = (
     "synopsis",
     "description",
@@ -366,6 +370,7 @@ def archive_project_text(components: list[Component]) -> str:
     lines = [
         "packages: *",
         "write-ghc-environment-files: never",
+        "active-repositories: :none",
         "",
         "package *",
         "  ghc-options: -Werror",
@@ -449,6 +454,7 @@ def archive_consumer_project_text(
         "packages:",
         *(f"  {path}" for path in paths),
         "write-ghc-environment-files: never",
+        "active-repositories: :none",
         "",
         "package *",
         "  ghc-options: -Werror",
@@ -685,6 +691,32 @@ def check_haddock_interfaces(store: Path, packages: list[Package]) -> None:
             raise ReleaseError(
                 f"expected one Haddock interface for {package.name}, found {len(matches)}"
             )
+
+
+def check_haddock_log(path: Path) -> None:
+    try:
+        lines = path.read_text(encoding="utf-8").splitlines()
+    except OSError as error:
+        raise ReleaseError(f"cannot read Haddock log {path}: {error}") from error
+
+    unexpected: list[tuple[int, str]] = []
+    index = 0
+    while index < len(lines):
+        if lines[index] == ALLOWED_CABAL_NO_INDEX_ADVISORY[0]:
+            if (
+                index + 1 < len(lines)
+                and lines[index + 1] == ALLOWED_CABAL_NO_INDEX_ADVISORY[1]
+            ):
+                index += 2
+                continue
+            unexpected.append((index + 1, lines[index]))
+        elif re.search(r"(^|\s)warning:", lines[index], re.IGNORECASE):
+            unexpected.append((index + 1, lines[index]))
+        index += 1
+
+    if unexpected:
+        details = "; ".join(f"{number}:{line}" for number, line in unexpected)
+        raise ReleaseError(f"unexpected build or Haddock warnings in {path}: {details}")
 
 
 def cabal_field(text: str, field: str) -> str | None:
@@ -1328,6 +1360,11 @@ def main(argv: list[str] | None = None) -> int:
     haddock.add_argument("store", type=Path)
     haddock.add_argument("--manifest", type=Path, default=Path("release/packages.tsv"))
 
+    haddock_log = sub.add_parser(
+        "check-haddock-log", help="reject build and Haddock warnings in an installation log"
+    )
+    haddock_log.add_argument("log", type=Path)
+
     validate = sub.add_parser("validate-archive", help="validate one source archive")
     validate.add_argument("archive", type=Path)
     validate.add_argument("--name", required=True)
@@ -1425,6 +1462,9 @@ def main(argv: list[str] | None = None) -> int:
             packages = parse_manifest(args.manifest)
             check_haddock_interfaces(args.store, packages)
             print(f"Haddock interfaces validated for {len(packages)} packages")
+        elif args.command == "check-haddock-log":
+            check_haddock_log(args.log)
+            print(f"Haddock installation log validated: {args.log}")
         elif args.command == "validate-archive":
             info = validate_archive(
                 args.archive,

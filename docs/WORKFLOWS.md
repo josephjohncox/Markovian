@@ -213,7 +213,7 @@ Run the supported compiler matrix in CI. Record each compiler and package-plan r
 
 ### 4.5 Public API changes
 
-Also run the two-stage documentation gate used by CI and `scripts/prepare-release`: an isolated `cabal install --lib --enable-documentation` into a fresh store must emit no warnings and must produce one interface per manifest package. A separate `cabal haddock all --haddock-options=--no-warnings` pass is used only with `scripts/check-haddock-coverage` to measure declaration coverage. Warning suppression is not warning-free evidence.
+Also run the two-stage documentation gate used by CI and `scripts/prepare-release`: an isolated `cabal install --lib --enable-documentation` into a fresh store must emit no build or Haddock warnings and must produce one interface per manifest package. In its scrubbed home, Cabal 3.16 emits a two-line missing-package-list advisory even with `active-repositories: :none`; the checker permits only that exact non-build advisory and retains it in the log. A separate `cabal haddock all --haddock-options=--no-warnings` pass is used only with `scripts/check-haddock-coverage` to measure declaration coverage. Warning suppression is not warning-free Haddock evidence.
 
 Compile all README examples. Review the exposed module list and package metadata. The unreleased package may break incorrect interfaces without a compatibility phase.
 

@@ -192,10 +192,8 @@ cabal --store-dir="${stage}/worktree-doc-store" install \
   --package-env="${stage}/worktree-doc-environment" \
   --enable-documentation \
   --overwrite-policy=always 2>&1 | tee "${stage}/worktree-haddock-install.log"
-if grep -niE '(^|[[:space:]])warning:' "${stage}/worktree-haddock-install.log"; then
-  echo "isolated worktree Haddock installation emitted warnings" >&2
-  exit 1
-fi
+python3 scripts/release_tool.py check-haddock-log \
+  "${stage}/worktree-haddock-install.log"
 python3 scripts/release_tool.py check-haddock-interfaces \
   "${stage}/worktree-doc-store"
 
@@ -330,10 +328,8 @@ done < release/packages.tsv
     --enable-documentation \
     --overwrite-policy=always
 ) 2>&1 | tee "${stage}/archive-haddock.log"
-if grep -niE '(^|[[:space:]])warning:' "${stage}/archive-haddock.log"; then
-  echo "archive-only Haddock installation emitted warnings" >&2
-  exit 1
-fi
+python3 scripts/release_tool.py check-haddock-log \
+  "${stage}/archive-haddock.log"
 python3 scripts/release_tool.py check-haddock-interfaces \
   "${stage}/archive-doc-store"
 (
@@ -394,6 +390,7 @@ packages:
   .
   ${root_archive}
 write-ghc-environment-files: never
+active-repositories: :none
 EOF
 cabal build all --project-file="${consumer}/cabal.project"
 cabal run markovian-release-example --project-file="${consumer}/cabal.project"

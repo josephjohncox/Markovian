@@ -60,6 +60,8 @@ done
 # the caller's directory makes git and Cabal inspect the mutable source tree.
 grep -Fq '    cd "${checkout}"' "${prepare}"
 grep -Fq "      bash scripts/prepare-release \\" "${prepare}"
+grep -Fq 'check-haddock-log' "${prepare}"
+grep -Fxq 'active-repositories: :none' cabal.project
 if grep -Fq 'bash "${checkout}/scripts/prepare-release"' "${prepare}"; then
   echo "detached preparation must not retain the caller's working directory" >&2
   exit 1

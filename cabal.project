@@ -16,6 +16,7 @@ optional-packages:
   packages/markovian-tensor
   packages/markovian-tensor-reverse
 write-ghc-environment-files: never
+active-repositories: :none
 
 package Markovian
     tests: True
