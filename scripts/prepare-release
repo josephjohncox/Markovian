@@ -209,7 +209,6 @@ python3 scripts/check-haddock-coverage \
 cabal sdist all --output-directory="${stage}/archives-a"
 cabal sdist all --output-directory="${stage}/archives-b"
 
-package_paths=()
 while IFS=$'\t' read -r package_name package_dir version _dependency_tier; do
   if [[ -z "${package_name}" || "${package_name}" == \#* ]]; then
     continue
@@ -233,7 +232,6 @@ while IFS=$'\t' read -r package_name package_dir version _dependency_tier; do
     --revision "${revision}" --epoch "${epoch}" \
     --output "${sbom_path}"
   "${spdx_validator}" --infile "${sbom_path}"
-  package_paths+=("  ${stage}/unpacked/${package_name}-${version}")
 done < release/packages.tsv
 
 archive_count="$(find "${stage}/archives-a" -maxdepth 1 -type f -name '*.tar.gz' -print | wc -l)"
@@ -245,10 +243,6 @@ manifest_count="$(awk -F '\t' '$1 !~ /^#/ && NF == 4 { count += 1 } END { print 
 
 python3 scripts/release_tool.py archive-project \
   --output "${stage}/unpacked/cabal.project"
-for package_path in "${package_paths[@]}"; do
-  package_path="${package_path#  }"
-  rm -f "${package_path}/cabal.project" "${package_path}/cabal.project.local"
-done
 mapfile -t archive_test_targets < <(
   python3 scripts/release_tool.py component-targets --kind test
 )
