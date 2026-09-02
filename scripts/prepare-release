@@ -94,14 +94,17 @@ if (( inside_detached_checkout == 0 )); then
     --root "${checkout}" --revision "${revision}"
   printf '%s\n' 'repository hackage.haskell.org' '  url: https://hackage.haskell.org/' \
     > "${scrub_home}/cabal.config"
-  env \
-    HOME="${scrub_home}" \
-    CABAL_CONFIG="${scrub_home}/cabal.config" \
-    MARKOVIAN_SPDX_VALIDATOR="${repo_root}/.direnv/spdx-tools/bin/pyspdxtools" \
-    PATH="${PATH}" \
-    LC_ALL=C TZ=UTC \
-    bash "${checkout}/scripts/prepare-release" \
-      --revision "${revision}" --output "${output}" --inside-detached-checkout
+  (
+    cd "${checkout}"
+    env \
+      HOME="${scrub_home}" \
+      CABAL_CONFIG="${scrub_home}/cabal.config" \
+      MARKOVIAN_SPDX_VALIDATOR="${repo_root}/.direnv/spdx-tools/bin/pyspdxtools" \
+      PATH="${PATH}" \
+      LC_ALL=C TZ=UTC \
+      bash scripts/prepare-release \
+        --revision "${revision}" --output "${output}" --inside-detached-checkout
+  )
   python3 "${checkout}/scripts/release_tool.py" check-source \
     --root "${checkout}" --revision "${revision}"
   cleanup_checkout

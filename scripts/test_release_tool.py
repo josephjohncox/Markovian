@@ -180,13 +180,15 @@ class ReleaseToolTests(unittest.TestCase):
         root = release_tool.Package("Markovian", Path("."), "0.1.0.0", 0)
         gpu = release_tool.Package("markovian-gpu", Path("gpu"), "0.1.0.0", 2)
         release_tool.check_public_sibling_dependencies(root, set())
-        release_tool.check_public_sibling_dependencies(
-            gpu, {"markovian-tensor", "markovian-tensor-reverse"}
-        )
+        release_tool.check_public_sibling_dependencies(gpu, {"markovian-tensor"})
         with self.assertRaisesRegex(release_tool.ReleaseError, "reviewed graph requires"):
             release_tool.check_public_sibling_dependencies(root, {"markovian-numerical"})
         with self.assertRaisesRegex(release_tool.ReleaseError, "reviewed graph requires"):
-            release_tool.check_public_sibling_dependencies(gpu, {"markovian-tensor"})
+            release_tool.check_public_sibling_dependencies(gpu, set())
+        with self.assertRaisesRegex(release_tool.ReleaseError, "reviewed graph requires"):
+            release_tool.check_public_sibling_dependencies(
+                gpu, {"markovian-tensor", "markovian-tensor-reverse"}
+            )
 
     def test_archive_project_enables_every_manifested_flag(self) -> None:
         components = [

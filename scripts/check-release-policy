@@ -55,6 +55,16 @@ for secret_name in HACKAGE_TOKEN HACKAGE_USERNAME HACKAGE_PASSWORD; do
   grep -Fq "${secret_name}: \"\"" "${workflow}"
 done
 
+# The recursive preparation pass must execute with the detached worktree as
+# its current directory. Invoking the script by absolute path while retaining
+# the caller's directory makes git and Cabal inspect the mutable source tree.
+grep -Fq '    cd "${checkout}"' "${prepare}"
+grep -Fq "      bash scripts/prepare-release \\" "${prepare}"
+if grep -Fq 'bash "${checkout}/scripts/prepare-release"' "${prepare}"; then
+  echo "detached preparation must not retain the caller's working directory" >&2
+  exit 1
+fi
+
 while IFS= read -r action; do
   if [[ ! "${action}" =~ @[0-9a-f]{40}$ ]]; then
     echo "release workflow action is not pinned to a full commit: ${action}" >&2

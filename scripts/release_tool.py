@@ -20,7 +20,6 @@ import tarfile
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path, PurePosixPath
-from typing import Iterable
 
 MAX_PACKAGES = 16
 MAX_COMPONENTS = 128
@@ -57,7 +56,7 @@ EXPECTED_PUBLIC_SIBLING_DEPENDENCIES = {
     "markovian-tensor-reverse": frozenset({"markovian-reverse", "markovian-tensor"}),
     "markovian-safetensors": frozenset({"markovian-tensor"}),
     "markovian-sampling": frozenset({"markovian", "markovian-numerical"}),
-    "markovian-gpu": frozenset({"markovian-tensor", "markovian-tensor-reverse"}),
+    "markovian-gpu": frozenset({"markovian-tensor"}),
     "markovian-neural-bridge": frozenset({"markovian", "markovian-neural"}),
     "markovian-learning": frozenset(
         {"markovian", "markovian-numerical", "markovian-sampling"}
@@ -188,7 +187,12 @@ def parse_manifest(path: Path) -> list[Package]:
             raise ReleaseError(f"{path}:{number}: version must have four numeric components")
         if not tier_text.isdecimal():
             raise ReleaseError(f"{path}:{number}: invalid dependency tier {tier_text!r}")
-        tier = int(tier_text)
+        try:
+            tier = int(tier_text)
+        except ValueError as error:
+            raise ReleaseError(
+                f"{path}:{number}: invalid dependency tier {tier_text!r}"
+            ) from error
         if tier < previous_tier:
             raise ReleaseError(f"{path}:{number}: dependency tiers are not monotone")
         previous_tier = tier
@@ -222,7 +226,13 @@ def check_ci_manifest(packages: list[Package], path: Path) -> None:
         name, directory_text, tier_text = fields
         if not tier_text.isdecimal():
             raise ReleaseError(f"{path}:{number}: invalid dependency tier {tier_text!r}")
-        rows.append((name, Path(directory_text), int(tier_text)))
+        try:
+            tier = int(tier_text)
+        except ValueError as error:
+            raise ReleaseError(
+                f"{path}:{number}: invalid dependency tier {tier_text!r}"
+            ) from error
+        rows.append((name, Path(directory_text), tier))
 
     expected = [(package.name, package.directory, package.tier) for package in packages]
     if rows != expected:
@@ -1022,12 +1032,15 @@ def generate_sbom(info: ArchiveInfo, revision: str, epoch: int) -> dict[str, obj
             handle = tar.extractfile(member)
             if handle is None:
                 raise ReleaseError(f"cannot read archive member for SBOM: {member.name}")
-            sha1 = hashlib.sha1()
+            sha1 = hashlib.sha1(usedforsecurity=False)
             sha256 = hashlib.sha256()
-            for chunk in iter(lambda: handle.read(1024 * 1024), b""):
-                sha1.update(chunk)
-                sha256.update(chunk)
-            handle.close()
+            with handle:
+                while True:
+                    chunk = handle.read(1024 * 1024)
+                    if not chunk:
+                        break
+                    sha1.update(chunk)
+                    sha256.update(chunk)
             verification_hashes.append(sha1.hexdigest())
             relative = member.name.split("/", 1)[1]
             file_id = spdx_id("File", hashlib.sha256(relative.encode("utf-8")).hexdigest()[:24])
@@ -1066,7 +1079,8 @@ def generate_sbom(info: ArchiveInfo, revision: str, epoch: int) -> dict[str, obj
             "filesAnalyzed": True,
             "packageVerificationCode": {
                 "packageVerificationCodeValue": hashlib.sha1(
-                    "".join(sorted(verification_hashes)).encode("ascii")
+                    "".join(sorted(verification_hashes)).encode("ascii"),
+                    usedforsecurity=False,
                 ).hexdigest()
             },
             "checksums": [{"algorithm": "SHA256", "checksumValue": info.sha256}],
@@ -1087,7 +1101,8 @@ def generate_sbom(info: ArchiveInfo, revision: str, epoch: int) -> dict[str, obj
                 "filesAnalyzed": True,
                 "packageVerificationCode": {
                     "packageVerificationCodeValue": hashlib.sha1(
-                        "".join(sorted(mathjax_verification_hashes)).encode("ascii")
+                        "".join(sorted(mathjax_verification_hashes)).encode("ascii"),
+                        usedforsecurity=False,
                     ).hexdigest()
                 },
                 "licenseConcluded": "Apache-2.0",
@@ -1140,10 +1155,13 @@ def archive_semantic_evidence(info: ArchiveInfo) -> list[dict[str, object]]:
                 raise ReleaseError(f"cannot read semantic evidence {member.name}")
             digest = hashlib.sha256()
             size = 0
-            for chunk in iter(lambda: handle.read(1024 * 1024), b""):
-                digest.update(chunk)
-                size += len(chunk)
-            handle.close()
+            with handle:
+                while True:
+                    chunk = handle.read(1024 * 1024)
+                    if not chunk:
+                        break
+                    digest.update(chunk)
+                    size += len(chunk)
             evidence.append(
                 {
                     "path": member.name.split("/", 1)[1],
@@ -1171,7 +1189,10 @@ def generate_artifact_manifest(
         info = validate_archive(archive, package)
         if not sbom.is_file():
             raise ReleaseError(f"missing SBOM for {package.name}: {sbom}")
-        document = json.loads(sbom.read_text(encoding="utf-8"))
+        try:
+            document = json.loads(sbom.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError) as error:
+            raise ReleaseError(f"cannot read SBOM for {package.name}: {error}") from error
         expected_document = generate_sbom(info, revision, epoch)
         if document != expected_document:
             raise ReleaseError(
@@ -1202,7 +1223,7 @@ def generate_artifact_manifest(
         components = parse_components(component_manifest, packages)
         try:
             result_value = json.loads(component_result_path.read_text(encoding="utf-8"))
-        except OSError as error:
+        except (OSError, json.JSONDecodeError) as error:
             raise ReleaseError(f"cannot read component result report: {error}") from error
         validate_component_results(
             result_value, components, component_manifest, component_result_path.parent

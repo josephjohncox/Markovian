@@ -2,13 +2,12 @@
 {-# LANGUAGE GADTs #-}
 
 {- |
-Internal cross-package capability for the closed primitive tape set.
+Internal same-package capability for the closed primitive tape set.
 
-This module exists only so @markovian-tensor-reverse@ can own the public
-"Markovian.Tensor.Reverse" API without reconstructing multi-output VJPs from
-sequential public allocations.  The implementation remains the tensor
-runtime's exception-safe, atomic staged allocator.  Applications must use
-"Markovian.Tensor.Reverse" instead.
+The public "Markovian.Tensor.Reverse" module wraps these implementation types
+so Haddock signatures do not leak private names. The implementation remains
+the tensor runtime's exception-safe, atomic staged allocator. Applications
+must use "Markovian.Tensor.Reverse" instead.
 -}
 module Markovian.Tensor.Internal.Reverse (
     -- | Internal opaque unary tape capability.
