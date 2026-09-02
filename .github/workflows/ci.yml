@@ -177,12 +177,17 @@ jobs:
             --package-env="${RUNNER_TEMP}/markovian-doc-environment" \
             --enable-documentation \
             --overwrite-policy=always 2>&1 | tee haddock-install.log
-          python3 scripts/release_tool.py check-haddock-log \
-            haddock-install.log \
-            --sanitized-output haddock-install.checked.log
+          python3 scripts/release_tool.py check-haddock-log haddock-install.log
           python3 scripts/release_tool.py check-haddock-interfaces \
             "${RUNNER_TEMP}/markovian-doc-store"
-          python3 scripts/check-haddock-coverage haddock-install.checked.log
+          # This warning-suppressed pass is coverage evidence only. The
+          # installation above is the warning-enabled documentation gate.
+          cabal haddock all -j1 \
+            --project-file=cabal.project.ci \
+            --haddock-hyperlink-source \
+            --haddock-for-hackage \
+            --haddock-options=--no-warnings > haddock-coverage.log 2>&1
+          python3 scripts/check-haddock-coverage haddock-coverage.log
 
       - name: Build and test the source distribution
         run: |

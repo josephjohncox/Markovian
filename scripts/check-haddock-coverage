@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Require warning-free, exact public-module declaration coverage."""
+"""Require exact public-module declaration coverage from a dedicated pass."""
 
 from __future__ import annotations
 
@@ -16,9 +16,6 @@ goldens = repository_root / "release" / "exposed-modules"
 private_module_file = repository_root / "release" / "haddock-private-modules.txt"
 
 text = args.log.read_text(encoding="utf-8")
-warning = re.search(r"(?i)(^|\s)warning\s*:", text)
-if warning is not None:
-    raise SystemExit(f"{args.log}: Haddock warning output is not coverage evidence")
 
 expected: list[str] = []
 owners: dict[str, str] = {}
