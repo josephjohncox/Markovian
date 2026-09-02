@@ -204,7 +204,11 @@ cabal haddock all -j1 \
   --haddock-hyperlink-source \
   --haddock-for-hackage \
   --haddock-options=--no-warnings > "${stage}/worktree-haddock-coverage.log" 2>&1
-python3 scripts/check-haddock-coverage "${stage}/worktree-haddock-coverage.log"
+python3 scripts/release_tool.py check-haddock-log \
+  "${stage}/worktree-haddock-coverage.log" \
+  --sanitized-output "${stage}/worktree-haddock-coverage.checked.log"
+python3 scripts/check-haddock-coverage \
+  "${stage}/worktree-haddock-coverage.checked.log"
 
 cabal sdist all --output-directory="${stage}/archives-a"
 cabal sdist all --output-directory="${stage}/archives-b"
@@ -340,7 +344,11 @@ python3 scripts/release_tool.py check-haddock-interfaces \
     --haddock-for-hackage \
     --haddock-options=--no-warnings
 ) > "${stage}/archive-haddock-coverage.log" 2>&1
-python3 scripts/check-haddock-coverage "${stage}/archive-haddock-coverage.log"
+python3 scripts/release_tool.py check-haddock-log \
+  "${stage}/archive-haddock-coverage.log" \
+  --sanitized-output "${stage}/archive-haddock-coverage.checked.log"
+python3 scripts/check-haddock-coverage \
+  "${stage}/archive-haddock-coverage.checked.log"
 
 while IFS=$'\t' read -r package_name _package_dir version _dependency_tier; do
   if [[ -z "${package_name}" || "${package_name}" == \#* ]]; then
@@ -420,8 +428,10 @@ mv "${stage}/archives-a" "${stage}/archives"
 rm -f \
   "${stage}/archive-haddock.log" \
   "${stage}/archive-haddock-coverage.log" \
+  "${stage}/archive-haddock-coverage.checked.log" \
   "${stage}/worktree-haddock-install.log" \
-  "${stage}/worktree-haddock-coverage.log"
+  "${stage}/worktree-haddock-coverage.log" \
+  "${stage}/worktree-haddock-coverage.checked.log"
 (
   cd "${stage}"
   {

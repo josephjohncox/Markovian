@@ -206,12 +206,12 @@ class ReleaseToolTests(unittest.TestCase):
     def test_haddock_log_allows_only_exact_offline_cabal_advisory(self) -> None:
         log = self.root / "haddock.log"
         log.write_text("documentation complete\n", encoding="utf-8")
-        release_tool.check_haddock_log(log)
+        self.assertEqual("documentation complete\n", release_tool.check_haddock_log(log))
         log.write_text(
             "\n".join(release_tool.ALLOWED_CABAL_NO_INDEX_ADVISORY) + "\n",
             encoding="utf-8",
         )
-        release_tool.check_haddock_log(log)
+        self.assertEqual("", release_tool.check_haddock_log(log))
 
         log.write_text("Warning: missing link destination\n", encoding="utf-8")
         with self.assertRaisesRegex(release_tool.ReleaseError, "unexpected build or Haddock"):

@@ -693,12 +693,14 @@ def check_haddock_interfaces(store: Path, packages: list[Package]) -> None:
             )
 
 
-def check_haddock_log(path: Path) -> None:
+def check_haddock_log(path: Path) -> str:
     try:
-        lines = path.read_text(encoding="utf-8").splitlines()
+        text = path.read_text(encoding="utf-8")
     except OSError as error:
         raise ReleaseError(f"cannot read Haddock log {path}: {error}") from error
 
+    lines = text.splitlines()
+    kept: list[str] = []
     unexpected: list[tuple[int, str]] = []
     index = 0
     while index < len(lines):
@@ -712,11 +714,13 @@ def check_haddock_log(path: Path) -> None:
             unexpected.append((index + 1, lines[index]))
         elif re.search(r"(^|\s)warning:", lines[index], re.IGNORECASE):
             unexpected.append((index + 1, lines[index]))
+        kept.append(lines[index])
         index += 1
 
     if unexpected:
         details = "; ".join(f"{number}:{line}" for number, line in unexpected)
         raise ReleaseError(f"unexpected build or Haddock warnings in {path}: {details}")
+    return "\n".join(kept) + ("\n" if kept and text.endswith("\n") else "")
 
 
 def cabal_field(text: str, field: str) -> str | None:
@@ -1364,6 +1368,7 @@ def main(argv: list[str] | None = None) -> int:
         "check-haddock-log", help="reject build and Haddock warnings in an installation log"
     )
     haddock_log.add_argument("log", type=Path)
+    haddock_log.add_argument("--sanitized-output", type=Path)
 
     validate = sub.add_parser("validate-archive", help="validate one source archive")
     validate.add_argument("archive", type=Path)
@@ -1463,7 +1468,9 @@ def main(argv: list[str] | None = None) -> int:
             check_haddock_interfaces(args.store, packages)
             print(f"Haddock interfaces validated for {len(packages)} packages")
         elif args.command == "check-haddock-log":
-            check_haddock_log(args.log)
+            sanitized = check_haddock_log(args.log)
+            if args.sanitized_output is not None:
+                args.sanitized_output.write_text(sanitized, encoding="utf-8")
             print(f"Haddock installation log validated: {args.log}")
         elif args.command == "validate-archive":
             info = validate_archive(
