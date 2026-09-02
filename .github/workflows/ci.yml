@@ -234,8 +234,12 @@ jobs:
             cabal bench "${archive_benchmark_targets[@]}"
           )
           for package_root in sdist-unpacked/*/; do
+            cabal_files=("${package_root}"/*.cabal)
+            if [[ ! -e "${cabal_files[0]}" ]]; then
+              continue
+            fi
             standalone_name="$(
-              awk '/^name:/ { print $2; exit }' "${package_root}"/*.cabal
+              awk '/^name:/ { print $2; exit }' "${cabal_files[0]}"
             )"
             case "${standalone_name}" in
               Markovian|markovian-continuous|markovian-reverse|markovian-tensor)
