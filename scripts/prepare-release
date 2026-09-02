@@ -199,7 +199,7 @@ python3 scripts/release_tool.py check-haddock-interfaces \
 
 # Run serially so each local dependency interface exists before a dependent
 # package is documented. The coverage log must itself remain warning-free.
-cabal haddock all -j1 \
+cabal --store-dir="${stage}/worktree-doc-store" haddock all -j1 \
   --project-file=cabal.project.ci \
   --haddock-hyperlink-source \
   --haddock-for-hackage \
@@ -338,7 +338,7 @@ python3 scripts/release_tool.py check-haddock-interfaces \
   "${stage}/archive-doc-store"
 (
   cd "${stage}/unpacked"
-  cabal haddock all -j1 \
+  cabal --store-dir="${stage}/archive-doc-store" haddock all -j1 \
     --project-file=cabal.project \
     --haddock-hyperlink-source \
     --haddock-for-hackage \
