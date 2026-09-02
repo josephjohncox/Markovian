@@ -9,9 +9,9 @@ import Control.Monad (forM_, unless, when)
 import Data.Proxy (Proxy (..))
 import GHC.TypeLits (KnownNat)
 import Markovian.Tensor
-import Markovian.Tensor.Internal.Reverse
 import Markovian.Tensor.Ownership
 import Markovian.Tensor.Primitive
+import Markovian.Tensor.Reverse
 import Paths_markovian_tensor (getDataFileName)
 import System.Exit (exitFailure)
 
