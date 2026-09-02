@@ -5,7 +5,9 @@ name: Prepare source release artifacts
   workflow_dispatch:
     inputs:
       revision:
-        description: Full 40-character commit object ID to prepare (publication is not included)
+        description: >-
+          Full 40-character commit object ID to prepare
+          (publication is not included)
         required: true
         type: string
 
@@ -33,7 +35,9 @@ jobs:
           set -euo pipefail
           test "${REVISION}" = "${EXPECTED_SHA}"
           [[ "${REVISION}" =~ ^[0-9a-f]{40}$ ]] || {
-            echo "revision must be a full lowercase 40-character commit object ID" >&2
+            message="revision must be a full lowercase 40-character "
+            message+="commit object ID"
+            printf '%s\n' "${message}" >&2
             exit 1
           }
           printf 'revision=%s\n' "${REVISION}" >> "${GITHUB_OUTPUT}"
@@ -73,7 +77,9 @@ jobs:
           set -euo pipefail
           test "${REVISION}" = "${EXPECTED_SHA}"
           [[ "${REVISION}" =~ ^[0-9a-f]{40}$ ]] || {
-            echo "revision must be a full lowercase 40-character commit object ID" >&2
+            message="revision must be a full lowercase 40-character "
+            message+="commit object ID"
+            printf '%s\n' "${message}" >&2
             exit 1
           }
 
@@ -111,8 +117,16 @@ jobs:
           ghc-version: ${{ steps.toolchain.outputs.ghc }}
           cabal-version: ${{ steps.toolchain.outputs.cabal }}
 
-      - name: Install pinned repository tools
-        run: bash scripts/bootstrap-tools
+      - name: Install pinned release tools
+        run: |
+          set -euo pipefail
+          source toolchain.env
+          bash scripts/install-doc-tools
+          python3 -m venv .direnv/spdx-tools
+          .direnv/spdx-tools/bin/python -m pip install \
+            --disable-pip-version-check \
+            "spdx-tools==${MARKOVIAN_SPDX_TOOLS_VERSION}"
+          echo "${PWD}/.direnv/bin" >> "${GITHUB_PATH}"
 
       - name: Prepare without publication credentials
         env:
@@ -158,7 +172,9 @@ jobs:
           set -euo pipefail
           test "${REVISION}" = "${EXPECTED_SHA}"
           [[ "${REVISION}" =~ ^[0-9a-f]{40}$ ]] || {
-            echo "revision must be a full lowercase 40-character commit object ID" >&2
+            message="revision must be a full lowercase 40-character "
+            message+="commit object ID"
+            printf '%s\n' "${message}" >&2
             exit 1
           }
 
@@ -179,7 +195,8 @@ jobs:
           (cd dist-release && sha256sum -c SHA256SUMS)
 
       - name: Attest complete release-bundle provenance
-        # actions/attest v4.2.2; recheck the release and SHA before enabling a publication workflow
+        # actions/attest v4.2.2. Recheck the release and SHA before enabling
+        # a publication workflow.
         uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6
         with:
           subject-path: |
