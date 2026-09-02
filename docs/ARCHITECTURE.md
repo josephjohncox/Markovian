@@ -779,7 +779,7 @@ markovian-learning                tabular updates and bounded episodic runners
 
 `ci/packages.tsv` records public dependency tiers. `release/packages.tsv` adds explicit versions. These manifests do not approve publication.
 
-The root, continuous, continuous numerical, reverse, and tensor libraries depend only on `base`. `markovian-tensor-reverse` depends on tensor and reverse. `markovian-safetensors` depends on tensor and `bytestring`; it does not create an edge into the exact root. `markovian-gpu` depends on tensor and tensor-reverse but exposes no generic reverse-program resolver. Test-only integration edges are separate from public architecture.
+The root, continuous, continuous numerical, reverse, and tensor libraries depend only on `base`. `markovian-tensor-reverse` depends on tensor and reverse. `markovian-safetensors` depends on tensor and `bytestring`; it does not create an edge into the exact root. `markovian-gpu` depends on tensor and its closed tape API but exposes no generic reverse-program resolver. Test-only integration edges are separate from public architecture.
 
 The numerical, dense exact, and exact benchmark libraries depend on the root. Autodiff and neural depend on reverse. Sampling depends on the root and numerical package. The neural bridge depends on root and neural. Learning depends on the root, numerical package, and sampling package.
 

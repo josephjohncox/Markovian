@@ -65,9 +65,8 @@ library
   hs-source-dirs:   src
   other-modules:    Markovian.Backend.GPU.Artifact
   build-depends:
-    , base                      >=4.17.2.1 && <4.20
-    , markovian-tensor          ^>=0.1.0.0
-    , markovian-tensor-reverse  ^>=0.1.0.0
+    , base              >=4.17.2.1 && <4.20
+    , markovian-tensor  ^>=0.1.0.0
 
   default-language: GHC2021
 
