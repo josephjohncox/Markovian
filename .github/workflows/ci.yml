@@ -233,7 +233,7 @@ jobs:
             cabal test "${archive_test_targets[@]}" --test-show-details=direct
             cabal bench "${archive_benchmark_targets[@]}"
           )
-          for package_root in sdist-unpacked/*; do
+          for package_root in sdist-unpacked/*/; do
             standalone_name="$(
               awk '/^name:/ { print $2; exit }' "${package_root}"/*.cabal
             )"
