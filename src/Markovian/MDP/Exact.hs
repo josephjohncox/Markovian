@@ -16,8 +16,8 @@ module Markovian.MDP.Exact (
 ) where
 
 import Data.List.NonEmpty (NonEmpty (..))
-import Markovian.Kernel.Exact (ExactKernel, runExactKernel)
-import Markovian.MDP (ActionId)
+import Markovian.Action (ActionId)
+import Markovian.Kernel.Exact (ExactKernel, ExactKernelError, runExactKernel)
 import Markovian.Probability.Exact (ExactFiniteDist)
 import Markovian.Reward.Exact (ExactReward)
 
@@ -30,7 +30,9 @@ data ExactStateStatus
 -- | One exact transition reward paired with its successor state.
 data ExactTransitionOutcome state = ExactTransitionOutcome
     { exactTransitionReward :: !ExactReward
+    -- ^ Reward emitted by this transition.
     , exactSuccessorState :: !state
+    -- ^ State reached by the same sampled transition.
     }
     deriving (Eq, Show)
 
@@ -50,6 +52,7 @@ data ExactModelError action
     | DuplicateExactModelAction !(ActionId action)
     | ExactActionRequestedAtTerminal !ExactReward
     | ExactUnavailableAction !(ActionId action)
+    | ExactModelKernelError !ExactKernelError
     deriving (Eq, Show)
 
 -- | A generative exact one-step MDP.
@@ -88,7 +91,10 @@ exactMDP initial status available transition = ExactMDP initial status inspect s
             Left err -> Left err
             Right (ExactTerminalDecision payoff) -> Left (ExactActionRequestedAtTerminal payoff)
             Right (ExactActionDecision choices)
-                | selected `elem` choices -> Right (runExactKernel transition (state, selected))
+                | selected `elem` choices ->
+                    case runExactKernel transition (state, selected) of
+                        Left problem -> Left (ExactModelKernelError problem)
+                        Right distribution -> Right distribution
                 | otherwise -> Left (ExactUnavailableAction selected)
 
     firstDuplicate [] = Nothing

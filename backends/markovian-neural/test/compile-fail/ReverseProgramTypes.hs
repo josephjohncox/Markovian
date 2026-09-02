@@ -1,7 +1,7 @@
 module ReverseProgramTypes where
 
-import Markovian.Backend.Neural.Reverse
-import Markovian.Backend.Neural.Reverse.Program
+import Markovian.Reverse
+import Markovian.Reverse.Program
 
 data Primitive parameter parameterCotangent input inputCotangent output outputCotangent
 

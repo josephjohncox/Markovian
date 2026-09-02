@@ -2,6 +2,14 @@
 
 The repository keeps durable command evidence for hardware-specific and proof-boundary claims.
 
+## D-061 package-boundary evidence
+
+[D-061 implementation evidence for 2026-09-02](https://github.com/josephjohncox/Markovian/blob/main/docs/evidence/D061-2026-09-02.md) records the root topology checks, package and component counts, exact bind boundaries, source-archive ownership, and the unpacked 14-package test result. It is historical local implementation evidence. It does not accept D-061 or replace hosted release gates.
+
+[Integration and documentation repair evidence](https://github.com/josephjohncox/Markovian/blob/main/docs/evidence/INTEGRATION-DOCS-REPAIR.md) records the checked 16-package graph, 18-suite and 11-benchmark manifest, GHC 9.8.4 suite run, bounded archive validation, one isolated GPU dependency-closure run, and the gates that remain open. It does not accept a decision or establish release readiness.
+
+[Tensor allocation and SafeTensors repair evidence](https://github.com/josephjohncox/Markovian/blob/main/docs/evidence/TENSOR-SAFETENSORS-REPAIR.md) records deterministic allocation-fault, malformed-corpus, raw-IEEE, canonical-byte, boundary, and two-package unpacked-archive results for the dirty 16-package overlay. It does not accept D-072 or D-073 or replace complete release evidence.
+
 ## CUDA evidence
 
 [CUDA evidence for 2026-08-26](https://github.com/josephjohncox/Markovian/blob/main/docs/evidence/CUDA-2026-08-26.md) records:

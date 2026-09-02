@@ -1,0 +1,5 @@
+Markovian.Tensor
+Markovian.Tensor.Ownership
+Markovian.Tensor.Primitive
+Markovian.Tensor.Reverse
+Markovian.Tensor.Shape

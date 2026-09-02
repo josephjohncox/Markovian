@@ -1,0 +1,142 @@
+cabal-version:      3.4
+name:               markovian-exact-benchmarks
+version:            0.1.0.0
+synopsis:           Exact finite benchmark fixtures for Markovian
+description:
+  Domain fixtures, deterministic reports, and executable semantic benchmark
+  checks for exact finite inventory and game models.
+
+category:           Math
+homepage:           https://github.com/josephjohncox/Markovian
+bug-reports:        https://github.com/josephjohncox/Markovian/issues
+license:            BSD-3-Clause
+license-file:       LICENSE
+author:             Joseph Cox
+maintainer:         joseph@codensity.io
+copyright:          2024-2026 Joseph Cox
+build-type:         Simple
+stability:          Experimental
+tested-with:        GHC ==9.4.8 || ==9.8.4
+extra-doc-files:
+  CHANGELOG.md
+  README.md
+
+extra-source-files: test/golden/*.txt
+
+source-repository head
+  type:     git
+  location: https://github.com/josephjohncox/Markovian.git
+  subdir:   packages/markovian-exact-benchmarks
+
+common warnings
+  ghc-options: -Wall
+
+library
+  import:           warnings
+  exposed-modules:
+    Markovian.Benchmark.Inventory.ClarkScarf1960.Finite.Exact
+    Markovian.Benchmark.Inventory.ClarkScarf1960.Oracle.Exact
+    Markovian.Benchmark.Inventory.ClarkScarf1960.Report
+    Markovian.Benchmark.Inventory.Distribution.Dogru.Exact
+    Markovian.Benchmark.Inventory.Distribution.Dogru.Report
+    Markovian.Benchmark.Inventory.Report
+    Markovian.Benchmark.Inventory.Serial.Exact
+    Markovian.Benchmark.Inventory.Serial.FixedBatch.Exact
+    Markovian.Benchmark.Inventory.Serial.FixedBatch.Newsvendor.Exact
+    Markovian.Benchmark.Inventory.Serial.FixedBatch.Report
+
+  hs-source-dirs:   src
+  build-depends:
+    , base       >=4.17.2.1 && <4.20
+    , Markovian  ^>=0.1.0.0
+
+  default-language: GHC2021
+
+test-suite markovian-exact-benchmarks-test
+  import:           warnings
+  type:             exitcode-stdio-1.0
+  main-is:          Main.hs
+  other-modules:
+    ClarkScarf1960
+    DogruInventoryBenchmark
+    FixedBatchRnQ
+    InventoryBenchmark
+    Utf8Golden
+
+  hs-source-dirs:   test
+  build-depends:
+    , base                        >=4.17.2.1 && <4.20
+    , Markovian                   ^>=0.1.0.0
+    , markovian-exact-benchmarks  ==0.1.0.0
+
+  default-language: GHC2021
+
+benchmark inventory-control-bench
+  import:           warnings
+  type:             exitcode-stdio-1.0
+  main-is:          Main.hs
+  hs-source-dirs:   bench/Inventory
+  build-depends:
+    , base                        >=4.17.2.1 && <4.20
+    , Markovian                   ^>=0.1.0.0
+    , markovian-exact-benchmarks  ==0.1.0.0
+
+  default-language: GHC2021
+
+benchmark clark-scarf-1960-bench
+  import:           warnings
+  type:             exitcode-stdio-1.0
+  main-is:          Main.hs
+  hs-source-dirs:   bench/ClarkScarf1960
+  build-depends:
+    , base                        >=4.17.2.1 && <4.20
+    , Markovian                   ^>=0.1.0.0
+    , markovian-exact-benchmarks  ==0.1.0.0
+
+  default-language: GHC2021
+
+benchmark dogru-inventory-bench
+  import:           warnings
+  type:             exitcode-stdio-1.0
+  main-is:          Main.hs
+  hs-source-dirs:   bench/DogruInventory
+  build-depends:
+    , base                        >=4.17.2.1 && <4.20
+    , Markovian                   ^>=0.1.0.0
+    , markovian-exact-benchmarks  ==0.1.0.0
+
+  default-language: GHC2021
+
+benchmark fixed-batch-rnq-bench
+  import:           warnings
+  type:             exitcode-stdio-1.0
+  main-is:          Main.hs
+  hs-source-dirs:   bench/FixedBatchRnQ
+  build-depends:
+    , base                        >=4.17.2.1 && <4.20
+    , Markovian                   ^>=0.1.0.0
+    , markovian-exact-benchmarks  ==0.1.0.0
+
+  default-language: GHC2021
+
+benchmark feedback-exact-bench
+  import:           warnings
+  type:             exitcode-stdio-1.0
+  main-is:          Main.hs
+  hs-source-dirs:   bench/FeedbackExact
+  build-depends:
+    , base       >=4.17.2.1 && <4.20
+    , Markovian  ^>=0.1.0.0
+
+  default-language: GHC2021
+
+benchmark mixed-games-exact-bench
+  import:           warnings
+  type:             exitcode-stdio-1.0
+  main-is:          Main.hs
+  hs-source-dirs:   bench/MixedGamesExact
+  build-depends:
+    , base       >=4.17.2.1 && <4.20
+    , Markovian  ^>=0.1.0.0
+
+  default-language: GHC2021

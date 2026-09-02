@@ -127,7 +127,7 @@ A represented profile is a pure equilibrium in context `(x,k)` when
 
 `enumeratePureEquilibria` returns every such profile in represented layout order. Exact decisions compare `Rational` values literally. Ties retain all maximizers.
 
-Fixtures cover prisoner's dilemma, coordination, exact ties, and matching pennies. Matching pennies has no pure equilibrium. This does not contradict Nash's 1951 finite mixed-equilibrium theorem: mixed strategies are not implemented here.
+Fixtures cover prisoner's dilemma, coordination, exact ties, and matching pennies. Matching pennies has no pure equilibrium. This does not contradict Nash's 1951 finite mixed-equilibrium theorem. Mixed strategies are implemented in a separate exact normal-form layer; they are not inferred from this open-game callback.
 
 The differential fixture exhausts all two-player `2 x 2` payoff tables whose two utility tables use `{0,1}`. For each table, open-game equilibrium enumeration agrees with a separate unilateral-deviation enumeration.
 
@@ -155,8 +155,9 @@ The caller-supplied best-response evaluator owns its internal termination and re
 This fragment does not establish:
 
 - equilibrium existence;
-- mixed, correlated, repeated, or subgame-perfect equilibrium;
-- stochastic, Bayesian, incomplete-information, or continuous games;
+- a generic mixed or correlated lifting of `FiniteOpenGame`;
+- repeated or subgame-perfect equilibrium;
+- stochastic, Bayesian, incomplete-information, or continuous open games;
 - chance as a player;
 - arena legality, justification, views, innocence, or bracketing;
 - universal categorical or optic laws;
@@ -164,5 +165,7 @@ This fragment does not establish:
 - one owner controlling several composed decision sites;
 - disintegration or Bayesian inversion;
 - integration with MDP rewards or successor kernels.
+
+`Markovian.Game.Open.Strategic.Exact` supplies only a checked closed-context adapter. It requires an explicit bijection from owner-local profiles to the whole open-game profile carrier, computes exact numeric utilities in one context, and rejects any disagreement between the existing callback and exact unilateral maximization. See [Exact mixed, stochastic, and Bayesian games](mixed-and-bayesian-games.md).
 
 The implementation follows the finite pure-strategy formulas in Ghani, Hedges, Winschel, and Zahn. Definition 3 supplies open-game data, Definition 4 supplies the maximizing decision specialized by `exactMaximizingDecision`, and Definitions 9, 10, and 12 supply composition, strategy-bijection equivalence, and tensor. Escardó and Oliva supplies the comparison with stronger sequential optimality. See [References and further reading](references.md#ghani-and-colleagues-compositional-games).

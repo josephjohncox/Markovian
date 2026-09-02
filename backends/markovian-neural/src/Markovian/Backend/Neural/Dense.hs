@@ -21,6 +21,7 @@ module Markovian.Backend.Neural.Dense (
     denseForward,
     denseParameterVJP,
     denseInputVJP,
+    denseReverseCircuit,
 ) where
 
 import Markovian.Backend.Neural.Numeric (
@@ -30,6 +31,15 @@ import Markovian.Backend.Neural.Numeric (
     checkedSubtract,
     checkedSum,
     validateFiniteVector,
+ )
+import Markovian.Reverse (
+    CotangentEqualityMode (ApproximateCotangentEquality),
+    CotangentSpace,
+    ParametricReverseCircuit,
+    declaredCotangentSpace,
+    finiteLayout,
+    primitiveReverseCircuit,
+    reverseEvaluation,
  )
 
 -- | The supported hidden activation.
@@ -45,6 +55,7 @@ data DenseError
     | DenseParameterShapeMismatch !Int !Int
     | DenseInputShapeMismatch !Int !Int
     | DenseOutputCotangentShapeMismatch !Int !Int
+    | DenseReverseDeclarationFailure !String
     | DenseNumericFailure !NeuralNumericError
     deriving (Eq, Show)
 
@@ -133,6 +144,81 @@ denseInputVJP network inputs outputCotangent = do
     cache <- forwardCache network inputs
     (inputGradient, _) <- backpropagate outputCotangent (reverse cache) []
     Right inputGradient
+
+{- | Adapt one validated dense topology to the backend-independent reverse
+core. The parameter argument is a complete replacement parameter vector; the
+captured pullback uses the same checked manual VJPs as 'denseParameterVJP' and
+'denseInputVJP'. This is an explicit adapter, not automatic differentiation.
+
+The cotangent equality is approximate with a documented mixed tolerance. All
+vector lengths and finite values are checked before module operations.
+-}
+denseReverseCircuit ::
+    DenseNetwork ->
+    Either
+        DenseError
+        ( ParametricReverseCircuit
+            DenseError
+            Double
+            [Double]
+            [Double]
+            [Double]
+            [Double]
+            [Double]
+            [Double]
+        )
+denseReverseCircuit topology = do
+    parameterSpace <- vectorCotangentSpace "neural/dense/parameters" (denseParameterCount topology) DenseParameterShapeMismatch
+    inputSpace <- vectorCotangentSpace "neural/dense/input" (denseInputSize topology) DenseInputShapeMismatch
+    outputSpace <- vectorCotangentSpace "neural/dense/output" (denseOutputSize topology) DenseOutputCotangentShapeMismatch
+    Right $
+        primitiveReverseCircuit parameterSpace inputSpace outputSpace $ \parameters inputs -> do
+            network <- replaceDenseParameters parameters topology
+            output <- denseForward network inputs
+            Right
+                ( reverseEvaluation output $ \outputCotangent -> do
+                    parameterCotangent <- denseParameterVJP network inputs outputCotangent
+                    inputCotangent <- denseInputVJP network inputs outputCotangent
+                    Right (parameterCotangent, inputCotangent)
+                )
+
+vectorCotangentSpace ::
+    String ->
+    Int ->
+    (Int -> Int -> DenseError) ->
+    Either DenseError (CotangentSpace DenseError Double [Double])
+vectorCotangentSpace owner extent mismatch = do
+    layout <- maybe (Left (DenseReverseDeclarationFailure (owner ++ ": invalid layout"))) Right (finiteLayout owner (fromIntegral extent))
+    maybe
+        (Left (DenseReverseDeclarationFailure (owner ++ ": invalid cotangent declaration")))
+        Right
+        ( declaredCotangentSpace
+            owner
+            layout
+            validate
+            (replicate extent 0)
+            add
+            scale
+            equivalent
+            (ApproximateCotangentEquality "finite vectors: abs 2e-10 + rel 2e-8")
+        )
+  where
+    validate values
+        | length values /= extent = Left (mismatch extent (length values))
+        | otherwise = mapNumeric (validateFiniteVector owner values)
+    add left right = do
+        validate left
+        validate right
+        traverse (mapNumeric . uncurry (checkedAdd (owner ++ " cotangent addition"))) (zip left right)
+    scale scalar values = do
+        validate values
+        traverse (mapNumeric . checkedMultiply (owner ++ " cotangent scaling") scalar) values
+    equivalent left right =
+        length left == extent
+            && length right == extent
+            && and (zipWith close left right)
+    close left right =
+        abs (left - right) <= 2e-10 + 2e-8 * max (abs left) (abs right)
 
 -- Internal layer values.
 data Layer = Layer !Int !Int ![Double] ![Double] !Bool

@@ -8,15 +8,29 @@ description:
   computations.
 
 category:           Math
+homepage:           https://github.com/josephjohncox/Markovian
+bug-reports:        https://github.com/josephjohncox/Markovian/issues
 license:            BSD-3-Clause
 license-file:       LICENSE
 author:             Joseph Cox
 maintainer:         joseph@codensity.io
+copyright:          2024-2026 Joseph Cox
 build-type:         Simple
+stability:          Experimental
+tested-with:        GHC ==9.4.8 || ==9.8.4
+extra-doc-files:
+  CHANGELOG.md
+  README.md
+
 extra-source-files:
   scripts/check-reverse-program-boundary
   test/compile-fail/ReverseProgramOpacity.hs
   test/compile-fail/ReverseProgramTypes.hs
+
+source-repository head
+  type:     git
+  location: https://github.com/josephjohncox/Markovian.git
+  subdir:   backends/markovian-neural
 
 flag markovian-integration
   description:
@@ -40,13 +54,14 @@ library
     Markovian.Backend.Neural.Policy
     Markovian.Backend.Neural.Reinforce
     Markovian.Backend.Neural.Replay
-    Markovian.Backend.Neural.Reverse
-    Markovian.Backend.Neural.Reverse.Program
     Markovian.Backend.Neural.TargetNetwork
     Markovian.Backend.Neural.Transition
 
   hs-source-dirs:   src
-  build-depends:    base >=4.17.2.1 && <4.20
+  build-depends:
+    , base               >=4.17.2.1 && <4.20
+    , markovian-reverse  ^>=0.1.0.0
+
   default-language: GHC2021
   ghc-options:      -Wall
 
@@ -68,8 +83,9 @@ test-suite markovian-neural-test
 
   hs-source-dirs:   test
   build-depends:
-    , base              >=4.17.2.1 && <4.20
-    , markovian-neural
+    , base               >=4.17.2.1 && <4.20
+    , markovian-neural   ==0.1.0.0
+    , markovian-reverse  ^>=0.1.0.0
 
   default-language: GHC2021
   ghc-options:      -Wall
@@ -90,6 +106,8 @@ test-suite markovian-neural-integration-test
       TestSupport
 
     build-depends:
-      , base              >=4.17.2.1 && <4.20
-      , Markovian         >=0.1      && <0.2
-      , markovian-neural
+      , base                 >=4.17.2.1 && <4.20
+      , Markovian            ^>=0.1.0.0
+      , markovian-learning   ^>=0.1.0.0
+      , markovian-neural     ==0.1.0.0
+      , markovian-numerical  ^>=0.1.0.0

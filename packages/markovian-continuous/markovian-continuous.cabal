@@ -1,0 +1,78 @@
+cabal-version:      3.4
+name:               markovian-continuous
+version:            0.1.0.0
+synopsis:           Restricted exact continuous probability for Markovian
+description:
+  Compact rational affine-uniform laws, exact polynomial expectations,
+  affine additive-noise kernels, and finite-observation conditioning.
+  This package does not provide arbitrary measurable functions or general
+  continuous disintegration.
+
+category:           Math
+homepage:           https://github.com/josephjohncox/Markovian
+bug-reports:        https://github.com/josephjohncox/Markovian/issues
+license:            BSD-3-Clause
+license-file:       LICENSE
+author:             Joseph Cox
+maintainer:         joseph@codensity.io
+copyright:          2024-2026 Joseph Cox
+build-type:         Simple
+stability:          Experimental
+tested-with:        GHC ==9.4.8 || ==9.8.4
+extra-doc-files:
+  CHANGELOG.md
+  README.md
+
+extra-source-files:
+  scripts/check-continuous-boundary
+  test/compile-fail/ContinuousBoundary.hs
+
+data-files:         test/golden/bivariate-accounting.txt
+
+source-repository head
+  type:     git
+  location: https://github.com/josephjohncox/Markovian.git
+  subdir:   packages/markovian-continuous
+
+common warnings
+  ghc-options: -Wall
+
+library
+  import:             warnings
+  exposed-modules:
+    Markovian.Continuous.Condition.Exact
+    Markovian.Continuous.Kernel.Exact
+    Markovian.Continuous.Map
+    Markovian.Continuous.Measure.Exact
+    Markovian.Continuous.Polynomial
+    Markovian.Continuous.Space
+
+  other-modules:      Markovian.Continuous.Internal
+  hs-source-dirs:     src
+  build-depends:      base >=4.17.2.1 && <4.20
+  default-language:   GHC2021
+  default-extensions: DerivingStrategies
+
+test-suite markovian-continuous-test
+  import:           warnings
+  type:             exitcode-stdio-1.0
+  main-is:          Main.hs
+  hs-source-dirs:   test
+  other-modules:    Paths_markovian_continuous
+  autogen-modules:  Paths_markovian_continuous
+  build-depends:
+    , base                  >=4.17.2.1 && <4.20
+    , markovian-continuous  ==0.1.0.0
+
+  default-language: GHC2021
+
+benchmark markovian-continuous-bench
+  import:           warnings
+  type:             exitcode-stdio-1.0
+  main-is:          Main.hs
+  hs-source-dirs:   bench
+  build-depends:
+    , base                  >=4.17.2.1 && <4.20
+    , markovian-continuous  ==0.1.0.0
+
+  default-language: GHC2021

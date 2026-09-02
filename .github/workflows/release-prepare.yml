@@ -1,0 +1,192 @@
+---
+name: Prepare source release artifacts
+
+"on":
+  workflow_dispatch:
+    inputs:
+      revision:
+        description: Full 40-character commit object ID to prepare (publication is not included)
+        required: true
+        type: string
+
+permissions: {}
+
+concurrency:
+  group: release-prepare
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    name: Validate requested revision
+    runs-on: ubuntu-22.04
+    permissions: {}
+    outputs:
+      revision: ${{ steps.input.outputs.revision }}
+
+    steps:
+      - name: Validate revision syntax before repository access
+        id: input
+        env:
+          REVISION: ${{ inputs.revision }}
+          EXPECTED_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          test "${REVISION}" = "${EXPECTED_SHA}"
+          [[ "${REVISION}" =~ ^[0-9a-f]{40}$ ]] || {
+            echo "revision must be a full lowercase 40-character commit object ID" >&2
+            exit 1
+          }
+          printf 'revision=%s\n' "${REVISION}" >> "${GITHUB_OUTPUT}"
+
+      - name: Check out only the validated revision
+        # actions/checkout v7.0.1
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ steps.input.outputs.revision }}
+          persist-credentials: false
+
+      - name: Resolve and compare the commit object
+        env:
+          REVISION: ${{ steps.input.outputs.revision }}
+        run: |
+          set -euo pipefail
+          [[ "${REVISION}" =~ ^[0-9a-f]{40}$ ]]
+          resolved="$(git rev-parse --verify "${REVISION}^{commit}")"
+          actual="$(git rev-parse --verify HEAD)"
+          test "${resolved}" = "${REVISION}"
+          test "${actual}" = "${REVISION}"
+          test -z "$(git status --porcelain --untracked-files=normal)"
+
+  prepare:
+    name: Build and verify source artifacts
+    needs: validate
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: read
+
+    steps:
+      - name: Independently validate revision syntax
+        env:
+          REVISION: ${{ needs.validate.outputs.revision }}
+          EXPECTED_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          test "${REVISION}" = "${EXPECTED_SHA}"
+          [[ "${REVISION}" =~ ^[0-9a-f]{40}$ ]] || {
+            echo "revision must be a full lowercase 40-character commit object ID" >&2
+            exit 1
+          }
+
+      - name: Check out the validated revision
+        # actions/checkout v7.0.1
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ needs.validate.outputs.revision }}
+          persist-credentials: false
+
+      - name: Require the exact immutable revision
+        env:
+          REVISION: ${{ needs.validate.outputs.revision }}
+        run: |
+          set -euo pipefail
+          [[ "${REVISION}" =~ ^[0-9a-f]{40}$ ]]
+          resolved="$(git rev-parse --verify "${REVISION}^{commit}")"
+          actual="$(git rev-parse --verify HEAD)"
+          test "${resolved}" = "${REVISION}"
+          test "${actual}" = "${REVISION}"
+          test -z "$(git status --porcelain --untracked-files=normal)"
+
+      - name: Read pinned tool versions
+        id: toolchain
+        run: |
+          set -euo pipefail
+          source toolchain.env
+          echo "cabal=${MARKOVIAN_CABAL_VERSION}" >> "${GITHUB_OUTPUT}"
+          echo "ghc=${MARKOVIAN_GHC_VERSION}" >> "${GITHUB_OUTPUT}"
+
+      - name: Set up Haskell
+        # haskell-actions/setup v2.12.0
+        uses: haskell-actions/setup@6037f33647c3f17758a2356c80fc4a53d7e0685d
+        with:
+          ghc-version: ${{ steps.toolchain.outputs.ghc }}
+          cabal-version: ${{ steps.toolchain.outputs.cabal }}
+
+      - name: Install pinned repository tools
+        run: bash scripts/bootstrap-tools
+
+      - name: Prepare without publication credentials
+        env:
+          HACKAGE_TOKEN: ""
+          HACKAGE_USERNAME: ""
+          HACKAGE_PASSWORD: ""
+          REVISION: ${{ needs.validate.outputs.revision }}
+        run: |
+          set -euo pipefail
+          [[ "${REVISION}" =~ ^[0-9a-f]{40}$ ]]
+          bash scripts/prepare-release \
+            --revision "${REVISION}" \
+            --output "${RUNNER_TEMP}/dist-release"
+
+      - name: Upload checked preparation artifacts
+        # actions/upload-artifact v4.6.2
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: markovian-source-release-${{ needs.validate.outputs.revision }}
+          path: ${{ runner.temp }}/dist-release
+          if-no-files-found: error
+          retention-days: 14
+          compression-level: 0
+
+  attest:
+    name: Attest checked release bundle
+    needs:
+      - validate
+      - prepare
+    runs-on: ubuntu-22.04
+    permissions:
+      actions: read
+      attestations: write
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Independently validate revision syntax
+        env:
+          REVISION: ${{ needs.validate.outputs.revision }}
+          EXPECTED_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          test "${REVISION}" = "${EXPECTED_SHA}"
+          [[ "${REVISION}" =~ ^[0-9a-f]{40}$ ]] || {
+            echo "revision must be a full lowercase 40-character commit object ID" >&2
+            exit 1
+          }
+
+      - name: Download only the prepared artifact
+        # actions/download-artifact v4.3.0
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          name: markovian-source-release-${{ needs.validate.outputs.revision }}
+          path: dist-release
+
+      - name: Verify the complete bundle checksums
+        env:
+          REVISION: ${{ needs.validate.outputs.revision }}
+        run: |
+          set -euo pipefail
+          [[ "${REVISION}" =~ ^[0-9a-f]{40}$ ]]
+          test "$(cat dist-release/SOURCE-REVISION)" = "${REVISION}"
+          (cd dist-release && sha256sum -c SHA256SUMS)
+
+      - name: Attest complete release-bundle provenance
+        # actions/attest v4.2.2; recheck the release and SHA before enabling a publication workflow
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6
+        with:
+          subject-path: |
+            dist-release/archives/*.tar.gz
+            dist-release/sbom/*.spdx.json
+            dist-release/components.tsv
+            dist-release/component-results.json
+            dist-release/manifest.json
+            dist-release/SOURCE-REVISION
+            dist-release/SHA256SUMS

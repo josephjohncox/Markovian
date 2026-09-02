@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+set -euo pipefail
+package_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "${package_dir}"
+cabal build markovian-tensor-reverse:lib:markovian-tensor-reverse
+log_file="$(mktemp)"
+trap 'rm -f "${log_file}"' EXIT
+if cabal exec -- ghc -fno-code -fmax-errors=100 -package markovian-tensor-reverse test/compile-fail/TensorReverseRegionEscape.hs >"${log_file}" 2>&1; then
+  echo "tensor reverse boundary fixture unexpectedly compiled" >&2
+  exit 1
+fi
+for expected in badExecutorEscape badTapeConstructor badTapeCoercion "Couldn't match type" "not in scope"; do
+  if ! grep -F "${expected}" "${log_file}" >/dev/null; then
+    cat "${log_file}" >&2
+    echo "Expected tensor-reverse rejection was absent: ${expected}" >&2
+    exit 1
+  fi
+done
+echo "PASS: tensor reverse executors and tapes remain opaque and region-bound"

@@ -151,6 +151,12 @@ testBayesianConstruction = do
     case canonicalExactDistribution [('x', -1), ('x', 2)] of
         Left (InvalidExactWeight 0 (NegativeExactWeight (-1))) -> pure ()
         _ -> ioError (userError "canonical distribution hid a negative duplicate weight")
+    case canonicalExactDistribution (replicate 4097 ('x', 1)) of
+        Left (ExactSupportLimitExceeded 4096) -> pure ()
+        result -> ioError (userError ("canonical duplicate support limit changed: " ++ show result))
+    case canonicalExactDistribution (repeat ('x', 1)) of
+        Left (ExactSupportLimitExceeded 4096) -> pure ()
+        result -> ioError (userError ("infinite canonical duplicates did not terminate at the raw limit: " ++ show result))
 
 testBayesianInversionLaws :: IO ()
 testBayesianInversionLaws = do

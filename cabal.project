@@ -3,6 +3,18 @@ optional-packages:
   backends/markovian-gpu
   backends/markovian-neural
   backends/markovian-neural-bridge
+  packages/markovian-autodiff
+  packages/markovian-continuous
+  packages/markovian-continuous-numerical
+  packages/markovian-dense-exact
+  packages/markovian-exact-benchmarks
+  packages/markovian-learning
+  packages/markovian-numerical
+  packages/markovian-reverse
+  packages/markovian-safetensors
+  packages/markovian-sampling
+  packages/markovian-tensor
+  packages/markovian-tensor-reverse
 write-ghc-environment-files: never
 
 package Markovian

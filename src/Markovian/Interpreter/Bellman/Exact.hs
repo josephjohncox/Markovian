@@ -64,8 +64,11 @@ exactBellmanToleranceValue (ExactBellmanTolerance value) = value
 -- | Complete behavior-changing configuration for exact policy evaluation.
 data ExactBellmanConfig = ExactBellmanConfig
     { exactBellmanDiscount :: !ExactContractionDiscount
+    -- ^ Contraction discount for each transition layer.
     , exactBellmanTolerance :: !ExactBellmanTolerance
+    -- ^ Required upper bound on the value error.
     , exactBellmanMaximumIterations :: !Horizon
+    -- ^ Maximum number of Bellman backups.
     }
     deriving (Eq, Show)
 

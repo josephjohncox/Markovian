@@ -1,6 +1,7 @@
 module Main (main) where
 
 import Data.List.NonEmpty qualified as NonEmpty
+import Markovian.Action (ActionId, actionId, actionValue)
 import Markovian.Backend.Neural (
     ActionMask,
     DQNTargetSelection (..),
@@ -47,7 +48,6 @@ import Markovian.Compile.Exact (
     stepCompiledExactMDP,
  )
 import Markovian.Kernel.Exact (exactKernel)
-import Markovian.MDP (ActionId, actionId, actionValue)
 import Markovian.MDP.Exact (
     ExactMDP,
     ExactStateStatus (..),

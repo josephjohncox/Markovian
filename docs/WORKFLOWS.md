@@ -213,35 +213,51 @@ Run the supported compiler matrix in CI. Record each compiler and package-plan r
 
 ### 4.5 Public API changes
 
-Also run:
-
-```sh
-cabal haddock all --project-file=cabal.project.ci \
-  --enable-documentation --haddock-all --haddock-hyperlink-source
-```
+Also run the two-stage documentation gate used by CI and `scripts/prepare-release`: an isolated `cabal install --lib --enable-documentation` into a fresh store must emit no warnings and must produce one interface per manifest package. A separate `cabal haddock all --haddock-options=--no-warnings` pass is used only with `scripts/check-haddock-coverage` to measure declaration coverage. Warning suppression is not warning-free evidence.
 
 Compile all README examples. Review the exposed module list and package metadata. The unreleased package may break incorrect interfaces without a compatibility phase.
 
 ### 4.6 Release changes
 
-Run all prior checks. Then run:
+Run the static release checks during implementation:
 
 ```sh
-for dir in . backends/markovian-gpu backends/markovian-neural backends/markovian-neural-bridge; do
-  (cd "$dir" && cabal check)
-done
-cabal sdist all --output-directory=dist-sdist
+bash scripts/check-release-metadata
+bash scripts/check-release-policy
+python3 scripts/test_release_tool.py
 ```
 
-Require exactly four archives. Unpack them in clean temporary directories. Build and test every package, run each applicable compile-fail boundary, and run all four inventory semantic-report benchmarks from the unpacked root archive.
+Run full preparation only from a clean immutable revision:
 
-Do not add a release date, tag, or success claim before this evidence exists.
+```sh
+bash scripts/prepare-release \
+  --revision "$(git rev-parse HEAD)" \
+  --output ../markovian-release-artifacts
+```
+
+The script runs all package checks, tests, lower-bound resolution, boundaries, benchmarks, Haddock, and book checks. It creates every archive twice and compares bytes.
+
+The script validates each archive before extraction. It builds the combined archive-only graph with all manifested suites, benchmarks, and required flags, checks the Cabal plan and deterministic receipts, and builds a fresh exact consumer.
+
+It generates SPDX 2.3 source SBOMs with package verification codes and file license information, validates them with pinned independent tooling, and writes a deterministic artifact manifest. `SHA256SUMS` covers archives, SBOMs, the manifest, and `SOURCE-REVISION`. Linux atomic no-replace rename finalizes the temporary output only after all checks pass.
+
+`release/packages.tsv` is the current reviewed 16-package integration graph. D-061 remains `Proposed` until the graph and every other acceptance gate pass; the manifest does not itself approve publication.
+
+Run `.github/workflows/release-prepare.yml` only for an exact reviewed revision. Recheck each action commit against its current official release first. Verify provenance and all bundle checksums before archive extraction.
+
+The preparation workflow has no Hackage credential. An unprivileged job validates revision input before privileged jobs can start, and every job independently validates the revision. The attestation job does not check out or execute repository code. It attests archives, SBOMs, the manifest, source revision, and the checksum file.
+
+Stop after preparation and attestation. Do not add a release date, create a tag, upload a candidate, or publish without explicit user approval.
+
+If a later publication stops after one package, record the published subset. Hackage publication is not atomic, and a published version cannot be replaced.
 
 ### 4.7 Backend performance changes
 
 Run reference differential tests and representative benchmarks. Include compilation, transfer, and setup costs.
 
-Record hardware, software versions, precision, seed policy, model sizes, and complete benchmark commands.
+For CUDA changes, run the disabled contract first. On protected hardware, normalize and require the configured UUID and pass it to the executable for `DeviceByUUID` selection. Reproduce the PTX; run admission, independent CPU/CUDA matrix and VJP differentials, all-coordinate finite differences, scoped-fork ownership, and the device compile-fail boundary. Enable `cuda-fault-injection` only for validation and exercise allocation, transfer, launch, second launch, synchronization, copy-back, free, teardown, and combined primary/action/cleanup failures. Then run Compute Sanitizer and the transfer-inclusive benchmark. Never run untrusted pull-request code on the persistent GPU runner. Fallback tests must distinguish launch commitment from fallback permission and reject fallback after any cleanup failure. A missing selected device is a hardware-job failure, not a skip.
+
+Record hardware, software versions, precision, seed policy, model sizes, kernel ABI and hash, complete benchmark commands, every raw sample, and whether timing includes admission, transfer, synchronization, copy-back, and cleanup. Do not infer speedup from the `-O0` list-based CPU reference.
 
 ## 5. Evidence rules
 
@@ -391,11 +407,11 @@ D-038 work follows the S1 through S6 roadmap in `TODO.md`.
 6. Do not expose transpose, compact structure, trace, or raw addition through `StochasticMatrix`.
 7. Permit copy-naturality rewrites only when a `DeterministicMatrix` or deterministic purity index supplies construction evidence. Assign nominal roles to each proof-carrying refinement.
 8. Keep matrix conjugate transpose, prior-indexed Bayesian inversion, and structured-cospan boundary reversal as separately named operations with no common class. Do not add a Bayesian inversion placeholder before S2 supplies priors and support restriction.
-9. Stop before arbitrary open-system black-boxing or feedback semantics. D-038 leaves both deferred.
+9. Stop before arbitrary open-system black-boxing or universal feedback semantics. D-069 permits only explicit delayed execution, checked proper first exit, and nilpotent timed closure.
 
 ## 11. New-feature evidence workflow
 
-P0 through P6, the greenfield cleanup, exact semantic-tower stages S1 through S6, and bounded implementation slices S7.1 through S7.6 are `DONE`. The repository has four packages: the root, GPU, neural, and neural-bridge packages. D-053 through D-060 are accepted after the complete local matrix and hosted CI run `33467147313` passed on revision `993508f`. D-057 keeps bounded two-stage fixed-batch execution separate from stationary newsvendor evidence on explicit Cartesian `R1`/`R2` layouts. D-058 remains a finite interpreter for owner-supplied VJPs rather than general autodiff. Arbitrary cyclic graph semantics, feedback, continuous-time black-boxing, unrestricted MDP black-boxing, general autodiff, tensor frameworks, and device execution remain deferred.
+P0 through P6, the greenfield cleanup, exact semantic-tower stages S1 through S6, and bounded implementation slices S7.1 through S7.6 are `DONE`. The repository integration overlay has 16 packages, as listed in `ci/packages.tsv`. `ci/packages.tsv` is the checked integration inventory. D-061 keeps the exact-root split open, so this inventory is not a release manifest. D-053 through D-060 are accepted after the complete local matrix and hosted CI run `33467147313` passed on revision `993508f`. D-069 is Proposed with focused local evidence for delayed, proper first-exit, and nilpotent timed feedback. Integration repair adds queue reachability, one matrix-power sequence, checked combined-cardinality preflight, and independent path evidence. It also adds exact operation counts and phase-specific rational maxima. The maxima include discarded Gaussian and path intermediates. Exact and one-below work and rational fixtures cover all three interpreters. Run `bash scripts/check-feedback-boundary`, `cabal test Markovian-test`, and `cabal bench feedback-exact-bench` for its focused gate. D-064 through D-066 remain Proposed. The game repair requires active-limit rational revalidation, capped preflight before enumeration, exact owned-carrier equality for independence, strategic-normal terminology, additive-expectation correlation nonclaims, committed report evidence, and the Dirac-CE/pure-Nash, product-Nash/CE, correlated-prior-sensitive, malformed/infinite-input, and exact/one-below fixtures. Run `bash scripts/check-mixed-game-boundary`, `cabal test Markovian-test`, `cabal run MixedGamesExample`, and `cabal bench mixed-games-exact-bench` with both supported compilers. Then verify the root source archive contains and can execute the same evidence. `exactFiniteDist` rejects raw supports above 4096 entries, including infinite spines. Checked bind now bounds result support, charged work, and numerator and denominator growth, with no unchecked `Applicative`, `Monad`, or helper path. D-061 remains blocked on its full topology, compiler, documentation, archive, hosted, and immutable-revision gates. D-070 and D-071 are Proposed with focused exact/numerical continuous tests. Integration repair bounds raw and infinite list inputs, charges zero entries, checks posterior products and quotients, rejects non-injective renaming, shares disintegration work, rejects nonfinite numerical aggregates and widths, and pins SplitMix64 vectors plus independent sampler formulas. Bivariate integration now has cumulative raw, canonical, work, operation, and rational accounting. Independent exact oracles and a bounded numerical finite-difference fixture test this fragment. Fresh supported-compiler, hosted, and source-distribution evidence remain blockers. Run both package-local boundary scripts, test suites, and benchmarks. D-057 keeps bounded two-stage fixed-batch execution separate from stationary newsvendor evidence on explicit Cartesian `R1`/`R2` layouts. D-068 adds closed-language autodiff only. Run `cabal test markovian-autodiff-test`, the package boundary script, and its benchmark. D-067 pure extraction, the `Identity` specialization of the effect core, and the host tensor adapter are present; a private cross-package allocator capability, generic tensor placement, and complete release evidence remain blocked. D-058 remains the interpreter for owner-supplied VJPs. D-072 adds only a checked host F64 runtime and closed primitive tapes; run its test suite, boundary script, and benchmark. D-074 adds only prepared positive-size F64 matrix and primitive-tape VJP CPU/CUDA execution. Run the GPU suite in disabled mode for portable CI, run `scripts/check-device-boundary`, and use `.github/workflows/cuda-hardware.yml` only on the protected runner for enabled tests, PTX reproduction, sanitizers, and transfer-inclusive samples. D-067 still blocks generic tensor and device reverse-program lowering. D-073 has a bounded metadata-free F64 profile with focused local evidence, but its archive, hosted, and release gates remain open. Arbitrary cyclic graph semantics, universal feedback, continuous-time black-boxing, unrestricted MDP black-boxing, general tensor semantics, and general device execution remain deferred.
 
 A new feature must use this sequence:
 
@@ -404,7 +420,7 @@ A new feature must use this sequence:
 3. State required laws, differential tests, or estimator assumptions before implementation.
 4. Keep hardware, framework, and runtime dependencies outside the semantic core.
 5. Add deterministic reference evidence before statistical or benchmark evidence.
-6. Run both compiler versions, all four package tests, source distributions, every applicable backend differential test, the game boundary script, and all four named inventory benchmarks (`inventory-control-bench`, `clark-scarf-1960-bench`, `dogru-inventory-bench`, and `fixed-batch-rnq-bench`). Repeat the tests and inventory semantic-report stability checks from unpacked source archives.
+6. Run both compiler versions, all 18 manifested test suites, source distributions, every applicable backend differential test, all compile-fail boundary scripts, and all 11 benchmarks in `release/components.tsv`. Repeat tests and applicable benchmarks from unpacked source archives. Run CUDA-enabled compilation in the pinned no-GPU job and device execution separately on protected hardware; portable source-distribution CI does not establish device correctness.
 7. For exact control, record residual, bound, tie-order, terminal, and iteration-limit fixtures.
 8. For sampled learning, record exact seeded generator states and split-run equality.
 9. For neural derivatives, record the finite-difference tolerance and every checked parameter or input coordinate.

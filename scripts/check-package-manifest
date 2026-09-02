@@ -1,0 +1,168 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+manifest="${1:-ci/packages.tsv}"
+max_packages=16
+
+if [[ ! -f "${manifest}" ]]; then
+  echo "missing package manifest: ${manifest}" >&2
+  exit 1
+fi
+
+package_count=0
+previous_tier=0
+declare -A seen_names=()
+declare -A seen_paths=()
+declare -A package_cabals=()
+
+while IFS=$'\t' read -r package_name package_path dependency_tier extra; do
+  if [[ -z "${package_name}" || "${package_name}" == \#* ]]; then
+    continue
+  fi
+  if [[ -n "${extra:-}" ]]; then
+    echo "manifest row has more than three fields: ${package_name}" >&2
+    exit 1
+  fi
+  if [[ ! "${package_name}" =~ ^[A-Za-z][A-Za-z0-9-]*$ ]]; then
+    echo "invalid package name: ${package_name}" >&2
+    exit 1
+  fi
+  case "${package_path}" in
+    .|[A-Za-z0-9_-]*|[A-Za-z0-9_-]*/[A-Za-z0-9_/-]*) ;;
+    *)
+      echo "unsafe package path: ${package_path}" >&2
+      exit 1
+      ;;
+  esac
+  if [[ "${package_path}" == /* || "${package_path}" == *..* ]]; then
+    echo "unsafe package path: ${package_path}" >&2
+    exit 1
+  fi
+  if [[ ! "${dependency_tier}" =~ ^[0-9]+$ ]]; then
+    echo "invalid dependency tier for ${package_name}: ${dependency_tier}" >&2
+    exit 1
+  fi
+  if (( dependency_tier < previous_tier )); then
+    echo "dependency tiers are not monotone at ${package_name}" >&2
+    exit 1
+  fi
+  previous_tier="${dependency_tier}"
+
+  folded_name="${package_name,,}"
+  if [[ -n "${seen_names[${folded_name}]:-}" ]]; then
+    echo "duplicate package name: ${package_name}" >&2
+    exit 1
+  fi
+  if [[ -n "${seen_paths[${package_path}]:-}" ]]; then
+    echo "duplicate package path: ${package_path}" >&2
+    exit 1
+  fi
+  seen_names["${folded_name}"]=1
+  seen_paths["${package_path}"]=1
+
+  mapfile -t cabal_files < <(find "${package_path}" -maxdepth 1 -type f -name '*.cabal' -print)
+  if [[ "${#cabal_files[@]}" -ne 1 ]]; then
+    echo "expected one Cabal file for ${package_name} at ${package_path}" >&2
+    exit 1
+  fi
+  declared_name="$(awk 'tolower($1) == "name:" { print $2; exit }' "${cabal_files[0]}")"
+  if [[ "${declared_name}" != "${package_name}" ]]; then
+    echo "manifest/Cabal name mismatch: ${package_name} != ${declared_name}" >&2
+    exit 1
+  fi
+  package_cabals["${folded_name}"]="${cabal_files[0]}"
+
+  if [[ "${package_path}" != "." ]] && ! grep -Fxq "  ${package_path}" cabal.project; then
+    echo "package is not registered in cabal.project: ${package_path}" >&2
+    exit 1
+  fi
+
+  package_count=$((package_count + 1))
+done < "${manifest}"
+
+if (( package_count != max_packages )); then
+  echo "package count ${package_count} does not match reviewed graph size ${max_packages}" >&2
+  exit 1
+fi
+
+project_optional_count="$(awk '
+  /^optional-packages:/ { in_optional = 1; next }
+  in_optional && /^  [^ ]/ { count += 1; next }
+  in_optional { in_optional = 0 }
+  END { print count + 0 }
+' cabal.project)"
+if (( project_optional_count + 1 != package_count )); then
+  echo "manifest has ${package_count} packages but cabal.project has $((project_optional_count + 1))" >&2
+  exit 1
+fi
+
+components_manifest=release/components.tsv
+if [[ ! -f "${components_manifest}" ]]; then
+  echo "missing component manifest: ${components_manifest}" >&2
+  exit 1
+fi
+
+declare -A seen_components=()
+test_count=0
+benchmark_count=0
+while IFS=$'\t' read -r kind package_name component_name required_flags extra; do
+  if [[ -z "${kind}" || "${kind}" == \#* ]]; then
+    continue
+  fi
+  if [[ -n "${extra:-}" ]] || [[ "${kind}" != test && "${kind}" != benchmark ]]; then
+    echo "invalid component manifest row: ${kind} ${package_name} ${component_name}" >&2
+    exit 1
+  fi
+  folded_name="${package_name,,}"
+  cabal_file="${package_cabals[${folded_name}]:-}"
+  if [[ -z "${cabal_file}" ]]; then
+    echo "component names unknown package: ${package_name}" >&2
+    exit 1
+  fi
+  component_key="${kind}:${folded_name}:${component_name}"
+  if [[ -n "${seen_components[${component_key}]:-}" ]]; then
+    echo "duplicate component manifest row: ${component_key}" >&2
+    exit 1
+  fi
+  seen_components["${component_key}"]=1
+  declaration_kind="${kind}"
+  [[ "${kind}" != test ]] || declaration_kind=test-suite
+  if ! grep -Eq "^${declaration_kind}[[:space:]]+${component_name}[[:space:]]*$" "${cabal_file}"; then
+    echo "missing declared component ${component_name} in ${cabal_file}" >&2
+    exit 1
+  fi
+  if [[ "${required_flags}" != - && ! "${required_flags}" =~ ^\+[A-Za-z0-9-]+$ ]]; then
+    echo "invalid component flag for ${component_name}: ${required_flags}" >&2
+    exit 1
+  fi
+  if [[ "${kind}" == test ]]; then
+    test_count=$((test_count + 1))
+  else
+    benchmark_count=$((benchmark_count + 1))
+  fi
+done < "${components_manifest}"
+
+for cabal_file in "${package_cabals[@]}"; do
+  while read -r declaration_kind component_name; do
+    kind=benchmark
+    [[ "${declaration_kind}" != test-suite ]] || kind="test"
+    package_name="$(awk 'tolower($1) == "name:" { print tolower($2); exit }' "${cabal_file}")"
+    key="${kind}:${package_name}:${component_name}"
+    if [[ -z "${seen_components[${key}]:-}" ]]; then
+      echo "unmanifested component: ${key}" >&2
+      exit 1
+    fi
+  done < <(awk '$1 == "test-suite" || $1 == "benchmark" { print $1, $2 }' "${cabal_file}")
+done
+
+if (( benchmark_count != 11 )); then
+  echo "expected 11 mandatory benchmarks, found ${benchmark_count}" >&2
+  exit 1
+fi
+
+if [[ "${manifest}" == ci/packages.tsv ]]; then
+  python3 scripts/release_tool.py check >/dev/null
+fi
+
+printf 'package manifest: %d packages, %d suites, %d benchmarks, and public library edges validated\n' \
+  "${package_count}" "${test_count}" "${benchmark_count}"

@@ -1,0 +1,20 @@
+value	2154317 % 124416
+degree	5
+input-terms	3
+noise-owners	4
+work	11316
+raw-expansion-pairs	136
+canonical-terms	60
+maximum-canonical-terms	60
+monomial-power-merges	12
+monomial-power-comparisons	9223
+coefficient-multiplications	215
+coefficient-additions	36
+coefficient-cancellations	0
+canonical-combinations	294
+input-arithmetic-operations	16
+moment-power-operations	664
+moment-arithmetic-operations	528
+moment-products	132
+final-summations	60
+maximum-rational-bits	23

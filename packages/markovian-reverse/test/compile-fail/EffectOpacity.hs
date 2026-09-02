@@ -1,0 +1,7 @@
+module EffectOpacity where
+
+import Markovian.Reverse.Program.Effect
+
+badEvaluationConstructor = EffectReverseEvaluationValue
+badPreparedConstructor = PreparedEffectReverseProgram
+badTapeConstructor = EffectStoredPrimitiveTape

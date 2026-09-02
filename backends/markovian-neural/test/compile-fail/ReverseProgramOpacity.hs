@@ -1,6 +1,6 @@
 module ReverseProgramOpacity where
 
-import qualified Markovian.Backend.Neural.Reverse.Program as Program
+import qualified Markovian.Reverse.Program as Program
 
 badProgramConstructor = Program.PrimitiveProgram
 

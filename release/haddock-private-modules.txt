@@ -1,0 +1,3 @@
+# Private regression and internal-library modules excluded from public coverage.
+Markovian.DenseExact.Internal.LegacyFiniteIR
+Markovian.Tensor.Internal.Reverse

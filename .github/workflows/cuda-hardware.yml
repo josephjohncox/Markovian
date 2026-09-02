@@ -1,0 +1,140 @@
+---
+name: Protected CUDA hardware
+
+"on":
+  workflow_dispatch:
+    inputs:
+      expected_sha:
+        description: Immutable 40-character revision selected for protected validation
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cuda-hardware-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  cuda-hardware:
+    name: CUDA 13 protected runner
+    environment: markovian-cuda-hardware
+    runs-on: [self-hosted, linux, markovian-cuda]
+    timeout-minutes: 45
+
+    steps:
+      - name: Validate the immutable requested revision
+        env:
+          EXPECTED_SHA: ${{ inputs.expected_sha }}
+          WORKFLOW_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          [[ "${EXPECTED_SHA}" =~ ^[0-9a-f]{40}$ ]]
+          test "${EXPECTED_SHA}" = "${WORKFLOW_SHA}"
+
+      - name: Check out without credentials
+        # actions/checkout v7.0.1
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ inputs.expected_sha }}
+          persist-credentials: false
+
+      - name: Read pinned tool versions
+        id: toolchain
+        run: |
+          set -euo pipefail
+          source toolchain.env
+          echo "ghc=${MARKOVIAN_GHC_VERSION}" >> "${GITHUB_OUTPUT}"
+          echo "cabal=${MARKOVIAN_CABAL_VERSION}" >> "${GITHUB_OUTPUT}"
+
+      - name: Set up Haskell
+        # haskell-actions/setup v2.12.0
+        uses: haskell-actions/setup@6037f33647c3f17758a2356c80fc4a53d7e0685d
+        with:
+          ghc-version: ${{ steps.toolchain.outputs.ghc }}
+          cabal-version: ${{ steps.toolchain.outputs.cabal }}
+
+      - name: Require the protected device and CUDA toolchain
+        env:
+          EXPECTED_UUID: ${{ vars.MARKOVIAN_EXPECTED_CUDA_UUID }}
+        run: |
+          set -euo pipefail
+          test -n "${EXPECTED_UUID}"
+          test "$(git rev-parse HEAD)" = "${{ inputs.expected_sha }}"
+          test -z "$(git status --porcelain --untracked-files=normal)"
+          source backends/markovian-gpu/toolchain.env
+          "${MARKOVIAN_NVCC}" --version | grep -F "release ${MARKOVIAN_CUDA_VERSION}"
+          nvidia-smi --query-gpu=uuid --format=csv,noheader | grep -Fx "${EXPECTED_UUID}"
+          normalized_uuid="$(printf '%s' "${EXPECTED_UUID}" | sed -e 's/^GPU-//' -e 's/-//g' | tr '[:upper:]' '[:lower:]')"
+          test "${#normalized_uuid}" -eq 32
+          case "${normalized_uuid}" in (*[!0-9a-f]*) exit 1;; esac
+          printf 'MARKOVIAN_CUDA_DEVICE_UUID=%s\n' "${normalized_uuid}" >> "${GITHUB_ENV}"
+          printf 'MARKOVIAN_CUDA_REQUIRE_HARDWARE=1\n' >> "${GITHUB_ENV}"
+          compute-sanitizer --version
+
+      - name: Reproduce the committed PTX
+        run: |
+          set -euo pipefail
+          bash backends/markovian-gpu/scripts/build-ptx
+          git diff --exit-code -- \
+            backends/markovian-gpu/cbits/markovian_dense.ptx \
+            backends/markovian-gpu/cbits/markovian_dense_ptx.h \
+            backends/markovian-gpu/src/Markovian/Backend/GPU/Artifact.hs
+
+      - name: Build and run enabled differentials
+        run: |
+          set -euo pipefail
+          cabal test markovian-gpu-test \
+            --project-file=cabal.project.ci \
+            -fcuda -fcuda-fault-injection \
+            --extra-include-dirs=/usr/local/cuda/include \
+            --test-show-details=direct
+          bash backends/markovian-gpu/scripts/check-device-boundary
+
+      - name: Run Compute Sanitizer
+        run: |
+          set -euo pipefail
+          executable="$(cabal list-bin markovian-gpu-test \
+            --project-file=cabal.project.ci \
+            -fcuda -fcuda-fault-injection \
+            --extra-include-dirs=/usr/local/cuda/include)"
+          export markovian_gpu_datadir="${GITHUB_WORKSPACE}/backends/markovian-gpu"
+          for tool in memcheck initcheck racecheck synccheck; do
+            compute-sanitizer --error-exitcode=1 --tool "${tool}" "${executable}"
+          done
+
+      - name: Run transfer-inclusive benchmark
+        run: |
+          cabal bench markovian-gpu-bench \
+            --project-file=cabal.project.ci \
+            -fcuda -fcuda-fault-injection \
+            --extra-include-dirs=/usr/local/cuda/include
+
+      - name: Write UUID-bound protected receipt
+        env:
+          EXPECTED_SHA: ${{ inputs.expected_sha }}
+          EXPECTED_UUID: ${{ vars.MARKOVIAN_EXPECTED_CUDA_UUID }}
+        run: |
+          set -euo pipefail
+          ptx_sha="$(sha256sum backends/markovian-gpu/cbits/markovian_dense.ptx | awk '{print $1}')"
+          python3 - "${EXPECTED_SHA}" "${EXPECTED_UUID}" "${ptx_sha}" > cuda-hardware-receipt.json <<'PY'
+          import json, sys
+          print(json.dumps({
+              "schemaVersion": 1,
+              "sourceRevision": sys.argv[1],
+              "expectedDeviceUuid": sys.argv[2],
+              "ptxSha256": sys.argv[3],
+              "computeSanitizerTools": ["memcheck", "initcheck", "racecheck", "synccheck"],
+              "result": "passed"
+          }, sort_keys=True, indent=2))
+          PY
+
+      - name: Upload protected validation receipt
+        # actions/upload-artifact v4.6.2
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: cuda-hardware-${{ inputs.expected_sha }}
+          path: cuda-hardware-receipt.json
+          if-no-files-found: error
+          retention-days: 30

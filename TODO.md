@@ -12,7 +12,7 @@ Status terms: `DONE`, `NEXT`, `READY`, `BLOCKED`.
   - Floating and exact probability, reward, objective, kernel, MRP, MDP, and policy types have opaque validated boundaries.
   - Action IDs are separate from stochastic transition outcomes.
   - Policy closure validates unique available actions, unique policy support, and action availability.
-  - Exact distributions satisfy functor and Kleisli laws literally.
+  - Exact distributions satisfy functor laws and admitted checked-bind identity and associativity literally; the checked resource API is not a `Monad`.
 - [x] **P2.1 Exact finite-horizon expectation.**
   - The evaluator receives an exact model, policy, horizon, and discount.
   - Terminal payoff, horizon zero, reward timing, weighted support, error propagation, and bounded self-loops have deterministic tests.
@@ -105,6 +105,24 @@ P4 status: `DONE`. Deterministic tests cover distinct continuing targets, common
 
 P5 status: `DONE`. Prediction, post-transition conditioning, impossible observations, normalization, and bounded belief planning pass exact deterministic fixtures.
 
+## Checked finite feedback
+
+- [ ] **S8 Explicit bounded feedback fragments (Partial).** Restricted source, operation accounting, phase-specific rational maxima, exact and one-below limits, discarded-intermediate counterexamples, and focused evidence exist under proposed D-069. Complete archive, lower-bound, hosted, and immutable-revision evidence remains open. Universal trace, arbitrary cyclic circuits/open systems, and rewardful cyclic finite-support claims remain blocked.
+
+## Optional continuous probability
+
+- [ ] **S9 Restricted continuous probability (Partial).** Two optional packages contain restricted exact and numerical paths under proposed D-070 and D-071. The bounded bivariate algorithm now has cumulative symbolic and rational accounting, independent exact oracles, and all-coordinate fixture differentials. These fixtures do not establish general sampler correctness, certified floating bounds, or multidimensional cubature. Fresh archive, lower-bound, supported-compiler, and hosted gates remain open. Arbitrary measurable callbacks, point conditioning, continuous disintegration, continuous MDP execution, and the `hmatrix` bridge remain blocked.
+
+## Optional host tensor runtime
+
+- [ ] **S10 Checked host F64 tensors (Partial).** Optional `markovian-tensor` has a restricted host F64 path under proposed D-072. Shape admission, primitive differentials, deterministic allocation/cleanup fault injection, atomic runtime-shape batches, and report evidence are present. Full supported-compiler, integration, archive, and hosted evidence remains open. General tensor semantics, arbitrary strides, broadcasting, mutation, and performance claims remain blocked.
+
+## Optional CUDA device fragment
+
+- [ ] **S11 Checked matrix/VJP CUDA executor (Blocked).** Proposed D-074 has an owned dynamic CUDA 13 driver table, strict ABI checks, explicit pre-launch fallback boundaries, and a digest-pinned no-GPU compile workflow. Device execution remains blocked until archive-only enabled compilation, the hosted compile-only receipt, protected UUID-bound hardware, all four Compute Sanitizer tools, and complete CI evidence pass together. Local fault fixtures do not establish general device correctness. Generic tensor graphs, generic reverse programs, other dtypes, arbitrary devices, bitwise reproducibility, and GPU advantage remain blocked.
+
+- [ ] **S11.1 SafeTensors profile (Partial).** `markovian-safetensors` implements only the pinned bounded metadata-free F64 profile. Focused canonical encoding, duplicate-preserving parsing, malformed corpus, raw IEEE, exact-limit, opacity, region, paired-archive, and package-local preferred-oldest evidence passes on GHC 9.8.4, and the ordinary focused suites pass on GHC 9.4.8. Complete-graph preferred-oldest, hosted, and release gates remain open; D-073 remains `Proposed`.
+
 ## P6: Compiler and accelerated backends
 
 - [x] **P6.1 Define a typed finite categorical IR.**
@@ -141,7 +159,24 @@ S6 status: `DONE`.
 
 ## Integration status
 
-D-053 through D-060 are `DONE` and `Accepted`. Both supported compilers, `--prefer-oldest`, warning-free Haddock, formatting, all four source archives and unpacked tests, every compile-fail boundary, all four inventory benchmarks, and deterministic semantic-report stability passed locally and in hosted CI run `33467147313` on revision `993508f`.
+D-053 through D-060 are `DONE` and `Accepted`. Both supported compilers, `--prefer-oldest`, warning-free Haddock, formatting, all four historical source archives and unpacked tests, every then-applicable compile-fail boundary, all four inventory benchmarks, and deterministic semantic-report stability passed locally and in hosted CI run `33467147313` on revision `993508f`.
+
+The current 16-package integration overlay is an uncommitted repair tree, not release evidence. No new frontier is promoted: games, autodiff, feedback, continuous probability, host tensors, and the bounded SafeTensors profile are Partial; CUDA/device execution is Blocked. D-061 through D-076 remain Proposed. Complete declaration Haddock, full-graph and independently repeated archives, device fault evidence, protected hardware, Compute Sanitizer, complete supported-compiler/lower-bound jobs, and hosted CI remain open. Release-tooling repairs add hostile-input validation, independently validated SPDX, complete-bundle checksums/provenance, and no-replace finalization, but a clean immutable revision has not run the complete preparation command.
+
+## S8.6: Complete first-release preparation
+
+- [x] Add a versioned preparation manifest and exposed-module snapshots.
+- [x] Check PVP versions, full sibling bounds, package metadata, package README files, and changelogs.
+- [x] Add bounded archive validation, checked extraction, SHA-256 sums, deterministic manifests, and SPDX 2.3 source SBOMs.
+- [x] Add atomic clean-revision preparation and archive-only package and consumer builds.
+- [x] Add migration, install, release-note, checklist, license, rollback, and provenance documentation.
+- [x] Add a least-privilege manual preparation and attestation workflow without Hackage credentials.
+- [ ] Complete D-061 and regenerate the final package and API manifests.
+- [ ] Complete exposed declaration Haddock and every D-075 compiler and hardware gate.
+- [ ] Run full preparation on one clean immutable revision and verify hosted attestations.
+- [ ] Get explicit user approval before any external candidate or publication action.
+
+S8.6 status: `BLOCKED` by D-061, D-067, D-073, D-074, and D-075.
 
 ## S7: Approximation and categorical-learning case studies
 
@@ -181,7 +216,30 @@ D-053 through D-060 are `DONE` and `Accepted`. Both supported compilers, `--pref
   - [x] Add bounded total finite functions, concrete optics, owner-disjoint strategy products, play, coplay, sequential and tensor composition, and context-indexed best responses.
   - [x] Add exact `Rational` maximizing decisions, pure contextual equilibrium enumeration with all ties, owner-preserving observational equality, deterministic reports, and explicit layout diagnostics.
   - [x] Differential-test every represented two-player `2 x 2` payoff table over `{0,1}` and retain matching-pennies and non-credible-threat counterexamples.
-  - Keep arena histories separate. Do not claim mixed, correlated, repeated, stochastic, Bayesian, continuous, subgame-perfect, or equilibrium-existence results.
+  - Keep arena histories separate. The generic open-game callback still has no mixed lifting, repetition, continuous strategy space, subgame-perfect solver, or equilibrium-existence result.
+
+- [ ] **S8.1 Accept exact mixed, stochastic, and Bayesian candidate semantics.**
+  - [x] Add checked owner products, literal rational simplexes, complete normal games, independent mixed profiles, exact expectation, and every-pure-deviation Nash checks.
+  - [x] Keep correlation devices separate; add unconditional CE and constant-deviation CCE checks with null-recommendation reports.
+  - [x] Add joint reward/successor outcome laws, finite-horizon public-state Markov evaluation, and local continuation-game Markov-perfect checks.
+  - [x] Add correlated common type priors, positive-type and ex-ante Bayes-Nash checks, null-type reports, bounded strategic-normal conversion, and a checked closed-context open-game adapter.
+  - [x] Add exhaustive binary mixed-Nash differential enumeration, correlation, degeneracy, irrational-equilibrium, timing, null-type, deterministic-report, compile-fail, and benchmark evidence.
+  - [ ] Pass GHC 9.4.8, lower-bound, full Haddock, formatting, source-archive-only, and hosted CI gates on one final revision.
+  - Defer exact support/LP/LCP solvers to an optional package. Singular systems must be classified, not skipped. Do not claim equilibrium existence or complete real-equilibrium enumeration.
+
+## S8.2: Accept bounded autodiff lowering
+
+- [x] Add an optional closed typed polynomial and `tanh` language.
+- [x] Add explicit shapes, associated products, owner trees, input fanout, and parameter sharing.
+- [x] Add exact formal-polynomial and checked-Double compilation to opaque reverse tapes.
+- [x] Add exact JVP/VJP pairing, all-coordinate finite differences, counterexamples, reports, and compile-fail boundaries.
+- [x] Extract the pure and effect-capable reverse foundation to `markovian-reverse` under D-067; keep the bounded host adapter in `markovian-tensor-reverse`.
+- [x] Add a private bounded scalar SSA with conservative exact identity rewrites and a floating reassociation counterexample.
+- [x] Compare a bounded two-layer `2 -> 2 tanh -> 2` fixture with manual neural execution and independent central finite differences for every primal, input, weight, and bias coordinate under both tape policies.
+- [x] Pass focused GHC 9.4.8, Haddock, formatting, and source-archive-only gates.
+- [ ] Pass the full 16-package, 18-suite, 11-benchmark CI and hosted gates.
+
+Do not claim arbitrary-Haskell autodiff, differentiation through sampling, tensor lowering, device support, or release readiness.
 
 S7 status: `DONE` for the bounded scopes defined by D-048 through D-060. The research boundaries listed below remain out of scope.
 

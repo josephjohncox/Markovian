@@ -1,0 +1,133 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+project_args=()
+if [[ -f cabal.project && -f cabal.project.ci ]]; then
+  project_args+=(--project-file=cabal.project.ci)
+fi
+
+tmp_dir="$(mktemp -d)"
+trap 'rm -rf "${tmp_dir}"' EXIT
+
+ghc_environment="${tmp_dir}/ghc.environment"
+# GHC_ENVIRONMENT is expanded by the Cabal child shell.
+# shellcheck disable=SC2016
+cabal exec "${project_args[@]}" -- sh -c 'cp "$GHC_ENVIRONMENT" "$1"' sh "${ghc_environment}"
+local_package_db="$(awk '$1 == "package-db" { path = $2 } END { print path }' "${ghc_environment}")"
+root_unit_id="$(ghc-pkg --package-db="${local_package_db}" field Markovian id --simple-output)"
+if [[ -z "${root_unit_id}" ]]; then
+  echo "root package unit ID is absent from the Cabal package database" >&2
+  exit 1
+fi
+isolated_package_args=(-package-env -)
+while read -r package_db; do
+  isolated_package_args+=(-package-db "${package_db}")
+done < <(awk '$1 == "package-db" { print $2 }' "${ghc_environment}")
+
+python3 - <<'PY'
+from pathlib import Path
+text = Path("Markovian.cabal").read_text()
+library = text.split("\nlibrary\n", 1)[1].split("\nexecutable ", 1)[0]
+depends = library.split("build-depends:", 1)[1].split("hs-source-dirs:", 1)[0]
+if "Markovian" in depends or "markovian-" in depends:
+    raise SystemExit("root library has a sibling-package dependency")
+entries = [part.strip() for part in depends.replace("\n", " ").split(",") if part.strip()]
+if len(entries) != 1 or not entries[0].startswith("base "):
+    raise SystemExit(f"root library dependency is not exactly base: {entries}")
+
+for forbidden in (
+    "Markovian.Backend.",
+    "Markovian.Benchmark.",
+    "Markovian.Category.Finite.Exact",
+    "Markovian.Circuit.Interpret.Approximate",
+    "Markovian.Interpreter.Sampled",
+    "Markovian.Learning.",
+    "Markovian.MDP\n",
+    "Markovian.Probability\n",
+    "Markovian.Sampling",
+):
+    if forbidden in library:
+        raise SystemExit(f"forbidden root exposure: {forbidden}")
+PY
+
+compile_failure() {
+  local fixture="$1"
+  local log="$2"
+  if cabal exec "${project_args[@]}" -- ghc \
+      "${isolated_package_args[@]}" \
+      -fno-code -fmax-errors=100 -hide-all-packages \
+      -package base -package-id "${root_unit_id}" \
+      "${fixture}" >"${log}" 2>&1; then
+    echo "compile-fail fixture unexpectedly compiled: ${fixture}" >&2
+    exit 1
+  fi
+}
+
+compile_failure test/compile-fail/RootMovedModules.hs "${tmp_dir}/moved.log"
+for module_name in \
+  Markovian.Backend.CPU.Exact \
+  Markovian.Benchmark.Inventory.Report \
+  Markovian.Category.Finite.Exact \
+  Markovian.Circuit.Interpret.Approximate \
+  Markovian.Interpreter.Sampled \
+  Markovian.Learning.Tabular \
+  Markovian.MDP \
+  Markovian.Probability \
+  Markovian.Sampling; do
+  grep -Fq "${module_name}" "${tmp_dir}/moved.log" || {
+    cat "${tmp_dir}/moved.log" >&2
+    echo "missing root-only rejection for ${module_name}" >&2
+    exit 1
+  }
+done
+
+# Derive one isolated rejection probe for every module owned by an optional
+# package. A combined fixture can stop after parser/import recovery and is not
+# complete ownership evidence.
+while IFS= read -r golden; do
+  [[ "$(basename "${golden}")" != Markovian.txt ]] || continue
+  while IFS= read -r module_name; do
+    [[ -n "${module_name}" ]] || continue
+    fixture="${tmp_dir}/MovedProbe.hs"
+    printf 'module MovedProbe where\nimport %s ()\n' "${module_name}" > "${fixture}"
+    compile_failure "${fixture}" "${tmp_dir}/moved-single.log"
+    grep -Fq "${module_name}" "${tmp_dir}/moved-single.log" || {
+      cat "${tmp_dir}/moved-single.log" >&2
+      echo "missing generated root-only rejection for ${module_name}" >&2
+      exit 1
+    }
+  done < "${golden}"
+done < <(find release/exposed-modules -maxdepth 1 -type f -name '*.txt' -print | LC_ALL=C sort)
+
+compile_failure test/compile-fail/MDPActionIdExport.hs "${tmp_dir}/mdp-action.log"
+grep -Fq "does not export.*ActionId" "${tmp_dir}/mdp-action.log" || grep -Fq "ActionId" "${tmp_dir}/mdp-action.log"
+
+compile_failure test/compile-fail/ActionRoles.hs "${tmp_dir}/action.log"
+grep -Fq 'breakActionId' "${tmp_dir}/action.log"
+grep -Fq "Couldn't match type" "${tmp_dir}/action.log"
+
+compile_failure test/compile-fail/ExactApplicative.hs "${tmp_dir}/applicative.log"
+grep -Fq 'No instance for' "${tmp_dir}/applicative.log"
+grep -Fq 'Applicative ExactFiniteDist' "${tmp_dir}/applicative.log"
+compile_failure test/compile-fail/ExactMonad.hs "${tmp_dir}/monad.log"
+grep -Fq 'No instance for' "${tmp_dir}/monad.log"
+grep -Fq 'Monad ExactFiniteDist' "${tmp_dir}/monad.log"
+compile_failure test/compile-fail/ExactUncheckedBind.hs "${tmp_dir}/unchecked-bind.log"
+grep -Fq 'bindExactFiniteDist' "${tmp_dir}/unchecked-bind.log"
+compile_failure test/compile-fail/ExactDistributionOpacity.hs "${tmp_dir}/distribution-opacity.log"
+grep -Fq 'UnsafeExactFiniteDist' "${tmp_dir}/distribution-opacity.log"
+compile_failure test/compile-fail/ExactKernelComposition.hs "${tmp_dir}/kernel.log"
+grep -Fq 'badComposition' "${tmp_dir}/kernel.log"
+grep -Fq 'ExactBindLimits' "${tmp_dir}/kernel.log"
+for class in Category Arrow ArrowChoice; do
+  compile_failure "test/compile-fail/ExactKernel${class}.hs" "${tmp_dir}/kernel-${class}.log"
+  grep -Fq "No instance for" "${tmp_dir}/kernel-${class}.log"
+  grep -Fq "${class}" "${tmp_dir}/kernel-${class}.log"
+done
+
+printf 'PASS: root is base-only and excludes optional numerical, sampled, learning, dense, benchmark, and legacy IR modules\n'
+printf 'PASS: ActionId is root-owned with a nominal parameter role\n'
+printf 'PASS: exact distribution construction is opaque and unchecked bind, Applicative, and Monad are unavailable\n'
+printf 'PASS: every moved public module is rejected by a generated root-only probe\n'
+printf 'PASS: Markovian.MDP.Exact does not re-export ActionId\n'
+printf 'PASS: exact kernels reject unrestricted composition, Category, Arrow, and ArrowChoice\n'

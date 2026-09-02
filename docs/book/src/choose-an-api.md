@@ -2,6 +2,8 @@
 
 Use this table to select the smallest correct abstraction.
 
+Floating modules need `markovian-numerical`. Sampling needs `markovian-sampling`. Tabular learning needs `markovian-learning`. Dense execution and benchmark fixtures also have separate packages.
+
 | Task | API |
 | --- | --- |
 | Construct a checked floating probability | `Markovian.Probability` |
@@ -44,17 +46,32 @@ Use this table to select the smallest correct abstraction.
 | Produce a bounded static circuit cost report | `Markovian.Circuit.Interpret.Cost` |
 | Check a deterministic structural rewrite exactly | `Markovian.Circuit.Rewrite.Deterministic.Exact` |
 | Compile finite deterministic structure | `Markovian.Circuit.Compile.Deterministic` |
+| Execute explicit one-tick delayed state | `Markovian.Feedback.Delay.Exact` |
+| Close a proper finite first-exit channel | `Markovian.Feedback.Channel.Exact` |
+| Retain reward, duration, and exit jointly in a nilpotent loop | `Markovian.Feedback.Timed.Exact` |
 | Compose systems through boundaries | `Markovian.Open.StructuredCospan` |
 | Execute a validated finite DAG | `Markovian.Open.Acyclic.Circuit.Exact` |
 | Define a finite alternating protocol | `Markovian.Game.Arena` and `Markovian.Game.Strategy` |
 | Define an owned finite open game | `Markovian.Game.Open.Finite` |
 | Enumerate exact pure contextual equilibria | `Markovian.Game.Open.Exact` and `enumeratePureEquilibria` |
+| Verify a supplied exact mixed-Nash candidate | `Markovian.Game.NormalForm.Exact` |
+| Check CE or CCE obedience separately | `Markovian.Game.Correlated.Exact` |
+| Evaluate a finite-horizon public-state stochastic profile | `Markovian.Game.Stochastic.Exact` |
+| Check a one-shot correlated-prior Bayesian profile | `Markovian.Game.Harsanyi.Exact` |
+| Integrate a represented affine-uniform law exactly | `Markovian.Continuous.Measure.Exact` |
+| Condition on a positive-evidence finite observation | `Markovian.Continuous.Condition.Exact` |
+| Run bounded estimated-error quadrature | `Markovian.Continuous.Numerical.Quadrature` |
+| Run explicit-generator resumable Monte Carlo | `Markovian.Continuous.Numerical.MonteCarlo` |
+| Compile the closed polynomial or `tanh` autodiff language | `Markovian.Autodiff.Compile` |
+| Execute checked host F64 primitives | `Markovian.Tensor.Primitive` |
+| Apply a closed host tensor primitive VJP | `markovian-tensor-reverse`: `Markovian.Tensor.Reverse` |
+| Read or write the bounded metadata-free F64 profile | `Markovian.Tensor.SafeTensors` |
 | Lower an exact circuit to dense rows | `Markovian.Backend.CPU.Exact` |
 | Apply a dense matrix with CUDA | `Markovian.Backend.GPU` |
 | Evaluate a checked dense neural network | `Markovian.Backend.Neural.Dense` |
 | Construct or inspect a sized structural action mask | `Markovian.Backend.Neural.Mask` |
 | Compile exact action availability for a neural head | `Markovian.Backend.Neural.Bridge.ExactSupportMask` |
-| Compose typed primitive VJPs | `Markovian.Backend.Neural.Reverse` |
+| Compose typed primitive VJPs | `Markovian.Reverse` from `markovian-reverse` |
 | Apply a finite REINFORCE update | `Markovian.Backend.Neural.Reinforce` |
 | Apply a one-step actor-critic update | `Markovian.Backend.Neural.ActorCritic` |
 | Store explicit replay snapshots | `Markovian.Backend.Neural.Replay` |
@@ -65,7 +82,7 @@ Use this table to select the smallest correct abstraction.
 
 Use exact control when you have a complete finite exact model. Value iteration gives a bounded iterate and residual bounds. Policy iteration gives a deterministic policy after exact rational policy solves.
 
-Use tabular learning when you have sampled transitions and a small discrete state-action space. The root update APIs still use an MDP to validate terminal states and action support.
+Use tabular learning for sampled transitions in a small discrete state-action space. The `markovian-learning` updates use a numerical MDP to validate terminal states and action support.
 
 Use the neural package for small function-approximation reference calculations. It has update primitives, but no environment runner or complete trainer.
 
@@ -77,7 +94,7 @@ Do not use matrix transpose for inference. Use `bayesianInverse` with an explici
 
 Do not use `bayesianInverse` to evaluate a payoff. Use `pullbackPayoff`; it needs no prior and returns a payoff, not a posterior.
 
-Do not use raw matrix trace for stochastic feedback. Use bounded recursion or a justified fixed-point solver.
+Do not use raw matrix trace for stochastic feedback. Use explicit delayed execution or a checked proper first-exit fragment. Rewardful finite-support feedback additionally requires the implemented nilpotence witness.
 
 Do not use `fanoutCircuit c c` when both consumers must see the same random value. Use `shareCircuit c`.
 
@@ -92,6 +109,10 @@ Do not use Q-learning epsilon in the greedy target. Epsilon belongs to its behav
 Do not treat a horizon stop as a terminal state. REINFORCE requires an explicit truncated-boundary bootstrap.
 
 Do not use the CUDA or neural result as the semantic reference. Compare it with exact or checked CPU execution.
+
+Do not convert a numerical continuous result back to exact. Quadrature error and Monte Carlo standard error are estimates, not certified bounds.
+
+Do not treat reverse differentiation as matrix dagger, Bayesian inversion, payoff pullback, feedback, strategic duality, or disintegration.
 
 Do not use arena histories as open-game strategies. The protocol and open-game modules are separate formalisms.
 

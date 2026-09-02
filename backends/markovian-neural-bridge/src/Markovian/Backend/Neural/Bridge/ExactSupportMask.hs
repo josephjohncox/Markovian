@@ -30,6 +30,7 @@ module Markovian.Backend.Neural.Bridge.ExactSupportMask (
 
 import Data.List.NonEmpty (NonEmpty)
 import Data.List.NonEmpty qualified as NonEmpty
+import Markovian.Action (ActionId)
 import Markovian.Backend.Neural.Dense (DenseNetwork, denseOutputSize)
 import Markovian.Backend.Neural.Mask (
     ActionMask,
@@ -56,7 +57,6 @@ import Markovian.Compile.Exact (
     sameFiniteActionIndex,
     sameFiniteActionIndexLayout,
  )
-import Markovian.MDP (ActionId)
 import Numeric.Natural (Natural)
 
 -- | A bounded complete-compilation dimension.

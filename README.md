@@ -6,11 +6,32 @@ The package is greenfield and unreleased. It makes no compatibility promise. Inc
 
 Capability labels in this repository have these meanings:
 
-- **Implemented:** source and deterministic fixtures exist in the current worktree.
-- **Experimental:** the API is unreleased and can change without migration support.
-- **Out of scope:** no support claim exists for convergence, production training, tensor frameworks, autodiff, or neural devices.
+- **Present:** source exists in the current worktree. This is not an implementation-status promotion.
+- **Partial:** a restricted capability has executable fixtures, but its contract or evidence matrix is incomplete.
+- **Blocked:** a safety or semantic prerequisite fails or has no executable evidence.
+- **Out of scope:** no support claim exists for convergence, production training, general tensor semantics, arbitrary-Haskell autodiff, or neural devices.
 
-D-053 through D-060 are accepted. The complete four-package compiler, lower-bound, Haddock, formatting, source-archive, compile-fail, benchmark, and deterministic-report gates passed locally and in hosted CI run `33467147313` on revision `993508f`.
+The mixed-game, autodiff, feedback, continuous, and host-tensor frontiers are partial. CUDA/device execution is blocked. No new frontier is classified as implemented, and passing focused suites do not establish release readiness.
+
+D-053 through D-060 are accepted. Their four-package evidence remains in hosted CI run `33467147313` on revision `993508f`.
+
+The current 16-package integration overlay is not release-ready. It contains an unaccepted D-061 package migration, an effect reverse adapter, and a bounded SafeTensors profile. D-061 remains `Proposed` until every acceptance gate passes. D-067 and D-073 through D-076 also remain open.
+
+## Release status
+
+The repository has bounded, non-publishing release preparation tools. They check metadata, public module snapshots, source archives, checksums, SPDX 2.3 SBOMs, and archive-only consumers.
+
+Run the static release checks with:
+
+```sh
+bash scripts/check-release-metadata
+bash scripts/check-release-policy
+python3 scripts/test_release_tool.py
+```
+
+Run full preparation only from a clean immutable revision. Read [the release checklist](RELEASE-CHECKLIST.md), [migration guide](MIGRATION.md), and [draft release notes](RELEASE-NOTES.md).
+
+Preparation does not upload packages or create tags or releases. External publication requires explicit user approval.
 
 ## Documentation
 
@@ -27,7 +48,7 @@ Open `docs/book/build/index.html` after the build succeeds. Haddock remains the 
 
 The public book is <https://josephjohncox.github.io/Markovian/>. [Pages run 33126170927](https://github.com/josephjohncox/Markovian/actions/runs/33126170927) deployed merge commit `1268191a025c22fd9b995a1025d9ca810ff43451` from `main`.
 
-## Implemented semantics
+## Present API surfaces
 
 - opaque validated floating probabilities, weights, finite distributions, rewards, discounts, and horizons;
 - separate rational reference values for literal equality and law tests;
@@ -65,8 +86,9 @@ The public book is <https://josephjohncox.github.io/Markovian/>. [Pages run 3312
 - bounded concrete finite optics and owner-refined finite open games with exact pure contextual equilibrium enumeration;
 - a finite symmetric monoidal Markov IR with explicit object witnesses, full-tensor copy, fanout, symmetry, associators, and unitors;
 - optional typed parametric reverse circuits plus a finite owned reverse-program syntax with checked layouts, bounded preparation, explicit diagonal accumulation, and opaque stored or recomputed tapes;
-- standard probability-monad, Kleisli `Category`, `Arrow`, and `ArrowChoice` instances;
-- dense rational CPU lowering with denotational differential tests;
+- checked exact distribution bind with support, work, and rational-size limits;
+- checked exact-kernel composition without unrestricted `Category` or `Arrow` instances;
+- optional dense rational CPU lowering from exact circuits with denotational differential tests;
 - structured model, policy, sampling, compilation, solver, arithmetic, normalization, and conditioning errors.
 
 Raw matrices can use empty objects. The vacuous empty-to-empty stochastic arrow is also valid, but a stochastic arrow from a nonempty source to an empty target is not. Normalized states, distributions, priors, and other probability-bearing finite objects remain nonempty. Both finite-witness modules export `sameFiniteLayout` as the canonical layout comparison. `sameFiniteSetLayout` and `sameFiniteObjectLayout` remain descriptive aliases. `matrixEquivalent` is labelled extensional equality; `sameMatrixLayout` compares the represented witnesses and row layout. Stochastic matrices deliberately have no transpose, dagger, compact, trace, or raw-addition API because those operations do not generally preserve normalization. Nominal roles protect stochastic, deterministic, and convex proofs from `coerce`. Copy-naturality reasoning requires the proof-carrying deterministic refinement.
@@ -83,17 +105,41 @@ Open systems use structured cospans of finite typed directed hypergraphs. Sequen
 
 `OpenCircuit` attaches one directed global circuit decoration, and its existing denotation is unchanged. Separately, `AcyclicOpenSystem` accepts only topology in which every apex vertex has one input-boundary or edge-output producer and the edge dependency graph is acyclic. `AcyclicOpenCircuit` resolves label and ordered-signature entries to local purity-indexed circuits and gives the validated finite DAG an exact assignment-matrix denotation. Evaluation retains only values needed by later edges or output observations. It marginalizes dead values at the edge step. Multiple consumers copy one stored value, while distinct edge occurrences execute independently. Exact fixture laws cover identity, composition, tensor, sharing, discard, conditional independence, normalization, and schedule independence for successful denotations. Runtime cost can still grow exponentially with live-frontier width and boundary size.
 
-Raw or cyclic `OpenSystem` values cannot use this interpreter. Feedback, trace, fixed points, arbitrary hypergraph black-boxing, continuous-time open Markov processes, and unrestricted MDP black-boxing remain deferred.
+Raw or cyclic `OpenSystem` values cannot use this interpreter. The separate `Markovian.Feedback.*.Exact` modules support only explicit one-tick delay, checked proper first-exit coproduct routing, and nilpotent reward-and-duration-preserving closure. They do not accept cyclic `OpenSystem` topology. Universal trace, arbitrary fixed points, arbitrary hypergraph black-boxing, continuous-time open Markov processes, and unrestricted MDP black-boxing remain deferred.
+
+Checked feedback keeps normalized routing separate from raw matrix trace. Proper first exit solves and validates `H = C + D H`. Delayed execution retains output and successor state jointly. Timed execution retains reward, duration, and output jointly. A half-loop and half-exit has a valid marginal first exit. Timed feedback rejects it because duration support is unbounded. All operations have explicit limits. Deterministic reports include exact work and rational maxima for discarded and retained values.
 
 `Markovian.Game.Arena` validates finite reachability, ownership, alternation, and acyclicity under explicit construction and comparison bounds. `Markovian.Game.Strategy` validates finite prefix closure, exhaustive Opponent receptivity, and one total Player response. Composition synchronizes literal middle move identities, hides them, and revalidates the visible strategy under one operation-wide work account. Composition is partial and can reject a hidden internal deadlock. Observational equality is bounded exact external-prefix equality, not contextual equivalence. This protocol layer has no general closure or category-law claim, justification pointers, views, innocence, payoff, best response, equilibrium, chance, recursion, or claim to Hyland--Ong or AJM game semantics.
 
-`Markovian.Game.Open.*` is a separate finite formalism. It stores structural owner/profile trees, play, coplay, and context-indexed best-response membership; sequential and tensor composition reject repeated owners. Exact decisions enumerate represented finite functions and compare `Rational` utilities literally. Products, pure equilibria, and observational equality are preflight-bounded. Continuations are canonicalized, equality accepts only structural owner-preserving witnesses, and performed counts come from strict best-response, play, and coplay checks. Matching pennies has no pure equilibrium, and the sequential counterexample retains a non-credible threat. There is no mixed, correlated, repeated, stochastic, Bayesian, continuous, subgame-perfect, or equilibrium-existence claim and no `Category` instance.
+`Markovian.Game.Open.*` is a separate finite formalism. It stores structural owner/profile trees, play, coplay, and context-indexed best-response membership; sequential and tensor composition reject repeated owners. Exact decisions enumerate represented finite functions and compare `Rational` utilities literally. Products, pure equilibria, and observational equality are preflight-bounded. Continuations are canonicalized, equality accepts only structural owner-preserving witnesses, and performed counts come from strict best-response, play, and coplay checks. Matching pennies has no pure open-game equilibrium, and the sequential counterexample retains a non-credible threat. There is no generic mixed lifting, repeated, continuous, subgame-perfect, or equilibrium-existence claim and no `Category` instance.
 
-The semantic core depends only on `base`. GPU runtimes and neural contracts remain outside it in separate packages:
+The separate `Markovian.Game.Profile.Finite`, `NormalForm.Exact`, `Correlated.Exact`, `Outcome.Exact`, `Stochastic.Exact`, and `Harsanyi.Exact` modules provide bounded exact candidate semantics. They distinguish independent mixtures, CE, CCE, correlated type priors, and joint reward/successor outcomes. Stochastic evaluation is finite-horizon, public-state, and terminal-before-horizon. Harsanyi checks report null types without inventing posteriors. `Open.Strategic.Exact` extracts only one checked closed context. These APIs do not find all equilibria: a rational-payoff three-player fixture needs `p=1/sqrt(2)`, and a zero-payoff fixture has a positive-dimensional equilibrium set.
 
-- `backends/markovian-gpu` provides an optional CUDA 13 driver backend, CPU/GPU differential tests, and a transfer-inclusive benchmark;
+The root library depends only on `base`. It exposes finite exact and exact-neutral structural semantics. Floating, sampled, learning, approximation, dense, and benchmark modules now have these optional-package boundaries:
+
+- `packages/markovian-numerical` owns floating finite probability, rewards, objectives, kernels, models, policies, and approximate circuit interpretation;
+- `packages/markovian-sampling` owns explicit generators and sampled finite interpreters;
+- `packages/markovian-learning` owns tabular updates and bounded episodic runners;
+- `packages/markovian-dense-exact` owns dense `Rational` storage lowered from exact circuits;
+- `packages/markovian-exact-benchmarks` owns inventory fixtures, deterministic reports, and the six exact semantic benchmark components;
+
+The continuous, autodiff, tensor, GPU, and neural layers remain separate optional packages:
+
+- `packages/markovian-continuous` provides compact rational affine-uniform laws, exact polynomial moments, bounded bivariate symbolic accounting, checked affine kernels, and positive-evidence finite-observation conditioning;
+- `packages/markovian-continuous-numerical` provides explicit rational-to-`Double` conversion, bounded deterministic GK15/7 quadrature, owned SplitMix64 sampling, and resumable Welford Monte Carlo;
+- `packages/markovian-autodiff` provides a closed typed polynomial and `tanh` language, exact formal-polynomial and checked-Double compilers, bounded reverse lowering, and opaque reusable tapes;
+- `packages/markovian-tensor` provides region-scoped host F64 buffers, typed shapes, checked immutable layouts, deterministic CPU primitives, staged allocation cleanup, separate semantic owners and storage IDs, and opaque primitive VJP tapes;
+- `packages/markovian-tensor-reverse` connects only closed host F64 `tanh` and pointwise-multiplication symbols to the bounded effect reverse interpreter;
+- `packages/markovian-safetensors` parses and emits only a bounded canonical metadata-free F64 profile pinned to SafeTensors revision `6eb4dc9a28ebce297606e0f4836bbf28839cacef`;
+- `backends/markovian-gpu` provides prepared F64 matrix and matrix-VJP plans, CPU reference dispatch, and an optional admitted CUDA 13 executor with explicit ownership, synchronization, cleanup, and pre-launch fallback;
 - `backends/markovian-neural` provides checked dense networks with manual VJPs, typed parametric reverse composition, stable categorical operations, sized structural action masks, approximate entropy/cross-entropy/KL/mutual-information calculations and gradients, linear REINFORCE and actor-critic updates, replay storage, target networks, and one standard or Double-DQN batch update;
 - `backends/markovian-neural-bridge` checks exact global action layouts against policy or dense output widths and compiles each continuing state's exact availability order into a Boolean structural mask under explicit state, action-entry, and work limits. Terminal states remain explicit.
+
+The autodiff package differentiates only its closed first-order syntax. Its test-only neural integration checks one `2 -> 2 tanh -> 2` two-layer fixture for every primal, input, weight, and bias coordinate under both tape policies. This does not add a general neural lowering API. The package has no arbitrary callback, recursion, branch, stochastic node, tensor runtime, or device path. The separate effect interpreter and bounded host adapter are present; D-067 remains `Proposed` until neural `Identity` migration and all conjunctive gates pass.
+
+The tensor package is host-only and F64-only. Rank zero is one scalar. Numerical primitives require finite values and use fixed-order single-threaded loops. Payload and work budgets are preflighted, including atomic multi-output VJPs. It has no arbitrary strides, broadcasting, mutation, raw pointers, BLAS, device buffers, generic reverse-program lowering, or performance claim. The separate SafeTensors package supports only bounded metadata-free F64 files; it rejects unsupported dtypes and metadata and does not serialize ownership or execution resources. The optional GPU package consumes checked tensor inputs only for positive-size F64 matrix multiplication and its declared VJP. D-067 and D-073 remain `Proposed` until all gates pass.
+
+The continuous exact and continuous numerical libraries are each `base`-only. Their integration dependency is test-only. These packages do not provide arbitrary measurable callbacks, point conditioning, continuous-to-continuous disintegration, certified floating bounds, continuous MDP execution, or release-readiness evidence.
 
 The bridge depends on the root and neural libraries. Neither existing library depends on it. Complete compilation is preflighted and returns no partial collection after exhaustion. Nominal roles reject representational action relabelling. The bridge gathers available logits or Q-values before softmax or argmax; it does not construct multiplicative numeric masks or additive negative-infinity masks.
 
@@ -102,15 +148,18 @@ The reverse interpreters keep primal and cotangent types distinct, combine indep
 The CUDA package flag is disabled by default so ordinary builds require no GPU toolkit. On a CUDA host, run:
 
 ```sh
-cabal test markovian-gpu-test --project-file=cabal.project -fcuda --test-show-details=direct
-cabal bench markovian-gpu-bench --project-file=cabal.project -fcuda
+cabal test markovian-gpu-test --project-file=cabal.project.ci -fcuda \
+  --extra-include-dirs=/usr/local/cuda/include --test-show-details=direct
+cabal bench markovian-gpu-bench --project-file=cabal.project.ci -fcuda \
+  --extra-include-dirs=/usr/local/cuda/include
+bash backends/markovian-gpu/scripts/check-device-boundary
 ```
 
-The 2026-08-26 evidence run used an NVIDIA GB10 with driver 580.173.02 and compute capability 12.1. The differential test passed.
+The enabled test requires structured admission, module load, a known-answer self-test, and CPU/CUDA matrix and VJP differentials. The benchmark records one excluded warmup and 20 CPU samples plus 20 transfer-inclusive CUDA samples when enabled.
 
-The benchmark uses one excluded warmup and 20 measured runs. It measured a transfer-inclusive mean of `267.843920400 ms`. The sample standard deviation was `3.025869898 ms`, and the maximum differential error was `0.000e0`.
+The 2026-08-26 GB10 measurements predate the current executor and matrix/VJP kernel. They are historical evidence for the removed list-only dense call, not performance or correctness evidence for this implementation.
 
-[The complete CUDA evidence record](docs/evidence/CUDA-2026-08-26.md) contains raw samples, the range, tool versions, historical measurements, and revision context. The result shows local execution only. It is not a general performance claim.
+[The current tensor-fragment record](docs/evidence/CUDA-TENSOR-2026-09-02.md) contains focused enabled differentials and raw 64-by-64 samples. [The 2026-08-26 record](docs/evidence/CUDA-2026-08-26.md) is retained only as historical evidence for the removed list API. Both are local records, not general performance or device-correctness claims.
 
 CUDA 13.0 `nvcc` V13.0.88 was available at `/usr/local/cuda/bin/nvcc`. This command reproduced the committed PTX files exactly:
 
@@ -129,7 +178,7 @@ cabal bench dogru-inventory-bench --project-file=cabal.project.ci
 cabal bench fixed-batch-rnq-bench --project-file=cabal.project.ci
 ```
 
-The Clark--Scarf executable reports only its finite Section III specialization. The Doğru executable reports a two-retailer finite-horizon adaptation with separate physical and signed-relaxed actions. The fixed-batch executable keeps its finite-horizon oracle separate from stationary newsvendor calculations on an explicit finite Cartesian `R1`/`R2` domain. None is a published numeric reproduction, average-cost solution, unbounded result, or convergence claim. CI runs all four executables in the working tree and again from the unpacked root source archive; each run enforces one warm-up and twenty identical semantic reports.
+The Clark--Scarf executable reports only its finite Section III specialization. The Doğru executable reports a two-retailer finite-horizon adaptation with separate physical and signed-relaxed actions. The fixed-batch executable keeps its finite-horizon oracle separate from stationary newsvendor calculations on an explicit finite Cartesian `R1`/`R2` domain. None is a published numeric reproduction, average-cost solution, unbounded result, or convergence claim. CI runs all four executables in the working tree and from the unpacked `markovian-exact-benchmarks` archive graph. Each run enforces one warm-up and twenty identical semantic reports.
 
 Each executable uses one excluded warm-up and twenty complete measured build, solve, and report samples. It prints raw nanosecond samples and toolchain metadata. Every sample must reproduce the same exact semantic report. The synthetic benchmark also prints sample statistics.
 
@@ -150,31 +199,68 @@ The sample evaluates one exact transition with reward `2`, discount `1/2`, and t
 The package tests GHC 9.4.8 and 9.8.4. The required CI checks are:
 
 ```bash
-for dir in . backends/markovian-gpu backends/markovian-neural backends/markovian-neural-bridge; do
-  (cd "$dir" && cabal check)
-done
+bash scripts/check-package-manifest
+bash scripts/check-release-metadata
+bash scripts/check-release-policy
+python3 scripts/test_release_tool.py
+while IFS=$'\t' read -r package_name package_dir dependency_tier; do
+  if [[ -z "$package_name" || "$package_name" == \#* ]]; then
+    continue
+  fi
+  (cd "$package_dir" && cabal check)
+done < ci/packages.tsv
 cabal build all --project-file=cabal.project.ci
 cabal build \
   inventory-control-bench \
   clark-scarf-1960-bench \
   dogru-inventory-bench \
   fixed-batch-rnq-bench \
+  feedback-exact-bench \
+  mixed-games-exact-bench \
+  markovian-continuous-bench \
+  markovian-continuous-numerical-bench \
+  markovian-autodiff-bench \
+  markovian-tensor-bench \
+  markovian-gpu-bench \
   --project-file=cabal.project.ci
 cabal test all --project-file=cabal.project.ci --test-show-details=direct
 cabal bench inventory-control-bench --project-file=cabal.project.ci
 cabal bench clark-scarf-1960-bench --project-file=cabal.project.ci
 cabal bench dogru-inventory-bench --project-file=cabal.project.ci
 cabal bench fixed-batch-rnq-bench --project-file=cabal.project.ci
-set -o pipefail
+cabal bench feedback-exact-bench --project-file=cabal.project.ci
+cabal bench mixed-games-exact-bench --project-file=cabal.project.ci
+cabal bench markovian-continuous-bench --project-file=cabal.project.ci
+cabal bench markovian-continuous-numerical-bench --project-file=cabal.project.ci
+cabal bench markovian-autodiff-bench --project-file=cabal.project.ci
+cabal bench markovian-tensor-bench --project-file=cabal.project.ci
+cabal bench markovian-gpu-bench --project-file=cabal.project.ci
+bash packages/markovian-tensor/scripts/check-tensor-boundary
+bash backends/markovian-gpu/scripts/check-device-boundary
+# Warning-free evidence: isolated installation, one interface per package.
+rm -rf /tmp/markovian-doc-store /tmp/markovian-doc-build /tmp/markovian-doc-environment
+mapfile -t documentation_packages < <(awk -F '\t' '$1 !~ /^#/ { print $1 }' ci/packages.tsv)
+cabal --store-dir=/tmp/markovian-doc-store install \
+  --lib "${documentation_packages[@]}" \
+  --project-file=cabal.project.ci \
+  --builddir=/tmp/markovian-doc-build \
+  --package-env=/tmp/markovian-doc-environment \
+  --enable-documentation \
+  --overwrite-policy=always 2>&1 | tee haddock-install.log
+! grep -nE '(^|[[:space:]])Warning:' haddock-install.log
+python3 scripts/release_tool.py check-haddock-interfaces /tmp/markovian-doc-store
+
+# Coverage evidence only; --no-warnings does not prove warning freedom.
 cabal haddock all \
   --project-file=cabal.project.ci \
-  --haddock-all \
-  --haddock-hyperlink-source 2>&1 | tee haddock.log
-! grep -nE '(^|[[:space:]])Warning:' haddock.log
+  --haddock-hyperlink-source \
+  --haddock-for-hackage \
+  --haddock-options=--no-warnings > haddock-coverage.log 2>&1
+python3 scripts/check-haddock-coverage haddock-coverage.log
 cabal build all --project-file=cabal.project.ci --prefer-oldest
 cabal test all --project-file=cabal.project.ci --prefer-oldest
-hlint src bench backends/*/src test backends/*/test
-find src app bench test backends -type f -name '*.hs' -print0 \
+hlint app src test backends/*/src backends/*/test backends/*/bench packages/*/src packages/*/test packages/*/bench
+find src app test backends packages -type f -name '*.hs' -print0 \
   | sort -z \
   | xargs -0 fourmolu --mode check
 bash -n \
@@ -186,24 +272,58 @@ bash -n \
   scripts/check-acyclic-proof-boundary \
   scripts/check-acyclic-purity \
   scripts/check-game-core-boundary \
+  scripts/check-mixed-game-boundary \
+  scripts/check-feedback-boundary \
+  scripts/check-package-manifest \
   backends/markovian-gpu/scripts/build-ptx \
+  backends/markovian-gpu/scripts/check-device-boundary \
   backends/markovian-neural/scripts/check-reverse-program-boundary \
-  backends/markovian-neural-bridge/scripts/check-exact-support-boundary
+  backends/markovian-neural-bridge/scripts/check-exact-support-boundary \
+  packages/markovian-continuous/scripts/check-continuous-boundary \
+  packages/markovian-continuous-numerical/scripts/check-continuous-numerical-boundary \
+  packages/markovian-autodiff/scripts/check-autodiff-boundary \
+  packages/markovian-reverse/scripts/check-reverse-boundary \
+  packages/markovian-tensor/scripts/check-tensor-boundary \
+  packages/markovian-tensor-reverse/scripts/check-tensor-reverse-boundary \
+  packages/markovian-safetensors/scripts/check-safetensors-boundary
+scripts/check-root-topology
 scripts/check-refinement-roles
 scripts/check-circuit-purity
+bash packages/markovian-reverse/scripts/check-reverse-boundary
 bash backends/markovian-neural/scripts/check-reverse-program-boundary
 bash backends/markovian-neural-bridge/scripts/check-exact-support-boundary
 scripts/check-acyclic-proof-boundary
 scripts/check-acyclic-purity
 scripts/check-game-core-boundary
+scripts/check-mixed-game-boundary
+scripts/check-feedback-boundary
+bash packages/markovian-continuous/scripts/check-continuous-boundary
+bash packages/markovian-continuous-numerical/scripts/check-continuous-numerical-boundary
+bash packages/markovian-autodiff/scripts/check-autodiff-boundary
+bash packages/markovian-tensor/scripts/check-tensor-boundary
+bash packages/markovian-tensor-reverse/scripts/check-tensor-reverse-boundary
+bash packages/markovian-safetensors/scripts/check-safetensors-boundary
+bash backends/markovian-gpu/scripts/check-device-boundary
 scripts/check-book
 cabal-fmt --check Markovian.cabal \
   backends/markovian-gpu/markovian-gpu.cabal \
   backends/markovian-neural/markovian-neural.cabal \
-  backends/markovian-neural-bridge/markovian-neural-bridge.cabal
+  backends/markovian-neural-bridge/markovian-neural-bridge.cabal \
+  packages/markovian-continuous/markovian-continuous.cabal \
+  packages/markovian-continuous-numerical/markovian-continuous-numerical.cabal \
+  packages/markovian-autodiff/markovian-autodiff.cabal \
+  packages/markovian-reverse/markovian-reverse.cabal \
+  packages/markovian-tensor/markovian-tensor.cabal \
+  packages/markovian-tensor-reverse/markovian-tensor-reverse.cabal \
+  packages/markovian-safetensors/markovian-safetensors.cabal \
+  packages/markovian-numerical/markovian-numerical.cabal \
+  packages/markovian-sampling/markovian-sampling.cabal \
+  packages/markovian-learning/markovian-learning.cabal \
+  packages/markovian-dense-exact/markovian-dense-exact.cabal \
+  packages/markovian-exact-benchmarks/markovian-exact-benchmarks.cabal
 ```
 
-Fourmolu 0.20 does not parse the repository's three LaTeX-style literate Haskell files. CI excludes only those `.lhs` files from Fourmolu; GHC and HLint still check them. CI creates four source archives, builds and tests the unpacked packages, runs each applicable compile-fail boundary, and reruns all four inventory semantic-report benchmarks from the unpacked root archive.
+Fourmolu 0.20 does not parse the repository's three LaTeX-style literate Haskell files. CI excludes only those `.lhs` files from Fourmolu; GHC and HLint still check them. CI creates all 16 source archives, enables the manifested neural integration flag, checks the archive plan against all 18 suites and 11 benchmarks, and runs the applicable unpacked boundaries. Enabled CUDA compilation runs in the digest-pinned no-GPU workflow. Device execution and all four Compute Sanitizer tools run only in the protected UUID-bound hardware workflow.
 
 ## Project documents
 

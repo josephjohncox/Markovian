@@ -14,7 +14,7 @@ A floating result cannot prove an exact probability law. An exact result does no
 
 ## Finite distributions
 
-A finite distribution has nonempty support and total mass one. The constructor validates each input weight before it combines duplicate values.
+A finite distribution has nonempty support and total mass one. `exactFiniteDist` validates each input weight, removes zero-mass entries, and preserves positive labeled duplicates in input order. It rejects more than 4096 raw entries after inspecting only entry 4097, so an infinite input spine is rejected without complete traversal.
 
 ```haskell
 weather <-
@@ -24,9 +24,21 @@ weather <-
     ]
 ```
 
-This order of validation matters. A positive duplicate cannot hide a negative entry.
+Validation occurs before normalization. A positive duplicate cannot hide a negative entry.
 
-`ExactFiniteDist` has `Functor`, `Applicative`, and `Monad` instances. The exact finite domain supports literal law tests.
+`ExactFiniteDist` has safe `Functor`, `Foldable`, and `Traversable` instances. These operations preserve the finite support spine and validated masses. It has no `Applicative` or `Monad` instance, and there is no unchecked bind helper.
+
+Use checked sequencing with explicit limits:
+
+```haskell
+limits <- exactBindLimits 4096 8320 13 13
+(result, report) <-
+  bindExactFiniteDistChecked limits outer (Right . continuation)
+```
+
+One bind operation charges outer-support traversal, continuation calls, inner-support traversal, and mass multiplications. It checks every resulting rational product. Result-support, work, numerator-bit, denominator-bit, or continuation failure returns neither a partial distribution nor a report. Labeled duplicates and deterministic support order are retained on success.
+
+Identity and associativity tests apply only when every compared computation is admitted. Resource admission and reports can depend on association, so these tests do not establish a `Monad` interface.
 
 ## Kernels
 
@@ -37,19 +49,21 @@ K : X \rightarrow \mathcal{D}(Y).
 \\]
 
 ```haskell
-sensor = exactKernel $ \surface ->
-  case surface of
-    Dry -> exactFiniteDist [(Clear, 9 / 10), (Alarm, 1 / 10)]
-    Wet -> exactFiniteDist [(Clear, 1 / 5),  (Alarm, 4 / 5)]
+drySensor <- exactFiniteDist [(Clear, 9 / 10), (Alarm, 1 / 10)]
+wetSensor <- exactFiniteDist [(Clear, 1 / 5), (Alarm, 4 / 5)]
+let sensor = exactKernel $ \surface ->
+      case surface of
+        Dry -> drySensor
+        Wet -> wetSensor
 ```
 
-Kleisli composition integrates over the intermediate value:
+Checked Kleisli-style composition integrates over the intermediate value:
 
 \\[
 (L \mathbin{>=>} K)(x)(z)=\sum_y K(x)(y)L(y)(z).
 \\]
 
-The kernel is one stochastic layer. It is not a recursive transition tree.
+`ExactKernel` has an explicit failure channel. `composeExactKernel` requires `ExactBindLimits`; no unrestricted `Category`, `Arrow`, or `ArrowChoice` instance is available. The kernel is one stochastic layer. It is not a recursive transition tree.
 
 ## Deterministic kernels
 

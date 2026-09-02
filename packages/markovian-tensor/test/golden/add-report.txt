@@ -1,0 +1,7 @@
+tensor-operation-report
+primitive: add
+scalar-work: 4
+fresh-payload-bytes: 32
+maximum-single-allocation-bytes: 32
+scratch-bytes: 0
+allocation-count: 1

@@ -1,9 +1,9 @@
 module Main (main) where
 
+import Markovian.Action (actionId)
 import Markovian.Horizon (mkHorizon)
 import Markovian.Interpreter.Exact (expectedExactReturn)
 import Markovian.Kernel.Exact (exactKernel)
-import Markovian.MDP (actionId)
 import Markovian.MDP.Exact (
     ExactStateStatus (..),
     exactMDP,

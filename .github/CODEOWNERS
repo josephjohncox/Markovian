@@ -1,0 +1,15 @@
+# Release-critical paths require explicit owner review.
+/.github/CODEOWNERS @josephjohncox
+/.github/workflows/ @josephjohncox
+/ci/ @josephjohncox
+/release/ @josephjohncox
+/scripts/ @josephjohncox
+/*.cabal @josephjohncox
+/cabal.project @josephjohncox
+/cabal.project.ci @josephjohncox
+/toolchain.env @josephjohncox
+/RELEASE-CHECKLIST.md @josephjohncox
+/RELEASE-NOTES.md @josephjohncox
+/THIRD_PARTY_NOTICES.md @josephjohncox
+/backends/*/*.cabal @josephjohncox
+/packages/*/*.cabal @josephjohncox

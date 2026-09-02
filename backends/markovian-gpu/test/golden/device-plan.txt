@@ -1,0 +1,10 @@
+device-plan-report
+operation: matmul
+shapes: [[2,3],[3,2],[2,2]]
+transfer-bytes: 128
+host-materialization-bytes: 128
+scalar-work: 24
+user-launches: 1
+ptx-target: sm_121
+kernel-abi: markovian-f64-matmul-v1
+ptx-sha256: a01d2c898a78dc4f603a8919c9f84019b79066201bc12430fedc725ac97f6239

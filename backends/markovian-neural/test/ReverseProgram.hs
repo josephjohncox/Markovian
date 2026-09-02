@@ -4,8 +4,8 @@
 module ReverseProgram (tests) where
 
 import Data.Maybe (isNothing)
-import Markovian.Backend.Neural.Reverse
-import Markovian.Backend.Neural.Reverse.Program
+import Markovian.Reverse
+import Markovian.Reverse.Program
 import Numeric.Natural (Natural)
 import TestSupport (assert, assertCloseWith, centralDifference, requireRight)
 

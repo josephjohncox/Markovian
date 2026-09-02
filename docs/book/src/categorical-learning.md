@@ -149,11 +149,11 @@ The reverse pass is compositional because the chain rule is compositional. A cat
 
 ### The bounded typed interpreters
 
-`Markovian.Backend.Neural.Reverse` implements this chain rule for a small framework-independent fragment. `ParametricReverseCircuit error scalar p pBar x xBar y yBar` keeps every primal, cotangent, and common scalar type explicit. A primitive supplies cotangent-space witnesses and returns its primal output with a pullback captured at that point.
+`Markovian.Reverse` implements this chain rule for a small framework-independent fragment. `ParametricReverseCircuit error scalar p pBar x xBar y yBar` keeps every primal, cotangent, and common scalar type explicit. A primitive supplies cotangent-space witnesses and returns its primal output with a pullback captured at that point.
 
 Sequential composition combines independent parameter objects as `(p, q)` and returns cotangents `(pBar, qBar)`. `tensorReverseCircuit` does the same for independent inputs. `pairReverseCircuit` sends one input to two branches and uses the declared cotangent addition for the reverse input diagonal. `shareParametersReverseCircuit` does the same for a parameter diagonal.
 
-`Markovian.Backend.Neural.Reverse.Program` adds a finite acyclic syntax over a caller-owned primitive GADT. Its only nodes are primitive, identity, composition, tensor, shared-input pairing, and shared-parameter tensor. Each primitive has structural parameter ownership and declared finite primal and cotangent layouts. Preparation checks node, primitive, depth, owner, primal-layout, and cotangent-layout limits. It rejects duplicate independent owners and mismatched shared ownership.
+`Markovian.Reverse.Program` adds a finite acyclic syntax over a caller-owned primitive GADT. Its only nodes are primitive, identity, composition, tensor, shared-input pairing, and shared-parameter tensor. Each primitive has structural parameter ownership and declared finite primal and cotangent layouts. Preparation checks node, primitive, depth, owner, primal-layout, and cotangent-layout limits. It rejects duplicate independent owners and mismatched shared ownership.
 
 A prepared program returns an opaque, typed, self-contained tape. A primitive either stores its forward captured pullback or supplies a distinct typed recomputation operation. A recomputed tape retains immutable parameters and input and compares the supplied operation's output under the declared exact or approximate relation before reverse use. This two-policy interpreter is not a checkpoint scheduler and does not implement Revolve.
 

@@ -1,0 +1,17 @@
+# package-name	package-directory	version	dependency-tier
+Markovian	.	0.1.0.0	0
+markovian-continuous	packages/markovian-continuous	0.1.0.0	0
+markovian-continuous-numerical	packages/markovian-continuous-numerical	0.1.0.0	0
+markovian-reverse	packages/markovian-reverse	0.1.0.0	0
+markovian-tensor	packages/markovian-tensor	0.1.0.0	0
+markovian-tensor-reverse	packages/markovian-tensor-reverse	0.1.0.0	1
+markovian-safetensors	packages/markovian-safetensors	0.1.0.0	1
+markovian-autodiff	packages/markovian-autodiff	0.1.0.0	1
+markovian-dense-exact	packages/markovian-dense-exact	0.1.0.0	1
+markovian-exact-benchmarks	packages/markovian-exact-benchmarks	0.1.0.0	1
+markovian-neural	backends/markovian-neural	0.1.0.0	1
+markovian-numerical	packages/markovian-numerical	0.1.0.0	1
+markovian-gpu	backends/markovian-gpu	0.1.0.0	2
+markovian-neural-bridge	backends/markovian-neural-bridge	0.1.0.0	2
+markovian-sampling	packages/markovian-sampling	0.1.0.0	2
+markovian-learning	packages/markovian-learning	0.1.0.0	3

@@ -60,9 +60,9 @@ X\longrightarrow\mathcal{P}(Y),
 
 where `P(Y)` denotes an appropriate space of probability measures.
 
-For finite sets, `P` is the exact finite distribution monad. For measurable spaces, the Giry monad is the classical example. The Kleisli composite performs integration over the intermediate measure.
+For finite sets, an unrestricted mathematical distribution construction is often presented as a monad. For measurable spaces, the Giry monad is the classical example. Its Kleisli composite performs integration over the intermediate measure.
 
-The categorical laws are monad laws expressed as process composition. Markovian tests the finite distribution functor, applicative, monad, and Kleisli equations exactly.
+Markovian does not expose that unrestricted interface. `ExactFiniteDist` has no `Applicative` or `Monad` instance, because checked sequencing can reject or report differently under reassociation. The executable laws cover only admitted checked binds whose limits allow both sides; `ExactKernel` has no unrestricted `Category`, `Arrow`, or `ArrowChoice` instance.
 
 Read [Giry](references.md#giry-probability-as-a-monad), [Moggi](references.md#moggi-kleisli-semantics), and [Riehl, Chapter 5](references.md#riehl-category-theory-in-context).
 

@@ -12,11 +12,13 @@ module Markovian.Policy.Exact (
 
 import Data.List.NonEmpty (NonEmpty)
 import Data.List.NonEmpty qualified as NonEmpty
-import Markovian.Kernel.Exact (ExactKernel, runExactKernel)
-import Markovian.MDP (ActionId)
+import Markovian.Action (ActionId)
+import Markovian.Kernel.Exact (ExactKernel, ExactKernelError, runExactKernel)
 import Markovian.Probability.Exact (
+    ExactBindError,
+    ExactBindLimits,
     ExactFiniteDist,
-    bindExactFiniteDist,
+    bindExactFiniteDistChecked,
     exactOutcomes,
     exactProbability,
  )
@@ -34,7 +36,10 @@ exactPolicy :: ExactKernel state (ActionId action) -> ExactPolicy state action
 exactPolicy = ExactPolicy
 
 -- | Get an exact policy's action distribution for one state.
-exactPolicyActions :: ExactPolicy state action -> state -> ExactFiniteDist (ActionId action)
+exactPolicyActions ::
+    ExactPolicy state action ->
+    state ->
+    Either ExactKernelError (ExactFiniteDist (ActionId action))
 exactPolicyActions (ExactPolicy actionKernel) = runExactKernel actionKernel
 
 -- | Exact policy-support validation errors.
@@ -45,6 +50,10 @@ data ExactPolicyError action
       DuplicateExactPolicyAction !(ActionId action)
     | -- | The policy selects an action outside the available support.
       ExactPolicyUnavailableAction !(ActionId action)
+    | -- | Running the policy kernel failed before support validation.
+      ExactPolicyKernelError !ExactKernelError
+    | -- | Checked sequencing rejected the policy closure atomically.
+      ExactPolicyBindError !(ExactBindError ExactKernelError)
     deriving (Eq, Show)
 
 {- | Close one exact policy distribution over one state's action kernels.
@@ -54,13 +63,16 @@ The selected action ID is removed from the closed distribution.
 -}
 closeExactPolicy ::
     (Eq action) =>
+    ExactBindLimits ->
     NonEmpty (ActionId action) ->
     ExactFiniteDist (ActionId action) ->
-    (ActionId action -> ExactFiniteDist output) ->
+    (ActionId action -> Either ExactKernelError (ExactFiniteDist output)) ->
     Either (ExactPolicyError action) (ExactFiniteDist output)
-closeExactPolicy available selected transition = do
+closeExactPolicy limits available selected transition = do
     validateExactPolicySupport available selected
-    pure (bindExactFiniteDist selected transition)
+    case bindExactFiniteDistChecked limits selected transition of
+        Left problem -> Left (ExactPolicyBindError problem)
+        Right (distribution, _) -> Right distribution
 
 -- | Validate one exact policy distribution against available action IDs.
 validateExactPolicySupport ::

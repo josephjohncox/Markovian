@@ -1,5 +1,20 @@
 # Public module map
 
+This map describes the current unreleased API. `release/exposed-modules` contains the checked package snapshots.
+
+The unaccepted D-061 migration keeps the root on exact and exact-neutral structural modules. Optional packages currently own numerical, sampled, learning, dense, and benchmark modules. This map records the working API, not release acceptance.
+
+| Package | Public ownership |
+| --- | --- |
+| `Markovian` | Finite exact and exact-neutral structural semantics |
+| `markovian-numerical` | Floating finite models and approximate circuit interpretation |
+| `markovian-sampling` | Explicit generators and sampled interpreters |
+| `markovian-learning` | Tabular updates and bounded episodic runners |
+| `markovian-dense-exact` | Dense `Rational` circuit lowering and execution |
+| `markovian-exact-benchmarks` | Exact inventory fixtures, reports, and benchmarks |
+
+D-061 remains `Proposed` until all gates pass. Effect-capable tensor integration remains blocked by D-067.
+
 ## Scalars and finite witnesses
 
 | Module | Purpose |
@@ -13,12 +28,13 @@
 
 | Module | Purpose |
 | --- | --- |
-| `Markovian.Probability` | Validated floating probabilities and distributions |
-| `Markovian.Probability.Exact` | Exact rational probabilities and distributions |
-| `Markovian.Kernel` | Floating one-layer kernels |
-| `Markovian.Kernel.Exact` | Exact one-layer kernels and Kleisli instances |
-| `Markovian.MRP` | Markov reward processes |
-| `Markovian.MDP` | Floating MDPs and stable action IDs |
+| `Markovian.Action` | Root-owned nominal action IDs |
+| `Markovian.Probability` | Validated floating probabilities and distributions in `markovian-numerical` |
+| `Markovian.Probability.Exact` | Checked exact rational distributions in the root |
+| `Markovian.Kernel` | Floating one-layer kernels in `markovian-numerical` |
+| `Markovian.Kernel.Exact` | Fallible exact kernels with explicitly limited composition |
+| `Markovian.MRP` | Floating Markov reward processes in `markovian-numerical` |
+| `Markovian.MDP` | Floating MDPs in `markovian-numerical` |
 | `Markovian.MDP.Exact` | Exact MDPs and joint transition outcomes |
 | `Markovian.Policy` | Floating policies and closure |
 | `Markovian.Policy.Exact` | Exact policies and checked closure |
@@ -82,8 +98,19 @@
 | `Markovian.Circuit.Compile.Deterministic` | First-order deterministic terms |
 | `Markovian.Circuit.Rewrite.Deterministic` | Opaque deterministic rewrite candidates |
 | `Markovian.Circuit.Rewrite.Deterministic.Exact` | Exact checked witnesses and post-check costs |
-| `Markovian.Category.Finite.Exact` | Earlier typed exact finite IR |
-| `Markovian.Backend.CPU.Exact` | Dense rational lowering and execution |
+| `Markovian.Backend.CPU.Exact` | Optional dense rational circuit lowering and execution |
+
+The old `Markovian.Category.Finite.Exact` module is private regression code. No package exposes it.
+
+## Checked finite feedback
+
+| Module | Purpose |
+| --- | --- |
+| `Markovian.Feedback.Channel.Exact` | Proper first-exit coproduct routing with exact solve evidence |
+| `Markovian.Feedback.Delay.Exact` | Explicit seed and bounded one-tick delayed execution |
+| `Markovian.Feedback.Timed.Exact` | Nilpotent reward-, duration-, and output-preserving closure |
+
+These modules provide no universal trace, instantaneous fixed-point operator, cyclic open-system black-boxing, or stationary-distribution selector.
 
 ## Open systems
 
@@ -114,18 +141,53 @@ These modules do not provide justification pointers, views, innocence, payoff, b
 | `Markovian.Game.Open.Finite` | Owned finite strategy profiles, composition, pure equilibria, and exhaustive observational equality |
 | `Markovian.Game.Open.Exact` | Exact rational maximizing decisions, exact-payoff contexts, and deterministic reports |
 
-These modules do not import arena histories. They provide no mixed, correlated, stochastic, Bayesian, continuous, repeated, or subgame-perfect game semantics and no equilibrium-existence result.
+These modules do not import arena histories. They provide no generic mixed lifting, continuous, repeated, or subgame-perfect game semantics and no equilibrium-existence result.
+
+## Exact mixed, stochastic, and Bayesian games
+
+| Module | Purpose |
+| --- | --- |
+| `Markovian.Game.Profile.Finite` | Checked owner products, pure profiles, exact complete simplexes, and shared game limits |
+| `Markovian.Game.NormalForm.Exact` | Complete rational payoff tables, independent mixed profiles, exact expectation, and mixed-Nash candidate checks |
+| `Markovian.Game.Correlated.Exact` | Joint correlation devices and distinct CE/CCE candidate reports |
+| `Markovian.Game.Outcome.Exact` | Complete exact joint outcome laws and reward/successor atoms |
+| `Markovian.Game.Stochastic.Exact` | Finite-horizon public-state Markov evaluation and Markov-perfect candidate checks |
+| `Markovian.Game.Harsanyi.Exact` | Correlated common priors, behavioral Bayes-Nash checks, and bounded strategic-normal conversion |
+| `Markovian.Game.Open.Strategic.Exact` | Checked extraction of one closed open-game context |
+
+These are candidate semantics, not unrestricted solvers. They provide no equilibrium-existence theorem, complete real-equilibrium enumeration, private-history stochastic game, repeated game, or general mixed open-game semantics.
 
 ## Optional packages
 
 | Package and module | Purpose |
 | --- | --- |
-| `markovian-gpu: Markovian.Backend.GPU` | Optional CUDA dense application |
+| `markovian-continuous: Markovian.Continuous.Space` | Closed finite, real, and product standard-Borel witnesses |
+| `markovian-continuous: Markovian.Continuous.Map` | Rational affine measurable real maps |
+| `markovian-continuous: Markovian.Continuous.Polynomial` | Bounded rational univariate and bivariate polynomials |
+| `markovian-continuous: Markovian.Continuous.Measure.Exact` | Affine-uniform laws, exact polynomial moments, and shared-noise joints |
+| `markovian-continuous: Markovian.Continuous.Kernel.Exact` | Checked affine additive-uniform kernels and fallible composition |
+| `markovian-continuous: Markovian.Continuous.Condition.Exact` | Positive-evidence finite affine-likelihood conditioning |
+| `markovian-continuous-numerical: Markovian.Continuous.Numerical.Value` | Finite values and explicit rational rounding reports |
+| `markovian-continuous-numerical: Markovian.Continuous.Numerical.Generator` | Owned SplitMix64 state and named real-law sampling |
+| `markovian-continuous-numerical: Markovian.Continuous.Numerical.Quadrature` | Bounded deterministic GK15/7 with estimated error |
+| `markovian-continuous-numerical: Markovian.Continuous.Numerical.MonteCarlo` | Bounded resumable Welford reports |
+| `markovian-gpu: Markovian.Backend.GPU` | Prepared F64 matrix/VJP CPU and optional admitted CUDA execution with explicit cleanup and pre-launch fallback |
 | `markovian-neural: Markovian.Backend.Neural.Approximation` | Explicit precision, error, and observation boundary |
 | `markovian-neural: Markovian.Backend.Neural.Numeric` | Opaque finite scalars, checked floating arithmetic, and tolerances |
 | `markovian-neural: Markovian.Backend.Neural.Dense` | Dense networks and manual VJPs |
-| `markovian-neural: Markovian.Backend.Neural.Reverse` | Typed parametric VJP composition and finite cotangent-module metadata |
-| `markovian-neural: Markovian.Backend.Neural.Reverse.Program` | Bounded owned reverse syntax with structural parameter ownership and opaque stored or recomputed tapes |
+| `markovian-reverse: Markovian.Reverse` | Typed parametric VJP composition and finite cotangent-module metadata |
+| `markovian-reverse: Markovian.Reverse.Program` | Bounded owned reverse syntax with structural parameter ownership and opaque stored or recomputed tapes |
+| `markovian-autodiff: Markovian.Autodiff.Shape` | Closed unit, scalar, fixed-vector, product, and parameter-owner shapes |
+| `markovian-autodiff: Markovian.Autodiff.Language` | Closed polynomial and `tanh` syntax with explicit sharing |
+| `markovian-autodiff: Markovian.Autodiff.Compile` | Exact polynomial and checked-Double lowering to opaque reverse tapes |
+| `markovian-tensor: Markovian.Tensor.Shape` | Type-indexed scalar, vector, matrix, and higher-rank shape witnesses |
+| `markovian-tensor: Markovian.Tensor` | Region-scoped host F64 buffers, checked layouts, finite refinement, and deterministic reports |
+| `markovian-tensor: Markovian.Tensor.Primitive` | Deterministic finite CPU elementwise, reduction, copy, and matrix primitives |
+| `markovian-tensor: Markovian.Tensor.Ownership` | Semantic owner keys separate from physical storage IDs |
+| `markovian-tensor: Markovian.Tensor.Reverse` | Opaque tapes and VJPs for the closed CPU primitive set, backed by a private allocator capability |
+| `markovian-reverse: Markovian.Reverse.Program.Effect` | Pure bounded preparation and effectful supplied forward, recomputation, pullback, and cotangent-addition execution |
+| `markovian-tensor-reverse: Markovian.Tensor.Reverse.Program` | Rank-2 host adapter for closed F64 `tanh` and pointwise-multiplication symbols |
+| `markovian-safetensors: Markovian.Tensor.SafeTensors` | Bounded metadata-free F64 parser and canonical encoder for the pinned SafeTensors profile |
 | `markovian-neural: Markovian.Backend.Neural.Categorical` | Stable categorical values and analytic gradients |
 | `markovian-neural: Markovian.Backend.Neural.Information` | Checked entropy, cross entropy, KL divergence, mutual information, and logit gradients |
 | `markovian-neural: Markovian.Backend.Neural.Mask` | Sized structural masks, Boolean flags, ordered gather, and positive-zero scatter |

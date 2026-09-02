@@ -18,21 +18,30 @@ Use this backend as a reference for denotational differential tests and layout i
 
 ## CUDA backend
 
-The optional GPU package applies one row-major `Double` matrix to one source distribution:
+The optional GPU package executes only prepared positive-size F64 matrix products and their matrix-product VJPs over checked `markovian-tensor` inputs:
 
 ```haskell
-result <- gpuDenseApply rows columns matrix input
+prepared <- prepareMatMul limits left right
+result <- runPreparedMatMul session
+  (PreferCUDA DeterministicFirstDevice FallbackBeforeUserLaunch)
+  prepared
 ```
 
-The result contains the output vector and transfer-inclusive duration.
+Preparation bounds dimensions, element products, transfer bytes, scalar work, and user launches before probing a device. CPU execution uses the tensor package's matrix primitive. CUDA admission selects a device by deterministic ordinal, explicit ordinal, or UUID; records capabilities, PTX target, hash, and kernel ABI; loads the committed module; and runs a known-answer self-test.
 
-The implementation includes context setup, host-to-device transfer, kernel execution, device-to-host transfer, and cleanup in its measurement.
+An admitted executor owns one private context, module, and non-default stream. Its rank-2 scope cannot escape `withCUDAExecutor`. Calls and teardown take the same lock, so close waits for in-flight FFI work before native destruction. A call uses heap-backed host buffers and returns only after stream synchronization and host copy-back. Primary, bounded action-exception, and bounded cleanup diagnostics are retained together.
 
-CUDA execution is approximate. It does not inherit exact rational circuit laws. The package does not claim support for untested devices or CUDA versions.
+Launch commitment and fallback permission are separate. Cleanup failure always prohibits fallback but does not fabricate a launch. Matrix VJP carries the first call's launch commitment into every failure from its second call. Configured fallback can occur only before the first user-kernel launch. There is no silent CPU rerun after launch, synchronization, copy-back, nonfinite output, or cleanup failure.
+
+The committed PTX and admitted device profile are bounded to `sm_121` (compute capability 12.1). Host and device admission check every signed kernel index product against `CInt`. A CUDA-enabled build compiles against pinned CUDA 13.0 headers but links only `libdl`. It opens `libcuda.so.1` with `RTLD_NOW | RTLD_LOCAL` and atomically resolves the complete required table, including versioned ABI names, before `cuInit`. Missing libraries, missing symbols, and unsupported devices are explicit pre-launch errors. Required execution returns the error; preferred execution can use the CPU reference only under `FallbackBeforeUserLaunch`.
+
+The executor owns the driver handle and table. It attempts stream, module, and context destruction before `dlclose` and never calls a table entry after unload. The disabled build requires neither headers nor driver libraries. A digest-pinned CUDA 13 compile-only workflow checks the driver-header digest, reproduces the PTX and generated C header, compiles the enabled path with strict warnings, and runs deterministic missing-library and missing-symbol fixtures without a GPU. Protected UUID-bound hardware and four-tool Compute Sanitizer validation remain separate.
+
+Successful current-process admission is not general device-correctness evidence. CUDA results are approximate F64 values and do not inherit exact rational laws. The package does not support arbitrary tensor graphs, generic reverse-program lowering, arbitrary strides, zero-size launches, F32, stochastic nodes, devices outside the pinned profile, cross-device bit equality, or a speed claim.
 
 ## Neural package status
 
-`markovian-neural` is an experimental framework-independent reference package. Its released library depends only on `base`. A separate integration test compares it with the root `Markovian` package. It uses checked `Double` arithmetic and immutable values.
+`markovian-neural` is an experimental framework-independent reference package. Its library depends on `base` and the backend-independent pure `markovian-reverse` foundation. A separate integration test compares it with the root `Markovian` package. It uses checked `Double` arithmetic and immutable values.
 
 It implements:
 
@@ -88,13 +97,13 @@ The implementation computes input and parameter vector-Jacobian products manuall
 
 ## Finite owned reverse programs
 
-`Markovian.Backend.Neural.Reverse` provides typed `ParametricReverseCircuit` composition for callbacks that return a primal result and captured pullback together. `Markovian.Backend.Neural.Reverse.Program` adds a finite syntax over a caller-owned primitive GADT. It supports only primitive, identity, composition, tensor, shared-input pairing, and shared-parameter tensor.
+`Markovian.Reverse` provides typed `ParametricReverseCircuit` composition for callbacks that return a primal result and captured pullback together. `Markovian.Reverse.Program` adds a finite syntax over a caller-owned primitive GADT. It supports only primitive, identity, composition, tensor, shared-input pairing, and shared-parameter tensor.
 
 Every primitive declares structural parameter ownership and finite layouts for parameter, input, output, and all cotangents. Preparation has explicit program node/depth, primitive, owner, extent, and separate layout/ownership structural node/depth limits. Nodes are charged before descent, including zero-extent and owner-free products. Independent products reject repeated owner keys. A shared-parameter node requires the same complete ownership tree in both branches and adds both parameter cotangents.
 
 A successful forward run returns an opaque typed tape. `StoreCapturedPullback` retains the forward primitive's captured pullback. `RecomputePrimitive` requires a distinct typed owner-supplied recomputation operation; the tape retains immutable parameters, input, and output and checks the recomputed output before applying its pullback. A tape takes no separate program argument. Neither policy schedules checkpoints or estimates bytes.
 
-Exact fixtures check representative composition, tensor, symmetry, interchange, and diagonal laws through explicit pair rearrangements. A nonlinear fixture checks every input and parameter coordinate under both tape policies. These fixtures test supplied VJPs. They do not establish automatic differentiation of arbitrary Haskell.
+Exact fixtures check representative composition, tensor, symmetry, interchange, and diagonal laws through explicit pair rearrangements. A nonlinear fixture checks every input and parameter coordinate under both tape policies. The neural package no longer re-exports the reverse modules. Its tests depend on `markovian-reverse` directly. These fixtures test supplied VJPs. They do not establish automatic differentiation of arbitrary Haskell. The extracted interface remains pure; D-067 effect generalization is still required for resource-owning tensor sessions.
 
 ## Stable categorical operations
 

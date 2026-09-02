@@ -3,6 +3,7 @@ module ExactControl (runExactControlTests) where
 import Data.List.NonEmpty (NonEmpty)
 import Data.List.NonEmpty qualified as NonEmpty
 import Data.Ratio ((%))
+import Markovian.Action (ActionId, actionId, actionValue)
 import Markovian.Compile.Exact (
     ActionIndex,
     CompiledExactMDP,
@@ -41,7 +42,6 @@ import Markovian.Interpreter.Control.Exact (
  )
 import Markovian.Interpreter.DynamicProgramming.Exact (evaluateCompiledExactFinite, exactFiniteDPInitialValue)
 import Markovian.Kernel.Exact (exactKernel)
-import Markovian.MDP (ActionId, actionId, actionValue)
 import Markovian.MDP.Exact (
     ExactMDP,
     ExactModelError (..),

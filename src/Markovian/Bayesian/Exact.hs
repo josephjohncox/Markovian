@@ -47,6 +47,7 @@ module Markovian.Bayesian.Exact (
     conditionExactDistribution,
 ) where
 
+import Control.Monad (foldM)
 import Data.Foldable (foldl', traverse_)
 import Data.List.NonEmpty (NonEmpty)
 import Data.List.NonEmpty qualified as NonEmpty
@@ -60,6 +61,7 @@ import Markovian.Category.Matrix
 import Markovian.Category.Matrix.Stochastic
 import Markovian.Category.Matrix.Stochastic.Internal (StochasticMatrix (UnsafeStochasticMatrix))
 import Markovian.Probability.Exact
+import Numeric.Natural (Natural)
 
 -- | A normalized exact state on one explicit nonempty finite object.
 type role Prior nominal
@@ -372,12 +374,14 @@ almostSureEqual sourcePrior left right
 -- | Failure from exact distribution pushforward.
 data ExactDistributionBayesianError kernelError
     = ExactDistributionKernelError !kernelError
+    | ExactDistributionBindError !(ExactBindError kernelError)
     | ExactDistributionNormalizationError !ExactDistributionError
     deriving (Eq, Show)
 
 -- | Failure from exact distribution conditioning.
 data ExactConditioningError observation
     = ExactZeroEvidence !observation
+    | ExactConditioningBindError !(ExactBindError ExactDistributionError)
     | ExactConditioningNormalizationError !ExactDistributionError
     deriving (Eq, Show)
 
@@ -390,14 +394,53 @@ canonicalExactDistribution ::
     (Eq value) =>
     [(value, Rational)] ->
     Either ExactDistributionError (ExactFiniteDist value)
-canonicalExactDistribution entries = do
+canonicalExactDistribution rawEntries = do
+    -- Bound the raw spine before validation, equality, or aggregation.  In
+    -- particular, an infinite stream of duplicate labels stops at cell 4097.
+    entries <- boundedCanonicalInput maximumExactSupportEntries rawEntries
     traverse_ validateWeight (zip [0 ..] entries)
-    exactFiniteDist (aggregate entries)
+    aggregated <- aggregateChecked 16781312 entries
+    exactFiniteDist aggregated
   where
     validateWeight (index, (_, rawWeight)) =
         case mkExactWeight rawWeight of
             Left problem -> Left (InvalidExactWeight index problem)
             Right _ -> Right ()
+
+boundedCanonicalInput :: Natural -> [value] -> Either ExactDistributionError [value]
+boundedCanonicalInput limit = go limit []
+  where
+    go _ reversed [] = Right (reverse reversed)
+    go 0 _ (_ : _) = Left (ExactSupportLimitExceeded limit)
+    go remaining reversed (entry : entries) = go (remaining - 1) (entry : reversed) entries
+
+-- Equality comparisons and duplicate additions are explicitly metered.  The
+-- fixed compatibility budget admits the worst-case 4096-entry unique support;
+-- checked consumers impose their own tighter sequencing limits.
+aggregateChecked :: (Eq value) => Natural -> [(value, Rational)] -> Either ExactDistributionError [(value, Rational)]
+aggregateChecked workLimit = fmap fst . foldM insert ([], 0)
+  where
+    charge work =
+        let observed = work + 1
+         in if observed > workLimit
+                then Left (ExactDistributionWorkLimitExceeded observed)
+                else Right observed
+    insert (accumulated, work) (value, mass) = do
+        (updated, finalWork) <- go work accumulated
+        Right (updated, finalWork)
+      where
+        go current [] = do
+            charged <- charge current
+            Right ([(value, mass)], charged)
+        go current ((existing, existingMass) : remaining) = do
+            compared <- charge current
+            if existing == value
+                then do
+                    added <- charge compared
+                    Right ((existing, existingMass + mass) : remaining, added)
+                else do
+                    (rest, finalWork) <- go compared remaining
+                    Right ((existing, existingMass) : rest, finalWork)
 
 -- | Push an exact finite distribution through a fallible exact kernel.
 pushforwardExactDistribution ::
@@ -406,17 +449,16 @@ pushforwardExactDistribution ::
     (source -> Either kernelError (ExactFiniteDist target)) ->
     Either (ExactDistributionBayesianError kernelError) (ExactFiniteDist target)
 pushforwardExactDistribution sourceDistribution channel = do
-    branches <-
-        fmap concat . traverse pushOne $
-            NonEmpty.toList (exactOutcomes sourceDistribution)
-    either (Left . ExactDistributionNormalizationError) Right (canonicalExactDistribution branches)
-  where
-    pushOne (sourceValue, sourceMass) = do
-        targetDistribution <- either (Left . ExactDistributionKernelError) Right (channel sourceValue)
-        Right
-            [ (targetValue, exactProbability sourceMass * exactProbability targetMass)
-            | (targetValue, targetMass) <- NonEmpty.toList (exactOutcomes targetDistribution)
+    expanded <-
+        case bindExactFiniteDistChecked defaultExactBindLimits sourceDistribution channel of
+            Left (ExactBindContinuationFailure _ problem) -> Left (ExactDistributionKernelError problem)
+            Left problem -> Left (ExactDistributionBindError problem)
+            Right (distribution, _) -> Right distribution
+    let branches =
+            [ (targetValue, exactProbability targetMass)
+            | (targetValue, targetMass) <- NonEmpty.toList (exactOutcomes expanded)
             ]
+    either (Left . ExactDistributionNormalizationError) Right (canonicalExactDistribution branches)
 
 -- | Condition an exact finite distribution by one exact likelihood kernel.
 conditionExactDistribution ::
@@ -425,7 +467,16 @@ conditionExactDistribution ::
     ExactFiniteDist source ->
     (source -> ExactFiniteDist observation) ->
     Either (ExactConditioningError observation) (ExactFiniteDist source)
-conditionExactDistribution observed sourceDistribution likelihood =
+conditionExactDistribution observed sourceDistribution likelihood = do
+    jointDistribution <-
+        case bindExactFiniteDistChecked defaultExactBindLimits sourceDistribution jointFor of
+            Left problem -> Left (ExactConditioningBindError problem)
+            Right (distribution, _) -> Right distribution
+    let positive =
+            [ (sourceValue, exactProbability mass)
+            | ((sourceValue, candidate), mass) <- NonEmpty.toList (exactOutcomes jointDistribution)
+            , candidate == observed
+            ]
     case positive of
         [] -> Left (ExactZeroEvidence observed)
         entries ->
@@ -434,17 +485,9 @@ conditionExactDistribution observed sourceDistribution likelihood =
                 Right
                 (canonicalExactDistribution entries)
   where
-    positive =
-        [ (sourceValue, exactProbability sourceMass * observationMass sourceValue)
-        | (sourceValue, sourceMass) <- NonEmpty.toList (exactOutcomes sourceDistribution)
-        , observationMass sourceValue > 0
-        ]
-    observationMass sourceValue =
-        sum
-            [ exactProbability mass
-            | (candidate, mass) <- NonEmpty.toList (exactOutcomes (likelihood sourceValue))
-            , candidate == observed
-            ]
+    jointFor sourceValue = Right (fmap pairCandidate (likelihood sourceValue))
+      where
+        pairCandidate candidate = (sourceValue, candidate)
 
 buildPrior ::
     (Eq value) =>

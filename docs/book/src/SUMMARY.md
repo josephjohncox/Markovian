@@ -30,6 +30,9 @@
 - [Fixed-batch execution and newsvendor evidence](./fixed-batch-inventory.md)
 - [Sampling and tabular learning](./sampling-learning.md)
 - [POMDP filtering and planning](./pomdp.md)
+- [Restricted continuous probability](./continuous-probability.md)
+- [Bounded autodiff lowering](./autodiff-lowering.md)
+- [Checked host tensor runtime](./tensor-runtime.md)
 
 # Algebra and composition
 
@@ -38,8 +41,10 @@
 - [Bayesian inference](./bayesian.md)
 - [Stochastic circuits and deterministic compilation](./circuits.md)
 - [Open systems and acyclic networks](./open-systems.md)
+- [Checked finite feedback](./feedback.md)
 - [Finite alternating interaction protocols](./finite-interaction-protocols.md)
 - [Finite open games and pure equilibria](./finite-open-games.md)
+- [Exact mixed, stochastic, and Bayesian games](./mixed-and-bayesian-games.md)
 - [Derived categorical and mathematical insights](./categorical-insights.md)
 
 # Execution and assurance
@@ -48,6 +53,7 @@
 - [Law catalogue and proof boundaries](./laws-and-boundaries.md)
 - [Practical recipes](./recipes.md)
 - [Public module map](./api-map.md)
+- [Release preparation](./release-preparation.md)
 - [Build and maintain this book](./book-workflow.md)
 
 # Project references

@@ -1,0 +1,76 @@
+#!/usr/bin/env python3
+"""Require warning-free, exact public-module declaration coverage."""
+
+from __future__ import annotations
+
+import argparse
+import re
+from pathlib import Path
+
+parser = argparse.ArgumentParser()
+parser.add_argument("log", type=Path)
+args = parser.parse_args()
+
+repository_root = Path(__file__).resolve().parent.parent
+goldens = repository_root / "release" / "exposed-modules"
+private_module_file = repository_root / "release" / "haddock-private-modules.txt"
+
+text = args.log.read_text(encoding="utf-8")
+warning = re.search(r"(?i)(^|\s)warning\s*:", text)
+if warning is not None:
+    raise SystemExit(f"{args.log}: Haddock warning output is not coverage evidence")
+
+expected: list[str] = []
+owners: dict[str, str] = {}
+for golden in sorted(goldens.glob("*.txt")):
+    for number, raw in enumerate(golden.read_text(encoding="utf-8").splitlines(), 1):
+        module = raw.strip()
+        if not module:
+            continue
+        if module in owners:
+            raise SystemExit(
+                f"duplicate public module {module} in {owners[module]} and {golden}:{number}"
+            )
+        owners[module] = f"{golden}:{number}"
+        expected.append(module)
+if not expected:
+    raise SystemExit(f"{goldens}: no exposed-module golden rows found")
+
+rows: list[tuple[int, str]] = []
+for line in text.splitlines():
+    match = re.match(r"^\s*([0-9]{1,3})%\s+\([^)]*\)\s+in\s+'([^']+)'", line)
+    if match:
+        rows.append((int(match.group(1)), match.group(2)))
+if not rows:
+    raise SystemExit(f"{args.log}: no Haddock coverage rows found")
+
+private_modules = {
+    line.strip()
+    for line in private_module_file.read_text(encoding="utf-8").splitlines()
+    if line.strip() and not line.startswith("#")
+}
+observed_all = [module for _, module in rows]
+missing_private = sorted(private_modules - set(observed_all))
+if missing_private:
+    raise SystemExit(f"declared private Haddock rows were absent: {', '.join(missing_private)}")
+rows = [(coverage, module) for coverage, module in rows if module not in private_modules]
+observed = [module for _, module in rows]
+duplicates = sorted({module for module in observed if observed.count(module) > 1})
+if duplicates:
+    raise SystemExit(f"duplicate Haddock coverage rows: {', '.join(duplicates)}")
+missing = sorted(set(expected) - set(observed))
+extra = sorted(set(observed) - set(expected))
+if missing or extra:
+    if missing:
+        print(f"missing Haddock coverage rows: {', '.join(missing)}")
+    if extra:
+        print(f"unexpected Haddock coverage rows: {', '.join(extra)}")
+    raise SystemExit(1)
+
+incomplete = [(coverage, module) for coverage, module in rows if coverage != 100]
+if incomplete:
+    for coverage, module in incomplete:
+        print(f"incomplete Haddock coverage: {module}: {coverage}%")
+    raise SystemExit(1)
+
+print(f"complete Haddock declaration coverage: {len(rows)} exact public modules")

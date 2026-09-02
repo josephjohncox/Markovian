@@ -26,6 +26,7 @@ module Markovian.POMDP.Exact (
 ) where
 
 import Data.List.NonEmpty qualified as NonEmpty
+import Markovian.Action (ActionId)
 import Markovian.Bayesian.Exact (
     ExactConditioningError (..),
     ExactDistributionBayesianError (..),
@@ -33,7 +34,6 @@ import Markovian.Bayesian.Exact (
     conditionExactDistribution,
     pushforwardExactDistribution,
  )
-import Markovian.MDP (ActionId)
 import Markovian.MDP.Exact (
     ExactMDP,
     ExactModelError,
@@ -41,6 +41,7 @@ import Markovian.MDP.Exact (
     stepExactMDP,
  )
 import Markovian.Probability.Exact (
+    ExactBindError,
     ExactDistributionError,
     ExactFiniteDist,
     ExactProb,
@@ -123,6 +124,8 @@ exactObservationDistribution (ExactPOMDP _ _ observe) = observe
 data ExactFilteringError state action observation
     = ExactFilteringModelError !state !(ExactModelError action)
     | ExactFilteringDistributionError !ExactDistributionError
+    | ExactFilteringPredictionBindError !(ExactBindError (state, ExactModelError action))
+    | ExactFilteringConditioningBindError !(ExactBindError ExactDistributionError)
     | ImpossibleExactObservation !observation
     deriving (Eq, Show)
 
@@ -139,6 +142,8 @@ predictExactBelief pomdp selected prior =
         predictState of
         Left (ExactDistributionKernelError (state, modelError)) ->
             Left (ExactFilteringModelError state modelError)
+        Left (ExactDistributionBindError bindError) ->
+            Left (ExactFilteringPredictionBindError bindError)
         Left (ExactDistributionNormalizationError distributionError) ->
             Left (ExactFilteringDistributionError distributionError)
         Right predicted -> Right (ExactBelief predicted)
@@ -168,6 +173,8 @@ conditionExactBelief pomdp selected observed predicted =
         (exactBeliefDistribution predicted)
         (exactObservationDistribution pomdp selected) of
         Left (ExactZeroEvidence impossible) -> Left (ImpossibleExactObservation impossible)
+        Left (ExactConditioningBindError bindError) ->
+            Left (ExactFilteringConditioningBindError bindError)
         Left (ExactConditioningNormalizationError distributionError) ->
             Left (ExactFilteringDistributionError distributionError)
         Right posterior -> Right (ExactBelief posterior)

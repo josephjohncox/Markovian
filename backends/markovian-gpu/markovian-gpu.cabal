@@ -1,61 +1,110 @@
-cabal-version:      3.0
+cabal-version:      3.4
 name:               markovian-gpu
 version:            0.1.0.0
-synopsis:           Optional CUDA backend for Markovian dense kernels
+synopsis:           Optional checked CUDA executor for Markovian tensors
 description:
-  Optional CUDA driver execution, differential tests, and transfer-inclusive benchmarks for dense Markovian kernels.
+  Optional CUDA execution for the bounded F64 matrix-product and matrix-VJP
+  fragment. It provides explicit capability admission, private resource
+  ownership, synchronization, checked cleanup, pre-launch-only fallback,
+  differential tests, and transfer-inclusive benchmarks. It does not claim
+  general tensor or device correctness.
 
 category:           Math
+homepage:           https://github.com/josephjohncox/Markovian
+bug-reports:        https://github.com/josephjohncox/Markovian/issues
 license:            BSD-3-Clause
 license-file:       LICENSE
 author:             Joseph Cox
 maintainer:         joseph@codensity.io
+copyright:          2024-2026 Joseph Cox
 build-type:         Simple
+stability:          Experimental
+tested-with:        GHC ==9.4.8 || ==9.8.4
+extra-doc-files:
+  CHANGELOG.md
+  README.md
+
+data-files:         test/golden/device-plan.txt
 extra-source-files:
   cbits/markovian_dense.cu
   cbits/markovian_dense.ptx
   cbits/markovian_dense_ptx.h
   cbits/markovian_gpu.h
   scripts/build-ptx
+  scripts/check-device-boundary
+  test/cbits/incomplete_cuda_driver.c
+  test/compile-fail/DeviceBoundary.hs
+  test/compile-fail/DeviceRoles.hs
   toolchain.env
 
+source-repository head
+  type:     git
+  location: https://github.com/josephjohncox/Markovian.git
+  subdir:   backends/markovian-gpu
+
 flag cuda
-  description: Build and link the CUDA driver implementation
+  description:
+    Build the dynamically loaded CUDA 13 driver implementation (headers required)
+
   default:     False
   manual:      True
 
+flag cuda-fault-injection
+  description:
+    Build deterministic CUDA driver-failure hooks for protected validation only
+
+  default:     False
+  manual:      True
+
+common warnings
+  ghc-options: -Wall
+
 library
+  import:           warnings
   exposed-modules:  Markovian.Backend.GPU
   hs-source-dirs:   src
-  build-depends:    base >=4.17.2.1 && <4.20
+  other-modules:    Markovian.Backend.GPU.Artifact
+  build-depends:
+    , base                      >=4.17.2.1 && <4.20
+    , markovian-tensor          ^>=0.1.0.0
+    , markovian-tensor-reverse  ^>=0.1.0.0
+
   default-language: GHC2021
-  ghc-options:      -Wall
 
   if flag(cuda)
     cpp-options:     -DMARKOVIAN_CUDA
     c-sources:       cbits/markovian_gpu.c
-    include-dirs:    cbits /usr/local/cuda/include
-    extra-libraries: cuda
-    cc-options:      -std=c11
+    include-dirs:    cbits
+    extra-libraries: dl
+    cc-options:
+      -std=c11 -Wall -Wextra -Werror -pedantic -Wno-overlength-strings
+
+    if flag(cuda-fault-injection)
+      cpp-options: -DMARKOVIAN_CUDA_FAULT_INJECTION
+      cc-options:  -DMARKOVIAN_CUDA_FAULT_INJECTION
 
 test-suite markovian-gpu-test
+  import:           warnings
   type:             exitcode-stdio-1.0
   main-is:          Main.lhs
   hs-source-dirs:   test
+  other-modules:    Paths_markovian_gpu
+  autogen-modules:  Paths_markovian_gpu
   build-depends:
-    , base           >=4.17.2.1 && <4.20
-    , markovian-gpu
+    , base              >=4.17.2.1 && <4.20
+    , markovian-gpu     ==0.1.0.0
+    , markovian-tensor  ^>=0.1.0.0
 
   default-language: GHC2021
-  ghc-options:      -Wall
 
 benchmark markovian-gpu-bench
+  import:           warnings
   type:             exitcode-stdio-1.0
   main-is:          Main.hs
   hs-source-dirs:   bench
   build-depends:
-    , base           >=4.17.2.1 && <4.20
-    , markovian-gpu
+    , base              >=4.17.2.1 && <4.20
+    , markovian-gpu     ==0.1.0.0
+    , markovian-tensor  ^>=0.1.0.0
 
   default-language: GHC2021
-  ghc-options:      -Wall

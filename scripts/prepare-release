@@ -1,0 +1,439 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+usage() {
+  cat >&2 <<'EOF'
+usage: bash scripts/prepare-release --revision GIT_SHA --output DIRECTORY
+
+Prepare checked source artifacts. This command requires an exact clean revision.
+It has no publication, tagging, or release-creation operation.
+EOF
+  exit 2
+}
+
+revision=""
+output=""
+inside_detached_checkout=0
+while (($#)); do
+  case "$1" in
+    --revision)
+      (($# >= 2)) || usage
+      revision="$2"
+      shift 2
+      ;;
+    --output)
+      (($# >= 2)) || usage
+      output="$2"
+      shift 2
+      ;;
+    --inside-detached-checkout)
+      inside_detached_checkout=1
+      shift
+      ;;
+    *) usage ;;
+  esac
+done
+[[ -n "${revision}" && -n "${output}" ]] || usage
+[[ "${revision}" =~ ^[0-9a-f]{40}$ ]] || {
+  echo "revision must be a full lowercase 40-character commit object ID" >&2
+  exit 1
+}
+
+repo_root="$(git rev-parse --show-toplevel)"
+cd "${repo_root}"
+python3 scripts/release_tool.py check-source \
+  --root "${repo_root}" \
+  --revision "${revision}"
+for secret_name in HACKAGE_TOKEN HACKAGE_USERNAME HACKAGE_PASSWORD NPM_TOKEN PYPI_TOKEN GITHUB_TOKEN; do
+  if [[ -n "${!secret_name:-}" ]]; then
+    echo "release preparation refuses ${secret_name}" >&2
+    exit 1
+  fi
+done
+for credential in \
+  "${HOME}/.netrc" "${HOME}/.pypirc" "${HOME}/.npmrc" \
+  "${repo_root}/.netrc" "${repo_root}/.pypirc" "${repo_root}/.npmrc" "${repo_root}/.env"; do
+  [[ ! -e "${credential}" ]] || {
+    echo "release preparation refuses credential/config file ${credential}" >&2
+    exit 1
+  }
+done
+for cabal_config in "${HOME}/.cabal/config" "${HOME}/.config/cabal/config"; do
+  if [[ -f "${cabal_config}" ]] && grep -nEi '^[[:space:]]*(username|password|token|key)[[:space:]]*:' "${cabal_config}"; then
+    echo "release preparation refuses Cabal credentials in ${cabal_config}" >&2
+    exit 1
+  fi
+done
+if git grep -nEi '(BEGIN (RSA |EC |OPENSSH )?PRIVATE KEY|(^|[^A-Z])(TOKEN|PASSWORD|SECRET)[[:space:]]*=[[:space:]]*[^"[:space:]]+)' -- . \
+  ':!scripts/prepare-release' ':!scripts/test_release_tool.py'; then
+  echo "release preparation found token/key content" >&2
+  exit 1
+fi
+
+output_parent="$(dirname "${output}")"
+output_name="$(basename "${output}")"
+mkdir -p "${output_parent}"
+output_parent="$(cd "${output_parent}" && pwd)"
+output="${output_parent}/${output_name}"
+[[ ! -e "${output}" ]] || {
+  echo "output already exists: ${output}" >&2
+  exit 1
+}
+
+if (( inside_detached_checkout == 0 )); then
+  checkout="$(mktemp -d "${output_parent}/.${output_name}.checkout.XXXXXX")"
+  scrub_home="$(mktemp -d "${output_parent}/.${output_name}.home.XXXXXX")"
+  rmdir "${checkout}"
+  cleanup_checkout() {
+    git -C "${repo_root}" worktree remove --force "${checkout}" >/dev/null 2>&1 || true
+    rm -rf "${checkout}" "${scrub_home}"
+  }
+  trap cleanup_checkout EXIT
+  git worktree add --quiet --detach "${checkout}" "${revision}"
+  python3 "${checkout}/scripts/release_tool.py" check-source \
+    --root "${checkout}" --revision "${revision}"
+  printf '%s\n' 'repository hackage.haskell.org' '  url: https://hackage.haskell.org/' \
+    > "${scrub_home}/cabal.config"
+  env \
+    HOME="${scrub_home}" \
+    CABAL_CONFIG="${scrub_home}/cabal.config" \
+    MARKOVIAN_SPDX_VALIDATOR="${repo_root}/.direnv/spdx-tools/bin/pyspdxtools" \
+    PATH="${PATH}" \
+    LC_ALL=C TZ=UTC \
+    bash "${checkout}/scripts/prepare-release" \
+      --revision "${revision}" --output "${output}" --inside-detached-checkout
+  python3 "${checkout}/scripts/release_tool.py" check-source \
+    --root "${checkout}" --revision "${revision}"
+  cleanup_checkout
+  trap - EXIT
+  printf 'prepared from detached immutable source: %s\n' "${output}"
+  exit 0
+fi
+
+case "${output}" in
+  "${repo_root}"|"${repo_root}"/*)
+    echo "release output must be outside the detached source checkout" >&2
+    exit 1
+    ;;
+esac
+
+stage="$(mktemp -d "${output_parent}/.${output_name}.tmp.XXXXXX")"
+cleanup() { rm -rf "${stage}"; }
+trap cleanup EXIT
+mkdir -p "${stage}/archives-a" "${stage}/archives-b" "${stage}/sbom" "${stage}/unpacked" "${stage}/component-logs"
+
+export LC_ALL=C
+export TZ=UTC
+umask 022
+epoch="$(git show -s --format=%ct "${revision}")"
+export SOURCE_DATE_EPOCH="${epoch}"
+
+spdx_validator="${MARKOVIAN_SPDX_VALIDATOR:-${repo_root}/.direnv/spdx-tools/bin/pyspdxtools}"
+[[ -x "${spdx_validator}" ]] || {
+  echo "pinned SPDX validator is missing; run scripts/bootstrap-tools" >&2
+  exit 1
+}
+
+python3 scripts/release_tool.py check
+bash scripts/check-release-policy
+bash scripts/check-package-manifest
+while IFS=$'\t' read -r package_name package_dir _version _dependency_tier; do
+  if [[ -z "${package_name}" || "${package_name}" == \#* ]]; then
+    continue
+  fi
+  (cd "${package_dir}" && cabal check)
+done < release/packages.tsv
+
+cabal build all --project-file=cabal.project.ci
+cabal test all --project-file=cabal.project.ci --test-show-details=direct
+cabal build all --project-file=cabal.project.ci --prefer-oldest
+cabal test all --project-file=cabal.project.ci --prefer-oldest --test-show-details=direct
+
+boundary_scripts=(
+  scripts/check-root-topology
+  scripts/check-refinement-roles
+  scripts/check-circuit-purity
+  scripts/check-acyclic-proof-boundary
+  scripts/check-acyclic-purity
+  scripts/check-game-core-boundary
+  scripts/check-mixed-game-boundary
+  scripts/check-feedback-boundary
+  packages/markovian-reverse/scripts/check-reverse-boundary
+  backends/markovian-neural/scripts/check-reverse-program-boundary
+  backends/markovian-neural-bridge/scripts/check-exact-support-boundary
+  packages/markovian-continuous/scripts/check-continuous-boundary
+  packages/markovian-continuous-numerical/scripts/check-continuous-numerical-boundary
+  packages/markovian-autodiff/scripts/check-autodiff-boundary
+  packages/markovian-tensor/scripts/check-tensor-boundary
+  packages/markovian-tensor-reverse/scripts/check-tensor-reverse-boundary
+  packages/markovian-safetensors/scripts/check-safetensors-boundary
+  backends/markovian-gpu/scripts/check-device-boundary
+)
+for boundary in "${boundary_scripts[@]}"; do
+  bash "${boundary}"
+done
+
+cabal bench all --project-file=cabal.project.ci
+scripts/check-book
+
+documentation_packages=()
+while IFS=$'\t' read -r package_name _package_dir _version _dependency_tier; do
+  if [[ -n "${package_name}" && "${package_name}" != \#* ]]; then
+    documentation_packages+=("${package_name}")
+  fi
+done < release/packages.tsv
+cabal --store-dir="${stage}/worktree-doc-store" install \
+  --lib "${documentation_packages[@]}" \
+  --project-file=cabal.project.ci \
+  --builddir="${stage}/worktree-doc-build" \
+  --package-env="${stage}/worktree-doc-environment" \
+  --enable-documentation \
+  --overwrite-policy=always 2>&1 | tee "${stage}/worktree-haddock-install.log"
+if grep -niE '(^|[[:space:]])warning:' "${stage}/worktree-haddock-install.log"; then
+  echo "isolated worktree Haddock installation emitted warnings" >&2
+  exit 1
+fi
+python3 scripts/release_tool.py check-haddock-interfaces \
+  "${stage}/worktree-doc-store"
+
+# Run serially so each local dependency interface exists before a dependent
+# package is documented. The coverage log must itself remain warning-free.
+cabal haddock all -j1 \
+  --project-file=cabal.project.ci \
+  --haddock-hyperlink-source \
+  --haddock-for-hackage \
+  --haddock-options=--no-warnings > "${stage}/worktree-haddock-coverage.log" 2>&1
+python3 scripts/check-haddock-coverage "${stage}/worktree-haddock-coverage.log"
+
+cabal sdist all --output-directory="${stage}/archives-a"
+cabal sdist all --output-directory="${stage}/archives-b"
+
+package_paths=()
+while IFS=$'\t' read -r package_name package_dir version _dependency_tier; do
+  if [[ -z "${package_name}" || "${package_name}" == \#* ]]; then
+    continue
+  fi
+  archive_name="${package_name}-${version}.tar.gz"
+  first="${stage}/archives-a/${archive_name}"
+  second="${stage}/archives-b/${archive_name}"
+  [[ -f "${first}" && -f "${second}" ]] || {
+    echo "missing expected source archive ${archive_name}" >&2
+    exit 1
+  }
+  cmp "${first}" "${second}"
+  python3 scripts/release_tool.py validate-archive \
+    "${first}" --name "${package_name}" --version "${version}" \
+    --extract "${stage}/unpacked"
+  python3 scripts/release_tool.py validate-archive \
+    "${second}" --name "${package_name}" --version "${version}"
+  sbom_path="${stage}/sbom/${package_name}-${version}.spdx.json"
+  python3 scripts/release_tool.py sbom \
+    "${first}" --name "${package_name}" --version "${version}" \
+    --revision "${revision}" --epoch "${epoch}" \
+    --output "${sbom_path}"
+  "${spdx_validator}" --infile "${sbom_path}"
+  package_paths+=("  ${stage}/unpacked/${package_name}-${version}")
+done < release/packages.tsv
+
+archive_count="$(find "${stage}/archives-a" -maxdepth 1 -type f -name '*.tar.gz' -print | wc -l)"
+manifest_count="$(awk -F '\t' '$1 !~ /^#/ && NF == 4 { count += 1 } END { print count + 0 }' release/packages.tsv)"
+[[ "${archive_count}" -eq "${manifest_count}" ]] || {
+  echo "unexpected source archive count ${archive_count}; expected ${manifest_count}" >&2
+  exit 1
+}
+
+python3 scripts/release_tool.py archive-project \
+  --output "${stage}/unpacked/cabal.project"
+for package_path in "${package_paths[@]}"; do
+  package_path="${package_path#  }"
+  rm -f "${package_path}/cabal.project" "${package_path}/cabal.project.local"
+done
+mapfile -t archive_test_targets < <(
+  python3 scripts/release_tool.py component-targets --kind test
+)
+mapfile -t archive_benchmark_targets < <(
+  python3 scripts/release_tool.py component-targets --kind benchmark
+)
+receipts="${stage}/component-execution-receipts.tsv"
+: > "${receipts}"
+compiler="ghc-$(ghc --numeric-version)"
+run_component() {
+  local kind="$1"
+  local target="$2"
+  shift 2
+  local safe_target log_relative log_path raw_log result digest
+  safe_target="$(printf '%s' "${target}" | tr -c 'A-Za-z0-9._-' '_')"
+  log_relative="component-logs/${kind}-${safe_target}.log"
+  log_path="${stage}/${log_relative}"
+  raw_log="${log_path}.raw"
+  if "$@" 2>&1 | tee "${raw_log}"; then
+    result=passed
+  else
+    result=failed
+  fi
+  python3 - "${raw_log}" "${log_path}" "${stage}" "${repo_root}" "${HOME}" <<'PY'
+import sys
+from pathlib import Path
+
+source, destination = map(Path, sys.argv[1:3])
+data = source.read_bytes().replace(b"\r\n", b"\n")
+for value, marker in zip(sys.argv[3:], (b"$STAGE", b"$SOURCE", b"$HOME")):
+    data = data.replace(value.encode(), marker)
+destination.write_bytes(data)
+PY
+  rm -f "${raw_log}"
+  digest="$(sha256sum -- "${log_path}" | awk '{print $1}')"
+  printf '%s\t%s\t%s\t%s\t%s\t%s\n' \
+    "${kind}" "${target}" "${compiler}" "${result}" \
+    "${log_relative}" "${digest}" >> "${receipts}"
+  [[ "${result}" == passed ]] || {
+    echo "component execution failed: ${target}" >&2
+    return 1
+  }
+}
+(
+  cd "${stage}/unpacked"
+  cabal build all --project-file=cabal.project
+  python3 "${repo_root}/scripts/release_tool.py" check-plan \
+    dist-newstyle/cache/plan.json \
+    --manifest "${repo_root}/release/packages.tsv" \
+    --components "${repo_root}/release/components.tsv"
+  for target in "${archive_test_targets[@]}"; do
+    run_component test "${target}" \
+      cabal test "${target}" --project-file=cabal.project --test-show-details=direct
+  done
+  for target in "${archive_benchmark_targets[@]}"; do
+    run_component benchmark "${target}" \
+      cabal bench "${target}" --project-file=cabal.project
+  done
+)
+python3 scripts/release_tool.py component-results \
+  --receipts "${receipts}" \
+  --output "${stage}/component-results.json"
+rm -f "${receipts}"
+archive_packages=()
+while IFS=$'\t' read -r package_name _package_dir _version _dependency_tier; do
+  if [[ -n "${package_name}" && "${package_name}" != \#* ]]; then
+    archive_packages+=("${package_name}")
+  fi
+done < release/packages.tsv
+(
+  cd "${stage}/unpacked"
+  cabal --store-dir="${stage}/archive-doc-store" install \
+    --lib "${archive_packages[@]}" \
+    --project-file=cabal.project \
+    --builddir="${stage}/archive-doc-build" \
+    --package-env="${stage}/archive-doc-environment" \
+    --enable-documentation \
+    --overwrite-policy=always
+) 2>&1 | tee "${stage}/archive-haddock.log"
+if grep -niE '(^|[[:space:]])warning:' "${stage}/archive-haddock.log"; then
+  echo "archive-only Haddock installation emitted warnings" >&2
+  exit 1
+fi
+python3 scripts/release_tool.py check-haddock-interfaces \
+  "${stage}/archive-doc-store"
+(
+  cd "${stage}/unpacked"
+  cabal haddock all -j1 \
+    --project-file=cabal.project \
+    --haddock-hyperlink-source \
+    --haddock-for-hackage \
+    --haddock-options=--no-warnings
+) > "${stage}/archive-haddock-coverage.log" 2>&1
+python3 scripts/check-haddock-coverage "${stage}/archive-haddock-coverage.log"
+
+while IFS=$'\t' read -r package_name _package_dir version _dependency_tier; do
+  if [[ -z "${package_name}" || "${package_name}" == \#* ]]; then
+    continue
+  fi
+  package_path="${stage}/unpacked/${package_name}-${version}"
+  python3 scripts/release_tool.py archive-consumer-project \
+    --root "${repo_root}" \
+    --archive-root "${stage}/unpacked" \
+    --package "${package_name}" \
+    --output "${package_path}/cabal.project"
+  mapfile -t package_test_targets < <(
+    python3 scripts/release_tool.py component-targets \
+      --kind test --package "${package_name}"
+  )
+  mapfile -t package_benchmark_targets < <(
+    python3 scripts/release_tool.py component-targets \
+      --kind benchmark --package "${package_name}"
+  )
+  (
+    cd "${package_path}"
+    cabal build all --project-file=cabal.project
+    cabal test "${package_test_targets[@]}" \
+      --project-file=cabal.project --test-show-details=direct
+    if (( ${#package_benchmark_targets[@]} > 0 )); then
+      cabal bench "${package_benchmark_targets[@]}" --project-file=cabal.project
+    fi
+    if [[ -d scripts ]]; then
+      while IFS= read -r boundary; do
+        case "$(basename "${boundary}")" in
+          check-*boundary|check-*-purity|check-refinement-roles|check-root-topology)
+            bash "${boundary}"
+            ;;
+        esac
+      done < <(find scripts -maxdepth 1 -type f -print | sort)
+    fi
+  )
+done < release/packages.tsv
+
+consumer="${stage}/consumer"
+mkdir -p "${consumer}/app"
+cp examples/release/exact/markovian-release-example.cabal "${consumer}/"
+cp examples/release/exact/app/Main.hs "${consumer}/app/"
+root_archive="${stage}/unpacked/Markovian-0.1.0.0"
+cat > "${consumer}/cabal.project" <<EOF
+packages:
+  .
+  ${root_archive}
+write-ghc-environment-files: never
+EOF
+cabal build all --project-file="${consumer}/cabal.project"
+cabal run markovian-release-example --project-file="${consumer}/cabal.project"
+
+cp release/components.tsv "${stage}/components.tsv"
+python3 scripts/release_tool.py artifact-manifest \
+  --archives "${stage}/archives-a" \
+  --sboms "${stage}/sbom" \
+  --revision "${revision}" \
+  --epoch "${epoch}" \
+  --components "${stage}/components.tsv" \
+  --component-results "${stage}/component-results.json" \
+  --output "${stage}/manifest.json"
+printf '%s\n' "${revision}" > "${stage}/SOURCE-REVISION"
+
+rm -rf \
+  "${stage}/archives-b" \
+  "${stage}/unpacked" \
+  "${stage}/consumer" \
+  "${stage}/archive-doc-store" \
+  "${stage}/archive-doc-build" \
+  "${stage}/archive-doc-environment" \
+  "${stage}/worktree-doc-store" \
+  "${stage}/worktree-doc-build" \
+  "${stage}/worktree-doc-environment"
+mv "${stage}/archives-a" "${stage}/archives"
+rm -f \
+  "${stage}/archive-haddock.log" \
+  "${stage}/archive-haddock-coverage.log" \
+  "${stage}/worktree-haddock-install.log" \
+  "${stage}/worktree-haddock-coverage.log"
+(
+  cd "${stage}"
+  {
+    find archives sbom component-logs -type f -print
+    printf '%s\n' components.tsv component-results.json manifest.json SOURCE-REVISION
+  } | LC_ALL=C sort | while IFS= read -r artifact; do
+    sha256sum -- "${artifact}"
+  done
+) > "${stage}/SHA256SUMS"
+
+python3 scripts/release_tool.py check-source \
+  --root "${repo_root}" --revision "${revision}"
+python3 scripts/release_tool.py finalize --stage "${stage}" --output "${output}"
+trap - EXIT
+printf 'prepared non-publishing release artifacts: %s\n' "${output}"

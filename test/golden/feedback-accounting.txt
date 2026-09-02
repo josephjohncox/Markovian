@@ -1,0 +1,1 @@
+FeedbackAccounting {feedbackArithmeticWork = 58, feedbackMaximumInputBits = 3, feedbackMaximumMatrixPowerBits = 6, feedbackMaximumGaussianIntermediateBits = 5, feedbackMaximumDelayedPathIntermediateBits = 0, feedbackMaximumTimedPathIntermediateBits = 0, feedbackMaximumOtherIntermediateBits = 3, feedbackMaximumRetainedResultBits = 1, feedbackMaximumObservedBits = 6}

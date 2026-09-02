@@ -10,9 +10,9 @@ module Markovian.POMDP.Planning.Exact (
 
 import Data.List.NonEmpty (NonEmpty (..))
 import Data.List.NonEmpty qualified as NonEmpty
+import Markovian.Action (ActionId)
 import Markovian.Horizon (horizonValue)
-import Markovian.Kernel.Exact (ExactKernel, runExactKernel)
-import Markovian.MDP (ActionId)
+import Markovian.Kernel.Exact (ExactKernel, ExactKernelError, runExactKernel)
 import Markovian.MDP.Exact (
     ExactDecision (..),
     ExactModelError,
@@ -40,7 +40,7 @@ import Markovian.POMDP.Exact (
     exactPOMDPModel,
     predictExactBelief,
  )
-import Markovian.Policy.Exact (ExactPolicyError, validateExactPolicySupport)
+import Markovian.Policy.Exact (ExactPolicyError (..), validateExactPolicySupport)
 import Markovian.Probability.Exact (
     ExactFiniteDist,
     exactOutcomes,
@@ -61,7 +61,7 @@ exactBeliefPolicy = ExactBeliefPolicy
 exactBeliefPolicyActions ::
     ExactBeliefPolicy state action ->
     ExactBelief state ->
-    ExactFiniteDist (ActionId action)
+    Either ExactKernelError (ExactFiniteDist (ActionId action))
 exactBeliefPolicyActions (ExactBeliefPolicy selected) = runExactKernel selected
 
 -- | Exact finite-horizon belief-planning failures.
@@ -109,7 +109,9 @@ expectedExactBeliefReturnFrom objective pomdp selectedPolicy initial =
                 | remaining == 0 -> Right 0
                 | otherwise -> do
                     available <- commonAvailable belief
-                    let selected = exactBeliefPolicyActions selectedPolicy belief
+                    selected <-
+                        mapPolicyError
+                            (either (Left . ExactPolicyKernelError) Right (exactBeliefPolicyActions selectedPolicy belief))
                     mapPolicyError (validateExactPolicySupport available selected)
                     contributions <-
                         traverse

@@ -20,8 +20,6 @@ module Markovian.Backend.Neural (
     module Markovian.Backend.Neural.Policy,
     module Markovian.Backend.Neural.Reinforce,
     module Markovian.Backend.Neural.Replay,
-    module Markovian.Backend.Neural.Reverse,
-    module Markovian.Backend.Neural.Reverse.Program,
     module Markovian.Backend.Neural.TargetNetwork,
     module Markovian.Backend.Neural.Transition,
 ) where
@@ -37,8 +35,6 @@ import Markovian.Backend.Neural.Optimizer
 import Markovian.Backend.Neural.Policy
 import Markovian.Backend.Neural.Reinforce
 import Markovian.Backend.Neural.Replay
-import Markovian.Backend.Neural.Reverse
-import Markovian.Backend.Neural.Reverse.Program
 import Markovian.Backend.Neural.TargetNetwork
 import Markovian.Backend.Neural.Transition
 \end{code}

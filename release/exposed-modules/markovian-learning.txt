@@ -1,0 +1,10 @@
+Markovian.Learning.EpsilonGreedy
+Markovian.Learning.ExpectedSarsa
+Markovian.Learning.ExpectedSarsa.Episodic
+Markovian.Learning.QLearning
+Markovian.Learning.QLearning.Episodic
+Markovian.Learning.Sarsa
+Markovian.Learning.Sarsa.Episodic
+Markovian.Learning.Tabular
+Markovian.Learning.TD0
+Markovian.Learning.TD0.Episodic

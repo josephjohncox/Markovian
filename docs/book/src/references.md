@@ -10,11 +10,13 @@ Each route starts with background and ends at the source closest to Markovian's 
 - **Measure kernels and conditioning:** [Pollard](#pollard-measure-theoretic-probability) → [Kallenberg](#kallenberg-foundations-of-modern-probability) → [Faden](#faden-regular-conditional-probabilities)
 - **Categorical probability:** [Giry](#giry-probability-as-a-monad) → [Moggi](#moggi-kleisli-semantics) → [Fritz](#fritz-markov-categories) → [Cho and Jacobs](#cho-and-jacobs-disintegration-and-bayesian-inversion)
 - **Matrix and path algebra:** [Mohri](#mohri-semiring-path-algorithms) → [Droste, Kuich, and Vogler](#droste-kuich-and-vogler-weighted-automata) → [Joyal, Street, and Verity](#joyal-street-and-verity-traced-monoidal-categories)
+- **Checked feedback:** [Joyal, Street, and Verity](#joyal-street-and-verity-traced-monoidal-categories) → [Malherbe, Scott, and Selinger](#malherbe-scott-and-selinger-partial-trace) → [Goncharov and Schröder](#goncharov-and-schroder-guarded-trace) → [Grinstead and Snell](#grinstead-and-snell-absorbing-chains)
 - **Open composition:** [Fong and Spivak](#fong-and-spivak-applied-category-theory) → [Fong](#fong-decorated-cospans) → [Baez and Courser](#baez-and-courser-structured-cospans)
 - **Information theory:** [Shannon](#shannon-information-theory) → [Cover and Thomas](#cover-and-thomas-information-theory) → [Baez, Fritz, and Leinster](#baez-fritz-and-leinster-entropy) → [Perrone](#perrone-markov-categories-and-entropy)
 - **Categorical learning and reverse traces:** [Fong, Spivak, and Tuyéras](#fong-spivak-and-tuyeras-backprop) → [Cockett and colleagues](#cockett-and-colleagues-reverse-derivatives) → [Griewank and Walther](#griewank-and-walther-evaluating-derivatives) → [Cruttwell and colleagues](#cruttwell-and-colleagues-gradient-learning)
 - **Polarity and game semantics:** [Girard](#girard-linear-logic) → [Andreoli](#andreoli-focusing) → [Hyland and Ong](#hyland-and-ong-game-semantics) → [Laurent](#laurent-polarized-games)
 - **Push-pull and compositional games:** [Kozen](#kozen-probabilistic-programs) → [Jacobs and Zanasi](#jacobs-and-zanasi-predicate-state-transformers) → [Riley](#riley-categories-of-optics) → [Ghani and colleagues](#ghani-and-colleagues-compositional-games)
+- **Mixed, correlated, stochastic, and Bayesian games:** [Nash](#nash-non-cooperative-games) → [Aumann](#aumann-correlated-equilibrium) → [Shapley and Fink](#shapley-and-fink-stochastic-games) → [Harsanyi](#harsanyi-incomplete-information)
 - **Inventory control examples:** [Clark and Scarf](#clark-and-scarf-multi-echelon-inventory) → [Doğru](#dogru-multi-retailer-inventory) → [Doğru, van Houtum, and de Kok](#dogru-van-houtum-and-de-kok-fixed-batches)
 
 The foundation chapters connect these sources to the code. Start with [algebra](algebra-primer.md), [category theory](category-primer.md), and [measure theory](measure-theory-primer.md). Then read [categorical probability](categorical-probability.md), [information theory](information-theory.md), [categorical learning](categorical-learning.md), and [polarity, push-pull duality, and games](polarity-and-games.md).
@@ -50,6 +52,24 @@ This paper gives the standard coherence theory for compact closed categories. It
 André Joyal, Ross Street, and Dominic Verity. “Traced monoidal categories.” *Mathematical Proceedings of the Cambridge Philosophical Society* 119(3), 1996, pages 447–468. [DOI 10.1017/S0305004100074338](https://doi.org/10.1017/S0305004100074338). [Author-hosted PDF](https://www.sas.rochester.edu/mth/sites/doug-ravenel/otherpapers/jsv.pdf).
 
 This paper states naturality, dinaturality, vanishing, superposing, and yanking for trace. Markovian tests these equations for finite semiring matrices.
+
+### Malherbe, Scott, and Selinger: partial trace
+
+Octavio Malherbe, Philip Scott, and Peter Selinger. “Partially traced categories.” *Journal of Pure and Applied Algebra* 216(12), 2012, pages 2563–2585. [DOI 10.1016/j.jpaa.2012.03.026](https://doi.org/10.1016/j.jpaa.2012.03.026).
+
+The paper distinguishes total and partial trace structures and gives probabilistic examples. Markovian uses it to justify an explicit checked domain rather than a total trace operation on normalized channels.
+
+### Goncharov and Schroder: guarded trace
+
+Sergey Goncharov and Lutz Schröder. “Guarded Traced Categories.” In *FoSSaCS 2018*, LNCS 10803, pages 313–330. [DOI 10.1007/978-3-319-89366-2_17](https://doi.org/10.1007/978-3-319-89366-2_17).
+
+The paper makes guardedness part of the trace structure. Markovian implements only explicit one-tick delay and checked finite first-exit fragments; it does not claim the paper's general guarded categorical structure.
+
+### Grinstead and Snell: absorbing chains
+
+Charles M. Grinstead and J. Laurie Snell. *Introduction to Probability*. Second revised edition, American Mathematical Society, 1997. [Open textbook](https://math.dartmouth.edu/~prob/prob/prob.pdf).
+
+Chapter 11 develops absorbing finite Markov chains, the fundamental matrix `(I-Q)^(-1)`, and absorption probabilities. This is the standard finite basis for Markovian's exact proper first-exit solve.
 
 ### Selinger: graphical languages
 
@@ -191,7 +211,31 @@ Definition 3 gives strategy sets, play and coplay maps, and context-indexed best
 
 John F. Nash. “Non-cooperative games.” *Annals of Mathematics* 54(2), 1951, pages 286–295. [DOI 10.2307/1969529](https://doi.org/10.2307/1969529).
 
-Nash proves existence of an equilibrium in mixed strategies for finite games under the paper's assumptions. Markovian cites this result only to explain why matching pennies can lack a pure equilibrium. It implements no mixed strategy or equilibrium-existence theorem.
+Nash proves existence of an equilibrium in mixed strategies for finite games under the paper's assumptions. Markovian implements exact evaluation and candidate checking for represented rational profiles. It does not implement Nash's existence proof or represent every real equilibrium.
+
+### Aumann: correlated equilibrium
+
+Robert J. Aumann. “Subjectivity and correlation in randomized strategies.” *Journal of Mathematical Economics* 1(1), 1974, pages 67–96. [DOI 10.1016/0304-4068(74)90037-8](https://doi.org/10.1016/0304-4068%2874%2990037-8). Robert J. Aumann. “Correlated equilibrium as an expression of Bayesian rationality.” *Econometrica* 55(1), 1987, pages 1–18. [DOI 10.2307/1911154](https://doi.org/10.2307/1911154).
+
+These papers ground correlation devices and obedience inequalities. Markovian checks finite direct-recommendation CE inequalities without conditioning at null recommendations. CCE is exposed separately.
+
+### Lemke and Howson: bimatrix equilibria
+
+C. E. Lemke and J. T. Howson, Jr. “Equilibrium points of bimatrix games.” *Journal of the Society for Industrial and Applied Mathematics* 12(2), 1964, pages 413–423. [DOI 10.1137/0112033](https://doi.org/10.1137/0112033).
+
+The paper gives a complementary-pivot method for finding an equilibrium in a bimatrix game. Markovian does not implement it and does not treat it as an all-equilibria enumerator. Singular and positive-dimensional support systems remain an explicit solver blocker.
+
+### Shapley and Fink: stochastic games
+
+Lloyd S. Shapley. “Stochastic games.” *Proceedings of the National Academy of Sciences* 39(10), 1953, pages 1095–1100. [DOI 10.1073/pnas.39.10.1095](https://doi.org/10.1073/pnas.39.10.1095). A. M. Fink. “Equilibrium in a stochastic n-person game.” *Journal of Science of the Hiroshima University, Series A-I (Mathematics)* 28, 1964, pages 89–93. [DOI 10.32917/hmj/1206139508](https://doi.org/10.32917/hmj/1206139508).
+
+These results state existence under their respective finite discounted hypotheses. Markovian implements only finite-horizon public-state candidate evaluation and does not import those existence conclusions.
+
+### Harsanyi: incomplete information
+
+John C. Harsanyi. “Games with incomplete information played by ‘Bayesian’ players,” Parts I–III. *Management Science* 14, 1967–1968. [Part I DOI 10.1287/mnsc.14.3.159](https://doi.org/10.1287/mnsc.14.3.159), [Part II DOI 10.1287/mnsc.14.5.320](https://doi.org/10.1287/mnsc.14.5.320), [Part III DOI 10.1287/mnsc.14.7.486](https://doi.org/10.1287/mnsc.14.7.486).
+
+The common-prior type model grounds the one-shot exact Harsanyi layer. Markovian keeps the prior joint, reports null types without inventing a posterior, and bounds contingent-plan conversion.
 
 ### Escardo and Oliva: sequential games
 
@@ -211,7 +255,7 @@ Giry gives the foundational probability monad on measurable spaces. Markovian us
 
 Eugenio Moggi. “Notions of computation and monads.” *Information and Computation* 93(1), 1991, pages 55–92. [DOI 10.1016/0890-5401(91)90052-4](https://doi.org/10.1016/0890-5401%2891%2990052-4).
 
-Moggi explains monads and Kleisli categories as semantics for effectful computation. The exact kernel category is the Kleisli category of the exact finite distribution monad.
+Moggi explains monads and Kleisli categories as semantics for effectful computation. Markovian cites this as mathematical background only. Its checked exact bind is fallible and resource-sensitive, so the package does not expose an exact-distribution `Monad` or an unrestricted exact-kernel Kleisli category.
 
 ### Fritz: Markov categories
 
@@ -305,7 +349,7 @@ Clark and Scarf derive the echelon decomposition for a serial periodic-review in
 
 ### Arrow, Karlin, and Scarf: inventory background
 
-Kenneth J. Arrow, Samuel Karlin, and Herbert Scarf. *Studies in the Mathematical Theory of Inventory and Production*. Stanford University Press, 1958, Chapter 10. [Stanford University Press record](https://www.sup.org/books/economics-and-finance/studies-mathematical-theory-inventory-and-production).
+Kenneth J. Arrow, Samuel Karlin, and Herbert Scarf. *Studies in the Mathematical Theory of Inventory and Production*. Stanford University Press, 1958, Chapter 10. OCLC 248174.
 
 Clark and Scarf cite this chapter for the single-installation lead-time recursion summarized before their multi-echelon construction. Markovian uses the 1960 paper, not this chapter, as the direct source for the two-echelon state and decomposition equations.
 
@@ -455,12 +499,68 @@ David Goldberg. “What every computer scientist should know about floating-poin
 
 Goldberg gives a practical account of representation, rounding, guard digits, and IEEE arithmetic. It explains why reassociation is not a semantics-preserving floating optimization.
 
+### IEEE 754: floating-point arithmetic
+
+IEEE. *IEEE Standard for Floating-Point Arithmetic*, IEEE 754-2019. [DOI 10.1109/IEEESTD.2019.8766229](https://doi.org/10.1109/IEEESTD.2019.8766229).
+
+The host tensor package stores raw binary64 payloads but admits only finite values to numerical primitives. The standard defines representation and arithmetic; it does not make floating addition associative.
+
+### GHC User's Guide: roles and foreign interfaces
+
+Glasgow Haskell Compiler contributors. *GHC 9.8.4 User's Guide*: [role annotations](https://downloads.haskell.org/ghc/9.8.4/docs/users_guide/exts/roles.html) and [foreign function interface](https://downloads.haskell.org/ghc/9.8.4/docs/users_guide/exts/ffi.html).
+
+Nominal role annotations protect tensor region, shape, dtype, owner, storage, and tape indexes from representational coercion. Managed `ForeignPtr` storage remains private; the tensor package exposes no pointer or mutable-buffer API. The FFI safe-call contract also grounds the CUDA executor's blocking driver transactions.
+
+### NVIDIA CUDA Driver API and PTX ISA
+
+NVIDIA. *CUDA Driver API 13.0*: [devices](https://docs.nvidia.com/cuda/archive/13.0.0/cuda-driver-api/group__CUDA__DEVICE.html), [contexts](https://docs.nvidia.com/cuda/archive/13.0.0/cuda-driver-api/group__CUDA__CTX.html), [modules](https://docs.nvidia.com/cuda/archive/13.0.0/cuda-driver-api/group__CUDA__MODULE.html), [memory](https://docs.nvidia.com/cuda/archive/13.0.0/cuda-driver-api/group__CUDA__MEM.html), [streams](https://docs.nvidia.com/cuda/archive/13.0.0/cuda-driver-api/group__CUDA__STREAM.html), and [kernel launch](https://docs.nvidia.com/cuda/archive/13.0.0/cuda-driver-api/group__CUDA__EXEC.html). NVIDIA. [*PTX ISA 9.0*](https://docs.nvidia.com/cuda/archive/13.0.0/parallel-thread-execution/index.html) and [*Compute Sanitizer*](https://docs.nvidia.com/compute-sanitizer/ComputeSanitizer/index.html).
+
+These documents define the device, context, module, stream, transfer, launch, synchronization, and diagnostic operations used by the optional executor. They do not prove application-level device correctness. The committed PTX declares `sm_121`; admission and a known-answer test provide only current-process evidence for the selected device. Compute Sanitizer remains a required acceptance gate rather than a passed claim.
+
+### QUADPACK: adaptive quadrature
+
+Robert Piessens, Elise de Doncker-Kapenga, Christoph Überhuber, and David Kahaner. *QUADPACK: A Subroutine Package for Automatic Integration*. Springer, 1983. [DOI 10.1007/978-3-642-61786-7](https://doi.org/10.1007/978-3-642-61786-7). [Netlib sources](https://www.netlib.org/quadpack/).
+
+`DQK15` supplies the embedded Gauss--Kronrod nodes and weights used by the bounded numerical package. QUADPACK describes estimated error and abnormal termination; Markovian does not reinterpret that estimate as a certified enclosure.
+
+### Welford: online variance
+
+B. P. Welford. “Note on a Method for Calculating Corrected Sums of Squares and Products.” *Technometrics* 4(3), 1962, page 419. [DOI 10.1080/00401706.1962.10490022](https://doi.org/10.1080/00401706.1962.10490022).
+
+The numerical continuous package uses this sequential recurrence for bounded resumable sample mean and variance reports.
+
+### Ackerman, Freer, and Roy: computable conditioning
+
+Nathanael Ackerman, Cameron Freer, and Daniel Roy. “On the Computability of Conditional Probability.” *Journal of the ACM* 66(3), 2019. [DOI 10.1145/3321699](https://doi.org/10.1145/3321699). [arXiv:1005.3014](https://arxiv.org/abs/1005.3014).
+
+The paper gives computable joint distributions with noncomputable conditionals. It supports the explicit boundary against a universal continuous disintegration procedure.
+
+## Release and artifact tooling
+
+### Cabal, Hackage, and PVP
+
+The Cabal contributors maintain the official [package-description reference](https://cabal.readthedocs.io/en/stable/cabal-package-description-file.html) and [shipping commands](https://cabal.readthedocs.io/en/stable/cabal-commands.html#sanity-checks-and-shipping). Hackage documents its [upload policy](https://hackage.haskell.org/upload). The Haskell community maintains the [Package Versioning Policy](https://pvp.haskell.org/).
+
+These sources define package metadata, source distributions, candidate and publication behavior, and version bounds. Hackage publication is irreversible for one package version and is not an atomic transaction across this repository's packages. Markovian's preparation work therefore has no publication authority.
+
+### SPDX and GitHub artifact attestations
+
+The Linux Foundation publishes the [SPDX 2.3 package-information specification](https://spdx.github.io/spdx-spec/v2.3/package-information/). GitHub documents [artifact attestations](https://docs.github.com/en/actions/concepts/security/artifact-attestations) and [secure use of GitHub Actions](https://docs.github.com/en/actions/security-for-github-actions/security-guides/security-hardening-for-github-actions).
+
+An SBOM describes its declared scope. An attestation binds an artifact digest to workflow identity. Neither establishes semantic correctness, safety, or release readiness.
+
+### SafeTensors format
+
+Hugging Face. [SafeTensors format](https://github.com/huggingface/safetensors/blob/6eb4dc9a28ebce297606e0f4836bbf28839cacef/README.md#format).
+
+D-073 pins this revision as the format source for the separate bounded metadata-free F64 parser and canonical encoder in `markovian-safetensors`. This does not claim support for metadata, other dtypes, arbitrary layouts, or general interoperability.
+
 ## How the references map to Markovian
 
 | Markovian topic | Primary starting points |
 | --- | --- |
 | Category basics and universal properties | Leinster, Riehl |
-| Measure spaces, kernels, and conditioning | Pollard, Kallenberg, Faden |
+| Measure spaces, kernels, and conditioning | Pollard, Kallenberg, Faden, Ackerman--Freer--Roy |
 | Kernel composition and exact monad laws | Giry, Moggi, Fritz |
 | Copy, discard, and deterministic morphisms | Fritz §§2–3 |
 | Bayesian inversion and almost-sure equality | Cho and Jacobs §§3–5, Fritz §§11 and 13 |
@@ -479,4 +579,10 @@ Goldberg gives a practical account of representation, rounding, guard digits, an
 | REINFORCE and actor-critic | Williams, Sutton and colleagues, Konda–Tsitsiklis |
 | Replay, DQN, Double DQN, and target updates | Lin, Mnih and colleagues, van Hasselt and colleagues, Lillicrap and colleagues |
 | Finite-logit softmax and cross entropy | Goodfellow–Bengio–Courville §6.2.2.3 |
-| Floating approximation boundaries | Higham Ch. 2, Goldberg |
+| Floating approximation boundaries | IEEE 754, Higham Ch. 2, Goldberg |
+| Host tensor roles and managed storage boundary | GHC User's Guide, IEEE 754, Higham Ch. 2 |
+| Bounded CUDA admission, ownership, and synchronization | NVIDIA CUDA Driver API 13.0, PTX ISA 9.0, GHC FFI |
+| Bounded quadrature and online Monte Carlo moments | QUADPACK, Welford |
+| Package metadata, source archives, and versioning | Cabal, Hackage, PVP |
+| SBOM and workflow provenance boundaries | SPDX 2.3, GitHub artifact attestations |
+| Bounded metadata-free F64 tensor serialization profile | Pinned SafeTensors format revision |

@@ -53,7 +53,7 @@ module Markovian.Compile.Exact (
 import Data.Foldable (foldl')
 import Data.List.NonEmpty (NonEmpty (..))
 import Data.List.NonEmpty qualified as NonEmpty
-import Markovian.MDP (ActionId)
+import Markovian.Action (ActionId)
 import Markovian.MDP.Exact (
     ExactDecision (..),
     ExactMDP,
@@ -67,13 +67,16 @@ import Markovian.MDP.Exact (
  )
 import Markovian.Policy.Exact (
     ExactPolicy,
-    ExactPolicyError,
+    ExactPolicyError (..),
     exactPolicyActions,
     validateExactPolicySupport,
  )
 import Markovian.Probability.Exact (
+    ExactBindError,
     ExactDistributionError,
     ExactFiniteDist,
+    bindExactFiniteDistChecked,
+    defaultExactBindLimits,
     exactFiniteDist,
     exactOutcomes,
     exactProbability,
@@ -104,6 +107,8 @@ data FiniteIndexError value
     deriving (Eq, Show)
 
 -- | A nonempty, duplicate-free finite state index.
+type role FiniteStateIndex nominal
+
 newtype FiniteStateIndex state = FiniteStateIndex (NonEmpty state)
     deriving (Eq, Show)
 
@@ -183,6 +188,7 @@ data ExactPolicyCompileError state action
     = ExactPolicyAtStateError !state !(ExactPolicyError action)
     | ExactPolicyUnindexedAction !state !(ActionId action)
     | ExactPolicyCompileInvariant !state !CompiledRuntimeError
+    | ExactPolicyCompileBindError !state !(ExactBindError CompiledRuntimeError)
     | ExactPolicyCompileDistributionError !ExactDistributionError
     deriving (Eq, Show)
 
@@ -194,6 +200,8 @@ data CompiledExactOutcome = CompiledExactOutcome
     deriving (Eq, Show)
 
 -- | One exhaustively validated policy-free state.
+type role CompiledExactState nominal
+
 data CompiledExactState state
     = CompiledTerminalState
         { compiledSourceState :: !state
@@ -218,6 +226,8 @@ foldCompiledExactState _ continuing (CompiledContinuingState source available tr
     continuing source available transitions
 
 -- | An exact MDP compiled over explicit finite supports, without a policy.
+type role CompiledExactMDP nominal nominal
+
 data CompiledExactMDP state action
     = CompiledExactMDP
         !StateIndex
@@ -287,6 +297,8 @@ compiledStateEntries compiled =
     NonEmpty.zip (StateIndex 0 :| fmap StateIndex [1 ..]) (compiledStates compiled)
 
 -- | A state after a compiled policy has been closed over the model.
+type role CompiledExactMRPState nominal
+
 data CompiledExactMRPState state
     = CompiledMRPTerminalState
         { compiledMRPSourceState :: !state
@@ -299,6 +311,8 @@ data CompiledExactMRPState state
     deriving (Eq, Show)
 
 -- | A compiled exact Markov reward process obtained by one policy closure.
+type role CompiledExactMRP nominal
+
 data CompiledExactMRP state
     = CompiledExactMRP
         !StateIndex
@@ -321,11 +335,18 @@ closeCompiledExactPolicy compiled selectedPolicy = do
             CompiledTerminalState source payoff -> Right (stateIndex, CompiledMRPTerminalState source payoff)
             CompiledContinuingState source available transitions -> do
                 availableIds <- traverse (decodeAction source) available
-                let selected = exactPolicyActions selectedPolicy source
+                selected <-
+                    mapLeft
+                        (ExactPolicyAtStateError source . ExactPolicyKernelError)
+                        (exactPolicyActions selectedPolicy source)
                 mapLeft (ExactPolicyAtStateError source) (validateExactPolicySupport availableIds selected)
                 selectedIndexes <- traverse (compileSelected source) (NonEmpty.toList (exactOutcomes selected))
-                branches <- fmap concat (traverse (selectedBranches source stateIndex transitions) selectedIndexes)
-                distribution <- mapLeft ExactPolicyCompileDistributionError (exactFiniteDist branches)
+                indexedSelection <-
+                    mapLeft ExactPolicyCompileDistributionError (exactFiniteDist selectedIndexes)
+                distribution <-
+                    case bindExactFiniteDistChecked defaultExactBindLimits indexedSelection (selectedTransition stateIndex transitions) of
+                        Left problem -> Left (ExactPolicyCompileBindError source problem)
+                        Right (admitted, _) -> Right admitted
                 Right (stateIndex, CompiledMRPContinuingState source distribution)
 
     decodeAction source index =
@@ -338,14 +359,10 @@ closeCompiledExactPolicy compiled selectedPolicy = do
             Nothing -> Left (ExactPolicyUnindexedAction source selectedAction)
             Just index -> Right (index, exactProbability mass)
 
-    selectedBranches source stateIndex transitions (selectedAction, actionMass) =
+    selectedTransition stateIndex transitions selectedAction =
         case lookup selectedAction transitions of
-            Nothing -> Left (ExactPolicyCompileInvariant source (MissingCompiledTransition stateIndex selectedAction))
-            Just transition ->
-                Right
-                    [ (outcome, actionMass * exactProbability transitionMass)
-                    | (outcome, transitionMass) <- NonEmpty.toList (exactOutcomes transition)
-                    ]
+            Nothing -> Left (MissingCompiledTransition stateIndex selectedAction)
+            Just transition -> Right transition
 
 -- | Read a closed process's initial-state index.
 compiledMRPInitialState :: CompiledExactMRP state -> StateIndex

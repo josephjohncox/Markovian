@@ -1,0 +1,89 @@
+cabal-version:      3.0
+name:               markovian-autodiff
+version:            0.1.0.0
+synopsis:           Bounded closed-language autodiff lowering for Markovian
+description:
+  A finite typed polynomial and tanh language with exact Rational and checked
+  Double interpreters, compiled into owned bounded reverse programs and opaque
+  reusable tapes. This package does not differentiate arbitrary Haskell.
+
+category:           Math
+homepage:           https://github.com/josephjohncox/Markovian
+bug-reports:        https://github.com/josephjohncox/Markovian/issues
+license:            BSD-3-Clause
+license-file:       LICENSE
+author:             Joseph Cox
+maintainer:         joseph@codensity.io
+copyright:          2024-2026 Joseph Cox
+build-type:         Simple
+stability:          Experimental
+tested-with:        GHC ==9.4.8 || ==9.8.4
+extra-doc-files:
+  CHANGELOG.md
+  README.md
+
+data-files:
+  test/golden/multilayer-neural-report.txt
+  test/golden/square-compile-report.txt
+
+extra-source-files:
+  scripts/check-autodiff-boundary
+  test/compile-fail/AutodiffEndpoints.hs
+  test/compile-fail/AutodiffHiddenModule.hs
+  test/compile-fail/AutodiffOpacity.hs
+  test/compile-fail/AutodiffOwnerCoercion.hs
+  test/compile-fail/AutodiffTypes.hs
+
+source-repository head
+  type:     git
+  location: https://github.com/josephjohncox/Markovian.git
+  subdir:   packages/markovian-autodiff
+
+library
+  exposed-modules:
+    Markovian.Autodiff
+    Markovian.Autodiff.Check
+    Markovian.Autodiff.Compile
+    Markovian.Autodiff.Language
+    Markovian.Autodiff.Shape
+
+  other-modules:
+    Markovian.Autodiff.Internal.Shape
+    Markovian.Autodiff.Internal.SSA
+    Markovian.Autodiff.Internal.Syntax
+
+  hs-source-dirs:   src
+  build-depends:
+    , base               >=4.17.2.1 && <4.20
+    , markovian-reverse  ^>=0.1.0.0
+
+  default-language: GHC2021
+  ghc-options:      -Wall
+
+test-suite markovian-autodiff-test
+  type:             exitcode-stdio-1.0
+  main-is:          Main.hs
+  other-modules:
+    NeuralDifferential
+    Paths_markovian_autodiff
+
+  autogen-modules:  Paths_markovian_autodiff
+  hs-source-dirs:   test
+  build-depends:
+    , base                >=4.17.2.1 && <4.20
+    , markovian-autodiff  ==0.1.0.0
+    , markovian-neural    ^>=0.1.0.0
+
+  default-language: GHC2021
+  ghc-options:      -Wall
+
+benchmark markovian-autodiff-bench
+  type:             exitcode-stdio-1.0
+  main-is:          Main.hs
+  hs-source-dirs:   bench
+  build-depends:
+    , base                >=4.17.2.1 && <4.20
+    , markovian-autodiff  ==0.1.0.0
+
+  default-language: GHC2021
+  ghc-options:      -Wall

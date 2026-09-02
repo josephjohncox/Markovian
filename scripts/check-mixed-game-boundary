@@ -1,0 +1,67 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+log_file="$(mktemp)"
+trap 'rm -f "${log_file}"' EXIT
+
+project_args=()
+if [[ -f cabal.project && -f cabal.project.ci ]]; then
+  project_args+=(--project-file=cabal.project.ci)
+fi
+
+if cabal exec "${project_args[@]}" -- ghc \
+  -fno-code \
+  -package Markovian \
+  test/compile-fail/MixedGameBoundary.hs >"${log_file}" 2>&1; then
+  echo "Opaque mixed-game constructors or nominal roles were accepted." >&2
+  exit 1
+fi
+
+for rejected_operation in \
+  badOwnedProductConstructor \
+  badOwnedProfileConstructor \
+  badSimplexConstructor \
+  badNormalGameConstructor \
+  badMixedProfileConstructor \
+  badCorrelationConstructor \
+  badOutcomeLawConstructor \
+  badStochasticGameConstructor \
+  badTypePriorConstructor \
+  badBehaviorConstructor \
+  badHarsanyiConstructor \
+  badContingentPlanConstructor \
+  badPlayerValuesOwnerCoerce \
+  badNormalOwnerCoerce \
+  badCorrelationOwnerCoerce \
+  badPriorOwnerCoerce \
+  badHarsanyiOwnerCoerce \
+  badContingentTypeCoerce \
+  badOwnerCoerce \
+  badActionCoerce \
+  badCorrelationAsIndependent \
+  badPriorAsStrategy \
+  OwnedProduct \
+  ExactSimplex \
+  ExactMixedProfile \
+  ExactCorrelationDevice \
+  ExactTypePrior \
+  ExactHarsanyiGame; do
+  if ! grep -F "${rejected_operation}" "${log_file}" >/dev/null; then
+    cat "${log_file}" >&2
+    echo "The expected ${rejected_operation} boundary error was absent." >&2
+    exit 1
+  fi
+done
+
+if grep -R -n -F "toAgentNormalForm" src docs/book/src docs/ARCHITECTURE.md docs/DECISIONS.md >/dev/null; then
+  echo "The superseded agent-normal name remains in the public source or documentation." >&2
+  exit 1
+fi
+
+if ! grep -F "Couldn't match" "${log_file}" >/dev/null; then
+  cat "${log_file}" >&2
+  echo "The fixture did not demonstrate strategic type separation." >&2
+  exit 1
+fi
+
+echo "PASS: mixed-game opacity, nominal roles, and semantic type separation"

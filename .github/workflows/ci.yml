@@ -50,22 +50,40 @@ jobs:
           ghc --version
           cabal --version
 
-      - name: Check package metadata
+      - name: Check package manifest and metadata
         run: |
           set -euo pipefail
-          for dir in . backends/markovian-gpu backends/markovian-neural backends/markovian-neural-bridge; do
-            (cd "${dir}" && cabal check)
-          done
+          bash scripts/check-package-manifest
+          bash scripts/check-release-metadata
+          bash scripts/check-release-policy
+          python3 scripts/test_release_tool.py
+          while IFS=$'\t' read -r package_name package_dir _dependency_tier; do
+            if [[ -z "${package_name}" || "${package_name}" == \#* ]]; then
+              continue
+            fi
+            (cd "${package_dir}" && cabal check)
+          done < ci/packages.tsv
 
-      - name: Build without compiler warnings
+      - name: Build without compiler warnings or unused public dependencies
         run: |
           cabal build all --project-file=cabal.project.ci
+          cabal build all --project-file=cabal.project.ci --ghc-options=-Wunused-packages
           cabal build \
             inventory-control-bench \
             clark-scarf-1960-bench \
             dogru-inventory-bench \
             fixed-batch-rnq-bench \
+            feedback-exact-bench \
+            mixed-games-exact-bench \
+            markovian-continuous-bench \
+            markovian-continuous-numerical-bench \
+            markovian-autodiff-bench \
+            markovian-tensor-bench \
+            markovian-gpu-bench \
             --project-file=cabal.project.ci
+
+      - name: Enforce base-only exact root topology
+        run: bash scripts/check-root-topology
 
       - name: Reject refinement coercions
         run: scripts/check-refinement-roles
@@ -73,8 +91,10 @@ jobs:
       - name: Enforce circuit purity
         run: scripts/check-circuit-purity
 
-      - name: Enforce reverse-program type and opacity boundary
-        run: bash backends/markovian-neural/scripts/check-reverse-program-boundary
+      - name: Enforce pure and effect reverse-program boundaries
+        run: |
+          bash packages/markovian-reverse/scripts/check-reverse-boundary
+          bash backends/markovian-neural/scripts/check-reverse-program-boundary
 
       - name: Enforce exact-support nominal-role boundary
         run: bash backends/markovian-neural-bridge/scripts/check-exact-support-boundary
@@ -88,6 +108,31 @@ jobs:
       - name: Enforce finite-game opacity and endpoint roles
         run: scripts/check-game-core-boundary
 
+      - name: Enforce exact mixed-game opacity and semantic boundaries
+        run: bash scripts/check-mixed-game-boundary
+
+      - name: Enforce checked-feedback witness and endpoint boundaries
+        run: bash scripts/check-feedback-boundary
+
+      - name: Enforce restricted continuous package boundaries
+        run: |
+          bash packages/markovian-continuous/scripts/check-continuous-boundary
+          bash packages/markovian-continuous-numerical/scripts/check-continuous-numerical-boundary
+
+      - name: Enforce closed autodiff language boundaries
+        run: bash packages/markovian-autodiff/scripts/check-autodiff-boundary
+
+      - name: Enforce tensor storage, ownership, and region boundaries
+        run: |
+          bash packages/markovian-tensor/scripts/check-tensor-boundary
+          bash packages/markovian-tensor-reverse/scripts/check-tensor-reverse-boundary
+
+      - name: Enforce SafeTensors opacity, dtype, and region boundaries
+        run: bash packages/markovian-safetensors/scripts/check-safetensors-boundary
+
+      - name: Enforce device plan, executor, and endpoint boundaries
+        run: bash backends/markovian-gpu/scripts/check-device-boundary
+
       - name: Run tests
         run: |
           cabal test all \
@@ -100,18 +145,44 @@ jobs:
           cabal bench clark-scarf-1960-bench --project-file=cabal.project.ci
           cabal bench dogru-inventory-bench --project-file=cabal.project.ci
           cabal bench fixed-batch-rnq-bench --project-file=cabal.project.ci
+          cabal bench feedback-exact-bench --project-file=cabal.project.ci
+          cabal bench mixed-games-exact-bench --project-file=cabal.project.ci
+          cabal bench markovian-continuous-bench --project-file=cabal.project.ci
+          cabal bench markovian-continuous-numerical-bench --project-file=cabal.project.ci
+          cabal bench markovian-autodiff-bench --project-file=cabal.project.ci
+          cabal bench markovian-tensor-bench --project-file=cabal.project.ci
+          cabal bench markovian-gpu-bench --project-file=cabal.project.ci
 
       - name: Build warning-free Haddocks
         run: |
           set -euo pipefail
-          cabal haddock all \
+          documentation_packages=()
+          while IFS=$'\t' read -r package_name _package_dir _dependency_tier; do
+            if [[ -n "${package_name}" && "${package_name}" != \#* ]]; then
+              documentation_packages+=("${package_name}")
+            fi
+          done < ci/packages.tsv
+          cabal --store-dir="${RUNNER_TEMP}/markovian-doc-store" install \
+            --lib "${documentation_packages[@]}" \
             --project-file=cabal.project.ci \
-            --haddock-all \
-            --haddock-hyperlink-source 2>&1 | tee haddock.log
-          if grep -nE '(^|[[:space:]])Warning:' haddock.log; then
-            echo "Haddock emitted warnings." >&2
+            --builddir="${RUNNER_TEMP}/markovian-doc-build" \
+            --package-env="${RUNNER_TEMP}/markovian-doc-environment" \
+            --enable-documentation \
+            --overwrite-policy=always 2>&1 | tee haddock-install.log
+          if grep -niE '(^|[[:space:]])warning:' haddock-install.log; then
+            echo "Haddock installation emitted warnings." >&2
             exit 1
           fi
+          python3 scripts/release_tool.py check-haddock-interfaces \
+            "${RUNNER_TEMP}/markovian-doc-store"
+          # Run serially so each local dependency interface exists before a
+          # dependent package is documented. This log is also warning-free.
+          cabal haddock all -j1 \
+            --project-file=cabal.project.ci \
+            --haddock-hyperlink-source \
+            --haddock-for-hackage \
+            --haddock-options=--no-warnings > haddock-coverage.log 2>&1
+          python3 scripts/check-haddock-coverage haddock-coverage.log
 
       - name: Build and test the source distribution
         run: |
@@ -122,15 +193,40 @@ jobs:
           tarball_count="$(
             find sdist -maxdepth 1 -type f -name '*.tar.gz' | wc -l
           )"
-          test "${tarball_count}" -eq 4
-          for tarball in sdist/*.tar.gz; do
-            package_name="$(basename "${tarball}" .tar.gz)"
-            package_root="sdist-unpacked/${package_name}"
-            mkdir -p "${package_root}"
-            tar -xzf "${tarball}" -C "${package_root}" --strip-components=1
-          done
+          expected_tarball_count="$(
+            awk -F '\t' '$1 !~ /^#/ && NF == 3 { count += 1 } END { print count + 0 }' ci/packages.tsv
+          )"
+          test "${tarball_count}" -eq "${expected_tarball_count}"
+          while IFS=$'\t' read -r package_name _package_dir version _dependency_tier; do
+            if [[ -z "${package_name}" || "${package_name}" == \#* ]]; then
+              continue
+            fi
+            python3 scripts/release_tool.py validate-archive \
+              "sdist/${package_name}-${version}.tar.gz" \
+              --name "${package_name}" \
+              --version "${version}" \
+              --extract sdist-unpacked
+          done < release/packages.tsv
+          python3 scripts/release_tool.py archive-project \
+            --output sdist-unpacked/cabal.project
+          mapfile -t archive_test_targets < <(
+            python3 scripts/release_tool.py component-targets --kind test
+          )
+          mapfile -t archive_benchmark_targets < <(
+            python3 scripts/release_tool.py component-targets --kind benchmark
+          )
+          (
+            cd sdist-unpacked
+            cabal build all
+            python3 "${GITHUB_WORKSPACE}/scripts/release_tool.py" check-plan \
+              dist-newstyle/cache/plan.json \
+              --manifest "${GITHUB_WORKSPACE}/release/packages.tsv" \
+              --components "${GITHUB_WORKSPACE}/release/components.tsv"
+            cabal test "${archive_test_targets[@]}" --test-show-details=direct
+            cabal bench "${archive_benchmark_targets[@]}"
+          )
           for package_root in sdist-unpacked/*; do
-            if grep -q '^name: *markovian-neural-bridge' "${package_root}"/*.cabal; then
+            if grep -qE '^name: *(markovian-neural-bridge|markovian-neural|markovian-continuous-numerical|markovian-autodiff|markovian-gpu|markovian-safetensors|markovian-tensor-reverse|markovian-numerical|markovian-sampling|markovian-learning|markovian-dense-exact|markovian-exact-benchmarks)$' "${package_root}"/*.cabal; then
               continue
             fi
             (
@@ -145,29 +241,36 @@ jobs:
                 bash scripts/check-acyclic-proof-boundary
                 bash scripts/check-acyclic-purity
                 bash scripts/check-game-core-boundary
-                cabal build \
-                  inventory-control-bench \
-                  clark-scarf-1960-bench \
-                  dogru-inventory-bench \
-                  fixed-batch-rnq-bench
-                cabal bench inventory-control-bench
-                cabal bench clark-scarf-1960-bench
-                cabal bench dogru-inventory-bench
-                cabal bench fixed-batch-rnq-bench
+                bash scripts/check-mixed-game-boundary
+                bash scripts/check-feedback-boundary
+                bash scripts/check-root-topology
+              fi
+              if grep -q '^name: *markovian-reverse$' markovian-reverse.cabal 2>/dev/null; then
+                bash scripts/check-reverse-boundary
               fi
               if grep -q '^name: *markovian-neural$' markovian-neural.cabal 2>/dev/null; then
                 bash scripts/check-reverse-program-boundary
+              fi
+              if grep -q '^name: *markovian-continuous$' markovian-continuous.cabal 2>/dev/null; then
+                bash scripts/check-continuous-boundary
+                cabal bench markovian-continuous-bench
+              fi
+              if grep -q '^name: *markovian-tensor$' markovian-tensor.cabal 2>/dev/null; then
+                bash scripts/check-tensor-boundary
+                cabal bench markovian-tensor-bench
               fi
             )
           done
           bridge_root="$(find sdist-unpacked -mindepth 1 -maxdepth 1 -type d -name 'markovian-neural-bridge-*')"
           root_package="$(find sdist-unpacked -mindepth 1 -maxdepth 1 -type d -name 'Markovian-*')"
           neural_package="$(find sdist-unpacked -mindepth 1 -maxdepth 1 -type d -name 'markovian-neural-*' ! -name 'markovian-neural-bridge-*')"
+          reverse_package="$(find sdist-unpacked -mindepth 1 -maxdepth 1 -type d -name 'markovian-reverse-*')"
           cat > "${bridge_root}/cabal.project" <<EOF
           packages:
             .
             ../$(basename "${root_package}")
             ../$(basename "${neural_package}")
+            ../$(basename "${reverse_package}")
           EOF
           (
             cd "${bridge_root}"
@@ -176,6 +279,109 @@ jobs:
             cabal test all --test-show-details=direct
             bash scripts/check-exact-support-boundary
           )
+          autodiff_root="$(find sdist-unpacked -mindepth 1 -maxdepth 1 -type d -name 'markovian-autodiff-*')"
+          cat > "${autodiff_root}/cabal.project" <<EOF
+          packages:
+            .
+            ../$(basename "${neural_package}")
+            ../$(basename "${reverse_package}")
+          EOF
+          (
+            cd "${autodiff_root}"
+            cabal check
+            cabal build all
+            cabal test all --test-show-details=direct
+            bash scripts/check-autodiff-boundary
+            cabal bench markovian-autodiff-bench
+          )
+          gpu_root="$(find sdist-unpacked -mindepth 1 -maxdepth 1 -type d -name 'markovian-gpu-*')"
+          tensor_root="$(find sdist-unpacked -mindepth 1 -maxdepth 1 -type d -name 'markovian-tensor-*' ! -name 'markovian-tensor-reverse-*')"
+          tensor_reverse_root="$(find sdist-unpacked -mindepth 1 -maxdepth 1 -type d -name 'markovian-tensor-reverse-*')"
+          cat > "${gpu_root}/cabal.project" <<EOF
+          packages:
+            .
+            ../$(basename "${tensor_root}")
+            ../$(basename "${tensor_reverse_root}")
+            ../$(basename "${reverse_package}")
+          EOF
+          (
+            cd "${gpu_root}"
+            cabal check
+            cabal build all
+            cabal test all --test-show-details=direct
+            bash scripts/check-device-boundary
+            cabal bench markovian-gpu-bench
+          )
+          safetensors_root="$(find sdist-unpacked -mindepth 1 -maxdepth 1 -type d -name 'markovian-safetensors-*')"
+          cat > "${safetensors_root}/cabal.project" <<EOF
+          packages:
+            .
+            ../$(basename "${tensor_root}")
+          EOF
+          (
+            cd "${safetensors_root}"
+            cabal check
+            cabal build all
+            cabal test all --test-show-details=direct
+            bash scripts/check-safetensors-boundary
+          )
+          numerical_root="$(find sdist-unpacked -mindepth 1 -maxdepth 1 -type d -name 'markovian-continuous-numerical-*')"
+          continuous_root="$(find sdist-unpacked -mindepth 1 -maxdepth 1 -type d -name 'markovian-continuous-*' ! -name 'markovian-continuous-numerical-*')"
+          cat > "${numerical_root}/cabal.project" <<EOF
+          packages:
+            .
+            ../$(basename "${continuous_root}")
+          EOF
+          (
+            cd "${numerical_root}"
+            cabal check
+            cabal build all
+            cabal test all --test-show-details=direct
+            bash scripts/check-continuous-numerical-boundary
+            cabal bench markovian-continuous-numerical-bench
+          )
+          for package_name in \
+            markovian-tensor-reverse \
+            markovian-neural \
+            markovian-numerical \
+            markovian-sampling \
+            markovian-learning \
+            markovian-dense-exact \
+            markovian-exact-benchmarks; do
+            version="$(awk -F '\t' -v name="${package_name}" '$1 == name { print $3 }' release/packages.tsv)"
+            package_root="sdist-unpacked/${package_name}-${version}"
+            python3 scripts/release_tool.py archive-consumer-project \
+              --archive-root sdist-unpacked \
+              --package "${package_name}" \
+              --output "${package_root}/cabal.project"
+            mapfile -t package_test_targets < <(
+              python3 scripts/release_tool.py component-targets \
+                --kind test --package "${package_name}"
+            )
+            mapfile -t package_benchmark_targets < <(
+              python3 scripts/release_tool.py component-targets \
+                --kind benchmark --package "${package_name}"
+            )
+            (
+              cd "${package_root}"
+              cabal build all --project-file=cabal.project
+              cabal test "${package_test_targets[@]}" \
+                --project-file=cabal.project --test-show-details=direct
+              if (( ${#package_benchmark_targets[@]} > 0 )); then
+                cabal bench "${package_benchmark_targets[@]}" \
+                  --project-file=cabal.project
+              fi
+              if [[ -d scripts ]]; then
+                while IFS= read -r boundary; do
+                  case "$(basename "${boundary}")" in
+                    check-*boundary|check-*-purity|check-refinement-roles)
+                      bash "${boundary}"
+                      ;;
+                  esac
+                done < <(find scripts -maxdepth 1 -type f -print | sort)
+              fi
+            )
+          done
 
   lower-bounds:
     name: Lower bounds
@@ -265,6 +471,12 @@ jobs:
             --installdir="${HOME}/.local/bin" \
             --overwrite-policy=always
           cabal install \
+            "ShellCheck-${MARKOVIAN_SHELLCHECK_VERSION}" \
+            --ignore-project \
+            --install-method=copy \
+            --installdir="${HOME}/.local/bin" \
+            --overwrite-policy=always
+          cabal install \
             "cabal-fmt-${MARKOVIAN_CABAL_FMT_VERSION}" \
             --ignore-project \
             --install-method=copy \
@@ -291,35 +503,76 @@ jobs:
             "${MARKOVIAN_CABAL_FMT_VERSION}"
           hlint --version | head -1 \
             | grep -F "HLint v${MARKOVIAN_HLINT_VERSION}"
+          shellcheck --version \
+            | grep -F "version: ${MARKOVIAN_SHELLCHECK_VERSION}"
           test "$(mdbook --version)" = \
             "mdbook v${MARKOVIAN_MDBOOK_VERSION}"
-          hlint src bench backends/*/src test backends/*/test
+          hlint app src test backends/*/src backends/*/test backends/*/bench packages/*/src packages/*/test packages/*/bench
+          mapfile -d '' repository_files < <(find scripts backends packages -type f -print0)
+          shell_files=()
+          for source_file in "${repository_files[@]}"; do
+            IFS= read -r first_line < "${source_file}" || true
+            case "${first_line}" in
+              '#!'*bash*|'#!'*sh) shell_files+=("${source_file}") ;;
+            esac
+          done
+          shellcheck --severity=warning "${shell_files[@]}"
           bash -n \
             scripts/bootstrap-tools \
             scripts/check-book \
+            scripts/check-package-manifest \
             scripts/install-doc-tools \
             scripts/check-refinement-roles \
+            scripts/check-root-topology \
             scripts/check-circuit-purity \
             scripts/check-acyclic-proof-boundary \
             scripts/check-acyclic-purity \
             scripts/check-game-core-boundary \
+            scripts/check-mixed-game-boundary \
+            scripts/check-feedback-boundary \
+            scripts/check-release-archive \
+            scripts/check-release-metadata \
+            scripts/check-release-policy \
+            scripts/generate-release-sbom \
+            scripts/prepare-release \
+            packages/markovian-reverse/scripts/check-reverse-boundary \
             backends/markovian-gpu/scripts/build-ptx \
             backends/markovian-neural/scripts/check-reverse-program-boundary \
-            backends/markovian-neural-bridge/scripts/check-exact-support-boundary
+            backends/markovian-neural-bridge/scripts/check-exact-support-boundary \
+            packages/markovian-continuous/scripts/check-continuous-boundary \
+            packages/markovian-continuous-numerical/scripts/check-continuous-numerical-boundary \
+            packages/markovian-autodiff/scripts/check-autodiff-boundary \
+            packages/markovian-tensor/scripts/check-tensor-boundary \
+            packages/markovian-tensor-reverse/scripts/check-tensor-reverse-boundary \
+            packages/markovian-safetensors/scripts/check-safetensors-boundary \
+            backends/markovian-gpu/scripts/check-device-boundary
           # Fourmolu 0.20 cannot parse LaTeX-style literate Haskell. GHC and
           # HLint still check these three production and test sources.
           literate_source_count="$(
-            find src app bench test backends -type f -name '*.lhs' | wc -l
+            find src app test backends packages -type f -name '*.lhs' | wc -l
           )"
           test "${literate_source_count}" -eq 3
-          find src app bench test backends -type f -name '*.hs' -print0 \
+          find src app test backends packages -type f -name '*.hs' -print0 \
             | sort -z \
             | xargs -0 fourmolu --mode check
+          python3 -m py_compile scripts/check-book-links scripts/check-haddock-coverage scripts/release_tool.py scripts/test_release_tool.py
           cabal-fmt --check \
             Markovian.cabal \
             backends/markovian-gpu/markovian-gpu.cabal \
             backends/markovian-neural/markovian-neural.cabal \
-            backends/markovian-neural-bridge/markovian-neural-bridge.cabal
+            backends/markovian-neural-bridge/markovian-neural-bridge.cabal \
+            packages/markovian-continuous/markovian-continuous.cabal \
+            packages/markovian-continuous-numerical/markovian-continuous-numerical.cabal \
+            packages/markovian-dense-exact/markovian-dense-exact.cabal \
+            packages/markovian-exact-benchmarks/markovian-exact-benchmarks.cabal \
+            packages/markovian-learning/markovian-learning.cabal \
+            packages/markovian-numerical/markovian-numerical.cabal \
+            packages/markovian-reverse/markovian-reverse.cabal \
+            packages/markovian-sampling/markovian-sampling.cabal \
+            packages/markovian-autodiff/markovian-autodiff.cabal \
+            packages/markovian-tensor/markovian-tensor.cabal \
+            packages/markovian-tensor-reverse/markovian-tensor-reverse.cabal \
+            packages/markovian-safetensors/markovian-safetensors.cabal
 
       - name: Build documentation book
         run: scripts/check-book

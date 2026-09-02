@@ -33,6 +33,7 @@ module Markovian.Interpreter.Control.Exact (
 import Data.List (findIndex)
 import Data.List.NonEmpty (NonEmpty (..))
 import Data.List.NonEmpty qualified as NonEmpty
+import Markovian.Action (ActionId)
 import Markovian.Compile.Exact (
     ActionIndex,
     CompiledExactMDP,
@@ -52,7 +53,6 @@ import Markovian.Interpreter.Bellman.Exact (
     ExactBellmanTolerance,
     exactBellmanToleranceValue,
  )
-import Markovian.MDP (ActionId)
 import Markovian.Objective.Exact (
     ExactContractionDiscount,
     exactContractionDiscountValue,
@@ -64,8 +64,11 @@ import Numeric.Natural (Natural)
 -- | Validated parameters for bounded exact value iteration.
 data ExactValueIterationConfig = ExactValueIterationConfig
     { exactValueIterationDiscount :: !ExactContractionDiscount
+    -- ^ Contraction discount for each transition layer.
     , exactValueIterationTolerance :: !ExactBellmanTolerance
+    -- ^ Required upper bound on the value error.
     , exactValueIterationMaximumIterations :: !Horizon
+    -- ^ Maximum number of value-iteration backups.
     }
     deriving (Eq, Show)
 
@@ -268,7 +271,9 @@ solveCompiledExactControl config compiled = iterateValues 0 initialValues
 -- | Validated parameters for exact deterministic policy iteration.
 data ExactPolicyIterationConfig = ExactPolicyIterationConfig
     { exactPolicyIterationDiscount :: !ExactContractionDiscount
+    -- ^ Contraction discount for each transition layer.
     , exactPolicyIterationMaximumIterations :: !Horizon
+    -- ^ Maximum number of policy-improvement steps.
     }
     deriving (Eq, Show)
 

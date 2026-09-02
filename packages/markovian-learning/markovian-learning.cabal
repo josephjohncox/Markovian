@@ -1,0 +1,68 @@
+cabal-version:   3.4
+name:            markovian-learning
+version:         0.1.0.0
+synopsis:        Bounded tabular learning for Markovian
+description:
+  Pure tabular updates and explicitly seeded bounded episodic runners. This
+  package does not claim convergence or equilibrium semantics.
+
+category:        Math
+homepage:        https://github.com/josephjohncox/Markovian
+bug-reports:     https://github.com/josephjohncox/Markovian/issues
+license:         BSD-3-Clause
+license-file:    LICENSE
+author:          Joseph Cox
+maintainer:      joseph@codensity.io
+copyright:       2024-2026 Joseph Cox
+build-type:      Simple
+stability:       Experimental
+tested-with:     GHC ==9.4.8 || ==9.8.4
+extra-doc-files:
+  CHANGELOG.md
+  README.md
+
+source-repository head
+  type:     git
+  location: https://github.com/josephjohncox/Markovian.git
+  subdir:   packages/markovian-learning
+
+common warnings
+  ghc-options: -Wall
+
+library
+  import:           warnings
+  exposed-modules:
+    Markovian.Learning.EpsilonGreedy
+    Markovian.Learning.ExpectedSarsa
+    Markovian.Learning.ExpectedSarsa.Episodic
+    Markovian.Learning.QLearning
+    Markovian.Learning.QLearning.Episodic
+    Markovian.Learning.Sarsa
+    Markovian.Learning.Sarsa.Episodic
+    Markovian.Learning.Tabular
+    Markovian.Learning.TD0
+    Markovian.Learning.TD0.Episodic
+
+  hs-source-dirs:   src
+  build-depends:
+    , base                 >=4.17.2.1 && <4.20
+    , Markovian            ^>=0.1.0.0
+    , markovian-numerical  ^>=0.1.0.0
+    , markovian-sampling   ^>=0.1.0.0
+
+  default-language: GHC2021
+
+test-suite markovian-learning-test
+  import:           warnings
+  type:             exitcode-stdio-1.0
+  main-is:          Main.hs
+  other-modules:    TabularLearning
+  hs-source-dirs:   test
+  build-depends:
+    , base                 >=4.17.2.1 && <4.20
+    , Markovian            ^>=0.1.0.0
+    , markovian-learning   ==0.1.0.0
+    , markovian-numerical  ^>=0.1.0.0
+    , markovian-sampling   ^>=0.1.0.0
+
+  default-language: GHC2021

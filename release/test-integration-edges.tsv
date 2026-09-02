@@ -1,0 +1,7 @@
+# package-name	test-component	dependency-package
+markovian-continuous-numerical	markovian-continuous-numerical-test	markovian-continuous
+markovian-autodiff	markovian-autodiff-test	markovian-neural
+markovian-dense-exact	markovian-dense-exact-test	markovian-numerical
+markovian-neural	markovian-neural-integration-test	Markovian
+markovian-neural	markovian-neural-integration-test	markovian-numerical
+markovian-neural	markovian-neural-integration-test	markovian-learning

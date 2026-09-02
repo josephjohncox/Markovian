@@ -1,12 +1,12 @@
 module ExactSupportRoles where
 
 import Data.Coerce (coerce)
+import Markovian.Action (ActionId)
 import Markovian.Backend.Neural.Bridge.ExactSupportMask (
     ActionOutputLayout,
     ExactSupportMask,
  )
 import Markovian.Compile.Exact (FiniteActionIndex)
-import Markovian.MDP (ActionId)
 
 newtype LeftAction = LeftAction Int
 newtype RightAction = RightAction Int

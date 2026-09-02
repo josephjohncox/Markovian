@@ -1,0 +1,37 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+package_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "${package_dir}"
+
+check_failure() {
+  local fixture="$1"
+  shift
+  local log_file
+  log_file="$(mktemp)"
+  if cabal exec -- ghc -hide-all-packages -fno-code -fmax-errors=100 \
+      -package base -package bytestring -package markovian-tensor \
+      -package markovian-safetensors "${fixture}" >"${log_file}" 2>&1; then
+    rm -f "${log_file}"
+    echo "SafeTensors boundary fixture unexpectedly compiled: ${fixture}" >&2
+    exit 1
+  fi
+  for expected in "$@"; do
+    if ! grep -F "${expected}" "${log_file}" >/dev/null; then
+      cat "${log_file}" >&2
+      rm -f "${log_file}"
+      echo "Expected SafeTensors rejection was absent: ${expected}" >&2
+      exit 1
+    fi
+  done
+  rm -f "${log_file}"
+}
+
+check_failure test/compile-fail/SafeTensorOpacity.hs \
+  badLimits badName badFile badSomeTensor 'Illegal term-level use'
+
+check_failure test/compile-fail/SafeTensorRegionEscape.hs \
+  badFileEscape badTensorRegionCoercion badFileRegionCoercion badNameOwner \
+  "Couldn't match type"
+
+echo "PASS: SafeTensors limits, names, files, tensors, constructors, and regions remain protected"

@@ -1,0 +1,59 @@
+cabal-version:      3.4
+name:               markovian-tensor-reverse
+version:            0.1.0.0
+synopsis:           Region-bound tensor adapter for bounded reverse programs
+description:
+  Closed host F64 tensor symbols interpreted through markovian-reverse's
+  effect-capable bounded runtime. This package does not lower arbitrary
+  callbacks, tensor programs, or device kernels.
+
+category:           Math
+homepage:           https://github.com/josephjohncox/Markovian
+bug-reports:        https://github.com/josephjohncox/Markovian/issues
+license:            BSD-3-Clause
+license-file:       LICENSE
+author:             Joseph Cox
+maintainer:         joseph@codensity.io
+copyright:          2024-2026 Joseph Cox
+build-type:         Simple
+stability:          Experimental
+tested-with:        GHC ==9.4.8 || ==9.8.4
+extra-doc-files:
+  CHANGELOG.md
+  README.md
+
+extra-source-files:
+  scripts/check-tensor-reverse-boundary
+  test/compile-fail/TensorReverseRegionEscape.hs
+
+source-repository head
+  type:     git
+  location: https://github.com/josephjohncox/Markovian.git
+  subdir:   packages/markovian-tensor-reverse
+
+common warnings
+  ghc-options: -Wall
+
+library
+  import:           warnings
+  exposed-modules:  Markovian.Tensor.Reverse.Program
+  hs-source-dirs:   src
+  build-depends:
+    , base               >=4.17.2.1 && <4.20
+    , markovian-reverse  ^>=0.1.0.0
+    , markovian-tensor   ^>=0.1.0.0
+
+  default-language: GHC2021
+
+test-suite markovian-tensor-reverse-test
+  import:           warnings
+  type:             exitcode-stdio-1.0
+  main-is:          Main.hs
+  hs-source-dirs:   test
+  build-depends:
+    , base                      >=4.17.2.1 && <4.20
+    , markovian-reverse         ^>=0.1.0.0
+    , markovian-tensor          ^>=0.1.0.0
+    , markovian-tensor-reverse  ==0.1.0.0
+
+  default-language: GHC2021

@@ -1,0 +1,18 @@
+autodiff-compile-report
+semantics: exact-rational-formal-polynomial
+tape-policy: StorePullbacks
+forward-scalar-work: 11
+reverse-scalar-work: 13
+double-comparison-policy: abs<=2.0e-10 or rel<=2.0e-8
+target: markovian-reverse-owned-program
+reverse-program-report
+nodes: 5
+primitives: 1
+maximum-depth: 3
+identity/composition/tensor/input-share/parameter-share: 2/1/0/1/0
+primitive-tapes stored/recomputed: 1/0
+owners: []
+ownership-tree: ((unit * unit) * unit)
+maximum-primal-extent: 2
+maximum-cotangent-extent: 2
+primitive-uses: ["multiply-scalar@1:StoreCapturedPullback:1"]

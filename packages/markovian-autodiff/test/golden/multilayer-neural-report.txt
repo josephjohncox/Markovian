@@ -1,0 +1,49 @@
+multilayer-neural-differential-report
+topology: 2 -> 2 tanh -> 2
+output-basis-seeds: 2
+primal-coordinates-per-seed: 2
+input-vjp-coordinates-per-seed: 2
+parameter-vjp-coordinates-per-seed: 12
+parameter-layout: explicit-owner-tree-to-neural-row-major-permutation
+finite-difference-step: 1.0e-6 * max 1 abs(coordinate)
+absolute-tolerance: 2.0e-10
+relative-tolerance: 2.0e-8
+oracle: markovian-neural manual dense runtime and independent central differences
+stored
+autodiff-compile-report
+semantics: checked-double-smooth
+tape-policy: StorePullbacks
+forward-scalar-work: 229
+reverse-scalar-work: 289
+double-comparison-policy: abs<=2.0e-10 or rel<=2.0e-8
+target: markovian-reverse-owned-program
+reverse-program-report
+nodes: 75
+primitives: 38
+maximum-depth: 10
+identity/composition/tensor/input-share/parameter-share: 0/18/1/18/0
+primitive-tapes stored/recomputed: 38/0
+owners: ["hidden-0-weight-0","hidden-0-weight-1","hidden-0-bias","hidden-1-weight-0","hidden-1-weight-1","hidden-1-bias","output-0-weight-0","output-0-weight-1","output-0-bias","output-1-weight-0","output-1-weight-1","output-1-bias"]
+ownership-tree: (((((((((hidden-0-weight-0:scalar[1] * unit) * unit) * ((hidden-0-weight-1:scalar[1] * unit) * unit)) * unit) * hidden-0-bias:scalar[1]) * unit) * ((((((hidden-1-weight-0:scalar[1] * unit) * unit) * ((hidden-1-weight-1:scalar[1] * unit) * unit)) * unit) * hidden-1-bias:scalar[1]) * unit)) * (unit * unit)) * (((((((output-0-weight-0:scalar[1] * unit) * unit) * ((output-0-weight-1:scalar[1] * unit) * unit)) * unit) * output-0-bias:scalar[1]) * unit) * ((((((output-1-weight-0:scalar[1] * unit) * unit) * ((output-1-weight-1:scalar[1] * unit) * unit)) * unit) * output-1-bias:scalar[1]) * unit)))
+maximum-primal-extent: 12
+maximum-cotangent-extent: 12
+primitive-uses: ["parameter/hidden-0-weight-0@1:StoreCapturedPullback:1","first@1:StoreCapturedPullback:4","multiply-scalar@1:StoreCapturedPullback:8","parameter/hidden-0-weight-1@1:StoreCapturedPullback:1","second@1:StoreCapturedPullback:4","add-scalar@1:StoreCapturedPullback:8","parameter/hidden-0-bias@1:StoreCapturedPullback:1","parameter/hidden-1-weight-0@1:StoreCapturedPullback:1","parameter/hidden-1-weight-1@1:StoreCapturedPullback:1","parameter/hidden-1-bias@1:StoreCapturedPullback:1","tanh-scalar@1:StoreCapturedPullback:2","parameter/output-0-weight-0@1:StoreCapturedPullback:1","parameter/output-0-weight-1@1:StoreCapturedPullback:1","parameter/output-0-bias@1:StoreCapturedPullback:1","parameter/output-1-weight-0@1:StoreCapturedPullback:1","parameter/output-1-weight-1@1:StoreCapturedPullback:1","parameter/output-1-bias@1:StoreCapturedPullback:1"]
+recomputed
+autodiff-compile-report
+semantics: checked-double-smooth
+tape-policy: RecomputePullbacks
+forward-scalar-work: 229
+reverse-scalar-work: 289
+double-comparison-policy: abs<=2.0e-10 or rel<=2.0e-8
+target: markovian-reverse-owned-program
+reverse-program-report
+nodes: 75
+primitives: 38
+maximum-depth: 10
+identity/composition/tensor/input-share/parameter-share: 0/18/1/18/0
+primitive-tapes stored/recomputed: 0/38
+owners: ["hidden-0-weight-0","hidden-0-weight-1","hidden-0-bias","hidden-1-weight-0","hidden-1-weight-1","hidden-1-bias","output-0-weight-0","output-0-weight-1","output-0-bias","output-1-weight-0","output-1-weight-1","output-1-bias"]
+ownership-tree: (((((((((hidden-0-weight-0:scalar[1] * unit) * unit) * ((hidden-0-weight-1:scalar[1] * unit) * unit)) * unit) * hidden-0-bias:scalar[1]) * unit) * ((((((hidden-1-weight-0:scalar[1] * unit) * unit) * ((hidden-1-weight-1:scalar[1] * unit) * unit)) * unit) * hidden-1-bias:scalar[1]) * unit)) * (unit * unit)) * (((((((output-0-weight-0:scalar[1] * unit) * unit) * ((output-0-weight-1:scalar[1] * unit) * unit)) * unit) * output-0-bias:scalar[1]) * unit) * ((((((output-1-weight-0:scalar[1] * unit) * unit) * ((output-1-weight-1:scalar[1] * unit) * unit)) * unit) * output-1-bias:scalar[1]) * unit)))
+maximum-primal-extent: 12
+maximum-cotangent-extent: 12
+primitive-uses: ["parameter/hidden-0-weight-0@1:RecomputePrimitive:1","first@1:RecomputePrimitive:4","multiply-scalar@1:RecomputePrimitive:8","parameter/hidden-0-weight-1@1:RecomputePrimitive:1","second@1:RecomputePrimitive:4","add-scalar@1:RecomputePrimitive:8","parameter/hidden-0-bias@1:RecomputePrimitive:1","parameter/hidden-1-weight-0@1:RecomputePrimitive:1","parameter/hidden-1-weight-1@1:RecomputePrimitive:1","parameter/hidden-1-bias@1:RecomputePrimitive:1","tanh-scalar@1:RecomputePrimitive:2","parameter/output-0-weight-0@1:RecomputePrimitive:1","parameter/output-0-weight-1@1:RecomputePrimitive:1","parameter/output-0-bias@1:RecomputePrimitive:1","parameter/output-1-weight-0@1:RecomputePrimitive:1","parameter/output-1-weight-1@1:RecomputePrimitive:1","parameter/output-1-bias@1:RecomputePrimitive:1"]

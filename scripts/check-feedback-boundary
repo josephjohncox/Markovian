@@ -1,0 +1,47 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+log_file="$(mktemp)"
+trap 'rm -f "${log_file}"' EXIT
+
+project_args=()
+if [[ -f cabal.project && -f cabal.project.ci ]]; then
+  project_args+=(--project-file=cabal.project.ci)
+fi
+
+if cabal exec "${project_args[@]}" -- ghc \
+  -fno-code \
+  -package Markovian \
+  test/compile-fail/FeedbackBoundary.hs >"${log_file}" 2>&1; then
+  echo "Opaque feedback witnesses or nominal roles were accepted." >&2
+  exit 1
+fi
+
+for rejected_operation in \
+  badLoopLayoutConstructor \
+  badCheckedFeedbackConstructor \
+  badDelayedConstructor \
+  badTimedConstructor \
+  badFeedbackEndpointCoerce \
+  badFeedbackOwnerCoerce \
+  badDelayedStateCoerce \
+  badTimedLoopCoerce \
+  badWitnessAsChannel \
+  UnsafeLoopLayout \
+  UnsafeCheckedFeedback \
+  UnsafeCheckedDelayedFeedback \
+  UnsafeCheckedTimedFeedback; do
+  if ! grep -F "${rejected_operation}" "${log_file}" >/dev/null; then
+    cat "${log_file}" >&2
+    echo "The expected ${rejected_operation} boundary error was absent." >&2
+    exit 1
+  fi
+done
+
+if ! grep -F "Couldn't match" "${log_file}" >/dev/null; then
+  cat "${log_file}" >&2
+  echo "The fixture did not demonstrate nominal feedback endpoint protection." >&2
+  exit 1
+fi
+
+echo "PASS: feedback witness opacity, endpoint roles, and channel separation"

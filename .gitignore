@@ -4,6 +4,8 @@ cabal-dev
 *.o
 *.hi
 *.hie
+*.pyc
+__pycache__/
 *.chi
 *.chs.h
 *.dyn_o

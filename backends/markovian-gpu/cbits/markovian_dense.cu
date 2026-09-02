@@ -1,17 +1,25 @@
-extern "C" __global__ void markovian_dense_apply(
+/* The host ABI rejects rows*inner, inner*columns, and rows*columns above
+ * INT_MAX before launch. Every signed product and sum below is therefore
+ * representable in the kernel index type.
+ */
+extern "C" __global__ void markovian_f64_matmul(
     int rows,
+    int inner,
     int columns,
-    const double* matrix,
-    const double* input,
+    const double* left,
+    const double* right,
     double* output) {
-    int column = blockIdx.x * blockDim.x + threadIdx.x;
-    if (column >= columns) {
+    int linear = blockIdx.x * blockDim.x + threadIdx.x;
+    int total = rows * columns;
+    if (linear >= total) {
         return;
     }
 
-    double total = 0.0;
-    for (int row = 0; row < rows; ++row) {
-        total += input[row] * matrix[row * columns + column];
+    int row = linear / columns;
+    int column = linear - row * columns;
+    double value = 0.0;
+    for (int k = 0; k < inner; ++k) {
+        value += left[row * inner + k] * right[k * columns + column];
     }
-    output[column] = total;
+    output[linear] = value;
 }

@@ -1,5 +1,6 @@
 module MarkovianDifferential (tests) where
 
+import Markovian.Action (actionId)
 import Markovian.Backend.Neural (
     DQNTargetSelection (StandardDQN),
     denseForward,
@@ -25,7 +26,7 @@ import Markovian.Learning.QLearning (
     qValue,
     updateQ,
  )
-import Markovian.MDP (MDP, actionId, mdp)
+import Markovian.MDP (MDP, mdp)
 import Markovian.MRP (StateStatus (..), transitionOutcome)
 import Markovian.Objective (mkDiscount)
 import Markovian.Probability (dirac)

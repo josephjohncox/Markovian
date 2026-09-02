@@ -1,6 +1,6 @@
 module ParametricReverse (tests) where
 
-import Markovian.Backend.Neural (
+import Markovian.Reverse (
     CotangentEqualityMode (..),
     CotangentSpace,
     ParametricReverseCircuit,

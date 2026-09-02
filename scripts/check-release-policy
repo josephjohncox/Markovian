@@ -1,0 +1,88 @@
+#!/usr/bin/env bash
+# Literal GitHub expressions and hostile shell samples must not expand here.
+# shellcheck disable=SC2016
+set -euo pipefail
+
+workflow=.github/workflows/release-prepare.yml
+prepare=scripts/prepare-release
+
+for file in "${workflow}" "${prepare}"; do
+  [[ -f "${file}" ]] || {
+    echo "missing release policy file: ${file}" >&2
+    exit 1
+  }
+done
+
+if grep -nEi \
+  'cabal[[:space:]]+upload|git[[:space:]]+tag|gh[[:space:]]+release[[:space:]]+create' \
+  "${workflow}" "${prepare}"; then
+  echo "release preparation contains a publication operation" >&2
+  exit 1
+fi
+
+if grep -nE 'runs-on:[[:space:]]*self-hosted' "${workflow}"; then
+  echo "release preparation must use GitHub-hosted runners" >&2
+  exit 1
+fi
+
+grep -Fxq 'permissions: {}' "${workflow}"
+grep -Fq 'contents: read' "${workflow}"
+grep -Fq 'actions: read' "${workflow}"
+grep -Fq 'attestations: write' "${workflow}"
+grep -Fq 'id-token: write' "${workflow}"
+grep -Fq '      - validate' "${workflow}"
+grep -Fq 'dist-release/sbom/*.spdx.json' "${workflow}"
+grep -Fq 'dist-release/manifest.json' "${workflow}"
+grep -Fq 'dist-release/SOURCE-REVISION' "${workflow}"
+grep -Fq 'dist-release/SHA256SUMS' "${workflow}"
+
+raw_revision_uses="$(grep -Fc '${{ inputs.revision }}' "${workflow}")"
+if [[ "${raw_revision_uses}" -ne 1 ]] || ! grep -Fq 'REVISION: ${{ inputs.revision }}' "${workflow}"; then
+  echo "raw revision input must occur only in the validation job environment" >&2
+  exit 1
+fi
+sha_binding_count="$(grep -Fc 'test "${REVISION}" = "${EXPECTED_SHA}"' "${workflow}")"
+if [[ "${sha_binding_count}" -ne 3 ]]; then
+  echo "every release job must bind the requested revision to github.sha" >&2
+  exit 1
+fi
+validation_count="$(grep -Fc '[[ "${REVISION}" =~ ^[0-9a-f]{40}$ ]]' "${workflow}")"
+if [[ "${validation_count}" -lt 3 ]]; then
+  echo "every release job must independently validate the revision" >&2
+  exit 1
+fi
+for secret_name in HACKAGE_TOKEN HACKAGE_USERNAME HACKAGE_PASSWORD; do
+  grep -Fq "${secret_name}: \"\"" "${workflow}"
+done
+
+while IFS= read -r action; do
+  if [[ ! "${action}" =~ @[0-9a-f]{40}$ ]]; then
+    echo "release workflow action is not pinned to a full commit: ${action}" >&2
+    exit 1
+  fi
+done < <(awk '/^[[:space:]]*uses:/ { print $2 }' "${workflow}")
+
+valid_revision() {
+  [[ "$1" =~ ^[0-9a-f]{40}$ ]]
+}
+valid_revision "$(printf 'a%.0s' {1..40})"
+hostile_revisions=(
+  "'quoted'"
+  '"; echo injected'
+  '$(printf injected)'
+  'a b'
+  '--help'
+  $'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\ncommand'
+  $'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\t--option'
+)
+for hostile in "${hostile_revisions[@]}"; do
+  if valid_revision "${hostile}"; then
+    echo "hostile revision passed policy validation" >&2
+    exit 1
+  fi
+done
+
+python3 -m unittest \
+  scripts.test_release_tool.ReleaseToolTests.test_revision_validation_rejects_hostile_values
+
+printf 'release policy: validated revision flow, hostile-input rejection, complete attestation scope, secret-free preparation, and full action pins validated\n'

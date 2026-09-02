@@ -9,6 +9,7 @@ ghcup_bin="${GHCUP_BIN:-$HOME/.ghcup/bin/ghcup}"
 toolchain_bin="$project_root/.direnv/ghcup/bin"
 local_bin="$project_root/.direnv/bin"
 local_lib="$project_root/.direnv/lib"
+spdx_venv="$project_root/.direnv/spdx-tools"
 
 if [[ ! -x "$ghcup_bin" ]]; then
   echo "GHCup is missing at $ghcup_bin" >&2
@@ -65,12 +66,25 @@ if [[ "$cabal_fmt_ok" != true ]]; then
     --overwrite-policy=always
 fi
 
+spdx_version=""
+if [[ -x "$spdx_venv/bin/python" ]]; then
+  spdx_version="$($spdx_venv/bin/python -c 'import importlib.metadata; print(importlib.metadata.version("spdx-tools"))' 2>/dev/null || true)"
+fi
+if [[ "$spdx_version" != "$MARKOVIAN_SPDX_TOOLS_VERSION" ]]; then
+  rm -rf "$spdx_venv"
+  python3 -m venv "$spdx_venv"
+  "$spdx_venv/bin/python" -m pip install \
+    --disable-pip-version-check \
+    "spdx-tools==$MARKOVIAN_SPDX_TOOLS_VERSION"
+fi
+
 printf 'GHC:       '; ghc --version
 printf 'Cabal:     '; cabal --version | head -1
 printf 'HLS:       '; haskell-language-server-wrapper --version | head -1
 printf 'Fourmolu:  '; fourmolu --version | head -1
 printf 'HLint:     '; hlint --version
 printf 'cabal-fmt: '; cabal-fmt --version
+printf 'SPDX tools: '; "$spdx_venv/bin/python" -c 'import importlib.metadata; print(importlib.metadata.version("spdx-tools"))'
 
 echo
 echo "Run: direnv allow $project_root"

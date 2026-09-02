@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+set -euo pipefail
+log_file="$(mktemp)"
+trap 'rm -f "${log_file}"' EXIT
+project_args=()
+if [[ -f cabal.project && -f cabal.project.ci ]]; then
+  project_args+=(--project-file=cabal.project.ci)
+fi
+fixture="packages/markovian-continuous-numerical/test/compile-fail/NumericalBoundary.hs"
+[[ -f "${fixture}" ]] || fixture="test/compile-fail/NumericalBoundary.hs"
+if cabal exec "${project_args[@]}" -- ghc -fno-code -package markovian-continuous -package markovian-continuous-numerical "${fixture}" >"${log_file}" 2>&1; then
+  echo "Numerical constructors or exact/approximate boundary escaped." >&2
+  exit 1
+fi
+for rejected in badGeneratorConstructor badGeneratorStateConstructor badReportConstructor badEstimateAsExact badMonteCarloStateConstructor; do
+  grep -F "${rejected}" "${log_file}" >/dev/null || { cat "${log_file}" >&2; echo "Missing ${rejected} boundary error." >&2; exit 1; }
+done
+echo "PASS: numerical opacity and exact/approximate separation"

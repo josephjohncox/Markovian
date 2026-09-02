@@ -4,13 +4,15 @@ module Markovian.Interpreter.Exact (
     ExactTraceResult (..),
     exactTraceDistribution,
     exactTraceDistributionFrom,
+    exactTraceDistributionChecked,
+    exactTraceDistributionFromChecked,
     expectedExactReturn,
     expectedExactReturnFrom,
 ) where
 
 import Data.List.NonEmpty qualified as NonEmpty
+import Markovian.Action (ActionId)
 import Markovian.Horizon (horizonValue)
-import Markovian.MDP (ActionId)
 import Markovian.MDP.Exact (
     ExactDecision (..),
     ExactMDP,
@@ -31,15 +33,18 @@ import Markovian.Objective.Exact (
  )
 import Markovian.Policy.Exact (
     ExactPolicy,
-    ExactPolicyError,
+    ExactPolicyError (..),
     exactPolicyActions,
     validateExactPolicySupport,
  )
 import Markovian.Probability.Exact (
+    ExactBindError,
+    ExactBindLimits,
     ExactDistributionError,
     ExactFiniteDist,
+    bindExactFiniteDistChecked,
+    defaultExactBindLimits,
     exactDirac,
-    exactFiniteDist,
     exactOutcomes,
     exactProbability,
  )
@@ -62,6 +67,8 @@ data ExactEvaluationError action
       ExactEvaluationPolicyError !(ExactPolicyError action)
     | -- | Exact trace branches could not be assembled.
       ExactEvaluationDistributionError !ExactDistributionError
+    | -- | Checked trace sequencing failed atomically.
+      ExactEvaluationBindError !(ExactBindError (ExactEvaluationError action))
     deriving (Eq, Show)
 
 -- | One exact trace paired with its discounted finite return.
@@ -78,8 +85,18 @@ exactTraceDistribution ::
     ExactMDP state action ->
     ExactPolicy state action ->
     Either (ExactEvaluationError action) (ExactFiniteDist (ExactTraceResult state action))
-exactTraceDistribution objective model selectedPolicy =
-    exactTraceDistributionFrom objective model selectedPolicy (exactMDPInitialState model)
+exactTraceDistribution = exactTraceDistributionChecked defaultExactBindLimits
+
+-- | Enumerate exact bounded traces under explicit sequencing limits.
+exactTraceDistributionChecked ::
+    (Eq action) =>
+    ExactBindLimits ->
+    ExactFiniteObjective ->
+    ExactMDP state action ->
+    ExactPolicy state action ->
+    Either (ExactEvaluationError action) (ExactFiniteDist (ExactTraceResult state action))
+exactTraceDistributionChecked limits objective model selectedPolicy =
+    exactTraceDistributionFromChecked limits objective model selectedPolicy (exactMDPInitialState model)
 
 -- | Enumerate exact bounded traces from one state.
 exactTraceDistributionFrom ::
@@ -89,7 +106,18 @@ exactTraceDistributionFrom ::
     ExactPolicy state action ->
     state ->
     Either (ExactEvaluationError action) (ExactFiniteDist (ExactTraceResult state action))
-exactTraceDistributionFrom objective model selectedPolicy =
+exactTraceDistributionFrom = exactTraceDistributionFromChecked defaultExactBindLimits
+
+-- | Enumerate from one state under explicit checked sequencing limits.
+exactTraceDistributionFromChecked ::
+    (Eq action) =>
+    ExactBindLimits ->
+    ExactFiniteObjective ->
+    ExactMDP state action ->
+    ExactPolicy state action ->
+    state ->
+    Either (ExactEvaluationError action) (ExactFiniteDist (ExactTraceResult state action))
+exactTraceDistributionFromChecked limits objective model selectedPolicy =
     go (horizonValue (exactObjectiveHorizon objective))
   where
     discount = exactDiscountValue (exactObjectiveDiscount objective)
@@ -116,32 +144,26 @@ exactTraceDistributionFrom objective model selectedPolicy =
                                     (ExactTraceResult (Trace [] state (TerminalStop payoff)) payoff)
                                 )
                         ExactActionDecision available -> do
-                            let selected = exactPolicyActions selectedPolicy state
+                            selected <-
+                                mapPolicyError
+                                    (either (Left . ExactPolicyKernelError) Right (exactPolicyActions selectedPolicy state))
                             mapPolicyError (validateExactPolicySupport available selected)
-                            branches <-
-                                fmap
-                                    concat
-                                    ( traverse
-                                        (actionTraceBranches (remaining - 1) state)
-                                        (NonEmpty.toList (exactOutcomes selected))
-                                    )
-                            mapDistributionError (exactFiniteDist branches)
+                            case bindExactFiniteDistChecked limits selected (actionTraceDistribution (remaining - 1) state) of
+                                Left problem -> Left (ExactEvaluationBindError problem)
+                                Right (distribution, _) -> Right distribution
 
-    actionTraceBranches remaining state (selectedAction, actionMass) = do
+    actionTraceDistribution remaining state selectedAction = do
         transition <- mapModelError (stepExactMDP model state selectedAction)
-        fmap
-            concat
-            ( traverse
-                (outcomeTraceBranches remaining selectedAction actionMass)
-                (NonEmpty.toList (exactOutcomes transition))
-            )
+        case bindExactFiniteDistChecked limits transition (outcomeTraceDistribution remaining selectedAction) of
+            Left problem -> Left (ExactEvaluationBindError problem)
+            Right (distribution, _) -> Right distribution
 
-    outcomeTraceBranches remaining selectedAction actionMass (outcome, outcomeMass) = do
+    outcomeTraceDistribution remaining selectedAction outcome = do
         futureDistribution <- go remaining (exactSuccessorState outcome)
         let immediate = exactTransitionReward outcome
             successor = exactSuccessorState outcome
-        Right
-            [ ( ExactTraceResult
+            extend future =
+                ExactTraceResult
                     { exactTrace = prependStep selectedAction immediate successor (exactTrace future)
                     , exactTraceReturn =
                         exactReward
@@ -149,12 +171,7 @@ exactTraceDistributionFrom objective model selectedPolicy =
                                 + discount * exactRewardValue (exactTraceReturn future)
                             )
                     }
-              , exactProbability actionMass
-                    * exactProbability outcomeMass
-                    * exactProbability futureMass
-              )
-            | (future, futureMass) <- NonEmpty.toList (exactOutcomes futureDistribution)
-            ]
+        Right (fmap extend futureDistribution)
 
     prependStep selectedAction immediate successor futureTrace =
         futureTrace
@@ -199,7 +216,9 @@ expectedExactReturnFrom objective model selectedPolicy initial =
                     case decision of
                         ExactTerminalDecision payoff -> Right (exactRewardValue payoff)
                         ExactActionDecision available -> do
-                            let selected = exactPolicyActions selectedPolicy state
+                            selected <-
+                                mapPolicyError
+                                    (either (Left . ExactPolicyKernelError) Right (exactPolicyActions selectedPolicy state))
                             mapPolicyError (validateExactPolicySupport available selected)
                             contributions <-
                                 traverse
@@ -225,6 +244,3 @@ mapModelError = either (Left . ExactEvaluationModelError) Right
 
 mapPolicyError :: Either (ExactPolicyError action) value -> Either (ExactEvaluationError action) value
 mapPolicyError = either (Left . ExactEvaluationPolicyError) Right
-
-mapDistributionError :: Either ExactDistributionError value -> Either (ExactEvaluationError action) value
-mapDistributionError = either (Left . ExactEvaluationDistributionError) Right

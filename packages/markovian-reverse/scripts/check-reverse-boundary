@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+set -euo pipefail
+package_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "${package_dir}"
+cabal build markovian-reverse:lib:markovian-reverse
+check_failure() {
+  local fixture="$1"
+  shift
+  local log_file
+  log_file="$(mktemp)"
+  if cabal exec -- ghc -fno-code -fmax-errors=100 -package markovian-reverse "${fixture}" >"${log_file}" 2>&1; then
+    rm -f "${log_file}"
+    echo "reverse boundary fixture unexpectedly compiled: ${fixture}" >&2
+    exit 1
+  fi
+  for expected in "$@"; do
+    grep -F "${expected}" "${log_file}" >/dev/null || { cat "${log_file}" >&2; rm -f "${log_file}"; exit 1; }
+  done
+  rm -f "${log_file}"
+}
+check_failure test/compile-fail/EffectOpacity.hs badEvaluationConstructor badPreparedConstructor badTapeConstructor "not in scope"
+check_failure test/compile-fail/EffectEndpoints.hs badEffectTapeSeed "Couldn't match type"
+echo "PASS: pure/effect constructors and effect tape endpoints remain protected"

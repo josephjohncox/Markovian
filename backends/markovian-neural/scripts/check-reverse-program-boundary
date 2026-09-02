@@ -13,6 +13,7 @@ check_failure() {
     -fno-code \
     -fmax-errors=100 \
     -package markovian-neural \
+    -package markovian-reverse \
     "${fixture}" >"${log_file}" 2>&1; then
     rm -f "${log_file}"
     echo "Reverse-program boundary fixture unexpectedly compiled: ${fixture}" >&2

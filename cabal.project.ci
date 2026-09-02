@@ -4,6 +4,26 @@ optimization: False
 package Markovian
   ghc-options: -Werror
 
+package markovian-numerical
+  ghc-options: -Werror
+  tests: True
+
+package markovian-dense-exact
+  ghc-options: -Werror
+  tests: True
+
+package markovian-exact-benchmarks
+  ghc-options: -Werror
+  tests: True
+
+package markovian-sampling
+  ghc-options: -Werror
+  tests: True
+
+package markovian-learning
+  ghc-options: -Werror
+  tests: True
+
 package markovian-gpu
   ghc-options: -Werror
   tests: True
@@ -14,5 +34,33 @@ package markovian-neural
   tests: True
 
 package markovian-neural-bridge
+  ghc-options: -Werror
+  tests: True
+
+package markovian-continuous
+  ghc-options: -Werror
+  tests: True
+
+package markovian-continuous-numerical
+  ghc-options: -Werror
+  tests: True
+
+package markovian-autodiff
+  ghc-options: -Werror
+  tests: True
+
+package markovian-reverse
+  ghc-options: -Werror
+  tests: True
+
+package markovian-tensor
+  ghc-options: -Werror
+  tests: True
+
+package markovian-tensor-reverse
+  ghc-options: -Werror
+  tests: True
+
+package markovian-safetensors
   ghc-options: -Werror
   tests: True

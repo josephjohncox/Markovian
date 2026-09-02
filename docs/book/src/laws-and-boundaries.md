@@ -14,17 +14,17 @@ Write `I` for the tensor unit, `σ` for symmetry, `α` for associators, `λ` and
 
 Raw matrices use extensional labelled equality. Two matrices are equivalent when they have the same finite source and target supports and the same entry for every labelled pair. Storage order can differ.
 
-Exact distributions and exact kernels use literal rational equality after canonical duplicate aggregation. Floating kernels do not use this equality claim.
+Exact distributions retain positive labeled duplicates and represented support order. Their ordinary `Eq` instance compares that layout and every exact mass. Extensional consumers can aggregate equal labels explicitly. Floating kernels do not use literal rational equality.
 
 ## Exact finite distributions and kernels
 
-For a finite exact distribution `p` and a kernel `K`, bind is the finite sum
+For a finite exact distribution `p` and a kernel `K`, admitted checked bind has the extensional finite-sum meaning
 
 \\[
 (p \mathbin{\operatorname{bind}} K)(y)=\sum_x p(x)K(y\mid x).
 \\]
 
-The Dirac distribution is
+The implementation also retains each labeled product entry in deterministic outer-major order. The Dirac distribution is
 
 \\[
 \delta_x(y)=
@@ -34,7 +34,7 @@ The Dirac distribution is
 \end{cases}
 \\]
 
-The tested monad laws are
+When every operation under comparison is admitted, the tested semantic equations are
 
 \\[
 \delta_x \mathbin{\operatorname{bind}} K=K(x),
@@ -57,7 +57,7 @@ A kernel `K : X -> D(Y)` composes with `L : Y -> D(Z)` by
 (L\circ K)(z\mid x)=\sum_y K(y\mid x)L(z\mid y).
 \\]
 
-Its identity is `x ↦ δx`. Therefore, the kernel category laws are
+Its semantic identity is `x ↦ δx`. Admitted compositions therefore check
 
 \\[
 K\circ\mathrm{id}=K,
@@ -77,7 +77,7 @@ The associativity calculation expands both sides to the same finite sum:
 \sum_{y,z}K(y\mid x)L(z\mid y)M(w\mid z).
 \\]
 
-Exact rational arithmetic and canonical finite support make this equality literal. The fixtures also check the `Category`, `Arrow`, and `ArrowChoice` operations.
+Exact rational arithmetic makes admitted semantic results literal. Result-support, work, and rational-bit admission and reports can differ by association. Therefore, `ExactFiniteDist` has no `Applicative` or `Monad` instance, and `ExactKernel` has no unrestricted `Category`, `Arrow`, or `ArrowChoice` instance. These equations do not claim otherwise.
 
 The direct expected-return evaluator and trace enumerator satisfy
 
@@ -88,7 +88,7 @@ V^{\pi}_{H}(s_0).
 
 The fixture has expected reward `5` and one transition in every trace.
 
-**Executable evidence:** [`testExactKernelLaws`](https://github.com/josephjohncox/Markovian/blob/main/test/Main.hs#L1875) and [`testExactTraceExpectation`](https://github.com/josephjohncox/Markovian/blob/main/test/Main.hs#L712).
+**Executable evidence:** [`test/ExactBind.hs`](https://github.com/josephjohncox/Markovian/blob/main/test/ExactBind.hs) and [`test/ExactControl.hs`](https://github.com/josephjohncox/Markovian/blob/main/test/ExactControl.hs).
 
 ## Exact discounted control bounds
 
@@ -120,6 +120,38 @@ Policy iteration solves fixed-policy equations over signed rationals. It then re
 
 **Executable evidence:** `test/ExactControl.hs` in the source distribution.
 
+## Checked finite feedback equations
+
+For a proper first-exit routing channel with block form
+
+\\[
+K=\begin{bmatrix}A&B\\C&D\end{bmatrix},
+\\]
+
+`closeProperFeedback` checks every represented internal state can reach an exit, solves
+
+\\[
+H=C+DH,
+\qquad
+F=A+BH,
+\\]
+
+and verifies that every row of `F` sums exactly to one. A nilpotent block records the least checked `k` with `D^k=0`. A cyclic proper block records `beta = ||D^m||_infinity < 1` for `m=|U|`.
+
+Delayed feedback has path mass
+
+\\[
+A(s_0\mid x)\prod_{t=0}^{n-1}B(y_t,s_{t+1}\mid x,s_t).
+\\]
+
+The final observer keeps `(y_(n-1),s_n)` joint. Timed nilpotent feedback keeps `(G,d,y)` joint with `G = sum_(t=0)^(d-1) gamma^t r_t`.
+
+The operation-wide meter charges every rational operation. Delayed and timed execution also charge every represented branch before descent. Reported maxima include discarded matrix-power, Gaussian, and path values. Limit failure returns no result or partial report.
+
+The raw trace of the two-state stochastic identity has mass two. A unit internal self-loop has no first exit. A half-loop/half-exit is proper but has unbounded duration support and is rejected by the timed API. These counterexamples prevent a universal stochastic-trace claim.
+
+**Executable evidence:** `test/FeedbackExact.hs` and `scripts/check-feedback-boundary` in the source distribution.
+
 ## Tabular one-step targets
 
 All tabular updates use `x' = x + alpha * (y - x)`. Their continuing targets differ:
@@ -150,6 +182,12 @@ The neural package tests dense input and parameter VJPs, categorical Jacobians, 
 The typed parametric reverse fixtures use literal rational equality to check cotangent zero, additive identity, associativity, commutativity, scalar distributivity, primitive VJP zero/additivity/homogeneity, composition identities and associativity, independent parameter products, tensor products, and identity/input/parameter diagonals. Nonlinear composition and input-diagonal fixtures use central differences. Failure fixtures cover primitive evaluation, composition, tensor, shared parameters, and diagonal addition. These fixtures test declared `CotangentSpace` operations and supplied primitives; the generic constructor does not prove their module or pullback laws.
 
 The finite reverse-program fixtures additionally check represented primal and cotangent layouts, structural owner products, duplicate independent owner rejection, matching shared ownership, exact preparation boundaries, deterministic traversal errors and reports, typed stored and recomputed tapes, repeated tape use, composition and tensor laws through explicit pair bijections, and two- and three-way diagonal accumulation. A heterogeneous nonlinear program checks every represented input and parameter coordinate under both tape policies with step `1e-6 * max 1 |x|`, absolute tolerance `2e-10`, and relative tolerance `2e-8`. A literal floating reassociation counterexample remains unequal. Compile-fail fixtures protect typed intermediates, parameter products, tape endpoints, and constructor opacity.
+
+The D-068 autodiff fixtures add compiler-owned primitive VJPs for a closed language. Exact polynomial tests compare the compiled primal with the direct source interpreter. An independent fixture computes a forward JVP and checks the exact JVP/VJP pairing. Shared-owner tests require diagonal addition and retain the incorrect single-branch result as a counterexample. Double tests perturb every represented parameter and input coordinate under both tape policies. Smooth `tanh` tests also compare every coordinate. Compile-fail fixtures reject syntax and tape constructors, hidden compiler modules, scalar/vector mismatches, different-owner sharing, exact compilation of smooth syntax, and endpoint coercion. These fixtures do not establish arbitrary-Haskell autodiff or a universal floating proof.
+
+The D-072 tensor fixtures check that rank-zero storage contains one scalar while a zero dimension gives no elements. They check transpose coordinates and storage sharing, fresh materialization, checked reshape, fixed reduction order, zero-inner matrix multiplication, raw IEEE preservation, finite refinement, and nonfinite-result rejection. Matrix-product VJPs are compared with an independent list objective by perturbing every represented coordinate. `tanh` VJPs receive the same finite-difference check. An exact-limit fixture makes a two-output matrix pullback fail before allocation, then successfully consumes the still-available final payload budget. Owner and storage fixtures show that distinct semantic owners can share immutable storage. These checks do not establish general tensor semantics, allocation optimality, a speed claim, or generic reverse-program integration.
+
+The D-074 device fixtures prepare the F64 matrix and matrix-VJP fragment before backend selection. Exact and one-below tests cover transfer, scalar-work, and launch limits. CUDA-disabled tests distinguish required failure, denied fallback, and explicit pre-launch CPU fallback. Enabled tests require module admission and a known-answer self-test, then compare every matrix and both VJP output coordinates with the CPU tensor path. Compile-fail fixtures protect plans, executor resources, result shapes, and VJP endpoints. These fixtures do not prove arbitrary tensor lowering, generic reverse-program lowering, cleanup behavior under every driver fault, support for devices other than the observed admitted device, bitwise CPU/CUDA equality, GPU advantage, or general device correctness.
 
 The tests also check REINFORCE, actor-critic, replay, target synchronization, and DQN update fixtures. The floating checks use explicit tolerances. They provide local evidence for supplied VJPs. They do not prove all-input derivatives, general autodiff, checkpoint optimality, or training convergence.
 
@@ -808,6 +846,53 @@ Observational equality checks play, coplay, owner support, and every best-respon
 All two-player `2 x 2` payoff tables over the represented utility carrier `{0,1}` are compared with independent unilateral-deviation enumeration. This is exhaustive differential evidence for that finite carrier, not a universal equilibrium theorem.
 
 **Executable evidence:** `test/FiniteOpenGames.hs` and the two open-game golden reports.
+
+## Exact mixed, stochastic, and Harsanyi laws
+
+Independent profile mass factors exactly as `product_i sigma_i(a_i)`. Expected payoff is affine in each owner row. Therefore every-pure-deviation checking is complete for a supplied mixed-Nash candidate. The test suite independently enumerates all two-player `2 x 2` payoff tables over `{0,1}` and probabilities `{0,1/2,1}`.
+
+CE checks unconditional direct-recommendation slacks; a null recommendation has zero slack and no conditional-optimality claim. CCE checks constant pre-recommendation deviations separately. Every matching-pennies Nash product fixture passes CE, while the Battle of the Sexes device shows that correlation is not the product of its marginals. The `(A,L)/(C,R)` fixture passes CCE and fails CE.
+
+The rational-payoff three-player fixture requires `p^2=1/2` at its symmetric equilibrium. The zero-payoff game admits every profile. These are counterexamples to complete `Rational` enumeration and silent singular-support handling. No solver is implemented.
+
+A stochastic stage law retains `(reward vector, successor)` in one atom. Terminal value precedes horizon, a nonterminal at horizon zero adds zero, transition reward is added once, and continuation is discounted once. Markov-perfect checking uses continuation payoffs rather than isolated stage payoffs.
+
+The Harsanyi common prior is over complete type profiles and can be correlated. Positive-type comparisons use exact unnormalized sums. Null types expose no conditional value. Bounded strategic-normal conversion supplies a separate exact evaluation route for the one-shot contingent-plan fragment. It is not agent normal form because types are not split into independent agents.
+
+**Executable evidence:** `test/MixedBayesianGames.hs`, `scripts/check-mixed-game-boundary`, and `mixed-games-exact-bench`.
+
+## Restricted continuous laws and counterexamples
+
+Affine pushforward preserves each supported polynomial expectation:
+
+\\[
+E_{f_\star\mu}[g]=E_\mu[g\circ f].
+\\]
+
+The kernel tests check identity and composition inside the represented affine-uniform family. Composition can fail because each execution must own separate noise. Thus, these checks do not establish an unrestricted category instance.
+
+Noise identity controls correlation. For one uniform noise `U` on `[0,1]`, the exact tests check these equations:
+
+\\[
+E[U U]=1/3,
+\qquad
+E[U_1U_2]=1/4.
+\\]
+
+The two marginals are equal, but the joint expectations differ. Separate reward and successor marginals cannot replace a joint outcome.
+
+For a finite affine likelihood, positive evidence gives this reconstruction equation:
+
+\\[
+E[g(X)\ell_o(X)]
+=P(O=o)E[g(X)\mid O=o].
+\\]
+
+The tests reject zero evidence and omit that posterior row. They do not construct a conditional version on a null event.
+
+The numerical tests compare GK15/7 with exact moments and an independent Simpson implementation. A narrow spike can miss all active nodes. In that fixture, GK15/7 reports zero estimated error for a positive analytic integral. This counterexample prevents a certified error-bound claim. Central finite differences check both selected parameters of one analytic quadratic fixture only.
+
+**Executable evidence:** `packages/markovian-continuous/test/Main.hs`, `packages/markovian-continuous-numerical/test/Main.hs`, and both package boundary scripts.
 
 ## What the tests do and do not establish
 
