@@ -18,4 +18,4 @@ The encoder applies the same Word64 dimension bound before it creates bytes. The
 
 SafeTensors names do not create `TensorOwner` evidence. The file API does not serialize storage IDs, layouts, tapes, callbacks, executors, streams, or pointers. Metadata, F16, BF16, F32, integer dtypes, sparse tensors, arbitrary strides, devices, and general SafeTensors interoperability are outside this profile and produce explicit errors where applicable.
 
-D-073 remains `Proposed` until the full compiler, archive, documentation, and release gates pass.
+D-073 is `Accepted` for this bounded profile after the full compiler, archive, documentation, and release gates passed.

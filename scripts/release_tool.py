@@ -860,7 +860,7 @@ def exposed_modules(cabal_path: Path) -> list[str]:
     return modules
 
 
-def check_proposed_decision_statuses(text: str) -> None:
+def check_release_decision_statuses(text: str) -> None:
     for number in range(61, 77):
         decision = f"D-{number:03d}"
         match = re.search(
@@ -869,9 +869,9 @@ def check_proposed_decision_statuses(text: str) -> None:
         )
         if match is None:
             raise ReleaseError(f"missing decision status for {decision}")
-        if match.group(1) != "Proposed":
+        if match.group(1) != "Accepted":
             raise ReleaseError(
-                f"{decision} must remain Proposed until every acceptance gate passes"
+                f"{decision} must be Accepted before preparing release artifacts"
             )
 
 
@@ -893,7 +893,7 @@ def check_metadata(
             "release package manifest does not match the reviewed 16-package graph"
         )
     project_text = (root / "cabal.project").read_text(encoding="utf-8")
-    check_proposed_decision_statuses(
+    check_release_decision_statuses(
         (root / "docs" / "DECISIONS.md").read_text(encoding="utf-8")
     )
     all_modules: dict[str, str] = {}
@@ -1478,7 +1478,7 @@ def main(argv: list[str] | None = None) -> int:
                 f"{sum(item.kind == 'test' for item in components)} suites, "
                 f"{sum(item.kind == 'benchmark' for item in components)} benchmarks, "
                 "exact public sibling edges, checked test-only integration edges, "
-                "Proposed decision statuses, and exposed-module goldens validated"
+                "Accepted decision statuses, and exposed-module goldens validated"
             )
         elif args.command == "check-source":
             check_source_checkout(args.root, args.revision)

@@ -40,4 +40,4 @@ bash packages/markovian-safetensors/scripts/check-safetensors-boundary
 cabal sdist markovian-tensor markovian-safetensors
 ```
 
-The focused tensor-fault and SafeTensors suites passed with GHC 9.4.8 and 9.8.4; the recorded cabal-install was 3.16.1.0. The SafeTensors suite also passed its focused `--prefer-oldest` solve with `bytestring-0.11.1.0`. Complete-graph preferred-oldest, full-graph isolated Haddock, full archive, hosted, attestation, protected hardware, and publication authorization remain open.
+The focused tensor-fault and SafeTensors suites passed with GHC 9.4.8 and 9.8.4; the recorded cabal-install was 3.16.1.0. The SafeTensors suite also passed its focused `--prefer-oldest` solve with `bytestring-0.11.1.0`. At the time of this focused repair record, complete-graph preferred-oldest, full-graph isolated Haddock, full archive, hosted, attestation, protected hardware, and publication authorization remained open. Those gates were completed separately before release.

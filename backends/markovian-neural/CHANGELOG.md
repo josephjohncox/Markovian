@@ -1,6 +1,6 @@
 # Revision history for markovian-neural
 
-## 2026.9.3.0 — Unreleased
+## 2026.9.3.0 — 2026-09-03
 
 - Added checked dense reference networks and manual VJPs.
 - Added finite owned reverse programs with explicit layouts, ownership, budgets, and opaque stored or recomputed tapes.

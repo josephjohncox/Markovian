@@ -1,6 +1,6 @@
 # Changelog
 
-## 2026.9.3.0 (unreleased)
+## 2026.9.3.0 — 2026-09-03
 
 - Replace the list-only dense call with bounded typed matrix and matrix-VJP
   plans over `markovian-tensor` inputs. Add the reviewed integration edge to

@@ -2,22 +2,20 @@
 
 Markovian is an experimental Haskell package for finite stochastic kernels, Markov reward processes, Markov decision processes, policies, and bounded interpreters.
 
-The package is greenfield and unreleased. It makes no compatibility promise. Incorrect interfaces are removed rather than retained behind shims.
+Markovian `2026.9.3.0` is the first release. It uses coordinated UTC CalVer and the matching Git tag `v2026.9.3.0`. Incorrect interfaces were removed before this release instead of being retained behind compatibility shims.
 
 Capability labels in this repository have these meanings:
 
-- **Present:** source exists in the current worktree. This is not an implementation-status promotion.
+- **Accepted:** the stated bounded capability and its complete evidence matrix passed.
 - **Partial:** a restricted capability has executable fixtures, but its contract or evidence matrix is incomplete.
 - **Blocked:** a safety or semantic prerequisite fails or has no executable evidence.
 - **Out of scope:** no support claim exists for convergence, production training, general tensor semantics, arbitrary-Haskell autodiff, or neural devices.
 
-The mixed-game, autodiff, feedback, continuous, and host-tensor frontiers are partial. CUDA/device execution is blocked. No new frontier is classified as implemented, and passing focused suites do not establish release readiness.
-
-D-053 through D-060 are accepted. Their four-package evidence remains in hosted CI run `33467147313` on revision `993508f`.
-
-The current 16-package integration overlay is not release-ready. It contains an unaccepted D-061 package migration, an effect reverse adapter, and a bounded SafeTensors profile. D-061 remains `Proposed` until every acceptance gate passes. D-067 and D-073 through D-076 also remain open.
+D-053 through D-076 are accepted only for their stated finite, bounded scopes. Mixed games, closed-language autodiff, checked feedback, restricted continuous probability, host F64 tensors, the metadata-free F64 SafeTensors profile, and the GB10 CUDA matrix/VJP fragment have complete release evidence. Their explicit nonclaims remain in force.
 
 ## Release status
+
+Release `2026.9.3.0` was prepared from a clean immutable revision with complete hosted compiler, lower-bound, archive, documentation, CUDA compile-only, protected hardware, four-tool Compute Sanitizer, checksum, SBOM, and provenance evidence.
 
 The repository has bounded, non-publishing release preparation tools. They check metadata, public module snapshots, source archives, checksums, SPDX 2.3 SBOMs, and archive-only consumers.
 
@@ -29,7 +27,7 @@ bash scripts/check-release-policy
 python3 scripts/test_release_tool.py
 ```
 
-Run full preparation only from a clean immutable revision. Read [the release checklist](RELEASE-CHECKLIST.md), [migration guide](MIGRATION.md), and [draft release notes](RELEASE-NOTES.md).
+Run full preparation only from a clean immutable revision. Read [the release checklist](RELEASE-CHECKLIST.md), [migration guide](MIGRATION.md), and [release notes](RELEASE-NOTES.md).
 
 Preparation does not upload packages or create tags or releases. External publication requires explicit user approval. Coordinated releases use UTC CalVer `YYYY.M.D.N`; tags use the matching `vYYYY.M.D.N` form.
 
@@ -135,9 +133,9 @@ The continuous, autodiff, tensor, GPU, and neural layers remain separate optiona
 - `backends/markovian-neural` provides checked dense networks with manual VJPs, typed parametric reverse composition, stable categorical operations, sized structural action masks, approximate entropy/cross-entropy/KL/mutual-information calculations and gradients, linear REINFORCE and actor-critic updates, replay storage, target networks, and one standard or Double-DQN batch update;
 - `backends/markovian-neural-bridge` checks exact global action layouts against policy or dense output widths and compiles each continuing state's exact availability order into a Boolean structural mask under explicit state, action-entry, and work limits. Terminal states remain explicit.
 
-The autodiff package differentiates only its closed first-order syntax. Its test-only neural integration checks one `2 -> 2 tanh -> 2` two-layer fixture for every primal, input, weight, and bias coordinate under both tape policies. This does not add a general neural lowering API. The package has no arbitrary callback, recursion, branch, stochastic node, tensor runtime, or device path. The separate effect interpreter and bounded host adapter are present; D-067 remains `Proposed` until neural `Identity` migration and all conjunctive gates pass.
+The autodiff package differentiates only its closed first-order syntax. Its test-only neural integration checks one `2 -> 2 tanh -> 2` two-layer fixture for every primal, input, weight, and bias coordinate under both tape policies. This does not add a general neural lowering API. The package has no arbitrary callback, recursion, branch, stochastic node, tensor runtime, or device path. D-067 is accepted only for the separate effect interpreter and bounded host adapter described above.
 
-The tensor package is host-only and F64-only. Rank zero is one scalar. Numerical primitives require finite values and use fixed-order single-threaded loops. Payload and work budgets are preflighted, including atomic multi-output VJPs. It has no arbitrary strides, broadcasting, mutation, raw pointers, BLAS, device buffers, generic reverse-program lowering, or performance claim. The separate SafeTensors package supports only bounded metadata-free F64 files; it rejects unsupported dtypes and metadata and does not serialize ownership or execution resources. The optional GPU package consumes checked tensor inputs only for positive-size F64 matrix multiplication and its declared VJP. D-067 and D-073 remain `Proposed` until all gates pass.
+The tensor package is host-only and F64-only. Rank zero is one scalar. Numerical primitives require finite values and use fixed-order single-threaded loops. Payload and work budgets are preflighted, including atomic multi-output VJPs. It has no arbitrary strides, broadcasting, mutation, raw pointers, BLAS, device buffers, generic reverse-program lowering, or performance claim. The separate SafeTensors package supports only bounded metadata-free F64 files; it rejects unsupported dtypes and metadata and does not serialize ownership or execution resources. The optional GPU package consumes checked tensor inputs only for positive-size F64 matrix multiplication and its declared VJP. D-067 and D-073 are accepted only for these bounded scopes.
 
 The continuous exact and continuous numerical libraries are each `base`-only. Their integration dependency is test-only. These packages do not provide arbitrary measurable callbacks, point conditioning, continuous-to-continuous disintegration, certified floating bounds, continuous MDP execution, or release-readiness evidence.
 
@@ -333,6 +331,6 @@ Fourmolu 0.20 does not parse the repository's three LaTeX-style literate Haskell
 - [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) defines semantic contracts and boundaries.
 - [docs/DECISIONS.md](docs/DECISIONS.md) records technical decisions and their required evidence.
 - [docs/WORKFLOWS.md](docs/WORKFLOWS.md) defines required evidence and change procedures.
-- [CHANGELOG.md](CHANGELOG.md) records unreleased user-visible changes.
+- [CHANGELOG.md](CHANGELOG.md) records released user-visible changes.
 
 Read `docs/CONTEXT.md` before changing semantic code.

@@ -166,15 +166,15 @@ class ReleaseToolTests(unittest.TestCase):
         with self.assertRaisesRegex(release_tool.ReleaseError, "manifests differ"):
             release_tool.check_ci_manifest(packages, manifest)
 
-    def test_frontier_decisions_cannot_be_promoted_by_release_metadata(self) -> None:
-        proposed = "\n".join(
-            f"### D-{number:03d}: Decision {number}\n\n**Status:** Proposed\n"
+    def test_release_decisions_must_all_be_accepted(self) -> None:
+        accepted = "\n".join(
+            f"### D-{number:03d}: Decision {number}\n\n**Status:** Accepted\n"
             for number in range(61, 77)
         )
-        release_tool.check_proposed_decision_statuses(proposed)
-        promoted = proposed.replace("**Status:** Proposed", "**Status:** Accepted", 1)
-        with self.assertRaisesRegex(release_tool.ReleaseError, "must remain Proposed"):
-            release_tool.check_proposed_decision_statuses(promoted)
+        release_tool.check_release_decision_statuses(accepted)
+        proposed = accepted.replace("**Status:** Accepted", "**Status:** Proposed", 1)
+        with self.assertRaisesRegex(release_tool.ReleaseError, "must be Accepted"):
+            release_tool.check_release_decision_statuses(proposed)
 
     def test_public_dependency_graph_rejects_missing_and_extra_edges(self) -> None:
         root = release_tool.Package("Markovian", Path("."), "2026.9.3.0", 0)

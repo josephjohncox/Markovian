@@ -1,6 +1,6 @@
 # Changelog
 
-## 2026.9.3.0 (unreleased)
+## 2026.9.3.0 — 2026-09-03
 
 - Add explicit finite `Double` conversion and rounding reports.
 - Add deterministic bounded GK15/7 quadrature.

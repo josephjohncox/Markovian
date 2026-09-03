@@ -1,8 +1,8 @@
 # Markovian 2026.9.3.0 release notes
 
-Status: **release candidate**.
+Status: **released 2026-09-03**.
 
-The candidate uses coordinated UTC CalVer `2026.9.3.0`. Its Git tag is `v2026.9.3.0`.
+This release uses coordinated UTC CalVer `2026.9.3.0`. Its Git tag is `v2026.9.3.0`.
 
 ## Scope
 
@@ -14,12 +14,13 @@ Sampled APIs own an explicit generator. Dynamic APIs keep terminal, horizon, rew
 
 The checked graph contains 16 packages, 18 test suites, and 11 benchmarks. Release preparation verifies deterministic source archives, isolated archive dependency closures, exact public Haddock coverage, SPDX 2.3 SBOMs, checksums, a fresh exact consumer, and GitHub-hosted SLSA provenance.
 
-## Candidate gates
+## Release evidence
 
-- Run the complete compiler, lower-bound, source, documentation, archive, and attestation gates on the final merged revision.
-- Run the pinned CUDA 13 compile-only workflow on the final revision.
-- Run the UUID-bound protected CUDA workflow and all four Compute Sanitizer tools before making the bounded enabled-device claim.
-- Keep D-061 through D-076 `Proposed` until the applicable final-revision evidence passes.
+- The complete GHC 9.4.8, GHC 9.8.4, lower-bound, source, documentation, archive, and benchmark matrix passed.
+- The digest-pinned CUDA 13.0.2 compile-only workflow reproduced the checked PTX and passed enabled missing-driver and missing-symbol fixtures without GPU access.
+- The UUID-bound protected NVIDIA GB10 workflow passed enabled matrix and VJP differentials, lifecycle fault fixtures, PTX reproduction, the transfer-inclusive benchmark, and Compute Sanitizer `memcheck`, `initcheck`, `racecheck`, and `synccheck`.
+- Release preparation produced 16 source archives, 16 SPDX 2.3 SBOMs, 29 component logs, complete SHA-256 checksums, and a cryptographically verified 37-subject SLSA provenance statement.
+- D-061 through D-076 are accepted only for their stated bounded scopes.
 
 ## Nonclaims
 
