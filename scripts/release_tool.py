@@ -1123,6 +1123,7 @@ def generate_sbom(info: ArchiveInfo, revision: str, epoch: int) -> dict[str, obj
             handle = tar.extractfile(member)
             if handle is None:
                 raise ReleaseError(f"cannot read archive member for SBOM: {member.name}")
+            # pi-lens-ignore: python-weak-hash
             sha1 = hashlib.sha1(usedforsecurity=False)
             sha256 = hashlib.sha256()
             with handle:
@@ -1169,6 +1170,7 @@ def generate_sbom(info: ArchiveInfo, revision: str, epoch: int) -> dict[str, obj
             "downloadLocation": "NOASSERTION",
             "filesAnalyzed": True,
             "packageVerificationCode": {
+                # pi-lens-ignore: python-weak-hash
                 "packageVerificationCodeValue": hashlib.sha1(
                     "".join(sorted(verification_hashes)).encode("ascii"),
                     usedforsecurity=False,
@@ -1191,6 +1193,7 @@ def generate_sbom(info: ArchiveInfo, revision: str, epoch: int) -> dict[str, obj
                 "downloadLocation": "https://github.com/mathjax/MathJax-src",
                 "filesAnalyzed": True,
                 "packageVerificationCode": {
+                    # pi-lens-ignore: python-weak-hash
                     "packageVerificationCodeValue": hashlib.sha1(
                         "".join(sorted(mathjax_verification_hashes)).encode("ascii"),
                         usedforsecurity=False,

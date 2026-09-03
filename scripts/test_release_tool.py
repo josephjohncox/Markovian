@@ -381,6 +381,8 @@ class ReleaseToolTests(unittest.TestCase):
                 "user.name=Release Test",
                 "-c",
                 "user.email=release-test@example.invalid",
+                "-c",
+                "commit.gpgsign=false",
                 "commit",
                 "-qm",
                 "fixture",
