@@ -1,6 +1,6 @@
 cabal-version:      3.0
 name:               markovian-reverse
-version:            0.1.0.0
+version:            2026.9.3.0
 synopsis:           Bounded typed reverse-program core for Markovian
 description:
   Backend-independent finite reverse circuits and bounded owned reverse
@@ -33,6 +33,12 @@ source-repository head
   location: https://github.com/josephjohncox/Markovian.git
   subdir:   packages/markovian-reverse
 
+source-repository this
+  type:     git
+  location: https://github.com/josephjohncox/Markovian.git
+  tag:      v2026.9.3.0
+  subdir:   packages/markovian-reverse
+
 library
   exposed-modules:
     Markovian.Reverse
@@ -51,8 +57,8 @@ test-suite markovian-reverse-test
   hs-source-dirs:   test
   other-modules:    Effect
   build-depends:
-    , base               >=4.17.2.1 && <4.20
-    , markovian-reverse  ==0.1.0.0
+    , base               >=4.17.2.1   && <4.20
+    , markovian-reverse  ==2026.9.3.0
 
   default-language: GHC2021
   ghc-options:      -Wall

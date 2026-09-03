@@ -18,7 +18,7 @@ import subprocess
 import sys
 import tarfile
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 from pathlib import Path, PurePosixPath
 
 MAX_PACKAGES = 16
@@ -73,6 +73,10 @@ SECRET_NAMES = re.compile(
 )
 MODULE = re.compile(r"^[A-Z][A-Za-z0-9_']*(?:\.[A-Z][A-Za-z0-9_']*)*$")
 REVISION = re.compile(r"^[0-9a-f]{40}$")
+CALVER = re.compile(
+    r"^(20[0-9]{2})\.([1-9]|1[0-2])\.([1-9]|[12][0-9]|3[01])\."
+    r"(0|[1-9][0-9]*)$"
+)
 AT_FDCWD = -100
 RENAME_NOREPLACE = 1
 
@@ -138,6 +142,19 @@ def validate_revision(revision: str) -> str:
     return revision
 
 
+def validate_calver(version: str, *, path: Path, line: int) -> None:
+    match = CALVER.fullmatch(version)
+    if match is None:
+        raise ReleaseError(
+            f"{path}:{line}: version must use UTC CalVer YYYY.M.D.N "
+            "with canonical decimal components"
+        )
+    try:
+        date(*(int(component) for component in match.groups()[:3]))
+    except ValueError as error:
+        raise ReleaseError(f"{path}:{line}: invalid CalVer date {version!r}") from error
+
+
 def finalize_directory(stage: Path, output: Path) -> None:
     """Atomically rename a staged directory without replacing any destination."""
     if stage.parent.resolve() != output.parent.resolve():
@@ -187,8 +204,7 @@ def parse_manifest(path: Path) -> list[Package]:
         directory = Path(directory_text)
         if directory.is_absolute() or ".." in directory.parts or directory_text == "":
             raise ReleaseError(f"{path}:{number}: unsafe package directory {directory_text!r}")
-        if not re.fullmatch(r"[0-9]+(?:\.[0-9]+){3}", version):
-            raise ReleaseError(f"{path}:{number}: version must have four numeric components")
+        validate_calver(version, path=path, line=number)
         if not tier_text.isdecimal():
             raise ReleaseError(f"{path}:{number}: invalid dependency tier {tier_text!r}")
         try:
@@ -211,6 +227,9 @@ def parse_manifest(path: Path) -> list[Package]:
 
     if not 1 <= len(packages) <= MAX_PACKAGES:
         raise ReleaseError(f"package count {len(packages)} is outside 1..{MAX_PACKAGES}")
+    versions = {package.version for package in packages}
+    if len(versions) != 1:
+        raise ReleaseError("all packages must use one coordinated CalVer release")
     return packages
 
 
@@ -728,6 +747,26 @@ def cabal_field(text: str, field: str) -> str | None:
     return match.group(1) if match else None
 
 
+def cabal_section_fields(text: str, heading: str) -> dict[str, str]:
+    matches = re.findall(
+        rf"(?m)^{re.escape(heading)}[ \t]*\n"
+        rf"((?:[ \t]+[^\n]*(?:\n|$))*)",
+        text,
+    )
+    if len(matches) != 1:
+        raise ReleaseError(f"expected exactly one {heading!r} section")
+    fields: dict[str, str] = {}
+    for raw in matches[0].splitlines():
+        match = re.fullmatch(r"\s+([a-z-]+):\s*(.*?)\s*", raw)
+        if match is None or not match.group(2):
+            raise ReleaseError(f"invalid field in {heading!r} section: {raw!r}")
+        name, value = match.groups()
+        if name in fields:
+            raise ReleaseError(f"duplicate {name!r} field in {heading!r} section")
+        fields[name] = value
+    return fields
+
+
 def one_cabal_file(directory: Path) -> Path:
     files = sorted(directory.glob("*.cabal"))
     if len(files) != 1:
@@ -821,7 +860,7 @@ def exposed_modules(cabal_path: Path) -> list[str]:
     return modules
 
 
-def check_proposed_decision_statuses(text: str) -> None:
+def check_release_decision_statuses(text: str) -> None:
     for number in range(61, 77):
         decision = f"D-{number:03d}"
         match = re.search(
@@ -830,9 +869,9 @@ def check_proposed_decision_statuses(text: str) -> None:
         )
         if match is None:
             raise ReleaseError(f"missing decision status for {decision}")
-        if match.group(1) != "Proposed":
+        if match.group(1) != "Accepted":
             raise ReleaseError(
-                f"{decision} must remain Proposed until every acceptance gate passes"
+                f"{decision} must be Accepted before preparing release artifacts"
             )
 
 
@@ -854,7 +893,7 @@ def check_metadata(
             "release package manifest does not match the reviewed 16-package graph"
         )
     project_text = (root / "cabal.project").read_text(encoding="utf-8")
-    check_proposed_decision_statuses(
+    check_release_decision_statuses(
         (root / "docs" / "DECISIONS.md").read_text(encoding="utf-8")
     )
     all_modules: dict[str, str] = {}
@@ -887,6 +926,22 @@ def check_metadata(
             raise ReleaseError(f"{cabal_path}: missing canonical source-repository head")
         if package.directory != Path(".") and f"subdir:   {package.directory.as_posix()}" not in text:
             raise ReleaseError(f"{cabal_path}: missing source-repository subdir")
+        expected_repository = {
+            "type": "git",
+            "location": "https://github.com/josephjohncox/Markovian.git",
+            "tag": f"v{package.version}",
+        }
+        if package.directory != Path("."):
+            expected_repository["subdir"] = package.directory.as_posix()
+        try:
+            release_repository = cabal_section_fields(text, "source-repository this")
+        except ReleaseError as error:
+            raise ReleaseError(f"{cabal_path}: {error}") from error
+        if release_repository != expected_repository:
+            raise ReleaseError(
+                f"{cabal_path}: source-repository this must identify "
+                f"v{package.version} and the package subdirectory"
+            )
         if not re.search(r"base\s+>=\s*4\.17\.2\.1\s*&&\s*<\s*4\.20", text):
             raise ReleaseError(f"{cabal_path}: missing evidence-backed full base bounds")
 
@@ -1068,6 +1123,7 @@ def generate_sbom(info: ArchiveInfo, revision: str, epoch: int) -> dict[str, obj
             handle = tar.extractfile(member)
             if handle is None:
                 raise ReleaseError(f"cannot read archive member for SBOM: {member.name}")
+            # pi-lens-ignore: python-weak-hash
             sha1 = hashlib.sha1(usedforsecurity=False)
             sha256 = hashlib.sha256()
             with handle:
@@ -1114,6 +1170,7 @@ def generate_sbom(info: ArchiveInfo, revision: str, epoch: int) -> dict[str, obj
             "downloadLocation": "NOASSERTION",
             "filesAnalyzed": True,
             "packageVerificationCode": {
+                # pi-lens-ignore: python-weak-hash
                 "packageVerificationCodeValue": hashlib.sha1(
                     "".join(sorted(verification_hashes)).encode("ascii"),
                     usedforsecurity=False,
@@ -1136,6 +1193,7 @@ def generate_sbom(info: ArchiveInfo, revision: str, epoch: int) -> dict[str, obj
                 "downloadLocation": "https://github.com/mathjax/MathJax-src",
                 "filesAnalyzed": True,
                 "packageVerificationCode": {
+                    # pi-lens-ignore: python-weak-hash
                     "packageVerificationCodeValue": hashlib.sha1(
                         "".join(sorted(mathjax_verification_hashes)).encode("ascii"),
                         usedforsecurity=False,
@@ -1420,7 +1478,7 @@ def main(argv: list[str] | None = None) -> int:
                 f"{sum(item.kind == 'test' for item in components)} suites, "
                 f"{sum(item.kind == 'benchmark' for item in components)} benchmarks, "
                 "exact public sibling edges, checked test-only integration edges, "
-                "Proposed decision statuses, and exposed-module goldens validated"
+                "Accepted decision statuses, and exposed-module goldens validated"
             )
         elif args.command == "check-source":
             check_source_checkout(args.root, args.revision)

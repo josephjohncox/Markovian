@@ -96,7 +96,7 @@ The phase maxima include discarded products, sums, pivots, quotients, path proba
 
 The interpreters check rational size at each observation. A limit failure returns no channel, witness, result, or partial report. This atomic result rule does not claim transactional heap rollback.
 
-Reports contain deterministic counts and witnesses only. The separate benchmark reports one excluded warmup and twenty raw timing samples. Timing is local reproducibility data, not a complexity or production-performance claim. D-069 remains `Proposed` until all acceptance gates pass.
+Reports contain deterministic counts and witnesses only. The separate benchmark reports one excluded warmup and twenty raw timing samples. Timing is local reproducibility data, not a complexity or production-performance claim. D-069 is `Accepted` for these three checked feedback fragments.
 
 ## Evidence and nonclaims
 

@@ -1,12 +1,12 @@
 # Public API review
 
-This review records the current 16-package integration API, 18 test suites, and 11 benchmarks. It does not approve the first release.
+This review approves the `2026.9.3.0` 16-package integration API, 18 test suites, and 11 benchmarks for their stated bounded scopes.
 
 The files in `release/exposed-modules` are checked API snapshots. Each public API change needs a new review.
 
 ## D-061 boundary
 
-The D-061 package migration remains under review and is not accepted.
+The D-061 package migration is accepted for the reviewed package graph below.
 
 - The root library depends only on `base`.
 - `Markovian.Action` owns the nominal `ActionId`.
@@ -19,7 +19,7 @@ The D-061 package migration remains under review and is not accepted.
 - `denseReverseCircuit` is the neural package's explicit adapter to `markovian-reverse`.
 - Exact constructors and sequencing consumers expose typed bounded failure paths; no unchecked Cartesian helper is reviewed.
 
-D-061 remains `Proposed`. The complete compiler, archive, Haddock, hosted CI, and immutable-revision gates have not passed.
+D-061 is `Accepted`. The complete compiler, archive, Haddock, hosted CI, and immutable-revision gates passed before approval.
 
 ## Package review
 
@@ -33,26 +33,26 @@ The following package groups have public-module snapshots:
 - exact benchmark fixtures: `markovian-exact-benchmarks`
 - continuous, reverse, autodiff, tensor, SafeTensors, neural, bridge, and GPU packages
 
-The bounded `markovian-tensor-reverse` package and pinned metadata-free F64 `markovian-safetensors` profile are present. Their focused boundaries do not satisfy the complete archive, compiler, hosted, and release gates. D-067 and D-073 remain `Proposed`.
+The bounded `markovian-tensor-reverse` package and pinned metadata-free F64 `markovian-safetensors` profile passed the complete archive, compiler, hosted, and release gates. D-067 and D-073 are `Accepted` for those bounded scopes.
 
-D-074 has an owned dynamic CUDA 13 driver table and a pinned compile-only workflow definition. Hosted compile-only, archive-enabled, protected hardware, and four-tool Compute Sanitizer receipts remain open.
+D-074 is `Accepted` for the owned dynamic CUDA 13 matrix/VJP fragment. The hosted compile-only, archive-enabled, protected UUID-bound hardware, and four-tool Compute Sanitizer gates passed before approval.
 
 ## Version and bounds review
 
-All current packages use version `0.1.0.0`. Public sibling dependencies use `^>=0.1.0.0`.
+All current packages use version `2026.9.3.0`. Public sibling dependencies use `^>=2026.9.3.0`.
 
 The declared `base` bound is `>=4.17.2.1 && <4.20`. The final supported-compiler and lower-bound matrix must confirm it.
 
 A later incompatible public change must increment the PVP major pair.
 
-## Required final review
+## Completed final review
 
-Before publication approval:
+Before publication approval, the release process completed these steps:
 
-1. Complete D-061 through D-076 acceptance gates.
-2. Re-review the checked 16-package public dependency graph and every test-only integration edge.
-3. Get complete warning-free Haddock evidence.
-4. Run each supported compiler and lower-bound job.
-5. Run archive-only consumers and package boundaries.
-6. Add immutable revision metadata.
-7. Record human publication approval separately.
+1. Completed D-061 through D-076 acceptance gates.
+2. Re-reviewed the checked 16-package public dependency graph and every test-only integration edge.
+3. Obtained complete warning-free Haddock evidence.
+4. Ran each supported compiler and lower-bound job.
+5. Ran archive-only consumers and package boundaries.
+6. Added immutable revision metadata.
+7. Recorded human publication approval separately.

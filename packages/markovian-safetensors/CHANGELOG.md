@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.1.0.0 — Unreleased
+## 2026.9.3.0 — 2026-09-03
 
 - Add a duplicate-preserving bounded parser for the metadata-free F64 SafeTensors profile.
 - Validate complete headers, UTF-8 names, shapes, products, offsets, coverage, payload lengths, and allocation plans before allocation.

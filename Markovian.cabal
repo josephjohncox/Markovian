@@ -1,6 +1,6 @@
 cabal-version:      3.4
 name:               Markovian
-version:            0.1.0.0
+version:            2026.9.3.0
 synopsis:           Exact finite stochastic structure and decision semantics
 description:
   Base-only exact and exact-neutral interfaces for finite stochastic structure,
@@ -135,6 +135,11 @@ source-repository head
   type:     git
   location: https://github.com/josephjohncox/Markovian.git
 
+source-repository this
+  type:     git
+  location: https://github.com/josephjohncox/Markovian.git
+  tag:      v2026.9.3.0
+
 common warnings
   ghc-options: -Wall
 
@@ -210,8 +215,8 @@ executable MixedGamesExample
   import:           warnings
   main-is:          Main.hs
   build-depends:
-    , base       >=4.17.2.1 && <4.20
-    , Markovian  ==0.1.0.0
+    , base       >=4.17.2.1   && <4.20
+    , Markovian  ==2026.9.3.0
 
   hs-source-dirs:   examples/games/exact
   default-language: GHC2021
@@ -220,8 +225,8 @@ executable Sample
   import:           warnings
   main-is:          Main.hs
   build-depends:
-    , base       >=4.17.2.1 && <4.20
-    , Markovian  ==0.1.0.0
+    , base       >=4.17.2.1   && <4.20
+    , Markovian  ==2026.9.3.0
 
   hs-source-dirs:   app/Sample
   default-language: GHC2021
@@ -245,8 +250,8 @@ test-suite Markovian-test
     PushPullExact
 
   build-depends:
-    , base       >=4.17.2.1 && <4.20
-    , Markovian  ==0.1.0.0
+    , base       >=4.17.2.1   && <4.20
+    , Markovian  ==2026.9.3.0
 
   hs-source-dirs:   test
   default-language: GHC2021

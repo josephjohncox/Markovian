@@ -1,16 +1,24 @@
 # Release preparation
 
-Markovian is not ready for publication. D-061, D-067, D-073, D-074, D-075, and D-076 remain open.
+Release `2026.9.3.0` passed D-061 through D-076 and the complete preparation, attestation, and protected CUDA evidence gates. These decisions are accepted only for their stated bounded scopes.
 
 Release preparation creates checked local artifacts. It does not upload packages, create tags, or create releases.
 
+## Calendar versioning
+
+Coordinated releases use the UTC calendar version `YYYY.M.D.N`. The year has four digits. The month and day use canonical decimal notation without leading zeroes. The final component is a zero-based same-day release sequence. For example, the first release on 2026-09-03 is `2026.9.3.0`; another release on that UTC date is `2026.9.3.1`.
+
+All 16 packages use the same calendar version. The Git tag is `vYYYY.M.D.N`, and every `source-repository this` section identifies that exact tag and package subdirectory. The release metadata checker rejects non-calendar versions, impossible dates, leading zeroes, mixed package versions, or mismatched tags.
+
+Public sibling bounds still use Cabal's `^>=` operator. The `YYYY.M` pair therefore defines the PVP compatibility line for a coordinated release.
+
 ## Preparation contract
 
-`release/packages.tsv` owns the bounded 16-package list, versions, and dependency tiers. `release/components.tsv` owns the 18 required test suites, 11 benchmarks, and the neural integration flag. These files describe the integration overlay; they do not approve D-061 or publication.
+`release/packages.tsv` owns the bounded 16-package list, versions, and dependency tiers. `release/components.tsv` owns the 18 required test suites, 11 benchmarks, and the neural integration flag. These files describe the released integration graph. They do not by themselves authorize publication.
 
 The preparation script requires a full lowercase 40-character commit object ID and a clean worktree at that exact commit. It refuses Hackage credentials and an existing output directory.
 
-The script runs package checks, tests, lower-bound resolution, boundaries, benchmarks, Haddock, and the book check. Its warning-enabled Haddock installation uses a fresh store, rejects every build and Haddock warning, requires one interface per package, and requires complete public declaration coverage from the same log. Cabal 3.16 emits a two-line missing-package-list advisory in the scrubbed home even when `active-repositories: :none`; the checker permits only that exact non-build advisory and removes it only from the derived coverage input. It then creates each source archive twice.
+The script runs package checks, tests, lower-bound resolution, boundaries, benchmarks, Haddock, and the book check. Its warning-enabled Haddock installation uses a fresh store, rejects every build and Haddock warning, and requires one interface per package. Cabal 3.16 emits a two-line missing-package-list advisory in the scrubbed home even when `active-repositories: :none`; the warning checker permits only that exact non-build advisory. A separate serial `cabal haddock all` pass uses `--haddock-options=--no-warnings` only to produce declaration-coverage rows. The coverage checker excludes declared private modules and requires exact public coverage; the suppressed pass is never warning evidence. The script then creates each source archive twice.
 
 The script compares archive bytes before extraction. It rejects traversal, links, duplicate entries, unsafe modes, credential-like names, and size-budget failures. Checked extraction writes regular files and directories only and verifies that the archive bytes did not change after validation.
 
@@ -61,16 +69,16 @@ After provenance and digest checks pass, use the bounded extractor:
 
 ```sh
 bash scripts/check-release-archive \
-  markovian-release-artifacts/archives/Markovian-0.1.0.0.tar.gz \
+  markovian-release-artifacts/archives/Markovian-2026.9.3.0.tar.gz \
   --name Markovian \
-  --version 0.1.0.0 \
+  --version 2026.9.3.0 \
   --extract unpacked
 ```
 
 Build the package from the checked directory:
 
 ```sh
-cd unpacked/Markovian-0.1.0.0
+cd unpacked/Markovian-2026.9.3.0
 cabal build all
 cabal test all --test-show-details=direct
 ```

@@ -22,7 +22,7 @@ The root `Markovian` library now depends only on `base`. Its public modules cont
 
 ## Removed APIs
 
-The project is unreleased, so the correction has no compatibility shims.
+This first release contains the corrected API and has no compatibility shims for pre-release interfaces.
 
 - `Markovian.Category.Finite.Exact` is no longer public.
 - `lowerExactIR` is removed.
@@ -52,14 +52,14 @@ Bivariate integration uses the raw limit as a cumulative Cartesian-pair limit. I
 
 The pure D-067 foundation moved from `Markovian.Backend.Neural.Reverse.Program` to `Markovian.Reverse.Program`. Add `markovian-reverse` directly.
 
-Effect-capable execution is exposed by `Markovian.Reverse.Program.Effect`; keep pure callers on `Markovian.Reverse.Program`. `Markovian.Tensor.Reverse` is owned by `markovian-tensor`; add that package for closed primitive tapes. `Markovian.Tensor.Reverse.Program` remains in `markovian-tensor-reverse` as the bounded host adapter. The tensor allocator capability is private and preserves atomic staged multi-output allocation. The neural package now exposes `denseReverseCircuit` as an explicit adapter to `markovian-reverse`, and the orphan neural reverse re-export wrappers are removed. Generic tensor and CUDA reverse-program lowering remain unsupported, and D-067 remains `Proposed` until all gates pass.
+Effect-capable execution is exposed by `Markovian.Reverse.Program.Effect`; keep pure callers on `Markovian.Reverse.Program`. `Markovian.Tensor.Reverse` is owned by `markovian-tensor`; add that package for closed primitive tapes. `Markovian.Tensor.Reverse.Program` remains in `markovian-tensor-reverse` as the bounded host adapter. The tensor allocator capability is private and preserves atomic staged multi-output allocation. The neural package now exposes `denseReverseCircuit` as an explicit adapter to `markovian-reverse`, and the orphan neural reverse re-export wrappers are removed. Generic tensor and CUDA reverse-program lowering remain unsupported. D-067 is accepted only for the bounded effect and host-adapter scope.
 
 ## SafeTensors profile
 
-Add `markovian-safetensors` to parse or emit the pinned metadata-free F64 profile. Construct limits with `safeTensorLimits`, keep decoding inside `withTensorSession`, and use `finiteTensor` separately when finite values are required. The decoder now rejects metadata, non-F64 dtypes, duplicate names or descriptor fields, malformed UTF-8 or JSON, invalid shapes and products, and noncontiguous payload coverage. This is a new bounded API, not a compatibility surface for arbitrary SafeTensors files. D-073 remains `Proposed` until all gates pass.
+Add `markovian-safetensors` to parse or emit the pinned metadata-free F64 profile. Construct limits with `safeTensorLimits`, keep decoding inside `withTensorSession`, and use `finiteTensor` separately when finite values are required. The decoder now rejects metadata, non-F64 dtypes, duplicate names or descriptor fields, malformed UTF-8 or JSON, invalid shapes and products, and noncontiguous payload coverage. This is a bounded API, not a compatibility surface for arbitrary SafeTensors files. D-073 is accepted only for the pinned metadata-free F64 profile.
 
 ## Release status
 
-D-061 remains `Proposed`. The source split and focused boundaries do not satisfy the full compiler, archive, hosted CI, and release gates.
+D-061 is `Accepted`. The source split passed the full compiler, archive, hosted CI, and release gates before publication.
 
-Do not treat this worktree as a release candidate. Publication requires a separate human authorization.
+Do not treat a modified checkout or a preparation bundle as publication authorization. Publication requires a separate human request.

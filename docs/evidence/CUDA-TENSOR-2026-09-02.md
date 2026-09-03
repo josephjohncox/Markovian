@@ -59,7 +59,7 @@ library links `libdl`, not `libcuda`; `ldd` and a no-GPU hosted compile-only
 receipt remain acceptance gates rather than claims in this local record.
 
 The repository now defines a digest-pinned
-`nvidia/cuda:13.0.0-devel-ubuntu22.04` compile-only workflow. It verifies the
+`nvidia/cuda:13.0.2-devel-ubuntu22.04` compile-only workflow. It verifies the
 CUDA driver-header digest, regenerates both committed PTX artifacts, compiles
 the complete enabled C/Haskell path, and runs missing-driver/symbol contracts
 without GPU access. The workflow definition is not evidence that hosted CI has

@@ -1,6 +1,6 @@
 # Public module map
 
-This map describes the current unreleased API. `release/exposed-modules` contains the checked package snapshots.
+This map describes the `2026.9.3.0` released API. `release/exposed-modules` contains the checked package snapshots.
 
 The unaccepted D-061 migration keeps the root on exact and exact-neutral structural modules. Optional packages currently own numerical, sampled, learning, dense, and benchmark modules. This map records the working API, not release acceptance.
 
@@ -13,7 +13,7 @@ The unaccepted D-061 migration keeps the root on exact and exact-neutral structu
 | `markovian-dense-exact` | Dense `Rational` circuit lowering and execution |
 | `markovian-exact-benchmarks` | Exact inventory fixtures, reports, and benchmarks |
 
-D-061 remains `Proposed` until all gates pass. Effect-capable tensor integration remains blocked by D-067.
+D-061 is `Accepted` for the reviewed package graph. D-067 is accepted only for the bounded effect-capable reverse interpreter and host tensor adapter.
 
 ## Scalars and finite witnesses
 

@@ -14,5 +14,5 @@ foreign pointers, sparse layouts, devices, arbitrary-Haskell autodiff, general
 tensor semantics, or serialization. The separate `markovian-safetensors`
 package implements only the pinned metadata-free F64 profile. The pure and
 effect-capable generic reverse interpreters are in `markovian-reverse`. `Markovian.Tensor.Reverse` owns the closed primitive-tape API in this package. The separate `markovian-tensor-reverse` package supplies a bounded host adapter for closed `tanh` and pointwise-multiplication symbols. `Markovian.Tensor.Internal.Reverse` is not exposed. This does not establish
-generic tensor or device lowering. D-067 and D-073 remain `Proposed` pending
-all gates.
+generic tensor or device lowering. D-067 and D-073 are `Accepted` only for
+their bounded reverse-execution and SafeTensors scopes.

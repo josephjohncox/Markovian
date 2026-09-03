@@ -1,6 +1,6 @@
 cabal-version:      3.4
 name:               markovian-safetensors
-version:            0.1.0.0
+version:            2026.9.3.0
 synopsis:           Bounded canonical F64 SafeTensors profile for Markovian
 description:
   A duplicate-preserving bounded parser and deterministic encoder for the
@@ -33,6 +33,12 @@ source-repository head
   location: https://github.com/josephjohncox/Markovian.git
   subdir:   packages/markovian-safetensors
 
+source-repository this
+  type:     git
+  location: https://github.com/josephjohncox/Markovian.git
+  tag:      v2026.9.3.0
+  subdir:   packages/markovian-safetensors
+
 common warnings
   ghc-options: -Wall
 
@@ -41,9 +47,9 @@ library
   exposed-modules:  Markovian.Tensor.SafeTensors
   hs-source-dirs:   src
   build-depends:
-    , base              >=4.17.2.1 && <4.20
-    , bytestring        >=0.11     && <0.13
-    , markovian-tensor  ^>=0.1.0.0
+    , base              >=4.17.2.1    && <4.20
+    , bytestring        >=0.11        && <0.13
+    , markovian-tensor  ^>=2026.9.3.0
 
   default-language: GHC2021
 
@@ -55,9 +61,9 @@ test-suite markovian-safetensors-test
   other-modules:    Paths_markovian_safetensors
   autogen-modules:  Paths_markovian_safetensors
   build-depends:
-    , base                   >=4.17.2.1 && <4.20
-    , bytestring             >=0.11     && <0.13
-    , markovian-safetensors  ==0.1.0.0
-    , markovian-tensor       ==0.1.0.0
+    , base                   >=4.17.2.1   && <4.20
+    , bytestring             >=0.11       && <0.13
+    , markovian-safetensors  ==2026.9.3.0
+    , markovian-tensor       ==2026.9.3.0
 
   default-language: GHC2021

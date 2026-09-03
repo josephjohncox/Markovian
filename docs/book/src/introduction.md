@@ -72,7 +72,7 @@ The final chapters state execution boundaries and unsupported claims. The projec
 
 ## Project status
 
-The package is unreleased. It makes no compatibility promise. The project removes an incorrect API instead of preserving it behind a compatibility layer.
+Release `2026.9.3.0` is the first public API. Pre-release incorrect interfaces were removed instead of being preserved behind a compatibility layer.
 
 The implemented scope is finite and discrete. Cyclic MDP value problems use bounded dynamic programming or Bellman fixed points. Arbitrary cyclic open-graph interpretation remains outside the implemented scope.
 

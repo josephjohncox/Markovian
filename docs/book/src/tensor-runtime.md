@@ -178,6 +178,7 @@ A file name does not create `TensorOwner` evidence. The profile does not
 serialize storage IDs, layouts, tapes, callbacks, executors, streams, or
 pointers. It does not support metadata, F16, BF16, F32, integer dtypes, sparse
 storage, arbitrary strides, mapped zero-copy input, or devices. The malformed
-corpus and canonical golden are focused implementation evidence, not a claim
-of general SafeTensors interoperability. D-073 remains `Proposed` until all
-compiler, archive, documentation, hosted, and release gates pass.
+corpus and canonical golden are evidence for this bounded profile, not a claim
+of general SafeTensors interoperability. D-073 is `Accepted` only for this
+profile after the compiler, archive, documentation, hosted, and release gates
+passed.

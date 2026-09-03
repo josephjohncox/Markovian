@@ -1,6 +1,6 @@
 # Changelog for markovian-autodiff
 
-## 0.1.0.0 — Unreleased
+## 2026.9.3.0 — 2026-09-03
 
 - Add a closed typed polynomial and `tanh` language.
 - Add bounded lowering to owned reverse programs.

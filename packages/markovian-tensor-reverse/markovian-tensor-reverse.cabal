@@ -1,6 +1,6 @@
 cabal-version:      3.4
 name:               markovian-tensor-reverse
-version:            0.1.0.0
+version:            2026.9.3.0
 synopsis:           Region-bound tensor adapter for bounded reverse programs
 description:
   Closed host F64 tensor symbols interpreted through markovian-reverse's
@@ -31,6 +31,12 @@ source-repository head
   location: https://github.com/josephjohncox/Markovian.git
   subdir:   packages/markovian-tensor-reverse
 
+source-repository this
+  type:     git
+  location: https://github.com/josephjohncox/Markovian.git
+  tag:      v2026.9.3.0
+  subdir:   packages/markovian-tensor-reverse
+
 common warnings
   ghc-options: -Wall
 
@@ -39,9 +45,9 @@ library
   exposed-modules:  Markovian.Tensor.Reverse.Program
   hs-source-dirs:   src
   build-depends:
-    , base               >=4.17.2.1 && <4.20
-    , markovian-reverse  ^>=0.1.0.0
-    , markovian-tensor   ^>=0.1.0.0
+    , base               >=4.17.2.1    && <4.20
+    , markovian-reverse  ^>=2026.9.3.0
+    , markovian-tensor   ^>=2026.9.3.0
 
   default-language: GHC2021
 
@@ -51,9 +57,9 @@ test-suite markovian-tensor-reverse-test
   main-is:          Main.hs
   hs-source-dirs:   test
   build-depends:
-    , base                      >=4.17.2.1 && <4.20
-    , markovian-reverse         ^>=0.1.0.0
-    , markovian-tensor          ^>=0.1.0.0
-    , markovian-tensor-reverse  ==0.1.0.0
+    , base                      >=4.17.2.1    && <4.20
+    , markovian-reverse         ^>=2026.9.3.0
+    , markovian-tensor          ^>=2026.9.3.0
+    , markovian-tensor-reverse  ==2026.9.3.0
 
   default-language: GHC2021

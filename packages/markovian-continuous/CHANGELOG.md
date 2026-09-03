@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.1.0.0 (unreleased)
+## 2026.9.3.0 — 2026-09-03
 
 - Add closed standard-Borel witnesses and affine real maps.
 - Add bounded affine-uniform exact laws, kernels, joint moments, and rational polynomial integration.

@@ -1,6 +1,6 @@
 cabal-version:      3.4
 name:               markovian-tensor
-version:            0.1.0.0
+version:            2026.9.3.0
 synopsis:           Checked host F64 tensor runtime for Markovian
 description:
   A bounded host-only F64 buffer runtime with typed shapes, checked immutable
@@ -32,6 +32,12 @@ extra-source-files:
 source-repository head
   type:     git
   location: https://github.com/josephjohncox/Markovian.git
+  subdir:   packages/markovian-tensor
+
+source-repository this
+  type:     git
+  location: https://github.com/josephjohncox/Markovian.git
+  tag:      v2026.9.3.0
   subdir:   packages/markovian-tensor
 
 common warnings
@@ -74,8 +80,8 @@ test-suite markovian-tensor-test
   other-modules:    Paths_markovian_tensor
   autogen-modules:  Paths_markovian_tensor
   build-depends:
-    , base              >=4.17.2.1 && <4.20
-    , markovian-tensor  ==0.1.0.0
+    , base              >=4.17.2.1   && <4.20
+    , markovian-tensor  ==2026.9.3.0
 
   default-language: GHC2021
 
@@ -85,7 +91,7 @@ benchmark markovian-tensor-bench
   main-is:          Main.hs
   hs-source-dirs:   bench
   build-depends:
-    , base              >=4.17.2.1 && <4.20
-    , markovian-tensor  ==0.1.0.0
+    , base              >=4.17.2.1   && <4.20
+    , markovian-tensor  ==2026.9.3.0
 
   default-language: GHC2021

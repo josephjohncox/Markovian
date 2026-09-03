@@ -379,7 +379,7 @@ consumer="${stage}/consumer"
 mkdir -p "${consumer}/app"
 cp examples/release/exact/markovian-release-example.cabal "${consumer}/"
 cp examples/release/exact/app/Main.hs "${consumer}/app/"
-root_archive="${stage}/unpacked/Markovian-0.1.0.0"
+root_archive="${stage}/unpacked/Markovian-2026.9.3.0"
 cat > "${consumer}/cabal.project" <<EOF
 packages:
   .

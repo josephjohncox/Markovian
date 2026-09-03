@@ -52,13 +52,13 @@ Validate an archive before extraction:
 
 ```sh
 bash scripts/check-release-archive \
-  Markovian-0.1.0.0.tar.gz \
+  Markovian-2026.9.3.0.tar.gz \
   --name Markovian \
-  --version 0.1.0.0 \
+  --version 2026.9.3.0 \
   --extract unpacked
 ```
 
-Then build from `unpacked/Markovian-0.1.0.0`. See [Release preparation](release-preparation.md) for checksums, SBOMs, and provenance.
+Then build from `unpacked/Markovian-2026.9.3.0`. See [Release preparation](release-preparation.md) for checksums, SBOMs, and provenance.
 
 ## Install the documentation tool
 

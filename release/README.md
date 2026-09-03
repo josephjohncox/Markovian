@@ -2,7 +2,7 @@
 
 `packages.tsv` lists the current 16-package integration graph. It is not publication approval.
 
-`exposed-modules` contains reviewed public-module snapshots for each manifest package. `API-REVIEW.md` records open gates.
+`exposed-modules` contains reviewed public-module snapshots for each manifest package. `API-REVIEW.md` records the completed API review.
 
 `components.tsv` lists all 18 mandatory test suites, 11 benchmarks, and component flags. The release tool checks it against all Cabal files.
 
@@ -14,7 +14,7 @@ The Haddock gate has two separate passes. An isolated installation supplies warn
 
 A second pass uses `--no-warnings` only to measure declaration coverage. It does not supply warning-free evidence.
 
-The release tool also checks the exact public sibling dependency graph, unique public module ownership, and one exposed-module golden per package. The bounded `markovian-tensor-reverse` package and pinned metadata-free F64 `markovian-safetensors` profile are present. Their complete immutable-revision release gates have not passed.
+The release tool also checks the exact public sibling dependency graph, unique public module ownership, and one exposed-module golden per package. The bounded `markovian-tensor-reverse` package and pinned metadata-free F64 `markovian-safetensors` profile passed their complete immutable-revision release gates.
 
 Release preparation accepts only a clean checkout at the exact requested commit. It publishes the output with one no-replace rename.
 

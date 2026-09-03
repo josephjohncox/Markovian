@@ -178,11 +178,11 @@ Closure removes the selected action ID. Code that needs action-labeled traces us
 
 ### D-014: Select the test framework
 
-**Status:** Proposed
+**Status:** Superseded by the base-only executable test harness and D-024
 
 **Question:** Which unit and property test packages fit the supported compiler and dependency policy?
 
-**Required evidence:** A small characterization-test change, Cabal bounds, maintenance review, and CI runtime.
+**Resolution:** The released test suites use a base-only executable harness instead of an external test framework. D-024 owns the supported-compiler and hosted CI matrix.
 
 ### D-018: Evaluate a categorical compiler IR
 
@@ -212,11 +212,11 @@ Closure removes the selected action ID. Code that needs action-labeled traces us
 
 ### D-021: Evaluate one continuous-kernel use case
 
-**Status:** Proposed
+**Status:** Superseded by D-070 and D-071
 
 **Question:** Which continuous model and interpreter justify a package outside the finite core?
 
-**Required evidence:** Measurability, integrability, supported operations, errors, and a reference or statistical validation plan.
+**Resolution:** D-070 and D-071 define and validate the restricted affine-uniform exact fragment and its bounded numerical interpreter outside the finite core.
 
 ### D-022: Implement the bounded Foundation Kickoff core slice
 
@@ -324,7 +324,7 @@ The slice can add `Reward`, `Kernel`, `Policy`, and one-step MRP and MDP interfa
 
 **Status:** Accepted
 
-**Decision:** Markovian is greenfield and unreleased. It has no compatibility obligation. Remove the branch-weight process, recursive `MDPF`, defective Q-learning code, legacy examples, compatibility tests, adapter roadmap, and dependencies used only by those artifacts. Do not provide shims or deprecation periods for interfaces known to be semantically wrong.
+**Decision:** Before the first public release, Markovian had no compatibility obligation. Remove the branch-weight process, recursive `MDPF`, defective Q-learning code, legacy examples, compatibility tests, adapter roadmap, and dependencies used only by those artifacts. Do not provide shims or deprecation periods for interfaces known to be semantically wrong.
 
 **Rationale:** Compatibility preserves value only when users depend on a coherent contract. These interfaces had no users and encoded contradictory meanings for actions, unchecked probability, unbounded recursion, partial operations, and incorrect learning semantics. Retaining them would increase defect surface and constrain the correct design for no benefit.
 
@@ -841,7 +841,7 @@ A strategy schema stores a structural ownership tree. Observational equality acc
 
 ### D-061: Separate the exact semantic core from optional execution packages
 
-**Status:** Proposed
+**Status:** Accepted
 
 **Decision:** The release target keeps the root `Markovian` library `base`-only and restricts it to finite exact `Rational` semantics. Move floating values, sampling, sampled interpretation, tabular learning, approximate circuit interpretation, dense execution, and benchmark modules to optional packages. Move `ActionId` to an exact-neutral `Markovian.Action` module before the split. Do not expose the earlier `Markovian.Category.Finite.Exact` IR after supported users migrate to the circuit and matrix layers.
 
@@ -855,17 +855,17 @@ The old finite IR has a renamed private regression location in `markovian-dense-
 
 If D-061 becomes `Accepted`, it supersedes D-037's unrestricted `Monad` and arrow API. It preserves semantic laws only for admitted computations. Acceptance will also supersede D-035's public finite-IR placement.
 
-D-061 remains `Proposed`. Full compiler, archive, Haddock, hosted CI, and immutable-revision gates have not passed.
+D-061 was accepted after the complete compiler, lower-bound, archive, Haddock, hosted CI, and immutable-revision gates passed for the coordinated 16-package release graph.
 
 **Required evidence:** Golden exposed-module lists, package-boundary compile failures, migration tests, exact/numerical differential fixtures, full compiler and lower-bound jobs, warning-free Haddock, deterministic benchmarks, and archive-only builds for every package in the final manifest.
 
 ### D-062: Use PVP and evidence-backed public package metadata
 
-**Status:** Proposed
+**Status:** Accepted
 
-**Decision:** Apply the Package Versioning Policy to every public package. Keep initial versions at `0.1.0.0` while unreleased, use full sibling bounds such as `^>=0.1.0.0`, publish package-specific README and changelog files, and record `tested-with` only for compiler releases that pass. Every exposed declaration must have Haddock documentation, and every package must have a reviewed exposed-module golden before the first release.
+**Decision:** Apply coordinated UTC CalVer `YYYY.M.D.N` and the Package Versioning Policy to every public package. Use full sibling bounds such as `^>=2026.9.3.0`, publish package-specific README and changelog files, and record `tested-with` only for compiler releases that pass. Every exposed declaration must have Haddock documentation, and every package must have a reviewed exposed-module golden before release.
 
-**Current boundary:** All current packages have checked metadata, package README and changelog files, PVP sibling bounds, and exposed-module snapshots. The API is not frozen. The D-061 source split is present, but its full acceptance gates remain incomplete. Root exposed-declaration Haddock is complete. No `source-repository this` field can exist before an authorized immutable release revision is selected.
+**Current boundary:** All 16 packages use `2026.9.3.0`, checked metadata, package README and changelog files, PVP sibling bounds, and exposed-module snapshots. Every `source-repository this` section identifies `v2026.9.3.0` and the applicable package subdirectory. The release gates verify complete public Haddock coverage.
 
 **Consequences:** A later incompatible public change increments the PVP major pair. Hackage revisions may correct metadata but may not carry code or API changes. Compiler support is explicit rather than inferred between tested endpoints.
 
@@ -873,11 +873,11 @@ D-061 remains `Proposed`. Full compiler, archive, Haddock, hosted CI, and immuta
 
 ### D-063: Prepare bounded source-release artifacts without publication authority
 
-**Status:** Proposed
+**Status:** Accepted
 
 **Decision:** Release preparation must use one reviewed package manifest, require an exact clean revision, validate package names, versions, dependency tiers, archive paths and sizes, generate every source archive twice, compare bytes, unpack into isolated directories, execute the archive-only dependency graph, and stage checksums, deterministic manifests, and SPDX 2.3 source SBOMs atomically. Preparation contains no upload, tag, release, or publication command and receives no Hackage credential.
 
-**Current boundary:** The repository has a bounded integration manifest, checked API snapshots, archive safety validation, a checked extractor, deterministic artifact metadata, and a fresh consumer. SPDX 2.3 output includes file license information and package verification codes and is checked by pinned independent tooling. `SHA256SUMS` covers archives, SBOMs, the artifact manifest, and `SOURCE-REVISION`; hosted provenance attests those files and the checksum file. Workflow input is validated before privileged jobs and independently in every job. Finalization uses Linux atomic no-replace rename and keeps cleanup active until success. These are preparation mechanisms only. A clean immutable revision has not run the complete script. The current manifest has 16 packages. The bounded tensor-reverse package and pinned metadata-free F64 SafeTensors profile are available, but their complete release gates have not passed. Hackage publication is not atomic across packages.
+**Current boundary:** The repository has a bounded integration manifest, checked API snapshots, archive safety validation, a checked extractor, deterministic artifact metadata, and a fresh consumer. SPDX 2.3 output includes file license information and package verification codes and is checked by pinned independent tooling. `SHA256SUMS` covers archives, SBOMs, the artifact manifest, and `SOURCE-REVISION`; hosted provenance attests those files and the checksum file. Workflow input is validated before privileged jobs and independently in every job. Finalization uses Linux atomic no-replace rename and keeps cleanup active until success. The complete preparation and attestation workflow passed for the clean immutable 16-package release candidate. It produced two byte-identical source-archive generations, archive-only consumers, checked SBOMs and checksums, and a 37-subject verified SLSA provenance statement. Hackage publication remains non-atomic across packages.
 
 **Consequences:** SHA-256, an SBOM, provenance, and reproducible bytes each describe a limited property; none proves semantic correctness or safety. Candidate upload and publication remain separate, human-authorized operations.
 
@@ -885,7 +885,7 @@ D-061 remains `Proposed`. Full compiler, archive, Haddock, hosted CI, and immuta
 
 ### D-064: Add exact owned mixtures, Nash verification, CE, and CCE
 
-**Status:** Proposed
+**Status:** Accepted
 
 **Decision:** Add opaque owner-indexed finite products, complete extensional `Rational` simplexes, complete exact normal-form payoff tables, independent mixed profiles, and separate joint correlation devices. Constructors reject missing, duplicate, outside, negative, or non-normalized input and preflight represented products before allocation. Candidate checks enumerate every pure unilateral deviation. CE uses unconditional recommendation inequalities; zero-mass recommendations are reported as null. CCE uses separate constant pre-recommendation deviations and a distinct report type.
 
@@ -895,15 +895,15 @@ D-061 remains `Proposed`. Full compiler, archive, Haddock, hosted CI, and immuta
 
 **Current blocker:** The game APIs use explicit `GameLimits`, capped preflight, and active-limit rational revalidation. The root exact distribution constructor rejects raw supports above 4096 entries. Checked bind now limits result support, work, numerator bits, and denominator bits.
 
-This repair does not assign general distribution limits to game operations. D-064 remains `Proposed` until all project gates pass.
+This repair does not assign general distribution limits to game operations. D-064 is accepted only for the bounded exact scope above.
 
-**Required evidence:** `test/MixedBayesianGames.hs` checks matching pennies, all binary two-player payoff tables against independent raw-list enumeration, product-Nash-implies-CE, Dirac-CE iff pure Nash, mismatched and zero-mass subcarriers, Battle of the Sexes correlation, CCE-not-CE, null recommendations, correlated-prior sensitivity, the irrational boundary, degeneracy, infinite input, active rational limits, exact and one-below budgets, and a committed deterministic report golden. `scripts/check-mixed-game-boundary` checks constructor opacity, nominal roles, terminology, and semantic type separation. `mixed-games-exact-bench` runs one excluded warmup and twenty samples with host/toolchain metadata, raw samples, and an asserted semantic checksum. Acceptance remains blocked on complete hosted CI and the remaining D-061 gates.
+**Required evidence:** `test/MixedBayesianGames.hs` checks matching pennies, all binary two-player payoff tables against independent raw-list enumeration, product-Nash-implies-CE, Dirac-CE iff pure Nash, mismatched and zero-mass subcarriers, Battle of the Sexes correlation, CCE-not-CE, null recommendations, correlated-prior sensitivity, the irrational boundary, degeneracy, infinite input, active rational limits, exact and one-below budgets, and a committed deterministic report golden. `scripts/check-mixed-game-boundary` checks constructor opacity, nominal roles, terminology, and semantic type separation. `mixed-games-exact-bench` runs one excluded warmup and twenty samples with host/toolchain metadata, raw samples, and an asserted semantic checksum. The complete hosted CI, archive, and D-061 gates passed before acceptance.
 
 **Primary sources:** John Nash, “Non-Cooperative Games,” 1951, DOI `10.2307/1969529`; Robert Aumann, “Subjectivity and Correlation in Randomized Strategies,” 1974, DOI `10.1016/0304-4068(74)90037-8`, and “Correlated Equilibrium as an Expression of Bayesian Rationality,” 1987, DOI `10.2307/1911154`; Lemke and Howson, “Equilibrium Points of Bimatrix Games,” 1964, DOI `10.1137/0112033`.
 
 ### D-065: Preserve joint outcomes in finite-horizon public-state stochastic games
 
-**Status:** Proposed
+**Status:** Accepted
 
 **Decision:** Add complete exact joint laws whose atoms retain transition reward vectors and successor states together. Add finite, public-state, simultaneous-action stochastic games with exact terminal values, one exact discount, complete finite-horizon Markov profiles, exact dynamic-programming evaluation, and finite-horizon Markov-perfect candidate checks.
 
@@ -917,7 +917,7 @@ This repair does not assign general distribution limits to game operations. D-06
 
 ### D-066: Add correlated-prior one-shot Harsanyi checks and a bounded strategic-normal conversion
 
-**Status:** Proposed
+**Status:** Accepted
 
 **Decision:** Add an exact common prior over complete type profiles, allowing correlated types; one private action simplex for every owner/own-type pair; a complete rational type/action payoff table; positive-type interim and ex-ante Bayes-Nash candidate reports; and bounded conversion to pure contingent-plan strategic normal form. Types are not split into independently acting owner-agents. The initial fragment has one action carrier per owner across its types.
 
@@ -925,19 +925,19 @@ This repair does not assign general distribution limits to game operations. D-06
 
 **Consequences:** Type-dependent action carriers, caller-supplied null-type beliefs, refinements, repeated games, imperfect recall, extensive-form correlation, Bayes-correlated equilibrium, general disintegration, and mixed open-game semantics remain unavailable. `normalFormFromOpenContext` is only a checked extraction of one closed finite open-game context: an explicit owner-local/global-profile bijection is required and the existing pure best-response callback must agree exhaustively with exact unilateral maximization.
 
-**Required evidence:** Tests cover correlated common priors, positive and null types, no invented posterior, direct behavioral checks, exact strategic-normal payoffs, and checked open-context extraction. Capped contingent-plan powers, products, cells, and work must fail before enumeration, with exact and one-below fixtures. Acceptance remains blocked on the same final project gates as D-064.
+**Required evidence:** Tests cover correlated common priors, positive and null types, no invented posterior, direct behavioral checks, exact strategic-normal payoffs, and checked open-context extraction. Capped contingent-plan powers, products, cells, and work must fail before enumeration, with exact and one-below fixtures. The same final project gates as D-064 passed before acceptance.
 
 **Primary sources:** John Harsanyi, “Games with Incomplete Information Played by Bayesian Players,” Parts I–III, 1967–1968, DOIs `10.1287/mnsc.14.3.159`, `10.1287/mnsc.14.5.320`, and `10.1287/mnsc.14.7.486`; Harold Kuhn, “Extensive Games and the Problem of Information,” 1953, DOI `10.1515/9781400881970-012`; Ghani, Hedges, Winschel, and Zahn, “Compositional Game Theory,” 2018, DOI `10.1145/3209108.3209165`.
 
 ### D-067: Extract an effect-capable owned reverse-program foundation
 
-**Status:** Proposed
+**Status:** Accepted
 
 **Decision:** Move the finite owned reverse-program foundation from `markovian-neural` to optional `markovian-reverse`, preserving D-058's finite layouts, nominal ownership, diagonal cotangent accumulation, bounded preparation, supplied-VJP interpretation, and opaque stored or recomputed tapes. Preparation remains pure. Primitive execution and pullback callbacks become effect-capable through an explicit `m (Either error value)` boundary so resource-owning tensor sessions can execute without unsafe escape. Neural execution specializes the interface to `Identity`.
 
 The extracted compiler fold must retain closed primitive symbols. Resolved arbitrary Haskell callbacks are not an inspectable or device-lowerable IR.
 
-**Current boundary:** `Markovian.Reverse.Program.Effect` is the execution core. It combines pure bounded preparation of closed symbols with left-to-right `m (Either error value)` boundaries for forward execution, recomputation, pullback, and cotangent addition. The public pure API is its `Identity` specialization, so pure reverse, autodiff, and neural consumers do not use a second interpreter. Attempted callback counts are deterministic on success and failure. `markovian-tensor-reverse` supplies a rank-2 host executor and only closed F64 `tanh` and pointwise-multiplication symbols. The tensor session stages allocations, rolls back partial allocation sets, registers committed buffers, and explicitly finalizes them after success, `Left`, or exceptions. This is not generic tensor or CUDA lowering. `Markovian.Tensor.Reverse` is owned by `markovian-tensor`; its atomic staged allocator capability is private at the Cabal boundary. `markovian-tensor-reverse` owns only the bounded adapter from closed host tapes to reverse programs. Archive and full matrix gates remain open, and D-067 therefore remains Proposed.
+**Current boundary:** `Markovian.Reverse.Program.Effect` is the execution core. It combines pure bounded preparation of closed symbols with left-to-right `m (Either error value)` boundaries for forward execution, recomputation, pullback, and cotangent addition. The public pure API is its `Identity` specialization, so pure reverse, autodiff, and neural consumers do not use a second interpreter. Attempted callback counts are deterministic on success and failure. `markovian-tensor-reverse` supplies a rank-2 host executor and only closed F64 `tanh` and pointwise-multiplication symbols. The tensor session stages allocations, rolls back partial allocation sets, registers committed buffers, and explicitly finalizes them after success, `Left`, or exceptions. This is not generic tensor or CUDA lowering. `Markovian.Tensor.Reverse` is owned by `markovian-tensor`; its atomic staged allocator capability is private at the Cabal boundary. `markovian-tensor-reverse` owns only the bounded adapter from closed host tapes to reverse programs. The archive and full matrix gates passed. D-067 is accepted only for the effect-capable owned reverse-program scope above.
 
 **Consequences:** This decision changes D-058's package placement only after all D-058 behavior is re-established. It does not make arbitrary Haskell differentiable, serializable, inspectable, tensor-lowerable, or device-correct.
 
@@ -945,7 +945,7 @@ The extracted compiler fold must retain closed primitive symbols. Resolved arbit
 
 ### D-068: Add a bounded closed autodiff language and reverse lowering
 
-**Status:** Proposed
+**Status:** Accepted
 
 **Decision:** Add optional `markovian-autodiff`. The package has closed polynomial and smooth fragments. Shapes are unit, scalar, fixed vector, and associated product. Parameter trees contain explicit owner leaves and associated products. Independent duplicate owners fail. `shareParameters` supplies the only parameter diagonal.
 
@@ -957,13 +957,13 @@ Lower each source node to the bounded owned reverse-program interpreter. The com
 
 **Consequences:** The implementation differentiates only this closed first-order language. It does not differentiate arbitrary Haskell, callbacks, recursion, loops, branches, stochastic nodes, sampling, division, `abs`, ReLU, higher derivatives, tensors, or devices. Reverse differentiation remains distinct from matrix dagger, Bayesian inversion, payoff pullback, feedback, strategic duality, and disintegration. Floating reassociation is not an optimizer law. The package lowers directly to the pure `markovian-reverse` foundation. The separate effect interpreter and host tensor adapter do not add a public neural, tensor, or CUDA lowering API.
 
-**Required evidence:** `packages/markovian-autodiff/test/Main.hs` checks exact primal and VJP results, exact JVP/VJP pairing, owner-diagonal accumulation, every represented Double parameter and input coordinate, stored and recomputed parity, repeated tapes, vector rules, budget failures, nonfinite rejection, and floating reassociation. `packages/markovian-autodiff/test/NeuralDifferential.hs` adds one closed `2 -> 2 tanh -> 2` two-layer fixture. Under both tape policies and every output basis seed, it checks every primal, input VJP, weight VJP, and bias VJP coordinate against the separate manual neural runtime and independent central finite differences. It also checks exact shape errors, duplicate-owner rejection, nonfinite perturbation rejection, reusable tapes, and a committed deterministic report for both policies. The neural dependency is test-only; this is fixture evidence rather than a general neural lowering claim. `packages/markovian-autodiff/scripts/check-autodiff-boundary` rejects constructors, hidden modules, shape mismatches, owner coercion, owner-sharing mismatches, smooth exact compilation, and endpoint coercion. The package benchmark records one excluded warmup and twenty raw samples. The repair also adds machine-index admission, conservative per-run work preflight, exact rational numerator/denominator limits, a named immutable Double policy, a private bounded scalar SSA with exact identity rewrites, a syntax-recursive independent JVP oracle, and explicit wrong-seed, fragment, owner-tree, and endpoint compile failures. Acceptance remains blocked on the complete compiler, archive, Haddock, benchmark, hosted CI, and release gate matrix.
+**Required evidence:** `packages/markovian-autodiff/test/Main.hs` checks exact primal and VJP results, exact JVP/VJP pairing, owner-diagonal accumulation, every represented Double parameter and input coordinate, stored and recomputed parity, repeated tapes, vector rules, budget failures, nonfinite rejection, and floating reassociation. `packages/markovian-autodiff/test/NeuralDifferential.hs` adds one closed `2 -> 2 tanh -> 2` two-layer fixture. Under both tape policies and every output basis seed, it checks every primal, input VJP, weight VJP, and bias VJP coordinate against the separate manual neural runtime and independent central finite differences. It also checks exact shape errors, duplicate-owner rejection, nonfinite perturbation rejection, reusable tapes, and a committed deterministic report for both policies. The neural dependency is test-only; this is fixture evidence rather than a general neural lowering claim. `packages/markovian-autodiff/scripts/check-autodiff-boundary` rejects constructors, hidden modules, shape mismatches, owner coercion, owner-sharing mismatches, smooth exact compilation, and endpoint coercion. The package benchmark records one excluded warmup and twenty raw samples. The repair also adds machine-index admission, conservative per-run work preflight, exact rational numerator/denominator limits, a named immutable Double policy, a private bounded scalar SSA with exact identity rewrites, a syntax-recursive independent JVP oracle, and explicit wrong-seed, fragment, owner-tree, and endpoint compile failures. The complete compiler, archive, Haddock, benchmark, hosted CI, and release gate matrix passed before acceptance.
 
 **Primary sources:** Cockett et al., “Reverse derivative categories,” 2020, DOI `10.4230/LIPIcs.CSL.2020.18`; Conal Elliott, “The Simple Essence of Automatic Differentiation,” 2018, DOI `10.1145/3236765`; Griewank and Walther, *Evaluating Derivatives*, second edition, 2008, DOI `10.1137/1.9780898717761`; Baydin et al., “Automatic Differentiation in Machine Learning,” *JMLR* 18(153), 2018; Higham, *Accuracy and Stability of Numerical Algorithms*, second edition, 2002, DOI `10.1137/1.9780898718027`.
 
 ### D-069: Restrict feedback to delayed, proper first-exit, and nilpotent timed fragments
 
-**Status:** Proposed
+**Status:** Accepted
 
 **Decision:** Add three exact finite, `base`-only feedback modules. `Markovian.Feedback.Delay.Exact` executes an explicit seed channel and a one-tick body for a bounded horizon. `Markovian.Feedback.Channel.Exact` closes a coproduct routing channel only after every represented internal state has a positive-mass path to an exit; it solves `H = C + D H` with checked rational elimination and validates the equation and output normalization. `Markovian.Feedback.Timed.Exact` retains accumulated discounted reward, microstep duration, and output in one joint outcome, and therefore accepts only a nilpotent internal continuation block.
 
@@ -973,13 +973,13 @@ Constructors for loop ownership and checked witnesses are opaque and nominally r
 
 **Consequences:** The root package gains no `Traced StochasticMatrix` instance, generic `feedback`, cyclic circuit constructor, cyclic `OpenSystem` black-boxing, stationary-distribution selector, continuous disintegration, or approximate fixed-point certificate. Delayed horizon zero returns only the seeded initial state and an empty trace. A positive tick witness is required for a final output. Timed feedback applies one reward per microstep; an outer continuation uses `G + gamma^d V(output)`. Lead time must remain explicit state. Exact execution owns no generator.
 
-**Required evidence:** `test/FeedbackExact.hs` covers raw-trace normalization failure, fixed-point counterexamples, nilpotent and geometric first exit, eventual contraction, closed-class rejection, and exact limit boundaries. It also covers deterministic reports, independent path oracles, layout changes, delayed joint traces, timed mixtures, and cyclic rejection. The accounting fixtures count operations independently. They make discarded Gaussian, delayed-path, and timed-path maxima exceed retained-result maxima. Each interpreter has exact and one-below work and rational limits. `scripts/check-feedback-boundary` rejects forged witnesses, endpoint coercions, owner coercions, and unchecked channel use. `feedback-exact-bench` requires one deterministic semantic report across all samples. The focused root suites pass with GHC 9.4.8 and 9.8.4 on the current overlay. The isolated GHC 9.8.4 root archive suite also passes. D-069 remains `Proposed` until the complete archive, lower-bound, hosted CI, and release gates pass.
+**Required evidence:** `test/FeedbackExact.hs` covers raw-trace normalization failure, fixed-point counterexamples, nilpotent and geometric first exit, eventual contraction, closed-class rejection, and exact limit boundaries. It also covers deterministic reports, independent path oracles, layout changes, delayed joint traces, timed mixtures, and cyclic rejection. The accounting fixtures count operations independently. They make discarded Gaussian, delayed-path, and timed-path maxima exceed retained-result maxima. Each interpreter has exact and one-below work and rational limits. `scripts/check-feedback-boundary` rejects forged witnesses, endpoint coercions, owner coercions, and unchecked channel use. `feedback-exact-bench` requires one deterministic semantic report across all samples. The focused root suites pass with GHC 9.4.8 and 9.8.4 on the current overlay. The isolated GHC 9.8.4 root archive suite also passes. The complete archive, lower-bound, hosted CI, and release gates passed before D-069 acceptance.
 
 **Primary sources:** André Joyal, Ross Street, and Dominic Verity, “Traced monoidal categories,” 1996, DOI `10.1017/S0305004100074338`; Octavio Malherbe, Philip Scott, and Peter Selinger, “Partially traced categories,” 2012, DOI `10.1016/j.jpaa.2012.03.026`; Sergey Goncharov and Lutz Schröder, “Guarded Traced Categories,” 2018, DOI `10.1007/978-3-319-89366-2_17`; Charles Grinstead and Laurie Snell, *Introduction to Probability*, Chapter 11.
 
 ### D-070: Restrict exact continuous probability to affine compact uniforms and finite observations
 
-**Status:** Proposed
+**Status:** Accepted
 
 **Decision:** Add optional `markovian-continuous`. It supports closed witnesses for finite discrete, real Borel, and finite-product spaces; rational affine real maps; compact rational affine-uniform laws with nominal noise owners; bounded rational polynomial expectations; affine additive-noise kernels; and joint shared or independent moments. Kernel composition is fallible because it checks owner collisions and limits, so there is no unrestricted `Category` instance.
 
@@ -989,13 +989,13 @@ Conditioning is available only for a finite complete affine likelihood on a chec
 
 **Consequences:** `ExactLaw` promises literal rational results only for represented polynomial expectations. It does not provide arbitrary events, arbitrary measurable callbacks, point conditioning, continuous-to-continuous disintegration, a general Radon--Nikodym derivative, a Giry monad, continuous MDP execution, feedback, or tensor semantics. The joint fixture checks `E[U*U]=1/3` and `E[U1*U2]=1/4`; this is the required correlation counterexample.
 
-**Required evidence:** Package tests cover affine map composition, uniform moments through degree eight, affine pushforward, shared and independent noise, bounded infinite/raw/zero-entry lists, finite likelihood validation, exact evidence, checked posterior products and quotient, zero evidence, cumulative disintegration work, kernel composition, collision and injective renaming, support-growth failure, and exact and one-below budgets. Bivariate tests use independent raw expansion oracles for complete powers on both coordinates. They cover shared and independent owners, duplicate monomials, cancellation, deterministic accounting, and exact and one-below raw, canonical, work, and rational limits. A bounded numerical fixture compares an exact bivariate result with tensor-product Simpson and checks all four affine coordinates by central finite differences. The compile-fail boundary rejects constructors, owner/space coercions, point conditioning, and general disintegration. The benchmark requires twenty identical deterministic semantic reports after one excluded warmup. D-070 remains `Proposed`. Acceptance requires fresh supported-compiler, archive, package, and hosted gates for this accounting change.
+**Required evidence:** Package tests cover affine map composition, uniform moments through degree eight, affine pushforward, shared and independent noise, bounded infinite/raw/zero-entry lists, finite likelihood validation, exact evidence, checked posterior products and quotient, zero evidence, cumulative disintegration work, kernel composition, collision and injective renaming, support-growth failure, and exact and one-below budgets. Bivariate tests use independent raw expansion oracles for complete powers on both coordinates. They cover shared and independent owners, duplicate monomials, cancellation, deterministic accounting, and exact and one-below raw, canonical, work, and rational limits. A bounded numerical fixture compares an exact bivariate result with tensor-product Simpson and checks all four affine coordinates by central finite differences. The compile-fail boundary rejects constructors, owner/space coercions, point conditioning, and general disintegration. The benchmark requires twenty identical deterministic semantic reports after one excluded warmup. Fresh supported-compiler, archive, package, and hosted gates passed before D-070 acceptance.
 
 **Primary sources:** Olav Kallenberg, *Foundations of Modern Probability*, 3rd edition, Chapters 1, 4, and 8, DOI `10.1007/978-3-030-61871-1`; Tobias Fritz, “A synthetic approach to Markov kernels, conditional independence and theorems on sufficient statistics,” DOI `10.1016/j.aim.2020.107239`; Kenta Cho and Bart Jacobs, “Disintegration and Bayesian inversion via string diagrams,” DOI `10.1017/S0960129518000488`; Arnold Faden, “The existence of regular conditional probabilities,” DOI `10.1214/aop/1176993081`; Ackerman, Freer, and Roy, “On the Computability of Conditional Probability,” DOI `10.1145/3321699`.
 
 ### D-071: Separate bounded numerical continuous execution from exact semantics
 
-**Status:** Proposed
+**Status:** Accepted
 
 **Decision:** Add optional `markovian-continuous-numerical`. Rational-to-`Double` conversion is explicit and reports the exact rounding difference. Deterministic adaptive GK15/7 quadrature owns evaluation, subdivision, and depth budgets and returns a result only with termination `EstimatedToleranceMet`. Sampling uses an explicit opaque SplitMix64 state and named uniform, normal, and exponential laws. Monte Carlo uses bounded resumable Welford accumulation and reports generator endpoints, count, variance, and standard error where defined.
 
@@ -1003,13 +1003,13 @@ Conditioning is available only for a finite complete affine likelihood on a chec
 
 **Consequences:** Callback failure, nonfinite output, quadrature stall, or budget exhaustion returns no integral estimate. Sampling or observation failure returns no report or advanced generator. Reports contain deterministic semantic counts, not wall-clock time. There is no conversion from a numerical report to an exact result, no certified quadrature bound, no Monte Carlo confidence guarantee, no multidimensional cubature, no differentiation through sampling, and no cross-platform bitwise claim. The BLAS/LAPACK and `hmatrix` bridge remains blocked because development libraries and differential/benchmark evidence are absent.
 
-**Required evidence:** Tests compare GK15 with exact rational moments and independent composite Simpson integration, check every selected parameter of an analytic quadratic fixture by central finite differences, reject nonfinite interval widths and aggregate quadrature/tolerance values, pin SplitMix64 raw outputs and final-state vectors, check uniform conversion plus normal Box--Muller and exponential inverse-CDF formulas independently, compare Welford with an independent two-pass calculation, check resumed versus one-shot execution, and exercise callback, nonfinite, and exact budget boundaries. Compile-fail tests separate numerical reports and generator internals from exact values. The GHC 9.4.8 and 9.8.4 repair suites and boundary pass. The two regenerated sibling archives build and both suites pass after unpacking. Acceptance remains blocked on the full lower-bound and hosted CI.
+**Required evidence:** Tests compare GK15 with exact rational moments and independent composite Simpson integration, check every selected parameter of an analytic quadratic fixture by central finite differences, reject nonfinite interval widths and aggregate quadrature/tolerance values, pin SplitMix64 raw outputs and final-state vectors, check uniform conversion plus normal Box--Muller and exponential inverse-CDF formulas independently, compare Welford with an independent two-pass calculation, check resumed versus one-shot execution, and exercise callback, nonfinite, and exact budget boundaries. Compile-fail tests separate numerical reports and generator internals from exact values. The GHC 9.4.8 and 9.8.4 repair suites and boundary pass. The two regenerated sibling archives build and both suites pass after unpacking. The full lower-bound and hosted CI gates passed before acceptance.
 
 **Primary sources:** Piessens et al., *QUADPACK*, DOI `10.1007/978-3-642-61786-7`, and Netlib `DQK15`; B. P. Welford, “Note on a Method for Calculating Corrected Sums of Squares and Products,” DOI `10.1080/00401706.1962.10490022`; Chan, Golub, and LeVeque, “Algorithms for Computing the Sample Variance,” DOI `10.1080/00031305.1983.10483115`; Steele, Lea, and Flood, “Fast Splittable Pseudorandom Number Generators,” DOI `10.1145/2660193.2660195`; Nicholas Higham, *Accuracy and Stability of Numerical Algorithms*, DOI `10.1137/1.9780898718027`.
 
 ### D-072: Add a checked host-only F64 tensor and buffer runtime
 
-**Status:** Proposed
+**Status:** Accepted
 
 **Decision:** Add optional `markovian-tensor`. The first runtime has managed host F64 storage, type-indexed shapes, opaque checked layouts, contiguous immutable buffers, immutable two-dimensional transpose views, checked contiguous reshape, and explicit materialization. Rank-zero shape `[]` contains one scalar. A shape with a zero dimension contains no elements. Rank and each dimension are checked before a capped element product is evaluated. Element products, payload bytes, machine indexes, buffer count, cumulative fresh payload, and scalar work are checked with `Natural` before input materialization or the operation's first payload allocation.
 
@@ -1021,13 +1021,13 @@ Semantic `TensorOwner` keys and physical `StorageId` values are different types.
 
 **Consequences:** The package is a checked host F64 reference runtime, not general tensor semantics. It has no arbitrary strides, broadcasting, sparse storage, mutation, pinned or borrowed pointers, BLAS, devices, cross-device reproducibility, optimizer alias policy, arbitrary-Haskell autodiff, or performance claim. The generic effect interpreter is in `markovian-reverse`, and the bounded host adapter is in `markovian-tensor-reverse`; neither establishes arbitrary tensor or CUDA lowering. The public closed primitive-tape module is owned by `markovian-tensor`; its atomic allocator capability remains private. `markovian-tensor-reverse` consumes only that public tape API. SafeTensors serialization remains in the separate D-073 package.
 
-**Required evidence:** Package tests cover scalar and zero-sized shapes, transpose coordinate maps and storage sharing, materialization and non-contiguous reshape rejection, independent list differentials, rectangular and zero-inner matrix multiplication, every represented matrix parameter by central finite difference, `tanh` finite differences, owner/storage separation, raw IEEE versus finite refinement, overflow rejection, deterministic reports, exact limits, and atomic two-output preflight. The tensor compile-fail boundary protects buffers, layouts, storage IDs, owners, nominal roles, endpoints, matrix dimensions, and region escape. The tensor-reverse boundary separately protects tape opacity and tape and executor regions. The benchmark runs one excluded warmup and twenty measured host F64 matrix products after an independent differential check. Private deterministic allocator tests cover preflight-before-allocation, first and second allocation failure, partial-set finalization, cleanup failure, retry without consumed IDs or accounting, multi-output commit, success, `Left`, action exception, and zero live allocations after close. Acceptance remains blocked on complete project CI, archives, hosted evidence, and the other conjunctive gates.
+**Required evidence:** Package tests cover scalar and zero-sized shapes, transpose coordinate maps and storage sharing, materialization and non-contiguous reshape rejection, independent list differentials, rectangular and zero-inner matrix multiplication, every represented matrix parameter by central finite difference, `tanh` finite differences, owner/storage separation, raw IEEE versus finite refinement, overflow rejection, deterministic reports, exact limits, and atomic two-output preflight. The tensor compile-fail boundary protects buffers, layouts, storage IDs, owners, nominal roles, endpoints, matrix dimensions, and region escape. The tensor-reverse boundary separately protects tape opacity and tape and executor regions. The benchmark runs one excluded warmup and twenty measured host F64 matrix products after an independent differential check. Private deterministic allocator tests cover preflight-before-allocation, first and second allocation failure, partial-set finalization, cleanup failure, retry without consumed IDs or accounting, multi-output commit, success, `Left`, action exception, and zero live allocations after close. Complete project CI, archives, hosted evidence, and the other conjunctive gates passed before acceptance.
 
 **Primary sources:** GHC 9.8.4 User's Guide, role annotations and the FFI; IEEE 754-2019, DOI `10.1109/IEEESTD.2019.8766229`; Nicholas Higham, *Accuracy and Stability of Numerical Algorithms*, second edition, DOI `10.1137/1.9780898718027`; Cockett et al., “Reverse derivative categories,” DOI `10.4230/LIPIcs.CSL.2020.18`; Griewank and Walther, *Evaluating Derivatives*, second edition, DOI `10.1137/1.9780898717761`.
 
 ### D-073: Require a bounded canonical profile before claiming SafeTensors compatibility
 
-**Status:** Proposed
+**Status:** Accepted
 
 **Decision:** Add separate optional `markovian-safetensors` for a bounded canonical profile pinned to SafeTensors revision `6eb4dc9a28ebce297606e0f4836bbf28839cacef`. The admitted fragment is duplicate-preserving JSON with metadata-free F64 tensors only. The decoder checks the complete header, UTF-8 names, duplicate names and fields, dtype, shapes, capped products, offsets, exact coverage, overlap, holes, truncation, trailing bytes, and the complete allocation plan before constructing a tensor. It preserves raw IEEE payloads and leaves finite validation separate. The encoder sorts validated UTF-8 names, uses fixed compact field order and eight-byte space padding, assigns contiguous offsets, and materializes views in logical contiguous row-major order. Storage IDs, owner evidence, reverse tapes, callbacks, executors, streams, and device pointers are not serializable.
 
@@ -1035,13 +1035,13 @@ Semantic `TensorOwner` keys and physical `StorageId` values are different types.
 
 **Consequences:** The supported claim is only this pinned metadata-free F64 profile. Metadata and every non-F64 dtype are explicit errors. Names do not create `TensorOwner` evidence. The package does not claim arbitrary SafeTensors interoperability, zero-copy mapped files, sparse tensors, arbitrary layouts, devices, or source-provenance beyond the supplied bytes. D-073 does not block the bounded device fragment in D-074, which transfers already validated in-session tensor values rather than decoding files.
 
-**Required evidence:** The focused package suite includes scalar, empty, F64, signed-zero, NaN-payload, subnormal, and transposed-view bytes; malformed JSON and UTF-8; duplicate semantic names and descriptor keys; numeric overflow; holes, overlap, truncation, and trailing bytes; explicit dtype, metadata, unknown-field, missing-field, offset-order, and shape-size failures; exact and one-below file, header, tensor, name, rank, dimension, element, and payload limits; deterministic bytes; decode/encode/decode identity; a committed canonical-byte golden; and opacity and region-escape compile failures. Source-distribution and complete release gates remain outstanding, so this decision remains `Proposed`.
+**Required evidence:** The focused package suite includes scalar, empty, F64, signed-zero, NaN-payload, subnormal, and transposed-view bytes; malformed JSON and UTF-8; duplicate semantic names and descriptor keys; numeric overflow; holes, overlap, truncation, and trailing bytes; explicit dtype, metadata, unknown-field, missing-field, offset-order, and shape-size failures; exact and one-below file, header, tensor, name, rank, dimension, element, and payload limits; deterministic bytes; decode/encode/decode identity; a committed canonical-byte golden; and opacity and region-escape compile failures. The source-distribution and complete release gates passed before D-073 acceptance.
 
 **Official source:** SafeTensors format at pinned revision `6eb4dc9a28ebce297606e0f4836bbf28839cacef`.
 
 ### D-074: Admit only a bounded F64 matrix and matrix-VJP CUDA fragment
 
-**Status:** Proposed
+**Status:** Accepted
 
 **Decision:** Make `markovian-gpu` depend on `markovian-tensor` and `markovian-tensor-reverse`, while exposing only prepared F64 matrix multiplication and its declared two-matrix VJP. The tensor-reverse edge does not add a CUDA resolver or generic reverse-program lowering. Preparation checks positive dimensions, `CInt`-safe element products, transfer bytes, scalar work, and user-launch count before probing or transferring. Device outputs are opaque type-indexed finite host values, not exact results and not tensor allocations.
 
@@ -1053,17 +1053,17 @@ Dispatch distinguishes `CPUOnly`, preferred CUDA, and required CUDA. CPU fallbac
 
 **Consequences:** The committed PTX and admitted hardware profile are bounded to `.target sm_121` and compute capability 12.1. Enabled builds compile against pinned CUDA 13.0 headers and link only `libdl`. The native executor owner opens `libcuda.so.1` with `RTLD_NOW | RTLD_LOCAL`, resolves the complete required table—including CUDA 13 versioned names—before `cuInit`, retains the handle and table, attempts stream/module/context destruction before `dlclose`, and never calls a table entry after unload. C static assertions cover CUDA header version, pointer/device-pointer widths, UUID size, and Haskell-facing fixed array boundaries. Missing libraries, missing symbols, and devices outside the pinned profile are explicit pre-launch errors. Required CUDA returns them; preferred CUDA can fall back only under the existing pre-launch policy. Disabled builds still require no CUDA headers or driver library. Successful admission creates evidence only for that current process and bounded profile. The package does not lower arbitrary tensor graphs, generic `Reverse.Program`, arbitrary Haskell callbacks, stochastic nodes, zero-sized CUDA launches, arbitrary strides, F32, mutation, fusion, or user PTX. It does not claim general device correctness, GPU advantage, cross-device bitwise reproducibility, portable wall-clock termination, or release readiness. D-067 remains the blocker for effect-capable generic CUDA reverse-program lowering.
 
-**Required evidence:** CUDA-disabled required/preferred/fallback fixtures; exact and one-below transfer/work/launch plans; CPU tensor matrix and primitive-tape VJP execution; enabled module admission and known-answer test; every represented output and VJP coordinate against an independent oracle and all-coordinate finite differences; missing-library, missing-symbol, unsupported-device, allocation, transfer, launch, second-launch, synchronization, copy-back, free, teardown, action-exception, and forked-lifetime faults; transfer-inclusive raw benchmark samples with a pinned semantic checksum and host/toolchain metadata; CUDA-header/PTX/generated-header reproduction; hidden-plan, hidden-executor, executor-scope, role, and endpoint compile failures; source-distribution coverage; a digest-pinned no-GPU CUDA 13 compile-only workflow; and a UUID-bound protected hardware workflow that fails rather than skips when selected. Local enabled tests now pass deterministic loader and transaction faults on one GB10, and the compile-only workflow definition is present. This is implementation evidence, not a hosted gate receipt. Acceptance remains blocked on protected four-tool Compute Sanitizer, the hosted compile-only receipt, complete source-archive execution, and final hosted CI.
+**Required evidence:** CUDA-disabled required/preferred/fallback fixtures; exact and one-below transfer/work/launch plans; CPU tensor matrix and primitive-tape VJP execution; enabled module admission and known-answer test; every represented output and VJP coordinate against an independent oracle and all-coordinate finite differences; missing-library, missing-symbol, unsupported-device, allocation, transfer, launch, second-launch, synchronization, copy-back, free, teardown, action-exception, and forked-lifetime faults; transfer-inclusive raw benchmark samples with a pinned semantic checksum and host/toolchain metadata; CUDA-header/PTX/generated-header reproduction; hidden-plan, hidden-executor, executor-scope, role, and endpoint compile failures; source-distribution coverage; a digest-pinned no-GPU CUDA 13 compile-only workflow; and a UUID-bound protected hardware workflow that fails rather than skips when selected. The digest-pinned compile-only workflow, complete source-archive execution, and final hosted CI passed. The UUID-bound protected GB10 workflow passed `memcheck`, `initcheck`, `racecheck`, and `synccheck`, all enabled differentials and fault fixtures, PTX reproduction, and the transfer-inclusive benchmark before D-074 acceptance.
 
 **Official sources:** NVIDIA CUDA 13.0 Driver API for devices, contexts, modules, memory, streams, and kernel launch; NVIDIA PTX ISA 9.0; NVIDIA Compute Sanitizer; and GHC 9.8.4 FFI documentation.
 
 ### D-075: Require complete release gates and separate publication authorization
 
-**Status:** Proposed
+**Status:** Accepted
 
 **Decision:** A first release requires the completed D-061 package split, reviewed PVP APIs, complete Haddock, package metadata, migration documentation, deterministic source archives, archive-only consumers, compile-fail boundaries, benchmarks, supported-compiler and lower-bound jobs, license inventory, SBOMs, provenance checks, and all protected device evidence for any enabled device claim. Preparation and attestation jobs have no Hackage credential. A separate human authorization is required for candidates or publication.
 
-**Current boundary:** The worktree is unreleased. Release preparation tools and dry-run checks do not satisfy this gate. D-061, D-067, D-073, D-074, a clean complete preparation run, and the complete hosted matrix remain open.
+**Current boundary:** D-061 through D-076 are accepted for their stated bounded scopes. A clean immutable candidate passed the complete hosted compiler, lower-bound, source, CUDA compile-only, protected UUID-bound hardware, four-tool Compute Sanitizer, archive, SBOM, checksum, and attestation gates. The user's release request separately records publication authorization.
 
 **Consequences:** No script added under this decision may upload to Hackage, create a tag or release, or imply atomic multi-package publication. Any later partial publication must be reported as partial. Untrusted pull requests must not execute on persistent GPU hardware.
 
@@ -1071,13 +1071,13 @@ Dispatch distinguishes `CPUOnly`, preferred CUDA, and required CUDA. CPU fallbac
 
 ### D-076: Bound machine layouts and numerical differentiation evidence before integration
 
-**Status:** Proposed
+**Status:** Accepted
 
 **Decision:** A typed static extent is not by itself a machine-allocation witness. Autodiff compilation must reject vectors that do not fit machine indexing and must retain explicit scalar-work and exact-rational magnitude limits. Host tensor admission must check rank and individual dimensions before capped products, bytes, and machine conversions. Fresh output plans must pass before input materialization. Numerical reverse rules require independent pairing or all-coordinate finite differences, and deterministic reports require committed goldens rather than self-comparison.
 
 Extract the reverse foundation downward to `markovian-reverse`, but do not treat package extraction, `Identity` specialization, or the bounded effect interpreter as completion of D-067. The remaining work includes making the cross-package allocator capability private without weakening atomic multi-output allocation, archive-only dependency evidence, and the complete release matrix. Exact-only rewrites may use a private bounded scalar SSA; floating execution must preserve operation order.
 
-**Current boundary:** The pure reverse extraction, autodiff machine/work/rational checks, private exact SSA identities, independent syntax-recursive JVP fixture, tensor capped shape admission, sequential matrix kernels, payload-before-input preflight, primitive finite differences, and report golden are implemented in the dirty overlay. The autodiff suite now also has a closed two-layer dense-neural differential fixture for all primal, input, weight, and bias coordinates under every output basis seed and both tape policies, with a committed report. The bounded SafeTensors profile has focused corpus and canonical-byte evidence. Complete source-distribution reruns, hosted CI, and other conjunctive release gates are not complete. This decision remains Proposed and makes no general neural-lowering, release-readiness, tensor-semantics, or device-correctness claim.
+**Current boundary:** The pure reverse extraction, autodiff machine/work/rational checks, private exact SSA identities, independent syntax-recursive JVP fixture, tensor capped shape admission, sequential matrix kernels, payload-before-input preflight, primitive finite differences, report golden, bounded SafeTensors profile, and two-layer neural differential are integrated. Complete source-distribution, compiler, lower-bound, hosted CI, and release gates passed before acceptance. This decision makes no general neural-lowering, tensor-semantics, or device-correctness claim.
 
 **Required evidence:** Exact and one-below machine, work, and rational limits; independent primal and JVP interpretation; typed endpoint compile failures; all-coordinate CPU primitive finite differences; independent JVP/VJP pairings; zero-size and transpose views; atomic allocation failures; committed report and benchmark checksums; warning-free supported compilers, Haddock, mdBook, archive-only tests, and hosted CI.
 

@@ -107,21 +107,21 @@ P5 status: `DONE`. Prediction, post-transition conditioning, impossible observat
 
 ## Checked finite feedback
 
-- [ ] **S8 Explicit bounded feedback fragments (Partial).** Restricted source, operation accounting, phase-specific rational maxima, exact and one-below limits, discarded-intermediate counterexamples, and focused evidence exist under proposed D-069. Complete archive, lower-bound, hosted, and immutable-revision evidence remains open. Universal trace, arbitrary cyclic circuits/open systems, and rewardful cyclic finite-support claims remain blocked.
+- [x] **S8 Explicit bounded feedback fragments.** Restricted source, operation accounting, phase-specific rational maxima, exact and one-below limits, discarded-intermediate counterexamples, and complete release evidence passed under accepted D-069. Universal trace, arbitrary cyclic circuits/open systems, and rewardful cyclic finite-support claims remain blocked.
 
 ## Optional continuous probability
 
-- [ ] **S9 Restricted continuous probability (Partial).** Two optional packages contain restricted exact and numerical paths under proposed D-070 and D-071. The bounded bivariate algorithm now has cumulative symbolic and rational accounting, independent exact oracles, and all-coordinate fixture differentials. These fixtures do not establish general sampler correctness, certified floating bounds, or multidimensional cubature. Fresh archive, lower-bound, supported-compiler, and hosted gates remain open. Arbitrary measurable callbacks, point conditioning, continuous disintegration, continuous MDP execution, and the `hmatrix` bridge remain blocked.
+- [x] **S9 Restricted continuous probability.** Two optional packages contain restricted exact and numerical paths under accepted D-070 and D-071. The bounded bivariate algorithm has cumulative symbolic and rational accounting, independent exact oracles, all-coordinate fixture differentials, and complete release evidence. These results do not establish general sampler correctness, certified floating bounds, or multidimensional cubature. Arbitrary measurable callbacks, point conditioning, continuous disintegration, continuous MDP execution, and the `hmatrix` bridge remain blocked.
 
 ## Optional host tensor runtime
 
-- [ ] **S10 Checked host F64 tensors (Partial).** Optional `markovian-tensor` has a restricted host F64 path under proposed D-072. Shape admission, primitive differentials, deterministic allocation/cleanup fault injection, atomic runtime-shape batches, and report evidence are present. Full supported-compiler, integration, archive, and hosted evidence remains open. General tensor semantics, arbitrary strides, broadcasting, mutation, and performance claims remain blocked.
+- [x] **S10 Checked host F64 tensors.** Optional `markovian-tensor` has a restricted host F64 path under accepted D-072. Shape admission, primitive differentials, deterministic allocation/cleanup fault injection, atomic runtime-shape batches, report evidence, and complete release gates passed. General tensor semantics, arbitrary strides, broadcasting, mutation, and performance claims remain blocked.
 
 ## Optional CUDA device fragment
 
-- [ ] **S11 Checked matrix/VJP CUDA executor (Blocked).** Proposed D-074 has an owned dynamic CUDA 13 driver table, strict ABI checks, explicit pre-launch fallback boundaries, and a digest-pinned no-GPU compile workflow. Device execution remains blocked until archive-only enabled compilation, the hosted compile-only receipt, protected UUID-bound hardware, all four Compute Sanitizer tools, and complete CI evidence pass together. Local fault fixtures do not establish general device correctness. Generic tensor graphs, generic reverse programs, other dtypes, arbitrary devices, bitwise reproducibility, and GPU advantage remain blocked.
+- [x] **S11 Checked matrix/VJP CUDA executor.** Accepted D-074 has an owned dynamic CUDA 13 driver table, strict ABI checks, explicit pre-launch fallback boundaries, and a digest-pinned no-GPU compile workflow. Archive execution, hosted compile-only validation, protected UUID-bound hardware, all four Compute Sanitizer tools, complete CI, and the transfer-inclusive benchmark passed together. This evidence covers only the admitted GB10 F64 matrix/VJP fragment. Generic tensor graphs, generic reverse programs, other dtypes, arbitrary devices, bitwise reproducibility, and GPU advantage remain blocked.
 
-- [ ] **S11.1 SafeTensors profile (Partial).** `markovian-safetensors` implements only the pinned bounded metadata-free F64 profile. Focused canonical encoding, duplicate-preserving parsing, malformed corpus, raw IEEE, exact-limit, opacity, region, paired-archive, and package-local preferred-oldest evidence passes on GHC 9.8.4, and the ordinary focused suites pass on GHC 9.4.8. Complete-graph preferred-oldest, hosted, and release gates remain open; D-073 remains `Proposed`.
+- [x] **S11.1 SafeTensors profile.** `markovian-safetensors` implements only the pinned bounded metadata-free F64 profile. Canonical encoding, duplicate-preserving parsing, malformed corpus, raw IEEE, exact-limit, opacity, region, archive, supported-compiler, hosted, and release gates passed before D-073 acceptance.
 
 ## P6: Compiler and accelerated backends
 
@@ -161,7 +161,7 @@ S6 status: `DONE`.
 
 D-053 through D-060 are `DONE` and `Accepted`. Both supported compilers, `--prefer-oldest`, warning-free Haddock, formatting, all four historical source archives and unpacked tests, every then-applicable compile-fail boundary, all four inventory benchmarks, and deterministic semantic-report stability passed locally and in hosted CI run `33467147313` on revision `993508f`.
 
-The current 16-package integration overlay is an uncommitted repair tree, not release evidence. No new frontier is promoted: games, autodiff, feedback, continuous probability, host tensors, and the bounded SafeTensors profile are Partial; CUDA/device execution is Blocked. D-061 through D-076 remain Proposed. Complete declaration Haddock, full-graph and independently repeated archives, device fault evidence, protected hardware, Compute Sanitizer, complete supported-compiler/lower-bound jobs, and hosted CI remain open. Release-tooling repairs add hostile-input validation, independently validated SPDX, complete-bundle checksums/provenance, and no-replace finalization, but a clean immutable revision has not run the complete preparation command.
+The coordinated `2026.9.3.0` 16-package graph passed complete declaration Haddock, independently repeated archives, device fault evidence, UUID-bound protected hardware, all four Compute Sanitizer tools, supported-compiler and lower-bound jobs, hosted CI, checksums, SPDX validation, and 37-subject provenance verification. D-061 through D-076 are `Accepted` only for their stated bounded scopes. General equilibrium solving, arbitrary-Haskell autodiff, unrestricted feedback or disintegration, general tensor semantics, and general device correctness remain out of scope.
 
 ## S8.6: Complete first-release preparation
 
@@ -171,12 +171,12 @@ The current 16-package integration overlay is an uncommitted repair tree, not re
 - [x] Add atomic clean-revision preparation and archive-only package and consumer builds.
 - [x] Add migration, install, release-note, checklist, license, rollback, and provenance documentation.
 - [x] Add a least-privilege manual preparation and attestation workflow without Hackage credentials.
-- [ ] Complete D-061 and regenerate the final package and API manifests.
-- [ ] Complete exposed declaration Haddock and every D-075 compiler and hardware gate.
-- [ ] Run full preparation on one clean immutable revision and verify hosted attestations.
-- [ ] Get explicit user approval before any external candidate or publication action.
+- [x] Complete D-061 and regenerate the final package and API manifests.
+- [x] Complete exposed declaration Haddock and every D-075 compiler and hardware gate.
+- [x] Run full preparation on one clean immutable revision and verify hosted attestations.
+- [x] Record explicit user approval before publication.
 
-S8.6 status: `BLOCKED` by D-061, D-067, D-073, D-074, and D-075.
+S8.6 status: `DONE` for release `2026.9.3.0`.
 
 ## S7: Approximation and categorical-learning case studies
 
@@ -218,13 +218,13 @@ S8.6 status: `BLOCKED` by D-061, D-067, D-073, D-074, and D-075.
   - [x] Differential-test every represented two-player `2 x 2` payoff table over `{0,1}` and retain matching-pennies and non-credible-threat counterexamples.
   - Keep arena histories separate. The generic open-game callback still has no mixed lifting, repetition, continuous strategy space, subgame-perfect solver, or equilibrium-existence result.
 
-- [ ] **S8.1 Accept exact mixed, stochastic, and Bayesian candidate semantics.**
+- [x] **S8.1 Accept exact mixed, stochastic, and Bayesian candidate semantics.**
   - [x] Add checked owner products, literal rational simplexes, complete normal games, independent mixed profiles, exact expectation, and every-pure-deviation Nash checks.
   - [x] Keep correlation devices separate; add unconditional CE and constant-deviation CCE checks with null-recommendation reports.
   - [x] Add joint reward/successor outcome laws, finite-horizon public-state Markov evaluation, and local continuation-game Markov-perfect checks.
   - [x] Add correlated common type priors, positive-type and ex-ante Bayes-Nash checks, null-type reports, bounded strategic-normal conversion, and a checked closed-context open-game adapter.
   - [x] Add exhaustive binary mixed-Nash differential enumeration, correlation, degeneracy, irrational-equilibrium, timing, null-type, deterministic-report, compile-fail, and benchmark evidence.
-  - [ ] Pass GHC 9.4.8, lower-bound, full Haddock, formatting, source-archive-only, and hosted CI gates on one final revision.
+  - [x] Pass GHC 9.4.8, lower-bound, full Haddock, formatting, source-archive-only, and hosted CI gates on one final revision.
   - Defer exact support/LP/LCP solvers to an optional package. Singular systems must be classified, not skipped. Do not claim equilibrium existence or complete real-equilibrium enumeration.
 
 ## S8.2: Accept bounded autodiff lowering
@@ -237,9 +237,9 @@ S8.6 status: `BLOCKED` by D-061, D-067, D-073, D-074, and D-075.
 - [x] Add a private bounded scalar SSA with conservative exact identity rewrites and a floating reassociation counterexample.
 - [x] Compare a bounded two-layer `2 -> 2 tanh -> 2` fixture with manual neural execution and independent central finite differences for every primal, input, weight, and bias coordinate under both tape policies.
 - [x] Pass focused GHC 9.4.8, Haddock, formatting, and source-archive-only gates.
-- [ ] Pass the full 16-package, 18-suite, 11-benchmark CI and hosted gates.
+- [x] Pass the full 16-package, 18-suite, 11-benchmark CI and hosted gates.
 
-Do not claim arbitrary-Haskell autodiff, differentiation through sampling, tensor lowering, device support, or release readiness.
+Do not claim arbitrary-Haskell autodiff, differentiation through sampling, generic tensor lowering, or generic device support.
 
 S7 status: `DONE` for the bounded scopes defined by D-048 through D-060. The research boundaries listed below remain out of scope.
 
