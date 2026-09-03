@@ -5,12 +5,17 @@ name: Protected CUDA hardware
   workflow_dispatch:
     inputs:
       expected_sha:
-        description: Immutable 40-character revision selected for protected validation
+        description: >-
+          Immutable 40-character revision selected for protected validation
         required: true
         type: string
 
 permissions:
   contents: read
+
+defaults:
+  run:
+    shell: bash
 
 concurrency:
   group: cuda-hardware-${{ github.ref }}
@@ -64,14 +69,24 @@ jobs:
           test "$(git rev-parse HEAD)" = "${{ inputs.expected_sha }}"
           test -z "$(git status --porcelain --untracked-files=normal)"
           source backends/markovian-gpu/toolchain.env
-          "${MARKOVIAN_NVCC}" --version | grep -F "release ${MARKOVIAN_CUDA_VERSION}"
-          nvidia-smi --query-gpu=uuid --format=csv,noheader | grep -Fx "${EXPECTED_UUID}"
-          normalized_uuid="$(printf '%s' "${EXPECTED_UUID}" | sed -e 's/^GPU-//' -e 's/-//g' | tr '[:upper:]' '[:lower:]')"
+          "${MARKOVIAN_NVCC}" --version \
+            | grep -F "release ${MARKOVIAN_CUDA_VERSION}"
+          sanitizer="$(dirname "${MARKOVIAN_NVCC}")/compute-sanitizer"
+          test -x "${sanitizer}"
+          printf 'MARKOVIAN_COMPUTE_SANITIZER=%s\n' "${sanitizer}" \
+            >> "${GITHUB_ENV}"
+          nvidia-smi --query-gpu=uuid --format=csv,noheader \
+            | grep -Fx "${EXPECTED_UUID}"
+          uuid_no_prefix="$(printf '%s' "${EXPECTED_UUID}" \
+            | sed -e 's/^GPU-//' -e 's/-//g')"
+          normalized_uuid="$(printf '%s' "${uuid_no_prefix}" \
+            | tr '[:upper:]' '[:lower:]')"
           test "${#normalized_uuid}" -eq 32
           case "${normalized_uuid}" in (*[!0-9a-f]*) exit 1;; esac
-          printf 'MARKOVIAN_CUDA_DEVICE_UUID=%s\n' "${normalized_uuid}" >> "${GITHUB_ENV}"
+          printf 'MARKOVIAN_CUDA_DEVICE_UUID=%s\n' "${normalized_uuid}" \
+            >> "${GITHUB_ENV}"
           printf 'MARKOVIAN_CUDA_REQUIRE_HARDWARE=1\n' >> "${GITHUB_ENV}"
-          compute-sanitizer --version
+          "${sanitizer}" --version
 
       - name: Reproduce the committed PTX
         run: |
@@ -99,9 +114,11 @@ jobs:
             --project-file=cabal.project.ci \
             -fcuda -fcuda-fault-injection \
             --extra-include-dirs=/usr/local/cuda/include)"
-          export markovian_gpu_datadir="${GITHUB_WORKSPACE}/backends/markovian-gpu"
+          markovian_gpu_datadir="${GITHUB_WORKSPACE}/backends/markovian-gpu"
+          export markovian_gpu_datadir
           for tool in memcheck initcheck racecheck synccheck; do
-            compute-sanitizer --error-exitcode=1 --tool "${tool}" "${executable}"
+            "${MARKOVIAN_COMPUTE_SANITIZER}" \
+              --error-exitcode=1 --tool "${tool}" "${executable}"
           done
 
       - name: Run transfer-inclusive benchmark
@@ -117,15 +134,20 @@ jobs:
           EXPECTED_UUID: ${{ vars.MARKOVIAN_EXPECTED_CUDA_UUID }}
         run: |
           set -euo pipefail
-          ptx_sha="$(sha256sum backends/markovian-gpu/cbits/markovian_dense.ptx | awk '{print $1}')"
-          python3 - "${EXPECTED_SHA}" "${EXPECTED_UUID}" "${ptx_sha}" > cuda-hardware-receipt.json <<'PY'
+          ptx_path=backends/markovian-gpu/cbits/markovian_dense.ptx
+          ptx_sha="$(sha256sum "${ptx_path}" | awk '{print $1}')"
+          python3 - \
+            "${EXPECTED_SHA}" "${EXPECTED_UUID}" "${ptx_sha}" \
+            > cuda-hardware-receipt.json <<'PY'
           import json, sys
           print(json.dumps({
               "schemaVersion": 1,
               "sourceRevision": sys.argv[1],
               "expectedDeviceUuid": sys.argv[2],
               "ptxSha256": sys.argv[3],
-              "computeSanitizerTools": ["memcheck", "initcheck", "racecheck", "synccheck"],
+              "computeSanitizerTools": [
+                  "memcheck", "initcheck", "racecheck", "synccheck"
+              ],
               "result": "passed"
           }, sort_keys=True, indent=2))
           PY
