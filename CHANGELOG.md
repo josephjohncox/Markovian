@@ -1,6 +1,6 @@
 # Revision history for Markovian
 
-## 0.1.0.0 — Unreleased
+## 2026.9.3.0 — Unreleased
 
 - Closed the compiled state-layout coercion boundary with nominal roles for state indexes, compiled states, MDPs, and MRPs. Added source-distribution compile-fail coverage for incompatible equality instances.
 - Bounded `exactFiniteDist` at 4096 raw entries and added checked constructor work and rational-size limits with deterministic reports. Canonical duplicate aggregation now bounds the raw spine first. Added atomic checked bind limits for result support, work, numerator bits, and denominator bits, and routed Bayesian pushforward, conditioning, compiled policy closure, trace enumeration, and POMDP filtering through typed checked sequencing. Removed unrestricted distribution and kernel type-class composition.

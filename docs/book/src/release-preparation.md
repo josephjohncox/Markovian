@@ -4,6 +4,14 @@ Markovian is not ready for publication. D-061, D-067, D-073, D-074, D-075, and D
 
 Release preparation creates checked local artifacts. It does not upload packages, create tags, or create releases.
 
+## Calendar versioning
+
+Coordinated releases use the UTC calendar version `YYYY.M.D.N`. The year has four digits. The month and day use canonical decimal notation without leading zeroes. The final component is a zero-based same-day release sequence. For example, the first release on 2026-09-03 is `2026.9.3.0`; another release on that UTC date is `2026.9.3.1`.
+
+All 16 packages use the same calendar version. The Git tag is `vYYYY.M.D.N`, and every `source-repository this` section identifies that exact tag and package subdirectory. The release metadata checker rejects non-calendar versions, impossible dates, leading zeroes, mixed package versions, or mismatched tags.
+
+Public sibling bounds still use Cabal's `^>=` operator. The `YYYY.M` pair therefore defines the PVP compatibility line for a coordinated release.
+
 ## Preparation contract
 
 `release/packages.tsv` owns the bounded 16-package list, versions, and dependency tiers. `release/components.tsv` owns the 18 required test suites, 11 benchmarks, and the neural integration flag. These files describe the integration overlay; they do not approve D-061 or publication.
@@ -61,16 +69,16 @@ After provenance and digest checks pass, use the bounded extractor:
 
 ```sh
 bash scripts/check-release-archive \
-  markovian-release-artifacts/archives/Markovian-0.1.0.0.tar.gz \
+  markovian-release-artifacts/archives/Markovian-2026.9.3.0.tar.gz \
   --name Markovian \
-  --version 0.1.0.0 \
+  --version 2026.9.3.0 \
   --extract unpacked
 ```
 
 Build the package from the checked directory:
 
 ```sh
-cd unpacked/Markovian-0.1.0.0
+cd unpacked/Markovian-2026.9.3.0
 cabal build all
 cabal test all --test-show-details=direct
 ```

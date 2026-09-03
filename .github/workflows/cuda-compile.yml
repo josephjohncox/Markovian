@@ -9,6 +9,10 @@ name: CUDA 13 compile-only
 permissions:
   contents: read
 
+defaults:
+  run:
+    shell: bash
+
 concurrency:
   group: cuda-compile-${{ github.ref }}
   cancel-in-progress: true
@@ -19,7 +23,8 @@ jobs:
     runs-on: ubuntu-22.04
     timeout-minutes: 30
     container:
-      image: nvidia/cuda:13.0.0-devel-ubuntu22.04@sha256:1470d2d7904fac4e5cb3bdfd4993305c46d3ee76deb0213eaaf248e5cf9c7400
+      image: "nvidia/cuda:13.0.2-devel-ubuntu22.04@sha256:\
+        1c517d4fb96528c8999e14e6e6b16d7e2ff9ae8d194fd788d60fdc88e693e982"
       env:
         NVIDIA_VISIBLE_DEVICES: void
         MARKOVIAN_CUDA_DRIVER_LIBRARY: /__markovian_compile_only__/libcuda.so.1
@@ -62,17 +67,28 @@ jobs:
         run: |
           set -euo pipefail
           source backends/markovian-gpu/toolchain.env
-          test "${MARKOVIAN_CUDA_COMPILE_IMAGE}" = \
-            "nvidia/cuda:13.0.0-devel-ubuntu22.04@sha256:1470d2d7904fac4e5cb3bdfd4993305c46d3ee76deb0213eaaf248e5cf9c7400"
+          expected_image="nvidia/cuda:13.0.2-devel-ubuntu22.04@sha256:"
+          expected_image+="1c517d4fb96528c8999e14e6e6b16d7e2ff9ae8d194fd788d60fdc88e693e982"
+          actual_image="${MARKOVIAN_CUDA_COMPILE_IMAGE}"
+          if [[ "${actual_image}" != "${expected_image}" ]]; then
+            printf 'Expected compile image %s, found %s.\n' \
+              "${expected_image}" "${actual_image}" >&2
+            exit 1
+          fi
+          "${MARKOVIAN_NVCC}" --version
+          cuda_root="$(cd "$(dirname "${MARKOVIAN_NVCC}")/.." && pwd)"
+          sha256sum "${cuda_root}/include/cuda.h"
           bash backends/markovian-gpu/scripts/build-ptx
-          git diff --exit-code -- \
+          git -c safe.directory="${GITHUB_WORKSPACE}" diff --exit-code -- \
             backends/markovian-gpu/cbits/markovian_dense.ptx \
             backends/markovian-gpu/cbits/markovian_dense_ptx.h \
             backends/markovian-gpu/src/Markovian/Backend/GPU/Artifact.hs
           source backends/markovian-gpu/toolchain.env
           cp backends/markovian-gpu/cbits/markovian_dense.ptx /tmp/corrupt.ptx
           printf '\ncorrupt\n' >> /tmp/corrupt.ptx
-          if printf '%s  %s\n' "${MARKOVIAN_CUDA_PTX_SHA256}" /tmp/corrupt.ptx | sha256sum --check --status; then
+          if printf '%s  %s\n' \
+            "${MARKOVIAN_CUDA_PTX_SHA256}" /tmp/corrupt.ptx \
+            | sha256sum --check --status; then
             echo "Deliberately corrupted PTX passed digest admission." >&2
             exit 1
           fi
@@ -104,8 +120,12 @@ jobs:
             backends/markovian-gpu/test/cbits/incomplete_cuda_driver.c \
             -o /tmp/libcuda-incomplete-late.so
           rm -f /tmp/markovian-cuinit-called
-          export MARKOVIAN_CUDA_EARLY_INCOMPLETE_DRIVER=/tmp/libcuda-incomplete-early.so
-          export MARKOVIAN_CUDA_LATE_INCOMPLETE_DRIVER=/tmp/libcuda-incomplete-late.so
+          early_driver=/tmp/libcuda-incomplete-early.so
+          late_driver=/tmp/libcuda-incomplete-late.so
+          MARKOVIAN_CUDA_EARLY_INCOMPLETE_DRIVER="${early_driver}"
+          MARKOVIAN_CUDA_LATE_INCOMPLETE_DRIVER="${late_driver}"
+          export MARKOVIAN_CUDA_EARLY_INCOMPLETE_DRIVER
+          export MARKOVIAN_CUDA_LATE_INCOMPLETE_DRIVER
           export MARKOVIAN_CUDA_INIT_MARKER=/tmp/markovian-cuinit-called
           cabal test markovian-gpu-test \
             --project-file=cabal.project.ci \
@@ -117,7 +137,9 @@ jobs:
             -fcuda -fcuda-fault-injection \
             --extra-include-dirs=/usr/local/cuda/include)"
           if ldd "${executable}" | grep -F 'libcuda'; then
-            echo "Enabled executable has an unexpected startup dependency on libcuda." >&2
+            message="Enabled executable has an unexpected startup "
+            message+="dependency on libcuda."
+            printf '%s\n' "${message}" >&2
             exit 1
           fi
           bash backends/markovian-gpu/scripts/check-device-boundary

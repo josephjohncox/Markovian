@@ -7,9 +7,9 @@ This checklist separates preparation from external publication. Preparation has 
 - [ ] Complete D-061 and D-067.
 - [ ] Review every file in `release/exposed-modules`.
 - [ ] Check complete exposed declaration Haddock.
-- [ ] Confirm PVP versions and full sibling bounds.
+- [ ] Confirm the coordinated UTC CalVer `YYYY.M.D.N` and full PVP sibling bounds.
 - [ ] Confirm each supported compiler with a complete job.
-- [ ] Add an immutable `source-repository this` field.
+- [ ] Confirm every `source-repository this` field identifies `vYYYY.M.D.N`.
 - [ ] Review `MIGRATION.md` and `RELEASE-NOTES.md`.
 
 ## 2. Check metadata and licenses
@@ -70,7 +70,7 @@ GitHub attestations bind digests to workflow identity. They do not prove source 
 
 Stop after preparation. Get explicit user approval before any candidate upload, tag, release, or publication.
 
-Hackage publication across packages is not atomic. Record each successful package before the next package.
+The Git tag and GitHub release name must be `vYYYY.M.D.N` and must match all package versions. Hackage publication across packages is not atomic. Record each successful package before the next package.
 
 ## 6. Roll back a failed operation
 

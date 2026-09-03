@@ -22,19 +22,19 @@ class ReleaseToolTests(unittest.TestCase):
     def setUp(self) -> None:
         self.temp = tempfile.TemporaryDirectory()
         self.root = Path(self.temp.name)
-        self.package = release_tool.Package("demo", Path("."), "0.1.0.0", 0)
+        self.package = release_tool.Package("demo", Path("."), "2026.9.3.0", 0)
 
     def tearDown(self) -> None:
         self.temp.cleanup()
 
     def archive(self, extra=None) -> Path:
-        path = self.root / "demo-0.1.0.0.tar.gz"
+        path = self.root / "demo-2026.9.3.0.tar.gz"
         members = [
-            ("demo-0.1.0.0/", None, tarfile.DIRTYPE, 0o755),
-            ("demo-0.1.0.0/demo.cabal", b"name: demo\nversion: 0.1.0.0\n", tarfile.REGTYPE, 0o644),
-            ("demo-0.1.0.0/LICENSE", b"BSD-3-Clause\n", tarfile.REGTYPE, 0o644),
-            ("demo-0.1.0.0/README.md", b"# demo\n", tarfile.REGTYPE, 0o644),
-            ("demo-0.1.0.0/CHANGELOG.md", b"# changes\n", tarfile.REGTYPE, 0o644),
+            ("demo-2026.9.3.0/", None, tarfile.DIRTYPE, 0o755),
+            ("demo-2026.9.3.0/demo.cabal", b"name: demo\nversion: 2026.9.3.0\n", tarfile.REGTYPE, 0o644),
+            ("demo-2026.9.3.0/LICENSE", b"BSD-3-Clause\n", tarfile.REGTYPE, 0o644),
+            ("demo-2026.9.3.0/README.md", b"# demo\n", tarfile.REGTYPE, 0o644),
+            ("demo-2026.9.3.0/CHANGELOG.md", b"# changes\n", tarfile.REGTYPE, 0o644),
         ]
         if extra:
             members.extend(extra)
@@ -56,27 +56,27 @@ class ReleaseToolTests(unittest.TestCase):
         self.assertEqual(info.entries, 5)
 
     def test_traversal_is_rejected(self) -> None:
-        path = self.archive([("demo-0.1.0.0/../escape", b"bad", tarfile.REGTYPE, 0o644)])
+        path = self.archive([("demo-2026.9.3.0/../escape", b"bad", tarfile.REGTYPE, 0o644)])
         with self.assertRaisesRegex(release_tool.ReleaseError, "unsafe archive member"):
             release_tool.validate_archive(path, self.package)
 
     def test_link_is_rejected(self) -> None:
-        path = self.archive([("demo-0.1.0.0/link", None, tarfile.SYMTYPE, 0o777)])
+        path = self.archive([("demo-2026.9.3.0/link", None, tarfile.SYMTYPE, 0o777)])
         with self.assertRaisesRegex(release_tool.ReleaseError, "not a regular file"):
             release_tool.validate_archive(path, self.package)
 
     def test_duplicate_member_is_rejected(self) -> None:
-        path = self.archive([("demo-0.1.0.0/README.md", b"again", tarfile.REGTYPE, 0o644)])
+        path = self.archive([("demo-2026.9.3.0/README.md", b"again", tarfile.REGTYPE, 0o644)])
         with self.assertRaisesRegex(release_tool.ReleaseError, "duplicate archive member"):
             release_tool.validate_archive(path, self.package)
 
     def test_world_writable_member_is_rejected(self) -> None:
-        path = self.archive([("demo-0.1.0.0/open", b"bad", tarfile.REGTYPE, 0o666)])
+        path = self.archive([("demo-2026.9.3.0/open", b"bad", tarfile.REGTYPE, 0o666)])
         with self.assertRaisesRegex(release_tool.ReleaseError, "unsafe mode"):
             release_tool.validate_archive(path, self.package)
 
     def test_byte_budget_has_exact_and_one_below_boundaries(self) -> None:
-        path = self.archive([("demo-0.1.0.0/large", b"12345", tarfile.REGTYPE, 0o644)])
+        path = self.archive([("demo-2026.9.3.0/large", b"12345", tarfile.REGTYPE, 0o644)])
         baseline = release_tool.validate_archive(path, self.package)
         exact = release_tool.validate_archive(
             path, self.package, max_unpacked_bytes=baseline.unpacked_bytes
@@ -116,7 +116,7 @@ class ReleaseToolTests(unittest.TestCase):
         path = self.archive(
             [
                 (
-                    "demo-0.1.0.0/test/golden/report.txt",
+                    "demo-2026.9.3.0/test/golden/report.txt",
                     b"deterministic report\n",
                     tarfile.REGTYPE,
                     0o644,
@@ -156,8 +156,8 @@ class ReleaseToolTests(unittest.TestCase):
 
     def test_ci_manifest_must_exactly_match_release_topology(self) -> None:
         packages = [
-            release_tool.Package("demo", Path("."), "0.1.0.0", 0),
-            release_tool.Package("demo-extra", Path("extra"), "0.1.0.0", 1),
+            release_tool.Package("demo", Path("."), "2026.9.3.0", 0),
+            release_tool.Package("demo-extra", Path("extra"), "2026.9.3.0", 1),
         ]
         manifest = self.root / "ci.tsv"
         manifest.write_text("demo\t.\t0\ndemo-extra\textra\t1\n")
@@ -177,8 +177,8 @@ class ReleaseToolTests(unittest.TestCase):
             release_tool.check_proposed_decision_statuses(promoted)
 
     def test_public_dependency_graph_rejects_missing_and_extra_edges(self) -> None:
-        root = release_tool.Package("Markovian", Path("."), "0.1.0.0", 0)
-        gpu = release_tool.Package("markovian-gpu", Path("gpu"), "0.1.0.0", 2)
+        root = release_tool.Package("Markovian", Path("."), "2026.9.3.0", 0)
+        gpu = release_tool.Package("markovian-gpu", Path("gpu"), "2026.9.3.0", 2)
         release_tool.check_public_sibling_dependencies(root, set())
         release_tool.check_public_sibling_dependencies(gpu, {"markovian-tensor"})
         with self.assertRaisesRegex(release_tool.ReleaseError, "reviewed graph requires"):
@@ -226,9 +226,9 @@ class ReleaseToolTests(unittest.TestCase):
 
     def test_archive_consumer_project_uses_complete_dependency_closure(self) -> None:
         packages = [
-            release_tool.Package("alpha", Path("alpha"), "0.1.0.0", 0),
-            release_tool.Package("beta", Path("beta"), "0.1.0.0", 1),
-            release_tool.Package("gamma", Path("gamma"), "0.1.0.0", 2),
+            release_tool.Package("alpha", Path("alpha"), "2026.9.3.0", 0),
+            release_tool.Package("beta", Path("beta"), "2026.9.3.0", 1),
+            release_tool.Package("gamma", Path("gamma"), "2026.9.3.0", 2),
         ]
         for package in packages:
             (self.root / package.directory).mkdir()
@@ -238,21 +238,21 @@ class ReleaseToolTests(unittest.TestCase):
         )
         (self.root / "beta" / "beta.cabal").write_text(
             "name: beta\nlibrary\n  build-depends:\n    , base >=4.17 && <5\n"
-            "    , alpha ^>=0.1.0.0\n"
+            "    , alpha ^>=2026.9.3.0\n"
         )
         (self.root / "gamma" / "gamma.cabal").write_text(
             "name: gamma\nlibrary\n  build-depends:\n    , base >=4.17 && <5\n"
-            "test-suite integration\n  build-depends:\n    , gamma ==0.1.0.0\n"
-            "    , beta ^>=0.1.0.0\n"
+            "test-suite integration\n  build-depends:\n    , gamma ==2026.9.3.0\n"
+            "    , beta ^>=2026.9.3.0\n"
         )
         components = [release_tool.Component("test", "gamma", "integration", ("+full",))]
         text = release_tool.archive_consumer_project_text(
             self.root, self.root / "archives", packages, components, "gamma"
         )
         self.assertIn("active-repositories: :none", text)
-        self.assertIn("alpha-0.1.0.0", text)
-        self.assertIn("beta-0.1.0.0", text)
-        self.assertIn("gamma-0.1.0.0", text)
+        self.assertIn("alpha-2026.9.3.0", text)
+        self.assertIn("beta-2026.9.3.0", text)
+        self.assertIn("gamma-2026.9.3.0", text)
         self.assertIn("package *\n  ghc-options: -Werror\n  tests: False", text)
         self.assertIn("package gamma\n  tests: True\n  benchmarks: True\n  flags: +full", text)
 
@@ -410,15 +410,34 @@ class ReleaseToolTests(unittest.TestCase):
 
     def test_manifest_rejects_unsafe_duplicate_and_nonmonotone_rows(self) -> None:
         cases = (
-            "demo\t../demo\t0.1.0.0\t0\n",
-            "demo\t.\t0.1.0.0\t0\nDemo\tother\t0.1.0.0\t1\n",
-            "demo\t.\t0.1.0.0\t1\nother\tother\t0.1.0.0\t0\n",
+            "demo\t../demo\t2026.9.3.0\t0\n",
+            "demo\t.\t2026.9.3.0\t0\nDemo\tother\t2026.9.3.0\t1\n",
+            "demo\t.\t2026.9.3.0\t1\nother\tother\t2026.9.3.0\t0\n",
         )
         for index, content in enumerate(cases):
             manifest = self.root / f"bad-{index}.tsv"
             manifest.write_text(content)
             with self.subTest(index=index), self.assertRaises(release_tool.ReleaseError):
                 release_tool.parse_manifest(manifest)
+
+    def test_manifest_requires_valid_coordinated_calver(self) -> None:
+        invalid = (
+            "demo\t.\t1.2.3.4\t0\n",
+            "demo\t.\t2026.09.3.0\t0\n",
+            "demo\t.\t2026.9.03.0\t0\n",
+            "demo\t.\t2026.9.3.00\t0\n",
+            "demo\t.\t2026.2.30.0\t0\n",
+            "demo\t.\t2026.9.3.0\t0\nother\tother\t2026.9.3.1\t1\n",
+        )
+        for index, content in enumerate(invalid):
+            manifest = self.root / f"bad-calver-{index}.tsv"
+            manifest.write_text(content)
+            with self.subTest(index=index), self.assertRaises(release_tool.ReleaseError):
+                release_tool.parse_manifest(manifest)
+
+        manifest = self.root / "valid-calver.tsv"
+        manifest.write_text("demo\t.\t2024.2.29.0\t0\n")
+        self.assertEqual(release_tool.parse_manifest(manifest)[0].version, "2024.2.29.0")
 
     def test_sbom_subject_mismatch_is_rejected(self) -> None:
         archive_dir = self.root / "archives"
@@ -429,8 +448,8 @@ class ReleaseToolTests(unittest.TestCase):
         moved = archive_dir / path.name
         path.replace(moved)
         manifest = self.root / "packages.tsv"
-        manifest.write_text("demo\t.\t0.1.0.0\t0\n")
-        (sbom_dir / "demo-0.1.0.0.spdx.json").write_text(
+        manifest.write_text("demo\t.\t2026.9.3.0\t0\n")
+        (sbom_dir / "demo-2026.9.3.0.spdx.json").write_text(
             json.dumps({"documentNamespace": "wrong"})
         )
         packages = release_tool.parse_manifest(manifest)

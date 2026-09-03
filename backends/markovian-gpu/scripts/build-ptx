@@ -7,7 +7,13 @@ source "${root}/toolchain.env"
 cuda_root="$(cd "$(dirname "${MARKOVIAN_NVCC}")/.." && pwd)"
 cuda_header="${cuda_root}/include/cuda.h"
 test -f "${cuda_header}"
-printf '%s  %s\n' "${MARKOVIAN_CUDA_DRIVER_HEADER_SHA256}" "${cuda_header}" | sha256sum --check --status
+expected_header_sha256="${MARKOVIAN_CUDA_DRIVER_HEADER_SHA256}"
+actual_header_sha256="$(sha256sum "${cuda_header}" | cut -d ' ' -f 1)"
+if [[ "${actual_header_sha256}" != "${expected_header_sha256}" ]]; then
+  printf 'Expected CUDA driver header SHA-256 %s, found %s.\n' \
+    "${expected_header_sha256}" "${actual_header_sha256}" >&2
+  exit 1
+fi
 
 actual_version="$("${MARKOVIAN_NVCC}" --version | awk '/release/ {gsub(/,/, "", $5); print $5}')"
 if [[ "${actual_version}" != "${MARKOVIAN_CUDA_VERSION}" ]]; then

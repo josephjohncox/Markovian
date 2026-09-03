@@ -1,6 +1,6 @@
 cabal-version:   3.4
 name:            markovian-sampling
-version:         0.1.0.0
+version:         2026.9.3.0
 synopsis:        Explicit sampled interpreters for Markovian
 description:
   Deterministic explicit generators and bounded sampled interpreters for
@@ -26,6 +26,12 @@ source-repository head
   location: https://github.com/josephjohncox/Markovian.git
   subdir:   packages/markovian-sampling
 
+source-repository this
+  type:     git
+  location: https://github.com/josephjohncox/Markovian.git
+  tag:      v2026.9.3.0
+  subdir:   packages/markovian-sampling
+
 common warnings
   ghc-options: -Wall
 
@@ -38,9 +44,9 @@ library
 
   hs-source-dirs:   src
   build-depends:
-    , base                 >=4.17.2.1 && <4.20
-    , Markovian            ^>=0.1.0.0
-    , markovian-numerical  ^>=0.1.0.0
+    , base                 >=4.17.2.1    && <4.20
+    , Markovian            ^>=2026.9.3.0
+    , markovian-numerical  ^>=2026.9.3.0
 
   default-language: GHC2021
 
@@ -50,8 +56,8 @@ test-suite markovian-sampling-test
   main-is:          Main.hs
   hs-source-dirs:   test
   build-depends:
-    , base                 >=4.17.2.1 && <4.20
-    , markovian-numerical  ^>=0.1.0.0
-    , markovian-sampling   ==0.1.0.0
+    , base                 >=4.17.2.1    && <4.20
+    , markovian-numerical  ^>=2026.9.3.0
+    , markovian-sampling   ==2026.9.3.0
 
   default-language: GHC2021

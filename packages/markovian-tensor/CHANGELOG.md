@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.1.0.0 — Unreleased — Unreleased
+## 2026.9.3.0 — Unreleased — Unreleased
 
 - Add bounded region-scoped host F64 buffers and typed shapes.
 - Add contiguous, transpose-view, checked reshape, and materialization APIs.

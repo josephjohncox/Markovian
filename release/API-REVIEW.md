@@ -39,7 +39,7 @@ D-074 has an owned dynamic CUDA 13 driver table and a pinned compile-only workfl
 
 ## Version and bounds review
 
-All current packages use version `0.1.0.0`. Public sibling dependencies use `^>=0.1.0.0`.
+All current packages use version `2026.9.3.0`. Public sibling dependencies use `^>=2026.9.3.0`.
 
 The declared `base` bound is `>=4.17.2.1 && <4.20`. The final supported-compiler and lower-bound matrix must confirm it.
 

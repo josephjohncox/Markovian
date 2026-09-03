@@ -31,7 +31,7 @@ python3 scripts/test_release_tool.py
 
 Run full preparation only from a clean immutable revision. Read [the release checklist](RELEASE-CHECKLIST.md), [migration guide](MIGRATION.md), and [draft release notes](RELEASE-NOTES.md).
 
-Preparation does not upload packages or create tags or releases. External publication requires explicit user approval.
+Preparation does not upload packages or create tags or releases. External publication requires explicit user approval. Coordinated releases use UTC CalVer `YYYY.M.D.N`; tags use the matching `vYYYY.M.D.N` form.
 
 ## Documentation
 

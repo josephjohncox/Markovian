@@ -863,7 +863,7 @@ D-061 remains `Proposed`. Full compiler, archive, Haddock, hosted CI, and immuta
 
 **Status:** Proposed
 
-**Decision:** Apply the Package Versioning Policy to every public package. Keep initial versions at `0.1.0.0` while unreleased, use full sibling bounds such as `^>=0.1.0.0`, publish package-specific README and changelog files, and record `tested-with` only for compiler releases that pass. Every exposed declaration must have Haddock documentation, and every package must have a reviewed exposed-module golden before the first release.
+**Decision:** Apply the Package Versioning Policy to every public package. Keep initial versions at `2026.9.3.0` while unreleased, use full sibling bounds such as `^>=2026.9.3.0`, publish package-specific README and changelog files, and record `tested-with` only for compiler releases that pass. Every exposed declaration must have Haddock documentation, and every package must have a reviewed exposed-module golden before the first release.
 
 **Current boundary:** All current packages have checked metadata, package README and changelog files, PVP sibling bounds, and exposed-module snapshots. The API is not frozen. The D-061 source split is present, but its full acceptance gates remain incomplete. Root exposed-declaration Haddock is complete. No `source-repository this` field can exist before an authorized immutable release revision is selected.
 
