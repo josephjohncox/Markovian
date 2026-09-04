@@ -11,7 +11,9 @@ import tempfile
 import unittest
 from pathlib import Path
 
-SPEC = importlib.util.spec_from_file_location("release_tool", Path(__file__).with_name("release_tool.py"))
+SPEC = importlib.util.spec_from_file_location(
+    "release_tool", Path(__file__).with_name("release_tool.py")
+)
 assert SPEC is not None and SPEC.loader is not None
 release_tool = importlib.util.module_from_spec(SPEC)
 sys.modules[SPEC.name] = release_tool
@@ -31,7 +33,12 @@ class ReleaseToolTests(unittest.TestCase):
         path = self.root / "demo-2026.9.3.0.tar.gz"
         members = [
             ("demo-2026.9.3.0/", None, tarfile.DIRTYPE, 0o755),
-            ("demo-2026.9.3.0/demo.cabal", b"name: demo\nversion: 2026.9.3.0\n", tarfile.REGTYPE, 0o644),
+            (
+                "demo-2026.9.3.0/demo.cabal",
+                b"name: demo\nversion: 2026.9.3.0\n",
+                tarfile.REGTYPE,
+                0o644,
+            ),
             ("demo-2026.9.3.0/LICENSE", b"BSD-3-Clause\n", tarfile.REGTYPE, 0o644),
             ("demo-2026.9.3.0/README.md", b"# demo\n", tarfile.REGTYPE, 0o644),
             ("demo-2026.9.3.0/CHANGELOG.md", b"# changes\n", tarfile.REGTYPE, 0o644),
@@ -56,7 +63,9 @@ class ReleaseToolTests(unittest.TestCase):
         self.assertEqual(info.entries, 5)
 
     def test_traversal_is_rejected(self) -> None:
-        path = self.archive([("demo-2026.9.3.0/../escape", b"bad", tarfile.REGTYPE, 0o644)])
+        path = self.archive(
+            [("demo-2026.9.3.0/../escape", b"bad", tarfile.REGTYPE, 0o644)]
+        )
         with self.assertRaisesRegex(release_tool.ReleaseError, "unsafe archive member"):
             release_tool.validate_archive(path, self.package)
 
@@ -66,8 +75,12 @@ class ReleaseToolTests(unittest.TestCase):
             release_tool.validate_archive(path, self.package)
 
     def test_duplicate_member_is_rejected(self) -> None:
-        path = self.archive([("demo-2026.9.3.0/README.md", b"again", tarfile.REGTYPE, 0o644)])
-        with self.assertRaisesRegex(release_tool.ReleaseError, "duplicate archive member"):
+        path = self.archive(
+            [("demo-2026.9.3.0/README.md", b"again", tarfile.REGTYPE, 0o644)]
+        )
+        with self.assertRaisesRegex(
+            release_tool.ReleaseError, "duplicate archive member"
+        ):
             release_tool.validate_archive(path, self.package)
 
     def test_world_writable_member_is_rejected(self) -> None:
@@ -76,7 +89,9 @@ class ReleaseToolTests(unittest.TestCase):
             release_tool.validate_archive(path, self.package)
 
     def test_byte_budget_has_exact_and_one_below_boundaries(self) -> None:
-        path = self.archive([("demo-2026.9.3.0/large", b"12345", tarfile.REGTYPE, 0o644)])
+        path = self.archive(
+            [("demo-2026.9.3.0/large", b"12345", tarfile.REGTYPE, 0o644)]
+        )
         baseline = release_tool.validate_archive(path, self.package)
         exact = release_tool.validate_archive(
             path, self.package, max_unpacked_bytes=baseline.unpacked_bytes
@@ -150,7 +165,10 @@ class ReleaseToolTests(unittest.TestCase):
             "a" * 40 + "\t--option",
         )
         for value in hostile:
-            with self.subTest(value=value), self.assertRaises(release_tool.ReleaseError):
+            with (
+                self.subTest(value=value),
+                self.assertRaises(release_tool.ReleaseError),
+            ):
                 release_tool.validate_revision(value)
         self.assertEqual(release_tool.validate_revision("a" * 40), "a" * 40)
 
@@ -181,11 +199,19 @@ class ReleaseToolTests(unittest.TestCase):
         gpu = release_tool.Package("markovian-gpu", Path("gpu"), "2026.9.3.0", 2)
         release_tool.check_public_sibling_dependencies(root, set())
         release_tool.check_public_sibling_dependencies(gpu, {"markovian-tensor"})
-        with self.assertRaisesRegex(release_tool.ReleaseError, "reviewed graph requires"):
-            release_tool.check_public_sibling_dependencies(root, {"markovian-numerical"})
-        with self.assertRaisesRegex(release_tool.ReleaseError, "reviewed graph requires"):
+        with self.assertRaisesRegex(
+            release_tool.ReleaseError, "reviewed graph requires"
+        ):
+            release_tool.check_public_sibling_dependencies(
+                root, {"markovian-numerical"}
+            )
+        with self.assertRaisesRegex(
+            release_tool.ReleaseError, "reviewed graph requires"
+        ):
             release_tool.check_public_sibling_dependencies(gpu, set())
-        with self.assertRaisesRegex(release_tool.ReleaseError, "reviewed graph requires"):
+        with self.assertRaisesRegex(
+            release_tool.ReleaseError, "reviewed graph requires"
+        ):
             release_tool.check_public_sibling_dependencies(
                 gpu, {"markovian-tensor", "markovian-tensor-reverse"}
             )
@@ -193,20 +219,28 @@ class ReleaseToolTests(unittest.TestCase):
     def test_archive_project_enables_every_manifested_flag(self) -> None:
         components = [
             release_tool.Component("test", "demo", "unit", ()),
-            release_tool.Component("test", "markovian-neural", "integration", ("+markovian-integration",)),
+            release_tool.Component(
+                "test", "markovian-neural", "integration", ("+markovian-integration",)
+            ),
             release_tool.Component("benchmark", "demo", "speed", ("+slow-evidence",)),
         ]
         text = release_tool.archive_project_text(components)
         self.assertIn("active-repositories: :none", text)
-        self.assertIn("package *\n  ghc-options: -Werror\n  tests: True\n  benchmarks: True", text)
+        self.assertIn(
+            "package *\n  ghc-options: -Werror\n  tests: True\n  benchmarks: True", text
+        )
         self.assertIn("package markovian-neural\n  flags: +markovian-integration", text)
         self.assertIn("package demo\n  flags: +slow-evidence", text)
-        self.assertEqual(text, release_tool.archive_project_text(list(reversed(components))))
+        self.assertEqual(
+            text, release_tool.archive_project_text(list(reversed(components)))
+        )
 
     def test_haddock_log_allows_only_exact_offline_cabal_advisory(self) -> None:
         log = self.root / "haddock.log"
         log.write_text("documentation complete\n", encoding="utf-8")
-        self.assertEqual("documentation complete\n", release_tool.check_haddock_log(log))
+        self.assertEqual(
+            "documentation complete\n", release_tool.check_haddock_log(log)
+        )
         log.write_text(
             "\n".join(release_tool.ALLOWED_CABAL_NO_INDEX_ADVISORY) + "\n",
             encoding="utf-8",
@@ -214,14 +248,18 @@ class ReleaseToolTests(unittest.TestCase):
         self.assertEqual("", release_tool.check_haddock_log(log))
 
         log.write_text("Warning: missing link destination\n", encoding="utf-8")
-        with self.assertRaisesRegex(release_tool.ReleaseError, "unexpected build or Haddock"):
+        with self.assertRaisesRegex(
+            release_tool.ReleaseError, "unexpected build or Haddock"
+        ):
             release_tool.check_haddock_log(log)
 
         log.write_text(
             release_tool.ALLOWED_CABAL_NO_INDEX_ADVISORY[0] + "\ntruncated\n",
             encoding="utf-8",
         )
-        with self.assertRaisesRegex(release_tool.ReleaseError, "unexpected build or Haddock"):
+        with self.assertRaisesRegex(
+            release_tool.ReleaseError, "unexpected build or Haddock"
+        ):
             release_tool.check_haddock_log(log)
 
     def test_archive_consumer_project_uses_complete_dependency_closure(self) -> None:
@@ -245,7 +283,9 @@ class ReleaseToolTests(unittest.TestCase):
             "test-suite integration\n  build-depends:\n    , gamma ==2026.9.3.0\n"
             "    , beta ^>=2026.9.3.0\n"
         )
-        components = [release_tool.Component("test", "gamma", "integration", ("+full",))]
+        components = [
+            release_tool.Component("test", "gamma", "integration", ("+full",))
+        ]
         text = release_tool.archive_consumer_project_text(
             self.root, self.root / "archives", packages, components, "gamma"
         )
@@ -254,7 +294,9 @@ class ReleaseToolTests(unittest.TestCase):
         self.assertIn("beta-2026.9.3.0", text)
         self.assertIn("gamma-2026.9.3.0", text)
         self.assertIn("package *\n  ghc-options: -Werror\n  tests: False", text)
-        self.assertIn("package gamma\n  tests: True\n  benchmarks: True\n  flags: +full", text)
+        self.assertIn(
+            "package gamma\n  tests: True\n  benchmarks: True\n  flags: +full", text
+        )
 
     def test_component_manifest_covers_declarations_and_flag_guard(self) -> None:
         cabal = self.root / "demo.cabal"
@@ -272,15 +314,16 @@ class ReleaseToolTests(unittest.TestCase):
         )
         manifest = self.root / "components.tsv"
         manifest.write_text(
-            "test\tdemo\tunit\t+integration\n"
-            "benchmark\tdemo\tspeed\t-\n"
+            "test\tdemo\tunit\t+integration\nbenchmark\tdemo\tspeed\t-\n"
         )
         components = release_tool.parse_components(manifest, [self.package])
         release_tool.check_components(self.root, [self.package], components)
 
         manifest.write_text("test\tdemo\tunit\t+integration\n")
         incomplete = release_tool.parse_components(manifest, [self.package])
-        with self.assertRaisesRegex(release_tool.ReleaseError, "unmanifested components"):
+        with self.assertRaisesRegex(
+            release_tool.ReleaseError, "unmanifested components"
+        ):
             release_tool.check_components(self.root, [self.package], incomplete)
 
     def test_cabal_plan_requires_every_manifested_component(self) -> None:
@@ -332,7 +375,9 @@ class ReleaseToolTests(unittest.TestCase):
         release_tool.validate_component_results(first, components, manifest, self.root)
         first["testSuites"][0]["result"] = "skipped"
         with self.assertRaisesRegex(release_tool.ReleaseError, "does not match"):
-            release_tool.validate_component_results(first, components, manifest, self.root)
+            release_tool.validate_component_results(
+                first, components, manifest, self.root
+            )
 
     def test_component_receipts_reject_changed_or_unbound_logs(self) -> None:
         manifest = self.root / "components.tsv"
@@ -350,12 +395,15 @@ class ReleaseToolTests(unittest.TestCase):
         result = release_tool.component_results(components, manifest, receipts)
         log.write_text("changed command output\n")
         with self.assertRaisesRegex(release_tool.ReleaseError, "execution log changed"):
-            release_tool.validate_component_results(result, components, manifest, self.root)
+            release_tool.validate_component_results(
+                result, components, manifest, self.root
+            )
         receipts.write_text(
-            "test\tdemo:test:unit\tghc-9.8.4\tpassed\t../outside.log\t"
-            f"{'0' * 64}\n"
+            f"test\tdemo:test:unit\tghc-9.8.4\tpassed\t../outside.log\t{'0' * 64}\n"
         )
-        with self.assertRaisesRegex(release_tool.ReleaseError, "invalid component execution log path"):
+        with self.assertRaisesRegex(
+            release_tool.ReleaseError, "invalid component execution log path"
+        ):
             release_tool.component_results(components, manifest, receipts)
 
     def test_checkout_state_rejects_mismatch_and_dirty_tree(self) -> None:
@@ -364,7 +412,9 @@ class ReleaseToolTests(unittest.TestCase):
         with self.assertRaisesRegex(release_tool.ReleaseError, "does not resolve"):
             release_tool.validate_checkout_state(revision, "b" * 40, revision, "")
         with self.assertRaisesRegex(release_tool.ReleaseError, "clean worktree"):
-            release_tool.validate_checkout_state(revision, revision, revision, " M file")
+            release_tool.validate_checkout_state(
+                revision, revision, revision, " M file"
+            )
 
     def test_source_checkout_uses_the_exact_clean_commit(self) -> None:
         repository = self.root / "repository"
@@ -419,7 +469,10 @@ class ReleaseToolTests(unittest.TestCase):
         for index, content in enumerate(cases):
             manifest = self.root / f"bad-{index}.tsv"
             manifest.write_text(content)
-            with self.subTest(index=index), self.assertRaises(release_tool.ReleaseError):
+            with (
+                self.subTest(index=index),
+                self.assertRaises(release_tool.ReleaseError),
+            ):
                 release_tool.parse_manifest(manifest)
 
     def test_manifest_requires_valid_coordinated_calver(self) -> None:
@@ -434,12 +487,17 @@ class ReleaseToolTests(unittest.TestCase):
         for index, content in enumerate(invalid):
             manifest = self.root / f"bad-calver-{index}.tsv"
             manifest.write_text(content)
-            with self.subTest(index=index), self.assertRaises(release_tool.ReleaseError):
+            with (
+                self.subTest(index=index),
+                self.assertRaises(release_tool.ReleaseError),
+            ):
                 release_tool.parse_manifest(manifest)
 
         manifest = self.root / "valid-calver.tsv"
         manifest.write_text("demo\t.\t2024.2.29.0\t0\n")
-        self.assertEqual(release_tool.parse_manifest(manifest)[0].version, "2024.2.29.0")
+        self.assertEqual(
+            release_tool.parse_manifest(manifest)[0].version, "2024.2.29.0"
+        )
 
     def test_sbom_subject_mismatch_is_rejected(self) -> None:
         archive_dir = self.root / "archives"
@@ -455,7 +513,9 @@ class ReleaseToolTests(unittest.TestCase):
             json.dumps({"documentNamespace": "wrong"})
         )
         packages = release_tool.parse_manifest(manifest)
-        with self.assertRaisesRegex(release_tool.ReleaseError, "SBOM semantic mismatch"):
+        with self.assertRaisesRegex(
+            release_tool.ReleaseError, "SBOM semantic mismatch"
+        ):
             release_tool.generate_artifact_manifest(
                 packages, archive_dir, sbom_dir, "a" * 40, 0
             )
@@ -464,7 +524,9 @@ class ReleaseToolTests(unittest.TestCase):
         path = self.archive()
         info = release_tool.validate_archive(path, self.package)
         path.write_bytes(path.read_bytes() + b"changed")
-        with self.assertRaisesRegex(release_tool.ReleaseError, "changed after validation"):
+        with self.assertRaisesRegex(
+            release_tool.ReleaseError, "changed after validation"
+        ):
             release_tool.extract_archive(info, self.root / "mutated")
 
     def test_existing_package_root_is_not_overwritten(self) -> None:

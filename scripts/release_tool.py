@@ -138,7 +138,9 @@ def sha256_file(path: Path) -> str:
 
 def validate_revision(revision: str) -> str:
     if REVISION.fullmatch(revision) is None:
-        raise ReleaseError("revision must be a full lowercase 40-character commit object ID")
+        raise ReleaseError(
+            "revision must be a full lowercase 40-character commit object ID"
+        )
     return revision
 
 
@@ -163,7 +165,13 @@ def finalize_directory(stage: Path, output: Path) -> None:
     renameat2 = getattr(libc, "renameat2", None)
     if renameat2 is None:
         raise ReleaseError("race-safe finalization requires renameat2")
-    renameat2.argtypes = [ctypes.c_int, ctypes.c_char_p, ctypes.c_int, ctypes.c_char_p, ctypes.c_uint]
+    renameat2.argtypes = [
+        ctypes.c_int,
+        ctypes.c_char_p,
+        ctypes.c_int,
+        ctypes.c_char_p,
+        ctypes.c_uint,
+    ]
     renameat2.restype = ctypes.c_int
     result = renameat2(
         AT_FDCWD,
@@ -178,7 +186,9 @@ def finalize_directory(stage: Path, output: Path) -> None:
     if error_number == errno.EEXIST:
         raise ReleaseError(f"output already exists: {output}")
     if error_number in (errno.ENOSYS, errno.EINVAL, errno.ENOTSUP):
-        raise ReleaseError("filesystem does not support race-safe no-replace finalization")
+        raise ReleaseError(
+            "filesystem does not support race-safe no-replace finalization"
+        )
     raise ReleaseError(f"cannot finalize {output}: {os.strerror(error_number)}")
 
 
@@ -203,10 +213,14 @@ def parse_manifest(path: Path) -> list[Package]:
             raise ReleaseError(f"{path}:{number}: invalid package name {name!r}")
         directory = Path(directory_text)
         if directory.is_absolute() or ".." in directory.parts or directory_text == "":
-            raise ReleaseError(f"{path}:{number}: unsafe package directory {directory_text!r}")
+            raise ReleaseError(
+                f"{path}:{number}: unsafe package directory {directory_text!r}"
+            )
         validate_calver(version, path=path, line=number)
         if not tier_text.isdecimal():
-            raise ReleaseError(f"{path}:{number}: invalid dependency tier {tier_text!r}")
+            raise ReleaseError(
+                f"{path}:{number}: invalid dependency tier {tier_text!r}"
+            )
         try:
             tier = int(tier_text)
         except ValueError as error:
@@ -220,13 +234,17 @@ def parse_manifest(path: Path) -> list[Package]:
         if folded in names:
             raise ReleaseError(f"{path}:{number}: duplicate package name {name!r}")
         if directory in directories:
-            raise ReleaseError(f"{path}:{number}: duplicate package directory {directory}")
+            raise ReleaseError(
+                f"{path}:{number}: duplicate package directory {directory}"
+            )
         names.add(folded)
         directories.add(directory)
         packages.append(Package(name, directory, version, tier))
 
     if not 1 <= len(packages) <= MAX_PACKAGES:
-        raise ReleaseError(f"package count {len(packages)} is outside 1..{MAX_PACKAGES}")
+        raise ReleaseError(
+            f"package count {len(packages)} is outside 1..{MAX_PACKAGES}"
+        )
     versions = {package.version for package in packages}
     if len(versions) != 1:
         raise ReleaseError("all packages must use one coordinated CalVer release")
@@ -237,7 +255,9 @@ def check_ci_manifest(packages: list[Package], path: Path) -> None:
     try:
         lines = path.read_text(encoding="utf-8").splitlines()
     except OSError as error:
-        raise ReleaseError(f"cannot read CI package manifest {path}: {error}") from error
+        raise ReleaseError(
+            f"cannot read CI package manifest {path}: {error}"
+        ) from error
 
     rows: list[tuple[str, Path, int]] = []
     for number, raw in enumerate(lines, 1):
@@ -248,7 +268,9 @@ def check_ci_manifest(packages: list[Package], path: Path) -> None:
             raise ReleaseError(f"{path}:{number}: expected three tab-separated fields")
         name, directory_text, tier_text = fields
         if not tier_text.isdecimal():
-            raise ReleaseError(f"{path}:{number}: invalid dependency tier {tier_text!r}")
+            raise ReleaseError(
+                f"{path}:{number}: invalid dependency tier {tier_text!r}"
+            )
         try:
             tier = int(tier_text)
         except ValueError as error:
@@ -267,7 +289,9 @@ def check_ci_manifest(packages: list[Package], path: Path) -> None:
 def check_public_sibling_dependencies(package: Package, actual: set[str]) -> None:
     expected = EXPECTED_PUBLIC_SIBLING_DEPENDENCIES.get(package.name.casefold())
     if expected is None:
-        raise ReleaseError(f"{package.name}: package is outside the reviewed public graph")
+        raise ReleaseError(
+            f"{package.name}: package is outside the reviewed public graph"
+        )
     normalized = frozenset(name.casefold() for name in actual)
     if normalized != expected:
         expected_text = ", ".join(sorted(expected)) or "base-only"
@@ -305,14 +329,21 @@ def parse_components(path: Path, packages: list[Package]) -> list[Component]:
             flags: tuple[str, ...] = ()
         else:
             raw_flags = flags_text.split(",")
-            if any(re.fullmatch(r"\+[A-Za-z][A-Za-z0-9-]*", flag) is None for flag in raw_flags):
-                raise ReleaseError(f"{path}:{number}: invalid required flags {flags_text!r}")
+            if any(
+                re.fullmatch(r"\+[A-Za-z][A-Za-z0-9-]*", flag) is None
+                for flag in raw_flags
+            ):
+                raise ReleaseError(
+                    f"{path}:{number}: invalid required flags {flags_text!r}"
+                )
             if len(raw_flags) != len(set(raw_flags)):
                 raise ReleaseError(f"{path}:{number}: duplicate required flag")
             flags = tuple(raw_flags)
         key = (kind, package.casefold(), name)
         if key in seen:
-            raise ReleaseError(f"{path}:{number}: duplicate component {package}:{kind}:{name}")
+            raise ReleaseError(
+                f"{path}:{number}: duplicate component {package}:{kind}:{name}"
+            )
         seen.add(key)
         components.append(Component(kind, package, name, flags))
         if len(components) > MAX_COMPONENTS:
@@ -338,14 +369,21 @@ def component_sections(text: str) -> dict[tuple[str, str], str]:
             ),
             len(lines),
         )
-        key = ("test" if match.group(1) == "test-suite" else "benchmark", match.group(2))
+        key = (
+            "test" if match.group(1) == "test-suite" else "benchmark",
+            match.group(2),
+        )
         if key in sections:
-            raise ReleaseError(f"duplicate Cabal component declaration {key[0]}:{key[1]}")
+            raise ReleaseError(
+                f"duplicate Cabal component declaration {key[0]}:{key[1]}"
+            )
         sections[key] = "\n".join(lines[index:end])
     return sections
 
 
-def check_components(root: Path, packages: list[Package], components: list[Component]) -> None:
+def check_components(
+    root: Path, packages: list[Package], components: list[Component]
+) -> None:
     expected_by_package: dict[str, dict[tuple[str, str], Component]] = {
         package.name.casefold(): {} for package in packages
     }
@@ -362,16 +400,22 @@ def check_components(root: Path, packages: list[Package], components: list[Compo
         missing = sorted(set(expected) - set(declared))
         extra = sorted(set(declared) - set(expected))
         if missing:
-            raise ReleaseError(f"{cabal_path}: unmanifested declaration mismatch; missing {missing}")
+            raise ReleaseError(
+                f"{cabal_path}: unmanifested declaration mismatch; missing {missing}"
+            )
         if extra:
             raise ReleaseError(f"{cabal_path}: unmanifested components {extra}")
-        declared_flags = set(re.findall(r"(?m)^flag\s+([A-Za-z][A-Za-z0-9-]*)\s*$", text))
+        declared_flags = set(
+            re.findall(r"(?m)^flag\s+([A-Za-z][A-Za-z0-9-]*)\s*$", text)
+        )
         for key, component in expected.items():
             section = declared[key]
             for flag in component.required_flags:
                 bare = flag[1:]
                 if bare not in declared_flags:
-                    raise ReleaseError(f"{cabal_path}: required flag {flag} is not declared")
+                    raise ReleaseError(
+                        f"{cabal_path}: required flag {flag} is not declared"
+                    )
                 if re.search(rf"\bflag\s*\(\s*{re.escape(bare)}\s*\)", section) is None:
                     raise ReleaseError(
                         f"{cabal_path}: component {component.name} does not use required flag {flag}"
@@ -426,9 +470,7 @@ def package_dependency_closure(
             if sibling_name == package.name.casefold():
                 continue
             spelling = by_name[sibling_name].name
-            if re.search(
-                rf"(?mi)^\s*,\s*{re.escape(spelling)}(?![A-Za-z0-9-])", text
-            ):
+            if re.search(rf"(?mi)^\s*,\s*{re.escape(spelling)}(?![A-Za-z0-9-])", text):
                 dependencies.add(sibling_name)
         graph[package.name.casefold()] = dependencies
 
@@ -459,7 +501,9 @@ def archive_consumer_project_text(
     paths = [archive_root.resolve() / package.archive_stem for package in closure]
     missing = [path for path in paths if not path.is_dir()]
     if missing:
-        raise ReleaseError(f"archive consumer package directory is missing: {missing[0]}")
+        raise ReleaseError(
+            f"archive consumer package directory is missing: {missing[0]}"
+        )
 
     flags = sorted(
         {
@@ -528,7 +572,11 @@ def check_test_integration_edges(
         key = (package_name.casefold(), component_name, dependency_name.casefold())
         if key in seen:
             raise ReleaseError(f"{manifest}:{number}: duplicate test integration edge")
-        if key[0] not in package_by_name or key[2] not in package_by_name or key[0] == key[2]:
+        if (
+            key[0] not in package_by_name
+            or key[2] not in package_by_name
+            or key[0] == key[2]
+        ):
             raise ReleaseError(f"{manifest}:{number}: invalid test integration edge")
         seen.add(key)
         declared.append(key)
@@ -538,9 +586,14 @@ def check_test_integration_edges(
         cabal_path = one_cabal_file(root / package.directory)
         text = cabal_path.read_text(encoding="utf-8")
         sections = component_sections(text)
-        public_dependencies = EXPECTED_PUBLIC_SIBLING_DEPENDENCIES[package.name.casefold()]
+        public_dependencies = EXPECTED_PUBLIC_SIBLING_DEPENDENCIES[
+            package.name.casefold()
+        ]
         for component in components:
-            if component.kind != "test" or component.package.casefold() != package.name.casefold():
+            if (
+                component.kind != "test"
+                or component.package.casefold() != package.name.casefold()
+            ):
                 continue
             section = sections.get(("test", component.name), "")
             for dependency in packages:
@@ -590,7 +643,9 @@ def component_results(
     """Bind each zero-exit receipt to the log produced by that invocation."""
     expected = {component.target: component for component in components}
     receipts: dict[str, dict[str, object]] = {}
-    for number, raw in enumerate(receipt_path.read_text(encoding="utf-8").splitlines(), 1):
+    for number, raw in enumerate(
+        receipt_path.read_text(encoding="utf-8").splitlines(), 1
+    ):
         if not raw or raw.startswith("#"):
             continue
         fields = raw.split("\t")
@@ -599,16 +654,30 @@ def component_results(
         kind, target, compiler, result, log_name, log_digest = fields
         component = expected.get(target)
         if component is None or component.kind != kind:
-            raise ReleaseError(f"{receipt_path}:{number}: unmanifested component receipt {target}")
+            raise ReleaseError(
+                f"{receipt_path}:{number}: unmanifested component receipt {target}"
+            )
         if target in receipts:
-            raise ReleaseError(f"{receipt_path}:{number}: duplicate component receipt {target}")
-        if not compiler or result != "passed" or re.fullmatch(r"[0-9a-f]{64}", log_digest) is None:
-            raise ReleaseError(f"{receipt_path}:{number}: invalid execution receipt for {target}")
+            raise ReleaseError(
+                f"{receipt_path}:{number}: duplicate component receipt {target}"
+            )
+        if (
+            not compiler
+            or result != "passed"
+            or re.fullmatch(r"[0-9a-f]{64}", log_digest) is None
+        ):
+            raise ReleaseError(
+                f"{receipt_path}:{number}: invalid execution receipt for {target}"
+            )
         log_path = component_log_path(receipt_path.parent, log_name)
         if not log_path.is_file():
-            raise ReleaseError(f"{receipt_path}:{number}: missing execution log {log_name}")
+            raise ReleaseError(
+                f"{receipt_path}:{number}: missing execution log {log_name}"
+            )
         if sha256_file(log_path) != log_digest:
-            raise ReleaseError(f"{receipt_path}:{number}: execution log digest mismatch for {target}")
+            raise ReleaseError(
+                f"{receipt_path}:{number}: execution log digest mismatch for {target}"
+            )
         receipts[target] = {
             "target": target,
             "compiler": compiler,
@@ -617,14 +686,20 @@ def component_results(
             "logBytes": log_path.stat().st_size,
             "logSha256": log_digest,
         }
-    missing = [component.target for component in components if component.target not in receipts]
+    missing = [
+        component.target for component in components if component.target not in receipts
+    ]
     if missing:
         raise ReleaseError(f"component execution receipts are missing: {missing}")
     return {
         "schemaVersion": 3,
         "componentManifestSha256": sha256_file(manifest_path),
-        "testSuites": [receipts[item.target] for item in components if item.kind == "test"],
-        "benchmarks": [receipts[item.target] for item in components if item.kind == "benchmark"],
+        "testSuites": [
+            receipts[item.target] for item in components if item.kind == "test"
+        ],
+        "benchmarks": [
+            receipts[item.target] for item in components if item.kind == "benchmark"
+        ],
     }
 
 
@@ -637,10 +712,14 @@ def validate_component_results(
     if not isinstance(value, dict) or value.get("schemaVersion") != 3:
         raise ReleaseError("invalid component result report schema")
     if value.get("componentManifestSha256") != sha256_file(manifest_path):
-        raise ReleaseError("component result report does not bind release/components.tsv")
+        raise ReleaseError(
+            "component result report does not bind release/components.tsv"
+        )
     root = manifest_path.parent if evidence_root is None else evidence_root
     for field, kind in (("testSuites", "test"), ("benchmarks", "benchmark")):
-        expected = [component.target for component in components if component.kind == kind]
+        expected = [
+            component.target for component in components if component.kind == kind
+        ]
         rows = value.get(field)
         if not isinstance(rows, list) or any(not isinstance(row, dict) for row in rows):
             raise ReleaseError(f"invalid component result field {field}")
@@ -656,7 +735,9 @@ def validate_component_results(
             for row in rows
         )
         if actual != expected or invalid_receipt:
-            raise ReleaseError(f"component result field {field} does not match the manifest")
+            raise ReleaseError(
+                f"component result field {field} does not match the manifest"
+            )
         for row in rows:
             log_path = component_log_path(root, str(row["log"]))
             if (
@@ -664,13 +745,19 @@ def validate_component_results(
                 or log_path.stat().st_size != row["logBytes"]
                 or sha256_file(log_path) != row["logSha256"]
             ):
-                raise ReleaseError(f"component execution log changed for {row['target']}")
+                raise ReleaseError(
+                    f"component execution log changed for {row['target']}"
+                )
 
 
-def validate_checkout_state(requested: str, resolved: str, head: str, status: str) -> None:
+def validate_checkout_state(
+    requested: str, resolved: str, head: str, status: str
+) -> None:
     validate_revision(requested)
     if resolved != requested:
-        raise ReleaseError(f"requested revision {requested} does not resolve to that commit")
+        raise ReleaseError(
+            f"requested revision {requested} does not resolve to that commit"
+        )
     if head != requested:
         raise ReleaseError(f"requested revision {requested} is not HEAD {head}")
     if status:
@@ -770,7 +857,9 @@ def cabal_section_fields(text: str, heading: str) -> dict[str, str]:
 def one_cabal_file(directory: Path) -> Path:
     files = sorted(directory.glob("*.cabal"))
     if len(files) != 1:
-        raise ReleaseError(f"expected one Cabal file in {directory}, found {len(files)}")
+        raise ReleaseError(
+            f"expected one Cabal file in {directory}, found {len(files)}"
+        )
     return files[0]
 
 
@@ -780,7 +869,11 @@ def library_section(text: str) -> str:
     if start is None:
         raise ReleaseError("Cabal file has no library section")
     end = next(
-        (index for index in range(start + 1, len(lines)) if lines[index] and not lines[index][0].isspace()),
+        (
+            index
+            for index in range(start + 1, len(lines))
+            if lines[index] and not lines[index][0].isspace()
+        ),
         len(lines),
     )
     return "\n".join(lines[start:end])
@@ -809,8 +902,13 @@ def check_dependency_bounds(cabal_path: Path, text: str, package: Package) -> No
     for number, dependency in dependencies:
         name = dependency.split()[0]
         internal_sublibrary = name.casefold().startswith(package.name.casefold() + ":")
-        if re.search(r"(?:\^>=|==|>=|<=|<|>)", dependency) is None and not internal_sublibrary:
-            raise ReleaseError(f"{cabal_path}:{number}: unbounded component dependency {dependency!r}")
+        if (
+            re.search(r"(?:\^>=|==|>=|<=|<|>)", dependency) is None
+            and not internal_sublibrary
+        ):
+            raise ReleaseError(
+                f"{cabal_path}:{number}: unbounded component dependency {dependency!r}"
+            )
         if name.casefold() == package.name.casefold() and not re.search(
             rf"^\S+\s+==\s*{re.escape(package.version)}$", dependency
         ):
@@ -905,13 +1003,17 @@ def check_metadata(
         library_text = library_section(text)
         check_dependency_bounds(cabal_path, text, package)
         if cabal_field(text, "name") != package.name:
-            raise ReleaseError(f"manifest/Cabal package name mismatch for {package.name}")
+            raise ReleaseError(
+                f"manifest/Cabal package name mismatch for {package.name}"
+            )
         if cabal_field(text, "version") != package.version:
             raise ReleaseError(f"manifest/Cabal version mismatch for {package.name}")
         if package.directory != Path(".") and not re.search(
             rf"(?m)^\s+{re.escape(package.directory.as_posix())}\s*$", project_text
         ):
-            raise ReleaseError(f"{package.name}: package is not registered in cabal.project")
+            raise ReleaseError(
+                f"{package.name}: package is not registered in cabal.project"
+            )
         for field in REQUIRED_FIELDS:
             if cabal_field(text, field) is None:
                 raise ReleaseError(f"{cabal_path}: missing required field {field}")
@@ -922,9 +1024,17 @@ def check_metadata(
         for filename in ("README.md", "CHANGELOG.md", "LICENSE"):
             if not (directory / filename).is_file():
                 raise ReleaseError(f"{package.name}: missing {filename}")
-        if "source-repository head" not in text or "https://github.com/josephjohncox/Markovian.git" not in text:
-            raise ReleaseError(f"{cabal_path}: missing canonical source-repository head")
-        if package.directory != Path(".") and f"subdir:   {package.directory.as_posix()}" not in text:
+        if (
+            "source-repository head" not in text
+            or "https://github.com/josephjohncox/Markovian.git" not in text
+        ):
+            raise ReleaseError(
+                f"{cabal_path}: missing canonical source-repository head"
+            )
+        if (
+            package.directory != Path(".")
+            and f"subdir:   {package.directory.as_posix()}" not in text
+        ):
             raise ReleaseError(f"{cabal_path}: missing source-repository subdir")
         expected_repository = {
             "type": "git",
@@ -943,7 +1053,9 @@ def check_metadata(
                 f"v{package.version} and the package subdirectory"
             )
         if not re.search(r"base\s+>=\s*4\.17\.2\.1\s*&&\s*<\s*4\.20", text):
-            raise ReleaseError(f"{cabal_path}: missing evidence-backed full base bounds")
+            raise ReleaseError(
+                f"{cabal_path}: missing evidence-backed full base bounds"
+            )
 
         public_sibling_dependencies: set[str] = set()
         for sibling_folded, version in known_versions.items():
@@ -957,7 +1069,8 @@ def check_metadata(
             if has_dependency:
                 public_sibling_dependencies.add(sibling_folded)
             if has_dependency and not re.search(
-                rf"(?mi)^\s*,\s*{re.escape(sibling)}\s+\^>=\s*{re.escape(version)}\s*$", library_text
+                rf"(?mi)^\s*,\s*{re.escape(sibling)}\s+\^>=\s*{re.escape(version)}\s*$",
+                library_text,
             ):
                 raise ReleaseError(f"{cabal_path}: {sibling} must use ^>={version}")
             if has_dependency and sibling_package.tier >= package.tier:
@@ -973,15 +1086,23 @@ def check_metadata(
         modules = exposed_modules(cabal_path)
         golden = golden_dir / f"{package.name}.txt"
         try:
-            expected = [line for line in golden.read_text(encoding="utf-8").splitlines() if line]
+            expected = [
+                line for line in golden.read_text(encoding="utf-8").splitlines() if line
+            ]
         except OSError as error:
-            raise ReleaseError(f"missing exposed-module golden {golden}: {error}") from error
+            raise ReleaseError(
+                f"missing exposed-module golden {golden}: {error}"
+            ) from error
         if modules != expected:
-            raise ReleaseError(f"exposed modules changed for {package.name}; review {golden}")
+            raise ReleaseError(
+                f"exposed modules changed for {package.name}; review {golden}"
+            )
         for module in modules:
             owner = all_modules.get(module)
             if owner is not None:
-                raise ReleaseError(f"exposed module {module} occurs in both {owner} and {package.name}")
+                raise ReleaseError(
+                    f"exposed module {module} occurs in both {owner} and {package.name}"
+                )
             all_modules[module] = package.name
 
     if component_manifest is not None:
@@ -993,7 +1114,11 @@ def safe_member_name(name: str) -> PurePosixPath:
     if "\x00" in name or "\\" in name:
         raise ReleaseError(f"unsafe archive member path {name!r}")
     path = PurePosixPath(name)
-    if path.is_absolute() or not path.parts or any(part in ("", ".", "..") for part in path.parts):
+    if (
+        path.is_absolute()
+        or not path.parts
+        or any(part in ("", ".", "..") for part in path.parts)
+    ):
         raise ReleaseError(f"unsafe archive member path {name!r}")
     if path.as_posix() != name.rstrip("/"):
         raise ReleaseError(f"non-canonical archive member path {name!r}")
@@ -1038,24 +1163,36 @@ def validate_archive(
                 if len(seen) > max_entries:
                     raise ReleaseError(f"archive {archive} exceeds entry-count budget")
                 if canonical.split("/", 1)[0] != package.archive_stem:
-                    raise ReleaseError(f"archive member is outside {package.archive_stem}: {canonical}")
+                    raise ReleaseError(
+                        f"archive member is outside {package.archive_stem}: {canonical}"
+                    )
                 if not (member.isdir() or member.isfile()):
-                    raise ReleaseError(f"archive member is not a regular file or directory: {canonical}")
-                if member.mode & (stat.S_ISUID | stat.S_ISGID | stat.S_ISVTX | stat.S_IWOTH):
-                    raise ReleaseError(f"archive member has unsafe mode {oct(member.mode)}: {canonical}")
+                    raise ReleaseError(
+                        f"archive member is not a regular file or directory: {canonical}"
+                    )
+                if member.mode & (
+                    stat.S_ISUID | stat.S_ISGID | stat.S_ISVTX | stat.S_IWOTH
+                ):
+                    raise ReleaseError(
+                        f"archive member has unsafe mode {oct(member.mode)}: {canonical}"
+                    )
                 if member.size < 0:
                     raise ReleaseError(f"archive member has negative size: {canonical}")
                 if member.isfile():
                     unpacked += member.size
                     if unpacked > max_unpacked_bytes:
-                        raise ReleaseError(f"archive {archive} exceeds unpacked-byte budget")
+                        raise ReleaseError(
+                            f"archive {archive} exceeds unpacked-byte budget"
+                        )
                 members.append(member)
     except (OSError, tarfile.TarError) as error:
         raise ReleaseError(f"cannot read archive {archive}: {error}") from error
 
     missing = sorted(required - seen)
     if missing:
-        raise ReleaseError(f"archive {archive} is missing required files: {', '.join(missing)}")
+        raise ReleaseError(
+            f"archive {archive} is missing required files: {', '.join(missing)}"
+        )
     return ArchiveInfo(
         archive,
         package,
@@ -1083,7 +1220,9 @@ def extract_archive(info: ArchiveInfo, destination: Path) -> Path:
             relative = safe_member_name(member.name)
             target = (destination / Path(*relative.parts)).resolve()
             if root != target and root not in target.parents:
-                raise ReleaseError(f"archive extraction escaped destination: {member.name}")
+                raise ReleaseError(
+                    f"archive extraction escaped destination: {member.name}"
+                )
             if member.isdir():
                 target.mkdir(parents=True, exist_ok=True)
                 target.chmod(member.mode & 0o755)
@@ -1119,10 +1258,15 @@ def generate_sbom(info: ArchiveInfo, revision: str, epoch: int) -> dict[str, obj
     mathjax_verification_hashes: list[str] = []
     verification_hashes: list[str] = []
     with tarfile.open(info.path, mode="r:gz") as tar:
-        for member in sorted((item for item in tar.getmembers() if item.isfile()), key=lambda item: item.name):
+        for member in sorted(
+            (item for item in tar.getmembers() if item.isfile()),
+            key=lambda item: item.name,
+        ):
             handle = tar.extractfile(member)
             if handle is None:
-                raise ReleaseError(f"cannot read archive member for SBOM: {member.name}")
+                raise ReleaseError(
+                    f"cannot read archive member for SBOM: {member.name}"
+                )
             # pi-lens-ignore: python-weak-hash
             sha1 = hashlib.sha1(usedforsecurity=False)
             sha256 = hashlib.sha256()
@@ -1135,7 +1279,9 @@ def generate_sbom(info: ArchiveInfo, revision: str, epoch: int) -> dict[str, obj
                     sha256.update(chunk)
             verification_hashes.append(sha1.hexdigest())
             relative = member.name.split("/", 1)[1]
-            file_id = spdx_id("File", hashlib.sha256(relative.encode("utf-8")).hexdigest()[:24])
+            file_id = spdx_id(
+                "File", hashlib.sha256(relative.encode("utf-8")).hexdigest()[:24]
+            )
             is_mathjax = relative.startswith("docs/book/theme/vendor/mathjax/")
             license_info = (
                 ["Apache-2.0"]
@@ -1156,7 +1302,11 @@ def generate_sbom(info: ArchiveInfo, revision: str, epoch: int) -> dict[str, obj
                 }
             )
             relationships.append(
-                {"spdxElementId": package_id, "relationshipType": "CONTAINS", "relatedSpdxElement": file_id}
+                {
+                    "spdxElementId": package_id,
+                    "relationshipType": "CONTAINS",
+                    "relatedSpdxElement": file_id,
+                }
             )
             if is_mathjax:
                 mathjax_files.append(file_id)
@@ -1205,10 +1355,18 @@ def generate_sbom(info: ArchiveInfo, revision: str, epoch: int) -> dict[str, obj
             }
         )
         relationships.append(
-            {"spdxElementId": package_id, "relationshipType": "CONTAINS", "relatedSpdxElement": mathjax_id}
+            {
+                "spdxElementId": package_id,
+                "relationshipType": "CONTAINS",
+                "relatedSpdxElement": mathjax_id,
+            }
         )
         relationships.extend(
-            {"spdxElementId": mathjax_id, "relationshipType": "CONTAINS", "relatedSpdxElement": file_id}
+            {
+                "spdxElementId": mathjax_id,
+                "relationshipType": "CONTAINS",
+                "relatedSpdxElement": file_id,
+            }
             for file_id in mathjax_files
         )
 
@@ -1218,7 +1376,10 @@ def generate_sbom(info: ArchiveInfo, revision: str, epoch: int) -> dict[str, obj
         "SPDXID": "SPDXRef-DOCUMENT",
         "name": f"{info.package.archive_stem}-source",
         "documentNamespace": f"https://github.com/josephjohncox/Markovian/spdx/{info.package.archive_stem}/{info.sha256}",
-        "creationInfo": {"created": iso_epoch(epoch), "creators": ["Tool: Markovian-release-tool-0.1"]},
+        "creationInfo": {
+            "created": iso_epoch(epoch),
+            "creators": ["Tool: Markovian-release-tool-0.1"],
+        },
         "documentDescribes": [package_id],
         "packages": packages,
         "files": files,
@@ -1286,7 +1447,9 @@ def generate_artifact_manifest(
         try:
             document = json.loads(sbom.read_text(encoding="utf-8"))
         except (OSError, json.JSONDecodeError) as error:
-            raise ReleaseError(f"cannot read SBOM for {package.name}: {error}") from error
+            raise ReleaseError(
+                f"cannot read SBOM for {package.name}: {error}"
+            ) from error
         expected_document = generate_sbom(info, revision, epoch)
         if document != expected_document:
             raise ReleaseError(
@@ -1312,13 +1475,17 @@ def generate_artifact_manifest(
 
     component_evidence: dict[str, object] | None = None
     if (component_manifest is None) != (component_result_path is None):
-        raise ReleaseError("component manifest and result report must be supplied together")
+        raise ReleaseError(
+            "component manifest and result report must be supplied together"
+        )
     if component_manifest is not None and component_result_path is not None:
         components = parse_components(component_manifest, packages)
         try:
             result_value = json.loads(component_result_path.read_text(encoding="utf-8"))
         except (OSError, json.JSONDecodeError) as error:
-            raise ReleaseError(f"cannot read component result report: {error}") from error
+            raise ReleaseError(
+                f"cannot read component result report: {error}"
+            ) from error
         validate_component_results(
             result_value, components, component_manifest, component_result_path.parent
         )
@@ -1328,7 +1495,9 @@ def generate_artifact_manifest(
             "results": component_result_path.name,
             "resultsSha256": sha256_file(component_result_path),
             "testSuites": sum(component.kind == "test" for component in components),
-            "benchmarks": sum(component.kind == "benchmark" for component in components),
+            "benchmarks": sum(
+                component.kind == "benchmark" for component in components
+            ),
         }
 
     value: dict[str, object] = {
@@ -1367,23 +1536,38 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     sub = parser.add_subparsers(dest="command", required=True)
 
-    check = sub.add_parser("check", help="check package metadata and exposed-module goldens")
+    check = sub.add_parser(
+        "check", help="check package metadata and exposed-module goldens"
+    )
     check.add_argument("--root", type=Path, default=Path("."))
     check.add_argument("--manifest", type=Path, default=Path("release/packages.tsv"))
     check.add_argument("--goldens", type=Path, default=Path("release/exposed-modules"))
     check.add_argument("--ci-manifest", type=Path, default=Path("ci/packages.tsv"))
-    check.add_argument("--components", type=Path, default=Path("release/components.tsv"))
-    check.add_argument("--test-integration-edges", type=Path, default=Path("release/test-integration-edges.tsv"))
+    check.add_argument(
+        "--components", type=Path, default=Path("release/components.tsv")
+    )
+    check.add_argument(
+        "--test-integration-edges",
+        type=Path,
+        default=Path("release/test-integration-edges.tsv"),
+    )
 
-    source = sub.add_parser("check-source", help="require an exact clean commit checkout")
+    source = sub.add_parser(
+        "check-source", help="require an exact clean commit checkout"
+    )
     source.add_argument("--root", type=Path, default=Path("."))
     source.add_argument("--revision", required=True)
 
     archive_project = sub.add_parser(
-        "archive-project", help="write the archive-only Cabal project with every required flag"
+        "archive-project",
+        help="write the archive-only Cabal project with every required flag",
     )
-    archive_project.add_argument("--manifest", type=Path, default=Path("release/packages.tsv"))
-    archive_project.add_argument("--components", type=Path, default=Path("release/components.tsv"))
+    archive_project.add_argument(
+        "--manifest", type=Path, default=Path("release/packages.tsv")
+    )
+    archive_project.add_argument(
+        "--components", type=Path, default=Path("release/components.tsv")
+    )
     archive_project.add_argument("--output", required=True, type=Path)
 
     consumer_project = sub.add_parser(
@@ -1392,38 +1576,53 @@ def main(argv: list[str] | None = None) -> int:
     )
     consumer_project.add_argument("--root", type=Path, default=Path("."))
     consumer_project.add_argument("--archive-root", required=True, type=Path)
-    consumer_project.add_argument("--manifest", type=Path, default=Path("release/packages.tsv"))
-    consumer_project.add_argument("--components", type=Path, default=Path("release/components.tsv"))
+    consumer_project.add_argument(
+        "--manifest", type=Path, default=Path("release/packages.tsv")
+    )
+    consumer_project.add_argument(
+        "--components", type=Path, default=Path("release/components.tsv")
+    )
     consumer_project.add_argument("--package", required=True)
     consumer_project.add_argument("--output", required=True, type=Path)
 
-    targets = sub.add_parser("component-targets", help="print exact mandatory Cabal targets")
+    targets = sub.add_parser(
+        "component-targets", help="print exact mandatory Cabal targets"
+    )
     targets.add_argument("--manifest", type=Path, default=Path("release/packages.tsv"))
-    targets.add_argument("--components", type=Path, default=Path("release/components.tsv"))
+    targets.add_argument(
+        "--components", type=Path, default=Path("release/components.tsv")
+    )
     targets.add_argument("--kind", choices=("test", "benchmark"), required=True)
     targets.add_argument("--package")
 
-    plan = sub.add_parser("check-plan", help="require every mandatory component in a Cabal plan")
+    plan = sub.add_parser(
+        "check-plan", help="require every mandatory component in a Cabal plan"
+    )
     plan.add_argument("plan", type=Path)
     plan.add_argument("--manifest", type=Path, default=Path("release/packages.tsv"))
     plan.add_argument("--components", type=Path, default=Path("release/components.tsv"))
 
     results = sub.add_parser(
-        "component-results", help="write deterministic receipts after explicit components pass"
+        "component-results",
+        help="write deterministic receipts after explicit components pass",
     )
     results.add_argument("--manifest", type=Path, default=Path("release/packages.tsv"))
-    results.add_argument("--components", type=Path, default=Path("release/components.tsv"))
+    results.add_argument(
+        "--components", type=Path, default=Path("release/components.tsv")
+    )
     results.add_argument("--receipts", required=True, type=Path)
     results.add_argument("--output", required=True, type=Path)
 
     haddock = sub.add_parser(
-        "check-haddock-interfaces", help="require one interface for every manifest package"
+        "check-haddock-interfaces",
+        help="require one interface for every manifest package",
     )
     haddock.add_argument("store", type=Path)
     haddock.add_argument("--manifest", type=Path, default=Path("release/packages.tsv"))
 
     haddock_log = sub.add_parser(
-        "check-haddock-log", help="reject build and Haddock warnings in an installation log"
+        "check-haddock-log",
+        help="reject build and Haddock warnings in an installation log",
     )
     haddock_log.add_argument("log", type=Path)
     haddock_log.add_argument("--sanitized-output", type=Path)
@@ -1434,7 +1633,9 @@ def main(argv: list[str] | None = None) -> int:
     validate.add_argument("--version", required=True)
     validate.add_argument("--extract", type=Path)
     validate.add_argument("--max-entries", type=int, default=MAX_ENTRIES)
-    validate.add_argument("--max-compressed-bytes", type=int, default=MAX_COMPRESSED_BYTES)
+    validate.add_argument(
+        "--max-compressed-bytes", type=int, default=MAX_COMPRESSED_BYTES
+    )
     validate.add_argument("--max-unpacked-bytes", type=int, default=MAX_UNPACKED_BYTES)
 
     sbom = sub.add_parser("sbom", help="write a deterministic SPDX 2.3 source SBOM")
@@ -1445,11 +1646,15 @@ def main(argv: list[str] | None = None) -> int:
     sbom.add_argument("--epoch", required=True, type=int)
     sbom.add_argument("--output", required=True, type=Path)
 
-    finalize = sub.add_parser("finalize", help="atomically finalize a staged directory without replacement")
+    finalize = sub.add_parser(
+        "finalize", help="atomically finalize a staged directory without replacement"
+    )
     finalize.add_argument("--stage", required=True, type=Path)
     finalize.add_argument("--output", required=True, type=Path)
 
-    artifact = sub.add_parser("artifact-manifest", help="write the deterministic release artifact manifest")
+    artifact = sub.add_parser(
+        "artifact-manifest", help="write the deterministic release artifact manifest"
+    )
     artifact.add_argument("--manifest", type=Path, default=Path("release/packages.tsv"))
     artifact.add_argument("--archives", required=True, type=Path)
     artifact.add_argument("--sboms", required=True, type=Path)
@@ -1502,7 +1707,8 @@ def main(argv: list[str] | None = None) -> int:
             packages = parse_manifest(args.manifest)
             components = parse_components(args.components, packages)
             if args.package is not None and not any(
-                package.name.casefold() == args.package.casefold() for package in packages
+                package.name.casefold() == args.package.casefold()
+                for package in packages
             ):
                 raise ReleaseError(f"unknown component package: {args.package}")
             for component in components:
@@ -1519,7 +1725,10 @@ def main(argv: list[str] | None = None) -> int:
         elif args.command == "component-results":
             packages = parse_manifest(args.manifest)
             components = parse_components(args.components, packages)
-            write_json(args.output, component_results(components, args.components, args.receipts))
+            write_json(
+                args.output,
+                component_results(components, args.components, args.receipts),
+            )
             print(f"component result receipts written: {args.output}")
         elif args.command == "check-haddock-interfaces":
             packages = parse_manifest(args.manifest)
@@ -1565,7 +1774,12 @@ def main(argv: list[str] | None = None) -> int:
             write_json(args.output, value)
             print(f"artifact manifest written: {args.output}")
         return 0
-    except (ReleaseError, OSError, subprocess.CalledProcessError, json.JSONDecodeError) as error:
+    except (
+        ReleaseError,
+        OSError,
+        subprocess.CalledProcessError,
+        json.JSONDecodeError,
+    ) as error:
         print(f"release-tool: {error}", file=sys.stderr)
         return 1
 
