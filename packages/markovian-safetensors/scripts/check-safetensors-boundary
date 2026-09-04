@@ -4,14 +4,66 @@ set -euo pipefail
 package_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "${package_dir}"
 
+# Prefer the CI project in a repository checkout. An extracted package has its
+# own generated cabal.project and must remain runnable without Git metadata.
+project_args=()
+project_dir="${package_dir}"
+while [[ "${project_dir}" != / ]]; do
+  if [[ -f "${project_dir}/cabal.project" ]]; then
+    if [[ -f "${project_dir}/cabal.project.ci" ]]; then
+      project_args+=(--project-dir="${project_dir}" --project-file=cabal.project.ci)
+    fi
+    break
+  fi
+  project_dir="$(dirname "${project_dir}")"
+done
+
+tmp_dir="$(mktemp -d)"
+trap 'rm -rf "${tmp_dir}"' EXIT
+ghc_environment="${tmp_dir}/ghc.environment"
+# GHC_ENVIRONMENT is expanded by the Cabal child shell.
+# shellcheck disable=SC2016
+cabal exec "${project_args[@]}" -- sh -c 'cp "$GHC_ENVIRONMENT" "$1"' sh "${ghc_environment}"
+local_package_db="$(awk '$1 == "package-db" { path = $2 } END { print path }' "${ghc_environment}")"
+
+name="$(awk 'tolower($1) == "name:" { print $2; exit }' markovian-safetensors.cabal)"
+version="$(awk 'tolower($1) == "version:" { print $2; exit }' markovian-safetensors.cabal)"
+tensor_unit_id="markovian-tensor-${version}-inplace"
+safetensors_unit_id="${name}-${version}-inplace"
+for unit_id in "${tensor_unit_id}" "${safetensors_unit_id}"; do
+  if [[ ! "${unit_id}" =~ ^[A-Za-z0-9-]+-[0-9]+([.][0-9]+){3}-inplace$ ]]; then
+    printf 'invalid active package unit ID: %s\n' "${unit_id}" >&2
+    exit 1
+  fi
+  package_id="${unit_id%-inplace}"
+  unit_found=0
+  for candidate in $(ghc-pkg --package-db="${local_package_db}" field "${package_id}" id --simple-output 2>/dev/null); do
+    if [[ "${candidate}" == "${unit_id}" ]]; then
+      unit_found=1
+    fi
+  done
+  if [[ "${unit_found}" -ne 1 ]]; then
+    echo "intended package unit ID is absent: ${unit_id}" >&2
+    exit 1
+  fi
+done
+isolated_package_args=(-package-env -)
+while read -r package_db; do
+  isolated_package_args+=(-package-db "${package_db}")
+done < <(awk '$1 == "package-db" { print $2 }' "${ghc_environment}")
+
 check_failure() {
   local fixture="$1"
   shift
   local log_file
-  log_file="$(mktemp)"
-  if cabal exec -- ghc -hide-all-packages -fno-code -fmax-errors=100 \
-      -package base -package bytestring -package markovian-tensor \
-      -package markovian-safetensors "${fixture}" >"${log_file}" 2>&1; then
+  log_file="$(mktemp "${tmp_dir}/fixture.XXXXXX.log")"
+  if cabal exec "${project_args[@]}" -- ghc \
+      "${isolated_package_args[@]}" \
+      -hide-all-packages -fno-code -fmax-errors=100 \
+      -package base -package bytestring \
+      -package-id "${tensor_unit_id}" \
+      -package-id "${safetensors_unit_id}" \
+      "${fixture}" >"${log_file}" 2>&1; then
     rm -f "${log_file}"
     echo "SafeTensors boundary fixture unexpectedly compiled: ${fixture}" >&2
     exit 1

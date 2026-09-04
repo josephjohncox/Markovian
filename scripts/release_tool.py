@@ -466,10 +466,10 @@ def package_dependency_closure(
     for package in packages:
         text = one_cabal_file(root / package.directory).read_text(encoding="utf-8")
         dependencies: set[str] = set()
-        for sibling_name in by_name:
+        for sibling_name, sibling in by_name.items():
             if sibling_name == package.name.casefold():
                 continue
-            spelling = by_name[sibling_name].name
+            spelling = sibling.name
             if re.search(rf"(?mi)^\s*,\s*{re.escape(spelling)}(?![A-Za-z0-9-])", text):
                 dependencies.add(sibling_name)
         graph[package.name.casefold()] = dependencies
@@ -774,6 +774,55 @@ def git_output(root: Path, arguments: list[str]) -> str:
     return result.stdout.strip()
 
 
+def load_published_releases(path: Path) -> dict[str, dict[str, str]]:
+    """Load the mandatory immutable published-version boundary."""
+    if not path.is_file():
+        raise ReleaseError(f"published-release boundary is missing: {path}")
+    try:
+        value = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as error:
+        raise ReleaseError(
+            f"cannot read published-release boundary: {error}"
+        ) from error
+    if not isinstance(value, dict) or set(value) != {"schemaVersion", "versions"}:
+        raise ReleaseError("published-release boundary has invalid top-level fields")
+    versions = value.get("versions")
+    if (
+        value.get("schemaVersion") != 1
+        or not isinstance(versions, dict)
+        or not versions
+    ):
+        raise ReleaseError("published-release boundary has invalid schema")
+    for version, record in versions.items():
+        if (
+            not isinstance(version, str)
+            or not isinstance(record, dict)
+            or set(record) != {"sourceRevision", "tag"}
+            or record.get("tag") != f"v{version}"
+            or not isinstance(record.get("sourceRevision"), str)
+            or REVISION.fullmatch(record["sourceRevision"]) is None
+        ):
+            raise ReleaseError(f"invalid published-release record for {version!r}")
+    return versions
+
+
+def check_published_release_boundary(
+    revision: str, packages: list[Package], path: Path
+) -> None:
+    """Prevent rebuilt artifacts from reusing a published package version."""
+    versions = load_published_releases(path)
+    package_versions = {package.version for package in packages}
+    reused = package_versions.intersection(versions)
+    if reused:
+        version = min(reused)
+        published_revision = versions[version]["sourceRevision"]
+        if revision != published_revision:
+            raise ReleaseError(
+                f"version {version} is already published from {published_revision}; "
+                f"revision {revision} must use a new version"
+            )
+
+
 def check_source_checkout(root: Path, revision: str) -> None:
     validate_revision(revision)
     top = Path(git_output(root, ["rev-parse", "--show-toplevel"])).resolve()
@@ -783,6 +832,11 @@ def check_source_checkout(root: Path, revision: str) -> None:
     head = git_output(root, ["rev-parse", "--verify", "HEAD"])
     status = git_output(root, ["status", "--porcelain=v1", "--untracked-files=normal"])
     validate_checkout_state(revision, resolved, head, status)
+    manifest = root / "release/packages.tsv"
+    if manifest.exists():
+        check_published_release_boundary(
+            revision, parse_manifest(manifest), root / "release/published-releases.json"
+        )
 
 
 def check_haddock_interfaces(store: Path, packages: list[Package]) -> None:
@@ -981,6 +1035,8 @@ def check_metadata(
     component_manifest: Path | None = None,
 ) -> list[Package]:
     packages = parse_manifest(manifest)
+    if (root / "release/packages.tsv").exists():
+        load_published_releases(root / "release/published-releases.json")
     if ci_manifest is not None:
         check_ci_manifest(packages, ci_manifest)
     known_versions = {package.name.casefold(): package.version for package in packages}
@@ -1683,7 +1739,8 @@ def main(argv: list[str] | None = None) -> int:
                 f"{sum(item.kind == 'test' for item in components)} suites, "
                 f"{sum(item.kind == 'benchmark' for item in components)} benchmarks, "
                 "exact public sibling edges, checked test-only integration edges, "
-                "Accepted decision statuses, and exposed-module goldens validated"
+                "Accepted decision statuses, mandatory published-version boundary, "
+                "and exposed-module goldens validated"
             )
         elif args.command == "check-source":
             check_source_checkout(args.root, args.revision)

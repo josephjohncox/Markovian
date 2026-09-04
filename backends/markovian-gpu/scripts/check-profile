@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+python3 "${root}/scripts/cuda_profile.py" --root "${root}" check
+python3 "${root}/test/test_cuda_profile.py"

@@ -1,0 +1,10 @@
+operation	JointAffineAlphaRenaming
+raw-entries	3
+declared-owners	3
+retained-owners	3
+outputs	2
+coefficients	10
+preflight-work	69
+arithmetic-work	0
+work	69
+maximum-rational-bits	3

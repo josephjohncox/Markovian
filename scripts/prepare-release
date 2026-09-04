@@ -170,6 +170,7 @@ boundary_scripts=(
   packages/markovian-tensor/scripts/check-tensor-boundary
   packages/markovian-tensor-reverse/scripts/check-tensor-reverse-boundary
   packages/markovian-safetensors/scripts/check-safetensors-boundary
+  backends/markovian-gpu/scripts/check-profile
   backends/markovian-gpu/scripts/check-device-boundary
 )
 for boundary in "${boundary_scripts[@]}"; do
@@ -379,7 +380,12 @@ consumer="${stage}/consumer"
 mkdir -p "${consumer}/app"
 cp examples/release/exact/markovian-release-example.cabal "${consumer}/"
 cp examples/release/exact/app/Main.hs "${consumer}/app/"
-root_archive="${stage}/unpacked/Markovian-2026.9.3.0"
+root_version="$(awk -F '\t' '$1 == "Markovian" { print $3 }' release/packages.tsv)"
+[[ -n "${root_version}" ]] || {
+  echo "release/packages.tsv has no Markovian package version" >&2
+  exit 1
+}
+root_archive="${stage}/unpacked/Markovian-${root_version}"
 cat > "${consumer}/cabal.project" <<EOF
 packages:
   .

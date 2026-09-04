@@ -6,13 +6,47 @@ project_args=()
 if [[ -f cabal.project && -f cabal.project.ci ]]; then
   project_args+=(--project-file=cabal.project.ci)
 fi
+package_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+package_name="$(awk 'tolower($1) == "name:" { print $2; exit }' "${package_dir}/markovian-continuous.cabal")"
+package_version="$(awk 'tolower($1) == "version:" { print $2; exit }' "${package_dir}/markovian-continuous.cabal")"
+continuous_unit_id="${package_name}-${package_version}-inplace"
+ghc_args=(-fno-code -hide-all-packages -package base -package-id "${continuous_unit_id}")
 fixture="packages/markovian-continuous/test/compile-fail/ContinuousBoundary.hs"
-[[ -f "${fixture}" ]] || fixture="test/compile-fail/ContinuousBoundary.hs"
-if cabal exec "${project_args[@]}" -- ghc -fno-code -package markovian-continuous "${fixture}" >"${log_file}" 2>&1; then
+joint_fixture="packages/markovian-continuous/test/compile-fail/JointAffineBoundary.hs"
+role_fixture="packages/markovian-continuous/test/compile-fail/JointAffineRoles.hs"
+wrong_scope_fixture="packages/markovian-continuous/test/compile-fail/JointAffineWrongScope.hs"
+if [[ ! -f "${fixture}" ]]; then
+  fixture="test/compile-fail/ContinuousBoundary.hs"
+  joint_fixture="test/compile-fail/JointAffineBoundary.hs"
+  role_fixture="test/compile-fail/JointAffineRoles.hs"
+  wrong_scope_fixture="test/compile-fail/JointAffineWrongScope.hs"
+fi
+if cabal exec "${project_args[@]}" -- ghc "${ghc_args[@]}" "${fixture}" >"${log_file}" 2>&1; then
   echo "Continuous constructors, roles, or unsupported conditioning escaped." >&2
   exit 1
 fi
 for rejected in badLawConstructor badKernelConstructor badPosteriorConstructor badOwnerCoerce badLawCoerce badArbitraryDensity badConditionPoint badGeneralDisintegrate; do
   grep -F "${rejected}" "${log_file}" >/dev/null || { cat "${log_file}" >&2; echo "Missing ${rejected} boundary error." >&2; exit 1; }
 done
-echo "PASS: continuous opacity, nominal roles, and conditioning boundary"
+if cabal exec "${project_args[@]}" -- ghc "${ghc_args[@]}" "${joint_fixture}" >"${log_file}" 2>&1; then
+  echo "Joint affine constructors, coordinate roles, or owner scope escaped." >&2
+  exit 1
+fi
+for rejected in badJointAffineConstructor badAffineInputConstructor; do
+  grep -F "${rejected}" "${log_file}" >/dev/null || { cat "${log_file}" >&2; echo "Missing ${rejected} boundary error." >&2; exit 1; }
+done
+if cabal exec "${project_args[@]}" -- ghc "${ghc_args[@]}" "${role_fixture}" >"${log_file}" 2>&1; then
+  echo "Joint affine coordinate roles or owner scope escaped." >&2
+  exit 1
+fi
+for rejected in badJointOwnerCoerce badJointInputCoordinateRole badJointRewardCoordinateRole badJointSuccessorCoordinateRole badJointOwnerLocality badArbitrarySpaceMaterialization; do
+  grep -F "${rejected}" "${log_file}" >/dev/null || { cat "${log_file}" >&2; echo "Missing ${rejected} boundary error." >&2; exit 1; }
+done
+if cabal exec "${project_args[@]}" -- ghc "${ghc_args[@]}" "${wrong_scope_fixture}" >"${log_file}" 2>&1; then
+  echo "A wrong-scope owner mapping was accepted." >&2
+  exit 1
+fi
+for rejected in OwnerA OwnerB "Couldn't match type"; do
+  grep -F "${rejected}" "${log_file}" >/dev/null || { cat "${log_file}" >&2; echo "Missing wrong-scope owner rejection: ${rejected}." >&2; exit 1; }
+done
+echo "PASS: continuous opacity, coordinate and owner roles, owner locality, and conditioning boundary"

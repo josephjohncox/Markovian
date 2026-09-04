@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Add D-079 Gate A exact joint affine kernels with nominal local owner scopes, duplicate-before-zero-filter admission, real-Borel exact joint-law materialization, exact support extrema, same-scope partial alpha-renaming, complete-map scope transitions, bounded cumulative reports, and compile-fail role and space checks. D-079 remains Proposed.
+
 ## 2026.9.3.0 — 2026-09-03
 
 - Add closed standard-Borel witnesses and affine real maps.

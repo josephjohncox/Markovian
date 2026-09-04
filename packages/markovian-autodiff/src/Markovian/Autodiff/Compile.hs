@@ -356,6 +356,7 @@ primitiveArithmetic primitive = case primitive of
     TanhVector shape -> vectorExtent shape
     First{} -> 0
     Second{} -> 0
+    ProjectValue{} -> 0
   where
     shapeArithmetic :: SShape shape -> Natural
     shapeArithmetic SUnit = 0
@@ -598,6 +599,7 @@ primitivePrimal backend primitive parameters input = do
         TanhVector _ -> checkedVector backend "vector-tanh" (map (backendTanh backend) (vectorFromValue input))
         First _ _ -> let (left, _) = splitProductValue input in Right left
         Second _ _ -> let (_, right) = splitProductValue input in Right right
+        ProjectValue projection -> Right (projectPrimal projection input)
     validateValue backend "primitive-output" output
     Right output
 
@@ -636,6 +638,7 @@ primitiveVJP backend primitive _ input output seed = do
             Right (NoParameterValue, VectorValue values)
         First _ rightShape -> Right (NoParameterValue, ProductValue seed (zeroValue backend rightShape))
         Second leftShape _ -> Right (NoParameterValue, ProductValue (zeroValue backend leftShape) seed)
+        ProjectValue projection -> Right (NoParameterValue, projectCotangent backend projection seed)
     validateParameters backend (fst result)
     validateValue backend "input-cotangent" (snd result)
     Right result
@@ -656,6 +659,7 @@ primitiveName primitive = case primitive of
     TanhVector _ -> "tanh-vector"
     First _ _ -> "first"
     Second _ _ -> "second"
+    ProjectValue{} -> "quote-project"
 
 primitiveParameters :: Primitive scalar fragment parameters input output -> SParameters parameters
 primitiveParameters primitive = case primitive of
@@ -673,6 +677,7 @@ primitiveParameters primitive = case primitive of
     TanhVector _ -> SNoParameters
     First _ _ -> SNoParameters
     Second _ _ -> SNoParameters
+    ProjectValue{} -> SNoParameters
 
 primitiveInput :: Primitive scalar fragment parameters input output -> SShape input
 primitiveInput primitive = case primitive of
@@ -690,6 +695,7 @@ primitiveInput primitive = case primitive of
     TanhVector shape -> shape
     First left right -> SProduct left right
     Second left right -> SProduct left right
+    ProjectValue projection -> projectionInput projection
 
 primitiveOutput :: Primitive scalar fragment parameters input output -> SShape output
 primitiveOutput primitive = case primitive of
@@ -707,6 +713,31 @@ primitiveOutput primitive = case primitive of
     TanhVector shape -> shape
     First left _ -> left
     Second _ right -> right
+    ProjectValue projection -> projectionOutput projection
+
+projectionInput :: Projection environment selected -> SShape environment
+projectionInput projection = case projection of
+    ProjectionHere shape -> shape
+    ProjectionLeft inner right -> SProduct (projectionInput inner) right
+    ProjectionRight left inner -> SProduct left (projectionInput inner)
+
+projectionOutput :: Projection environment selected -> SShape selected
+projectionOutput projection = case projection of
+    ProjectionHere shape -> shape
+    ProjectionLeft inner _ -> projectionOutput inner
+    ProjectionRight _ inner -> projectionOutput inner
+
+projectPrimal :: Projection environment selected -> Value scalar environment -> Value scalar selected
+projectPrimal projection value = case projection of
+    ProjectionHere _ -> value
+    ProjectionLeft inner _ -> let (left, _) = splitProductValue value in projectPrimal inner left
+    ProjectionRight _ inner -> let (_, right) = splitProductValue value in projectPrimal inner right
+
+projectCotangent :: Backend scalar -> Projection environment selected -> Value scalar selected -> Value scalar environment
+projectCotangent backend projection seed = case projection of
+    ProjectionHere _ -> seed
+    ProjectionLeft inner right -> ProductValue (projectCotangent backend inner seed) (zeroValue backend right)
+    ProjectionRight left inner -> ProductValue (zeroValue backend left) (projectCotangent backend inner seed)
 
 shapeLayout :: SShape shape -> FiniteLayout
 shapeLayout SUnit = unitFiniteLayout

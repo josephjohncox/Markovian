@@ -30,8 +30,10 @@ extra-doc-files:
   docs/CONTEXT.md
   docs/DECISIONS.md
   docs/evidence/CUDA-2026-08-26.md
+  docs/evidence/CUDA-D077-RECEIPTS.md
   docs/evidence/CUDA-TENSOR-2026-09-02.md
   docs/evidence/D061-2026-09-02.md
+  docs/evidence/D077-WORKTREE-SCOPE.md
   docs/evidence/INTEGRATION-DOCS-REPAIR.md
   docs/evidence/S6-ACYCLIC-OPEN-2026-08-27.md
   docs/evidence/TENSOR-SAFETENSORS-REPAIR.md
@@ -81,6 +83,7 @@ extra-source-files:
   release/haddock-private-modules.txt
   release/LICENSE-INVENTORY.md
   release/packages.tsv
+  release/published-releases.json
   release/README.md
   release/test-integration-edges.tsv
   scripts/bootstrap-tools
@@ -125,6 +128,7 @@ extra-source-files:
   test/compile-fail/PushoutKind.hs
   test/compile-fail/RefinementRoles.hs
   test/compile-fail/RootMovedModules.hs
+  test/golden/affine-feedback-accounting.txt
   test/golden/feedback-accounting.txt
   test/golden/mixed-nash-zero.txt
   test/golden/open-game-matching-pennies.txt
@@ -168,6 +172,7 @@ library
     Markovian.Feedback.Channel.Exact
     Markovian.Feedback.Delay.Exact
     Markovian.Feedback.Timed.Exact
+    Markovian.Feedback.Value.Exact
     Markovian.Game.Arena
     Markovian.Game.Correlated.Exact
     Markovian.Game.Harsanyi.Exact
@@ -243,6 +248,7 @@ test-suite Markovian-test
     ExactBind
     ExactControl
     FeedbackExact
+    FeedbackValueExact
     FiniteOpenGames
     GameCore
     MixedBayesianGames

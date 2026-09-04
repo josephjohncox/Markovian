@@ -416,6 +416,57 @@ class ReleaseToolTests(unittest.TestCase):
                 revision, revision, revision, " M file"
             )
 
+    def test_published_version_cannot_be_rebuilt_from_a_new_revision(self) -> None:
+        boundary = self.root / "published-releases.json"
+        published_revision = "a" * 40
+        boundary.write_text(
+            json.dumps(
+                {
+                    "schemaVersion": 1,
+                    "versions": {
+                        "2026.9.3.0": {
+                            "sourceRevision": published_revision,
+                            "tag": "v2026.9.3.0",
+                        }
+                    },
+                }
+            )
+        )
+        release_tool.check_published_release_boundary(
+            published_revision, [self.package], boundary
+        )
+        with self.assertRaisesRegex(release_tool.ReleaseError, "already published"):
+            release_tool.check_published_release_boundary(
+                "b" * 40, [self.package], boundary
+            )
+        next_package = release_tool.Package("demo", Path("."), "2026.9.4.0", 0)
+        release_tool.check_published_release_boundary(
+            "b" * 40, [next_package], boundary
+        )
+
+    def test_published_release_boundary_is_mandatory(self) -> None:
+        boundary = self.root / "missing-published-releases.json"
+        with self.assertRaisesRegex(release_tool.ReleaseError, "boundary is missing"):
+            release_tool.check_published_release_boundary(
+                "a" * 40, [self.package], boundary
+            )
+
+    def test_published_release_boundary_rejects_malformed_records(self) -> None:
+        boundary = self.root / "published-releases.json"
+        boundary.write_text('{"schemaVersion": 1, "versions": {"2026.9.3.0": {}}}')
+        with self.assertRaisesRegex(
+            release_tool.ReleaseError, "invalid published-release"
+        ):
+            release_tool.check_published_release_boundary(
+                "a" * 40, [self.package], boundary
+            )
+
+        boundary.write_text('{"schemaVersion": 1, "versions": {}}')
+        with self.assertRaisesRegex(release_tool.ReleaseError, "invalid schema"):
+            release_tool.check_published_release_boundary(
+                "a" * 40, [self.package], boundary
+            )
+
     def test_source_checkout_uses_the_exact_clean_commit(self) -> None:
         repository = self.root / "repository"
         repository.mkdir()
@@ -436,6 +487,75 @@ class ReleaseToolTests(unittest.TestCase):
                 "commit",
                 "-qm",
                 "fixture",
+            ],
+            check=True,
+        )
+        revision = subprocess.run(
+            ["git", "-C", repository, "rev-parse", "HEAD"],
+            check=True,
+            capture_output=True,
+            text=True,
+        ).stdout.strip()
+        release_tool.check_source_checkout(repository, revision)
+        (repository / "release").mkdir()
+        (repository / "release" / "packages.tsv").write_text("demo\t.\t2026.9.3.0\t0\n")
+        subprocess.run(["git", "-C", repository, "add", "release"], check=True)
+        subprocess.run(
+            [
+                "git",
+                "-C",
+                repository,
+                "-c",
+                "user.name=Release Test",
+                "-c",
+                "user.email=release-test@example.invalid",
+                "-c",
+                "commit.gpgsign=false",
+                "commit",
+                "-qm",
+                "package manifest fixture",
+            ],
+            check=True,
+        )
+        revision = subprocess.run(
+            ["git", "-C", repository, "rev-parse", "HEAD"],
+            check=True,
+            capture_output=True,
+            text=True,
+        ).stdout.strip()
+        with self.assertRaisesRegex(release_tool.ReleaseError, "boundary is missing"):
+            release_tool.check_source_checkout(repository, revision)
+
+        # A new package version can follow the recorded published boundary.
+        (repository / "release" / "packages.tsv").write_text("demo\t.\t2026.9.4.0\t0\n")
+        (repository / "release" / "published-releases.json").write_text(
+            json.dumps(
+                {
+                    "schemaVersion": 1,
+                    "versions": {
+                        "2026.9.3.0": {
+                            "sourceRevision": "a" * 40,
+                            "tag": "v2026.9.3.0",
+                        }
+                    },
+                }
+            )
+        )
+        subprocess.run(["git", "-C", repository, "add", "release"], check=True)
+        subprocess.run(
+            [
+                "git",
+                "-C",
+                repository,
+                "-c",
+                "user.name=Release Test",
+                "-c",
+                "user.email=release-test@example.invalid",
+                "-c",
+                "commit.gpgsign=false",
+                "commit",
+                "-qm",
+                "new candidate version fixture",
             ],
             check=True,
         )

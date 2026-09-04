@@ -3,6 +3,7 @@ module Main (main) where
 import Control.Monad (forM_, replicateM, unless)
 import Data.List (foldl')
 import Data.Ratio ((%))
+import JointAffine (runJointAffineTests)
 import Markovian.Continuous.Condition.Exact
 import Markovian.Continuous.Kernel.Exact
 import Markovian.Continuous.Map
@@ -231,6 +232,7 @@ main = do
     checkLeft "one-below degree budget" (rationalPolynomial degreeLimited [(2, 1)]) (== DegreeLimitExceeded 1 2)
     let workLimited = limits{limitWork = 2}
     checkLeft "work exhaustion returns no report" (expectPolynomial workLimited uniformA square) isWorkLimit
+    runJointAffineTests
     putStrLn "continuous exact tests passed"
 
 type OracleForm = (Rational, [(Natural, Rational, (Rational, Rational))])

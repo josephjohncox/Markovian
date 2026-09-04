@@ -347,6 +347,27 @@ A proposed decision records an open design question. The designated reviewer or 
 
 Do not use architecture text to hide an unresolved decision. Mark the uncertainty and link the proposed entry.
 
+### 8.1 Post-release proposal gate
+
+Apply this gate to D-077 through D-085 and later post-release proposals:
+
+1. Keep the decision `Proposed` throughout governance drafting.
+2. Freeze every exported Haskell signature before implementation.
+3. Freeze one total failure-precedence table for each public operation.
+4. Keep constructors opaque and assign nominal roles to proof, owner, profile, path, shape, and endpoint parameters.
+5. Give each operation one cumulative monotonic bounded ledger.
+6. Complete all known-size preflight before dense allocation.
+7. Admit each exact limit and reject one below it without partial output.
+8. Separate mathematical proof status from compiler, device, and benchmark evidence.
+9. Treat `v2026.9.3.0` evidence as evidence for that release only.
+10. Get explicit topology approval before adding a package or package edge.
+11. Do not infer a general device or performance claim without immutable same-session receipts.
+12. Do not launch a workflow, prepare a candidate, tag, upload, release, or publish without separate authorization.
+
+A proposal can advance only after the decision records its exact API schedule, failure table, ownership model, ledger, tests, and evidence plan. A status change requires a separate reviewed edit.
+
+For D-077 hardware evidence, start one session identity before correctness tests. Use the same test executable for correctness and all sanitizer tools. Bind each executable, command, and raw log by SHA-256. Run the benchmark in that session and retain every raw sample. Validate the complete directory with `backends/markovian-gpu/scripts/cuda_profile.py validate-receipt`. A temporary workflow artifact is not durable evidence.
+
 ## 9. Failure handling
 
 ### 9.1 Missing tool
@@ -411,7 +432,7 @@ D-038 work follows the S1 through S6 roadmap in `TODO.md`.
 
 ## 11. New-feature evidence workflow
 
-P0 through P6, the greenfield cleanup, exact semantic-tower stages S1 through S6, and bounded implementation slices S7 through S11 are `DONE`. The coordinated release graph has 16 packages in `release/packages.tsv`; `ci/packages.tsv` remains the checked integration inventory. D-053 through D-076 are `Accepted` only for their recorded finite and bounded scopes. The complete GHC 9.4.8, GHC 9.8.4, lower-bound, source, Haddock, formatting, benchmark, compile-fail, package-boundary, archive-only, checksum, SPDX, and provenance gates passed before release. The digest-pinned no-GPU CUDA compile job and the UUID-bound protected GB10 job also passed, including enabled differentials, fault fixtures, PTX reproduction, the transfer-inclusive benchmark, and all four Compute Sanitizer tools. These results do not widen the contracts: arbitrary cyclic graph semantics, universal feedback, continuous-time black-boxing, unrestricted MDP black-boxing, general tensor semantics, generic reverse-program device lowering, general autodiff, and general device correctness remain deferred.
+P0 through P6, the greenfield cleanup, exact semantic-tower stages S1 through S6, and bounded implementation slices S7 through S11 are `DONE`. The coordinated release graph has 16 packages in `release/packages.tsv`; `ci/packages.tsv` remains the checked integration inventory. D-053 through D-076 are `Accepted` only for their recorded finite and bounded scopes. The complete GHC 9.4.8, GHC 9.8.4, lower-bound, source, Haddock, formatting, benchmark, compile-fail, package-boundary, archive-only, checksum, SPDX, and provenance gates passed before release. The historical release record states that the digest-pinned no-GPU CUDA job and protected GB10 job passed. It lists enabled differentials, fault fixtures, PTX reproduction, the benchmark, and four sanitizer tools. The retained repository data cannot reconstruct the hardware assertions as a D-077 same-session receipt set. These results do not widen the contracts: arbitrary cyclic graph semantics, universal feedback, continuous-time black-boxing, unrestricted MDP black-boxing, general tensor semantics, generic reverse-program device lowering, general autodiff, and general device correctness remain deferred.
 
 A new feature must use this sequence:
 

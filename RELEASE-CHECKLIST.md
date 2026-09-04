@@ -1,6 +1,8 @@
 # First-release checklist
 
-This checklist separates preparation from external publication. Preparation has no publication credential.
+This checklist records the published `v2026.9.3.0` process. It does not make the historical CUDA logs satisfy D-077.
+
+Preparation has no publication credential. `release/published-releases.json` is mandatory and blocks reuse of a published version from another source revision. The current bounded proposal work retains package versions, manifests, and bounds under the task's no-version-change invariant and is not a release candidate. Before preparing another candidate, verify that every changed package has the intended version and update the candidate notes and review records.
 
 ## 1. Freeze the candidate API
 
@@ -52,6 +54,8 @@ bash scripts/prepare-release \
 - [ ] Run the separate UUID-bound protected CUDA workflow. Confirm that all
   four Compute Sanitizer tools use the `cabal list-bin` executable with the
   Cabal `markovian_gpu_datadir` override.
+- [ ] For a future CUDA claim, validate and retain the complete D-077 receipt
+  directory. Temporary workflow retention is not release evidence.
 
 ## 4. Verify hosted provenance
 

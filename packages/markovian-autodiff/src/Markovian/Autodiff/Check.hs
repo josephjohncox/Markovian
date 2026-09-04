@@ -103,6 +103,7 @@ primitiveJVP primitive parameters parameterDirection input inputDirection = case
         let (_, right) = splitProductValue input
             (_, dRight) = splitProductValue inputDirection
          in Right (right, dRight)
+    ProjectValue projection -> Right (followProjection projection input, followProjection projection inputDirection)
 
 {- | Check exact identity rewrites, semantics, and the one-below SSA limit.
 
@@ -125,6 +126,12 @@ checkExactSSAIdentities = do
     mapProblem result = case result of
         Left problem -> Left (show problem)
         Right value -> Right value
+
+followProjection :: Projection environment selected -> Value scalar environment -> Value scalar selected
+followProjection projection value = case projection of
+    ProjectionHere _ -> value
+    ProjectionLeft inner _ -> let (left, _) = splitProductValue value in followProjection inner left
+    ProjectionRight _ inner -> let (_, right) = splitProductValue value in followProjection inner right
 
 scalarPair :: Value Rational ('Product 'Scalar 'Scalar) -> (Rational, Rational)
 scalarPair value = let (left, right) = splitProductValue value in (scalarFromValue left, scalarFromValue right)

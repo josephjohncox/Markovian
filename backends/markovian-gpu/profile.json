@@ -1,0 +1,330 @@
+{
+  "admissionTests": [
+    "complete-driver-symbol-table-before-cuInit",
+    "native-device-uuid-match-before-context",
+    "compute-capability-literal-match-before-context",
+    "module-load",
+    "kernel-symbol-lookup",
+    "known-answer-self-test"
+  ],
+  "benchmarkFixture": {
+    "exactSemanticChecksum": "49439/128",
+    "leftInput": "row-major ((row+column) mod 7 - 3) / 8",
+    "matrixShape": [
+      64,
+      64
+    ],
+    "measuredSampleCount": 20,
+    "rightInput": "row-major identity-plus-off-diagonal ((3*row+column) mod 5 - 2) / 32",
+    "warmupCount": 1
+  },
+  "cudaAbi": {
+    "compileImage": "nvidia/cuda:13.0.2-devel-ubuntu22.04@sha256:1c517d4fb96528c8999e14e6e6b16d7e2ff9ae8d194fd788d60fdc88e693e982",
+    "driverHeaderSha256": "64025f81a9d6d2b10e9e11654f3523e5b046d01b883f0b9ca474e463274b80d4",
+    "driverLibrary": "libcuda.so.1",
+    "headerVersion": 13000,
+    "nvcc": "/usr/local/cuda/bin/nvcc",
+    "requiredSymbols": [
+      "cuInit",
+      "cuDriverGetVersion",
+      "cuDeviceGetCount",
+      "cuDeviceGet",
+      "cuDeviceGetAttribute",
+      "cuDeviceTotalMem_v2",
+      "cuDeviceGetUuid_v2",
+      "cuDeviceGetName",
+      "cuCtxCreate_v4",
+      "cuCtxDestroy_v2",
+      "cuCtxPushCurrent_v2",
+      "cuCtxPopCurrent_v2",
+      "cuModuleLoadData",
+      "cuModuleUnload",
+      "cuModuleGetFunction",
+      "cuStreamCreate",
+      "cuStreamDestroy_v2",
+      "cuStreamSynchronize",
+      "cuMemAlloc_v2",
+      "cuMemFree_v2",
+      "cuMemcpyHtoD_v2",
+      "cuMemcpyDtoH_v2",
+      "cuLaunchKernel",
+      "cuGetErrorName",
+      "cuGetErrorString"
+    ],
+    "toolkitRelease": "13.0"
+  },
+  "deviceConstraints": {
+    "computeCapabilityMajor": 12,
+    "computeCapabilityMinor": 1,
+    "maximumThreadsPerBlockAtLeast": 128,
+    "uuidBytes": 16
+  },
+  "differentialFixture": {
+    "left": [
+      "1",
+      "2",
+      "3",
+      "4",
+      "5",
+      "6"
+    ],
+    "leftShape": [
+      2,
+      3
+    ],
+    "right": [
+      "7",
+      "8",
+      "9",
+      "10",
+      "11",
+      "12"
+    ],
+    "rightShape": [
+      3,
+      2
+    ],
+    "seed": [
+      "1/2",
+      "-1",
+      "2",
+      "1/4"
+    ],
+    "seedShape": [
+      2,
+      2
+    ]
+  },
+  "kernelAbi": {
+    "blockThreads": 128,
+    "indexType": "signed-int32",
+    "name": "markovian_f64_matmul",
+    "version": "markovian-f64-matmul-v1"
+  },
+  "numericPolicy": {
+    "cpu": {
+      "accumulationOrder": "k-ascending-left-fold",
+      "comparisonAbsoluteTolerance": "2e-12",
+      "comparisonRelativeTolerance": "2e-12",
+      "contraction": "separate-binary64-multiply-then-add"
+    },
+    "cuda": {
+      "accumulationOrder": "k-ascending-left-fold",
+      "comparisonAbsoluteTolerance": "2e-12",
+      "comparisonRelativeTolerance": "2e-12",
+      "contraction": "ptx-fma.rn.f64"
+    },
+    "exact": {
+      "input": "finite-binary64-word-as-exact-dyadic-rational",
+      "matmul": "exact-sum-k-of-left[row,k]*right[k,column]",
+      "vjpLeft": "exact-matmul(seed,transpose(right))",
+      "vjpRight": "exact-matmul(transpose(left),seed)"
+    }
+  },
+  "profileId": "markovian-cuda-sm121-f64-matmul-v1",
+  "ptx": {
+    "headerSha256": "77f264a56828d4c9cf07db49dae1882bb5d0ff8118d94e885fecefa89268b3b0",
+    "isaVersion": "9.0",
+    "sha256": "a01d2c898a78dc4f603a8919c9f84019b79066201bc12430fedc725ac97f6239",
+    "target": "sm_121"
+  },
+  "receiptSchema": {
+    "benchmarkFields": [
+      "exactSemanticChecksum",
+      "rawSampleCount"
+    ],
+    "benchmarkTypes": {
+      "exactSemanticChecksum": "string",
+      "rawSampleCount": "integer"
+    },
+    "constraints": {
+      "benchmarkSamplePattern": "^cuda-transfer-inclusive sample ([0-9]{2}): ([+-]?(?:[0-9]+(?:\\.[0-9]*)?|\\.[0-9]+)(?:[eE][+-]?[0-9]+)?) ms$",
+      "job": "cuda-hardware",
+      "repository": "josephjohncox/Markovian",
+      "result": "passed",
+      "safeFilePattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$",
+      "sessionPattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{7,255}$",
+      "sha256Pattern": "^[0-9a-f]{64}$",
+      "sourceRevisionPattern": "^[0-9a-f]{40}$",
+      "uuidPattern": "^GPU-[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$",
+      "versionPattern": "^[0-9]+(?:\\.[0-9]+)+(?:[-+._A-Za-z0-9]*)?$",
+      "workflow": ".github/workflows/cuda-hardware.yml"
+    },
+    "maxExecutableBytes": 268435456,
+    "maxJsonBytes": 1048576,
+    "maxJsonDepth": 128,
+    "maxLogBytes": 16777216,
+    "observationFields": [
+      "deviceQueryLog",
+      "deviceQueryLogSha256",
+      "driverApiVersion",
+      "driverVersion",
+      "nativeObservedDeviceUuid",
+      "nvidiaSmiDeviceUuid",
+      "sanitizerLog",
+      "sanitizerLogSha256",
+      "sanitizerVersion",
+      "toolkitLog",
+      "toolkitLogSha256",
+      "toolkitVersion"
+    ],
+    "observationTypes": {
+      "deviceQueryLog": "string",
+      "deviceQueryLogSha256": "string",
+      "driverApiVersion": "integer",
+      "driverVersion": "string",
+      "nativeObservedDeviceUuid": "string",
+      "nvidiaSmiDeviceUuid": "string",
+      "sanitizerLog": "string",
+      "sanitizerLogSha256": "string",
+      "sanitizerVersion": "string",
+      "toolkitLog": "string",
+      "toolkitLogSha256": "string",
+      "toolkitVersion": "string"
+    },
+    "recordFields": [
+      "command",
+      "commandSha256",
+      "executable",
+      "executableSha256",
+      "exitCode",
+      "kind",
+      "log",
+      "logSha256"
+    ],
+    "recordTypes": {
+      "command": "string",
+      "commandSha256": "string",
+      "executable": "string",
+      "executableSha256": "string",
+      "exitCode": "integer",
+      "kind": "string",
+      "log": "string",
+      "logSha256": "string"
+    },
+    "requiredRecords": [
+      {
+        "command": "cabal test markovian-gpu-test --project-file=cabal.project.ci -fcuda -fcuda-fault-injection --extra-include-dirs=/usr/local/cuda/include --test-show-details=direct && bash backends/markovian-gpu/scripts/check-device-boundary",
+        "executable": "test-executable",
+        "kind": "correctness",
+        "successMarkers": [
+          "markovian-gpu: device contract tests passed",
+          "PASS: device plans, host results, executor resources, and endpoints remain protected"
+        ]
+      },
+      {
+        "command": "compute-sanitizer --error-exitcode=1 --tool memcheck cuda-evidence/test-executable",
+        "executable": "test-executable",
+        "kind": "sanitizer-memcheck",
+        "successMarkers": [
+          "ERROR SUMMARY: 0 errors"
+        ]
+      },
+      {
+        "command": "compute-sanitizer --error-exitcode=1 --tool initcheck cuda-evidence/test-executable",
+        "executable": "test-executable",
+        "kind": "sanitizer-initcheck",
+        "successMarkers": [
+          "ERROR SUMMARY: 0 errors"
+        ]
+      },
+      {
+        "command": "compute-sanitizer --error-exitcode=1 --tool racecheck cuda-evidence/test-executable",
+        "executable": "test-executable",
+        "kind": "sanitizer-racecheck",
+        "successMarkers": [
+          "ERROR SUMMARY: 0 errors"
+        ]
+      },
+      {
+        "command": "compute-sanitizer --error-exitcode=1 --tool synccheck cuda-evidence/test-executable",
+        "executable": "test-executable",
+        "kind": "sanitizer-synccheck",
+        "successMarkers": [
+          "ERROR SUMMARY: 0 errors"
+        ]
+      },
+      {
+        "command": "cabal bench markovian-gpu-bench --project-file=cabal.project.ci -fcuda -fcuda-fault-injection --extra-include-dirs=/usr/local/cuda/include",
+        "executable": "benchmark-executable",
+        "kind": "benchmark",
+        "successMarkers": [
+          "Benchmark markovian-gpu-bench: FINISH",
+          "exact-semantic-checksum: 49439/128"
+        ]
+      }
+    ],
+    "schemaVersion": 2,
+    "topLevelFields": [
+      "benchmark",
+      "expectedDeviceUuid",
+      "observations",
+      "profileArtifact",
+      "profileSha256",
+      "ptxArtifact",
+      "ptxSha256",
+      "records",
+      "result",
+      "schemaVersion",
+      "sessionId",
+      "sourceRevision",
+      "workflow"
+    ],
+    "topLevelTypes": {
+      "benchmark": "object",
+      "expectedDeviceUuid": "string",
+      "observations": "object",
+      "profileArtifact": "string",
+      "profileSha256": "string",
+      "ptxArtifact": "string",
+      "ptxSha256": "string",
+      "records": "array",
+      "result": "string",
+      "schemaVersion": "integer",
+      "sessionId": "string",
+      "sourceRevision": "string",
+      "workflow": "object"
+    },
+    "workflowFields": [
+      "job",
+      "repository",
+      "runAttempt",
+      "runId",
+      "workflow"
+    ],
+    "workflowTypes": {
+      "job": "string",
+      "repository": "string",
+      "runAttempt": "integer",
+      "runId": "string",
+      "workflow": "string"
+    }
+  },
+  "schemaVersion": 1,
+  "validationFailurePrecedence": {
+    "profile": [
+      "P001_PROFILE_READ",
+      "P002_PROFILE_JSON",
+      "P003_PROFILE_ROOT_TYPE",
+      "P004_PROFILE_CANONICAL",
+      "P005_PROFILE_SCHEMA",
+      "P006_PROFILE_VALUE",
+      "P007_PROFILE_CONSUMER",
+      "P008_PROFILE_GENERATED"
+    ],
+    "receipt": [
+      "R001_RECEIPT_READ",
+      "R002_RECEIPT_JSON",
+      "R003_RECEIPT_ROOT_TYPE",
+      "R004_RECEIPT_CANONICAL",
+      "R005_RECEIPT_SCHEMA",
+      "R006_RECEIPT_BINDING",
+      "R007_RECEIPT_OBSERVATION",
+      "R008_RECEIPT_RECORD",
+      "R009_RECEIPT_ARTIFACT",
+      "R010_RECEIPT_LOG",
+      "R011_RECEIPT_OUTCOME",
+      "R012_RECEIPT_BENCHMARK"
+    ]
+  }
+}

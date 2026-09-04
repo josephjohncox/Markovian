@@ -67,7 +67,15 @@ import Data.IORef (IORef, newIORef, readIORef, writeIORef)
 import Data.List (find)
 import Data.Word (Word8)
 #endif
-import Markovian.Backend.GPU.Artifact (kernelABI, ptxSHA256, ptxTarget)
+import Markovian.Backend.GPU.Artifact (
+    kernelABI,
+    profileSHA256,
+    ptxSHA256,
+    ptxTarget,
+    requiredCapabilityMajor,
+    requiredCapabilityMinor,
+    requiredThreadsPerBlock,
+ )
 import Markovian.Tensor (
     FiniteTensor,
     TensorError,
@@ -150,8 +158,9 @@ gpuBackendAvailable = any supportsPinnedDevice . cudaProbeDevices <$> probeCUDA
 
 supportsPinnedDevice :: CUDADevice -> Bool
 supportsPinnedDevice device =
-    cudaComputeCapabilityMajor device == 12
-        && cudaComputeCapabilityMinor device == 1
+    cudaComputeCapabilityMajor device == fromInteger requiredCapabilityMajor
+        && cudaComputeCapabilityMinor device == fromInteger requiredCapabilityMinor
+        && cudaMaximumThreadsPerBlock device >= fromInteger requiredThreadsPerBlock
 
 -- Failure stages --------------------------------------------------------------
 
@@ -280,6 +289,7 @@ renderDevicePlanReport report =
         , "host-materialization-bytes: " ++ show (devicePlanHostMaterializationBytes report)
         , "scalar-work: " ++ show (devicePlanScalarWork report)
         , "user-launches: " ++ show (devicePlanUserLaunches report)
+        , "profile-sha256: " ++ profileSHA256
         , "ptx-target: " ++ devicePlanPTXTarget report
         , "kernel-abi: " ++ devicePlanKernelABI report
         , "ptx-sha256: " ++ devicePlanPTXSHA256 report
@@ -486,7 +496,7 @@ openCUDAExecutor selector = do
             Nothing -> pure (Left (CUDADeviceNotFound selector))
             Just device
                 | not (supportsPinnedDevice device) ->
-                    pure (Left (CUDADeviceUnsupported device "only the pinned sm_121 device profile is admitted"))
+                    pure (Left (CUDADeviceUnsupported device ("only profile " ++ profileSHA256 ++ " is admitted")))
                 | otherwise -> case decodeUUID (cudaDeviceUUID device) of
                     Nothing -> pure (Left (CUDAExecutorFailure (hostFailure CUDADeviceCompatibility "probed device UUID is not 16 canonical bytes")))
                     Just expectedUUID ->

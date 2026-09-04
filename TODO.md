@@ -119,7 +119,7 @@ P5 status: `DONE`. Prediction, post-transition conditioning, impossible observat
 
 ## Optional CUDA device fragment
 
-- [x] **S11 Checked matrix/VJP CUDA executor.** Accepted D-074 has an owned dynamic CUDA 13 driver table, strict ABI checks, explicit pre-launch fallback boundaries, and a digest-pinned no-GPU compile workflow. Archive execution, hosted compile-only validation, protected UUID-bound hardware, all four Compute Sanitizer tools, complete CI, and the transfer-inclusive benchmark passed together. This evidence covers only the admitted GB10 F64 matrix/VJP fragment. Generic tensor graphs, generic reverse programs, other dtypes, arbitrary devices, bitwise reproducibility, and GPU advantage remain blocked.
+- [x] **S11 Checked matrix/VJP CUDA executor.** Accepted D-074 has an owned dynamic CUDA 13 driver table, strict ABI checks, explicit pre-launch fallback boundaries, and a digest-pinned no-GPU compile workflow. The release record states that archive, hosted, protected hardware, sanitizer, CI, and benchmark gates passed. The retained repository records cannot reconstruct those hardware assertions as one D-077 same-session receipt set. Generic tensor graphs, generic reverse programs, other dtypes, arbitrary devices, bitwise reproducibility, and GPU advantage remain blocked.
 
 - [x] **S11.1 SafeTensors profile.** `markovian-safetensors` implements only the pinned bounded metadata-free F64 profile. Canonical encoding, duplicate-preserving parsing, malformed corpus, raw IEEE, exact-limit, opacity, region, archive, supported-compiler, hosted, and release gates passed before D-073 acceptance.
 
@@ -161,7 +161,7 @@ S6 status: `DONE`.
 
 D-053 through D-060 are `DONE` and `Accepted`. Both supported compilers, `--prefer-oldest`, warning-free Haddock, formatting, all four historical source archives and unpacked tests, every then-applicable compile-fail boundary, all four inventory benchmarks, and deterministic semantic-report stability passed locally and in hosted CI run `33467147313` on revision `993508f`.
 
-The coordinated `2026.9.3.0` 16-package graph passed complete declaration Haddock, independently repeated archives, device fault evidence, UUID-bound protected hardware, all four Compute Sanitizer tools, supported-compiler and lower-bound jobs, hosted CI, checksums, SPDX validation, and 37-subject provenance verification. D-061 through D-076 are `Accepted` only for their stated bounded scopes. General equilibrium solving, arbitrary-Haskell autodiff, unrestricted feedback or disintegration, general tensor semantics, and general device correctness remain out of scope.
+The `2026.9.3.0` release record lists complete documentation, archives, device faults, protected hardware, four sanitizer tools, compilers, hosted CI, checksums, SPDX, and provenance. The repository cannot reconstruct its hardware assertions under D-077. D-061 through D-076 are `Accepted` only for their stated bounded scopes. General equilibrium solving, arbitrary-Haskell autodiff, unrestricted feedback or disintegration, general tensor semantics, and general device correctness remain out of scope.
 
 ## S8.6: Complete first-release preparation
 
@@ -242,6 +242,24 @@ S8.6 status: `DONE` for release `2026.9.3.0`.
 Do not claim arbitrary-Haskell autodiff, differentiation through sampling, generic tensor lowering, or generic device support.
 
 S7 status: `DONE` for the bounded scopes defined by D-048 through D-060. The research boundaries listed below remain out of scope.
+
+## Post-release roadmap
+
+This roadmap schedules governance review before acceptance. D-077 through D-085 remain `Proposed`. New implementation work is `BLOCKED` until the applicable decision freezes exact exported signatures, failure precedence, package topology, ownership, limits, and evidence. Existing proposal-stage implementation evidence remains unaccepted until it is reviewed against that frozen contract.
+
+- [ ] **R1 (`NEXT`) Review D-077 GPU profile and evidence truth.** The bounded repair selected one profile authority and same-session receipt format. It separates exact dyadic, CPU operation-order, and CUDA FMA fixtures. D-074 assertions without retained receipts are historical only. Acceptance still needs reviewed immutable hardware receipts.
+- [ ] **R2 (`READY`) Review D-078 strict-discount affine feedback.** The decision now freezes exact signatures, root package placement, nominal ownership, the total failure order, opaque `A` and `K` coefficients, four literal equations, normalized finite event input, and cumulative accounting. Review the proposal-stage implementation and fixed evidence against that contract. Keep universal trace and cyclic open adapters excluded; D-078 remains `Proposed`.
+- [ ] **R3 (`READY`) Review D-079 exact joint affine kernels.** Gate A implements one owner table, duplicate-before-filter validation, same-scope partial renaming, complete-map scope transitions, real-Borel materialization, signed support extrema, complete renaming preflight, frozen failure precedence, and bounded reports. Cross-kernel composition and explicit fresh-owner composition evidence remain unimplemented. Keep callbacks, RCP, point conditioning, and multi-step control excluded; D-079 remains `Proposed`.
+- [ ] **R4 (`READY`) Review D-080 bounded first-order quotation.** Freeze hidden nominal paths, callback-free call-by-value `let`, saturating preflight, and independent exact primal and JVP recursion. Keep arbitrary-Haskell autodiff excluded.
+- [ ] **R5 (`READY`) Review D-081 immutable host-F64 affine views.** Repair the reverse-equivalence evidence first. This is an evidence gap, not a current defect. Then freeze admitted affine maps, ownership, materialization, and pullbacks. Keep general dtype, mutation, broadcast pullback, and persistent devices excluded.
+- [ ] **R6 (`BLOCKED`) Review D-082 CUDA multiply-chain graphs.** Start only after D-077 and D-081 are accepted with complete evidence. Limit the graph to matrix inputs, admitted affine views, multiplication, and declared VJPs. Make no generic lowering or speedup claim.
+- [ ] **R7 (`READY`) Review D-083 exact CE and CCE one-witness solvers.** Freeze deterministic streaming active sets, exact elimination, one-witness return, and cumulative accounting. Approve package placement explicitly before adding a solver package or edge.
+- [ ] **R8 (`READY`) Review D-084 the reference DQN trainer.** Freeze fuel, replay and checkpoint ownership, event timing, resumption, generator handling, and failure atomicity. Keep production, convergence, and distributed claims excluded.
+- [ ] **R9 (`READY`) Review D-085 interpreter-relative exact tabulation.** Limit tabulation to the named acyclic retained-circuit consumer. Freeze cache identity and compare retained and uncached execution with measured receipts. Make no universal NBE or optimization claim.
+
+For every roadmap item, one cumulative bounded ledger covers the complete operation. Preflight precedes dense allocation. Exact and one-below tests are mandatory. Proof records and empirical receipts remain separate. Evidence for `v2026.9.3.0` does not validate post-release work. No roadmap item authorizes publication or a workflow launch.
+
+Post-release roadmap status: `NEXT` is D-077 governance review. New device features remain `BLOCKED` while D-077 is `Proposed`. The evidence-truth repair does not accept D-077.
 
 ## Requirements for new work
 

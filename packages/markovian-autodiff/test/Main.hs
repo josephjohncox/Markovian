@@ -22,6 +22,18 @@ type SquareParameters =
 
 type SmoothParameters = 'ParameterProduct SquareParameters 'NoParameters
 
+type QuotedSquareParameters =
+    'ParameterProduct
+        ('ParameterProduct 'NoParameters 'NoParameters)
+        SquareParameters
+
+type RootScalar = RootEnvironment 'Scalar
+
+type ParameterizedLetParameters =
+    'ParameterProduct
+        ('ParameterProduct 'NoParameters (Owner "let-bound" 'Scalar))
+        (Owner "let-body" 'Scalar)
+
 type LinearBiasParameters = Owner "bias" 'Scalar
 
 type LinearParameters =
@@ -53,6 +65,56 @@ squareParameters = parameterProduct (parameterProduct noParameters noParameters)
 smoothParameters :: ParameterValue Double SmoothParameters
 smoothParameters = parameterProduct squareParameters noParameters
 
+quotedSquare :: Quote Rational 'Polynomial RootScalar QuotedSquareParameters 'Scalar
+quotedSquare = withQuoteScope $ \scope ->
+    let environment = rootEnvironment SScalar
+        bound = project (pathHere SScalar)
+        boundPath = pathRight scope environment SScalar
+        body = composeQuote (fanoutQuote (project boundPath) (project boundPath)) multiplyScalar
+     in letQuote scope bound body
+
+quotedSquareParameters :: ParameterValue Rational QuotedSquareParameters
+quotedSquareParameters = parameterProduct (parameterProduct noParameters noParameters) squareParameters
+
+usedOnceQuote :: Quote Rational 'Polynomial RootScalar SquareParameters 'Scalar
+usedOnceQuote = withQuoteScope $ \scope ->
+    let environment = rootEnvironment SScalar
+     in letQuote scope (project (pathHere SScalar)) (project (pathRight scope environment SScalar))
+
+unusedQuote :: Quote Rational 'Polynomial RootScalar SquareParameters 'Scalar
+unusedQuote = withQuoteScope $ \scope ->
+    let oldPath = pathLeft scope (pathHere SScalar) SScalar
+     in letQuote scope (project (pathHere SScalar)) (project oldPath)
+
+nestedPathQuote :: Quote Rational 'Polynomial RootScalar QuotedSquareParameters 'Scalar
+nestedPathQuote = withQuoteScope $ \outerScope -> withQuoteScope $ \innerScope ->
+    let outerBound = project (pathHere SScalar)
+        outerOldPath = pathLeft outerScope (pathHere SScalar) SScalar
+        innerBound = project outerOldPath
+        originalPath = pathLeft innerScope outerOldPath SScalar
+        inner = letQuote innerScope innerBound (project originalPath)
+     in letQuote outerScope outerBound inner
+
+parameterizedLet :: Quote Rational 'Polynomial RootScalar ParameterizedLetParameters 'Scalar
+parameterizedLet = withQuoteScope $ \scope ->
+    let environment = rootEnvironment SScalar
+        bound = quoteProgram (parameter @"let-bound" SScalar SScalar)
+        bodyEnvironment = extendEnvironment scope environment SScalar
+        body = quoteProgramAt bodyEnvironment (parameter @"let-body" (SProduct SScalar SScalar) SScalar)
+     in letQuote scope bound body
+
+quoteLimits :: QuotationLimits
+quoteLimits = quotationLimits 10000 128 64 32 256 64 64 256 10000 10000 30000 256
+
+-- Declared finite grammar used for all-coordinate exact pairing evidence.
+boundedQuotationGrammar :: [(String, Quote Rational 'Polynomial RootScalar 'NoParameters 'Scalar)]
+boundedQuotationGrammar =
+    [ ("path", project (pathHere SScalar))
+    , ("identity", quoteProgram (identity SScalar))
+    , ("negate", quoteProgram negateScalar)
+    , ("constant", quoteProgram (constantScalar SScalar 7))
+    ]
+
 linearDense :: Program Double 'Polynomial LinearParameters 'Scalar 'Scalar
 linearDense = compose (fanout branch (parameter @"bias" SScalar SScalar)) addScalar
 
@@ -65,6 +127,8 @@ main = do
     sharedOwnerLaw
     exactJvpVjpPairing
     exactPrimitivePairings
+    quotationEvidence
+    quotationBudgets
     doubleFiniteDifferences
     storedRecomputedParity
     neuralDenseDifferential
@@ -178,6 +242,201 @@ dotCoordinates :: [Rational] -> [Rational] -> Either String Rational
 dotCoordinates left right
     | length left == length right = Right (sum (zipWith (*) left right))
     | otherwise = Left "independent exact pairing coordinate mismatch"
+
+quotationEvidence :: IO ()
+quotationEvidence = do
+    forM_ boundedQuotationGrammar $ \(label, quotation) -> do
+        (grammarPrimal, grammarTangent) <- expectRight (label ++ " grammar JVP") (interpretExactQuoteJVP quoteLimits quotation noParameters noParameters (scalarValue 3) (scalarValue 5))
+        (grammarExecutable, _) <- expectRight (label ++ " grammar compile") (compileExactQuote quoteLimits StorePullbacks quotation)
+        grammarRun <- expectRight (label ++ " grammar run") (runExact grammarExecutable noParameters (scalarValue 3))
+        assertEqual (label ++ " grammar primal") grammarPrimal (exactRunOutput grammarRun)
+        (_, grammarInputCotangent) <- expectRight (label ++ " grammar VJP") (applyExactVJP grammarRun (scalarValue 11))
+        assertEqual
+            (label ++ " grammar coordinate pairing")
+            (11 * scalarFromValue grammarTangent)
+            (5 * scalarFromValue grammarInputCotangent)
+
+    assertEqual "used-once quotation" (Right (scalarValue 3)) (interpretExactQuote quoteLimits usedOnceQuote squareParameters (scalarValue 3))
+    assertEqual "unused quotation is call-by-value" (Right (scalarValue 3)) (interpretExactQuote quoteLimits unusedQuote squareParameters (scalarValue 3))
+    assertEqual "nested quotation path" (Right (scalarValue 5)) (interpretExactQuote quoteLimits nestedPathQuote quotedSquareParameters (scalarValue 5))
+    (_, nestedTangent) <- expectRight "nested path JVP" (interpretExactQuoteJVP quoteLimits nestedPathQuote quotedSquareParameters quotedSquareParameters (scalarValue 5) (scalarValue 7))
+    (nestedExecutable, _) <- expectRight "nested path compile" (compileExactQuote quoteLimits StorePullbacks nestedPathQuote)
+    nestedRun <- expectRight "nested path run" (runExact nestedExecutable quotedSquareParameters (scalarValue 5))
+    (_, nestedCotangent) <- expectRight "nested path VJP" (applyExactVJP nestedRun (scalarValue 11))
+    assertEqual "nested path zero-filled projection cotangent" (scalarValue 11) nestedCotangent
+    assertEqual "nested path coordinate pairing" (11 * scalarFromValue nestedTangent) (7 * scalarFromValue nestedCotangent)
+
+    let parameterValues = parameterProduct (parameterProduct noParameters (ownedParameters (scalarValue 7))) (ownedParameters (scalarValue 11))
+        parameterDirections = parameterProduct (parameterProduct noParameters (ownedParameters (scalarValue 13))) (ownedParameters (scalarValue 17))
+    assertEqual "parameterized let primal" (Right (scalarValue 11)) (interpretExactQuote quoteLimits parameterizedLet parameterValues (scalarValue 3))
+    assertEqual
+        "parameterized let JVP"
+        (Right (scalarValue 11, scalarValue 17))
+        (interpretExactQuoteJVP quoteLimits parameterizedLet parameterValues parameterDirections (scalarValue 3) (scalarValue 19))
+    (parameterizedExecutable, _) <- expectRight "parameterized let compile" (compileExactQuote quoteLimits StorePullbacks parameterizedLet)
+    parameterizedRun <- expectRight "parameterized let run" (runExact parameterizedExecutable parameterValues (scalarValue 3))
+    (parameterizedCotangent, parameterizedInputCotangent) <- expectRight "parameterized let VJP" (applyExactVJP parameterizedRun (scalarValue 23))
+    assertEqual "parameterized let associated cotangent tree" [0, 23] (parameterScalars parameterizedCotangent)
+    assertEqual "parameterized let input cotangent" (scalarValue 0) parameterizedInputCotangent
+
+    firstExecutionReport <- expectRight "quotation JVP execution preflight" (preflightExactQuoteJVPExecution quoteLimits quotedSquare quotedSquareParameters quotedSquareParameters (scalarValue 3) (scalarValue 1))
+    secondExecutionReport <- expectRight "repeated quotation JVP execution preflight" (preflightExactQuoteJVPExecution quoteLimits quotedSquare quotedSquareParameters quotedSquareParameters (scalarValue 3) (scalarValue 1))
+    assertEqual "deterministic quotation execution report" firstExecutionReport secondExecutionReport
+
+    (oraclePrimal, oracleTangent) <-
+        expectRight
+            "bounded quotation primal/JVP"
+            ( interpretExactQuoteJVP
+                quoteLimits
+                quotedSquare
+                quotedSquareParameters
+                quotedSquareParameters
+                (scalarValue 3)
+                (scalarValue 1)
+            )
+    assertEqual "quoted square exact primal" (scalarValue 9) oraclePrimal
+    assertEqual "quoted square formal JVP" (scalarValue 6) oracleTangent
+
+    (executable, compilationReport) <- expectRight "compile exact quotation" (compileExactQuote quoteLimits StorePullbacks quotedSquare)
+    assertEqual "quotation compile report carries preflight" (quoteReportCounts <$> preflightQuote quoteLimits quotedSquare) (Right (quoteReportCounts (quoteCompilationPreflight compilationReport)))
+    run <- expectRight "run exact quotation" (runExact executable quotedSquareParameters (scalarValue 3))
+    assertEqual "quotation direct/lowered primal" oraclePrimal (exactRunOutput run)
+    (parameterGradient, inputGradient) <- expectRight "quotation diagonal VJP" (applyExactVJP run (scalarValue 5))
+    assertEqual "quotation parameter cotangent extent" [] (parameterScalars parameterGradient)
+    assertEqual "quotation diagonal cotangent addition" (scalarValue 30) inputGradient
+    let forwardPairing = 5 * scalarFromValue oracleTangent
+        reversePairing = scalarFromValue inputGradient
+    assertEqual "quotation finite-coordinate JVP/VJP pairing" forwardPairing reversePairing
+
+    -- Each constant fits eight bits, but the evaluated bound does not.  The
+    -- body ignores it; call-by-value still reports the bound failure.
+    let failingBound = compose (fanout (constantScalar SScalar (16 :: Rational)) (constantScalar SScalar 16)) multiplyScalar
+        failingQuote = withQuoteScope $ \scope ->
+            let oldPath = pathLeft scope (pathHere SScalar) SScalar
+             in letQuote scope (quoteProgram failingBound) (project oldPath)
+        failingParameters = parameterProduct (parameterProduct noParameters squareParameters) noParameters
+        activeLimits = quotationLimits 1000 64 32 8 128 32 64 128 1000 100 3000 8
+    case interpretExactQuote activeLimits failingQuote failingParameters (scalarValue 1) of
+        Left (QuoteRationalMagnitudeLimitExceeded "multiply" 0 8) -> pure ()
+        other -> failTest ("unused bound did not fail first: " ++ show other)
+    (failingExecutable, _) <-
+        expectRight
+            "compile unused failing bound"
+            (compileExactQuote activeLimits StorePullbacks failingQuote)
+    case runExact failingExecutable failingParameters (scalarValue 1) of
+        Left problem | "RationalMagnitudeLimitExceeded \"multiply\"" `contains` show problem -> pure ()
+        other -> failTest ("lowered unused bound did not fail: " ++ showEither other)
+
+quotationBudgets :: IO ()
+quotationBudgets = do
+    usedOnceReport <- expectRight "used-once quotation account" (preflightQuote quoteLimits usedOnceQuote)
+    unusedReport <- expectRight "unused quotation account" (preflightQuote quoteLimits unusedQuote)
+    assertEqual "used-once quotation account" [5, 3, 2, 1, 5, 3, 2, 5, 11, 12, 38, 0] (quoteReportCounts usedOnceReport)
+    assertEqual "unused quotation account" [6, 3, 2, 2, 5, 3, 2, 5, 11, 12, 39, 0] (quoteReportCounts unusedReport)
+
+    report <- expectRight "complete quotation account" (preflightQuote quoteLimits quotedSquare)
+    let exact = reportLimits report
+    exactReport <- expectRight "exact quotation budgets" (preflightQuote exact quotedSquare)
+    assertEqual "deterministic exact quotation account" (quoteReportCounts report) (quoteReportCounts exactReport)
+    (_, firstCompilationReport) <- expectRight "exact-budget quotation compile" (compileExactQuote exact StorePullbacks quotedSquare)
+    (_, secondCompilationReport) <- expectRight "repeated exact-budget quotation compile" (compileExactQuote exact StorePullbacks quotedSquare)
+    assertEqual "deterministic quotation compilation report" firstCompilationReport secondCompilationReport
+    executionReport <- expectRight "complete execution account" (preflightExactQuoteJVPExecution quoteLimits quotedSquare quotedSquareParameters quotedSquareParameters (scalarValue 3) (scalarValue 1))
+    _ <- expectRight "exact execution account" (preflightExactQuoteJVPExecution (reportLimits executionReport) quotedSquare quotedSquareParameters quotedSquareParameters (scalarValue 3) (scalarValue 1))
+    case preflightExactQuoteJVPExecution (setTraversal executionReport) quotedSquare quotedSquareParameters quotedSquareParameters (scalarValue 3) (scalarValue 1) of
+        Left (QuoteTraversalLimitExceeded active required) | active + 1 == required -> pure ()
+        other -> failTest ("execution traversal one below: " ++ show other)
+    expectQuoteFailure "traversal" (QuoteTraversalLimitExceeded (quoteTraversalWork report - 1) (quoteTraversalWork report)) (setTraversal report)
+    expectQuoteFailure "quote nodes" (QuoteNodeLimitExceeded (quoteNodeCount report - 1) (quoteNodeCount report)) (setNodes report)
+    expectQuoteFailure "source depth" (QuoteSourceDepthLimitExceeded (quoteSourceDepth report - 1) (quoteSourceDepth report)) (setSourceDepth report)
+    expectQuoteFailure "path depth" (QuotePathDepthLimitExceeded (quoteMaximumPathDepth report - 1) (quoteMaximumPathDepth report)) (setPathDepth report)
+    expectQuoteFailure "target nodes" (QuoteTargetNodeLimitExceeded (quotePredictedTargetNodes report - 1) (quotePredictedTargetNodes report)) (setTargetNodes report)
+    expectQuoteFailure "target depth" (QuoteTargetDepthLimitExceeded (quotePredictedTargetDepth report - 1) (quotePredictedTargetDepth report)) (setTargetDepth report)
+    expectQuoteFailure "coordinate extent" (QuoteCoordinateExtentLimitExceeded (quoteMaximumCoordinateExtent report - 1) (quoteMaximumCoordinateExtent report)) (setCoordinates report)
+    expectQuoteFailure "transformed nodes" (QuoteTransformedNodeLimitExceeded (quoteTransformedNodes report - 1) (quoteTransformedNodes report)) (setTransformed report)
+    expectQuoteFailure "allocation" (QuoteAllocationLimitExceeded (quoteAllocationCount report - 1) (quoteAllocationCount report)) (setAllocation report)
+    expectQuoteFailure "runtime" (QuoteRuntimeWorkLimitExceeded (quoteRuntimeWork report - 1) (quoteRuntimeWork report)) (setRuntime report)
+    expectQuoteFailure "total work" (QuoteTotalWorkLimitExceeded (quoteTotalWork report - 1) (quoteTotalWork report)) (setTotal report)
+
+    let largeLiteral = quoteProgram (constantScalar SScalar (128 :: Rational))
+        literalLimits = quotationLimits 20 2 3 1 2 2 2 1 10 3 43
+    _ <- expectRight "quotation exact rational-bit preflight" (preflightQuote (literalLimits 8) largeLiteral)
+    case preflightQuote (literalLimits 7) largeLiteral of
+        Left (QuoteRationalMagnitudeLimitExceeded "source/constant-scalar" _ 7) -> pure ()
+        other -> failTest ("quotation rational-bit preflight: " ++ show other)
+    case preflightExactQuoteExecution (quotationLimits 20 2 3 1 2 2 2 1 10 10 60 7) (project (pathHere SScalar)) noParameters (scalarValue 128) of
+        Left (QuoteRationalMagnitudeLimitExceeded "input" 0 7) -> pure ()
+        other -> failTest ("execution rational-bit preflight: " ++ show other)
+
+    -- The frozen entry order is traversal, total work, quotation nodes, then source depth.
+    case preflightQuote (quotationLimits 0 0 0 0 0 0 0 0 0 0 0 0) quotedSquare of
+        Left (QuoteTraversalLimitExceeded 0 1) -> pure ()
+        other -> failTest ("traversal precedence changed: " ++ show other)
+    case preflightQuote (quotationLimits 1 0 0 0 0 0 0 0 0 0 0 0) quotedSquare of
+        Left (QuoteTotalWorkLimitExceeded 0 1) -> pure ()
+        other -> failTest ("total-work precedence changed: " ++ show other)
+
+    -- The node charge fails before the embedded bottom is descended into.
+    let poisoned = quoteProgramAt (rootEnvironment SScalar) (error "preflight descended after exhaustion") :: Quote Rational 'Polynomial RootScalar 'NoParameters 'Scalar
+        stopBeforeDescent = quotationLimits 1 0 1 0 0 0 0 0 0 0 1 0
+    case preflightQuote stopBeforeDescent poisoned of
+        Left (QuoteNodeLimitExceeded 0 1) -> pure ()
+        other -> failTest ("charge-before-descent precedence changed: " ++ show other)
+
+    let machineQuote = quoteProgram (identity (SVector @9223372036854775808))
+    case preflightQuote quoteLimits machineQuote of
+        Left (QuoteMachineExtentExceeded 9223372036854775808) -> pure ()
+        other -> failTest ("quotation machine extent admission changed: " ++ show other)
+  where
+    values report =
+        ( quoteTraversalWork report
+        , quoteNodeCount report
+        , quoteSourceDepth report
+        , quoteMaximumPathDepth report
+        , quotePredictedTargetNodes report
+        , quotePredictedTargetDepth report
+        , quoteMaximumCoordinateExtent report
+        , quoteTransformedNodes report
+        , quoteAllocationCount report
+        , quoteRuntimeWork report
+        , quoteTotalWork report
+        )
+    make (traversal, nodes, sourceDepth, pathDepth, targetNodes, targetDepth, coordinates, transformed, allocation, runtime, total) =
+        quotationLimits traversal nodes sourceDepth pathDepth targetNodes targetDepth coordinates transformed allocation runtime total 16
+    reportLimits = make . values
+    setTraversal report = let (a, b, c, d, e, f, g, h, i, j, k) = values report in make (a - 1, b, c, d, e, f, g, h, i, j, k)
+    setNodes report = let (a, b, c, d, e, f, g, h, i, j, k) = values report in make (a, b - 1, c, d, e, f, g, h, i, j, k)
+    setSourceDepth report = let (a, b, c, d, e, f, g, h, i, j, k) = values report in make (a, b, c - 1, d, e, f, g, h, i, j, k)
+    setPathDepth report = let (a, b, c, d, e, f, g, h, i, j, k) = values report in make (a, b, c, d - 1, e, f, g, h, i, j, k)
+    setTargetNodes report = let (a, b, c, d, e, f, g, h, i, j, k) = values report in make (a, b, c, d, e - 1, f, g, h, i, j, k)
+    setTargetDepth report = let (a, b, c, d, e, f, g, h, i, j, k) = values report in make (a, b, c, d, e, f - 1, g, h, i, j, k)
+    setCoordinates report = let (a, b, c, d, e, f, g, h, i, j, k) = values report in make (a, b, c, d, e, f, g - 1, h, i, j, k)
+    setTransformed report = let (a, b, c, d, e, f, g, h, i, j, k) = values report in make (a, b, c, d, e, f, g, h - 1, i, j, k)
+    setAllocation report = let (a, b, c, d, e, f, g, h, i, j, k) = values report in make (a, b, c, d, e, f, g, h, i - 1, j, k)
+    setRuntime report = let (a, b, c, d, e, f, g, h, i, j, k) = values report in make (a, b, c, d, e, f, g, h, i, j - 1, k)
+    setTotal report = let (a, b, c, d, e, f, g, h, i, j, k) = values report in make (a, b, c, d, e, f, g, h, i, j, k - 1)
+    expectQuoteFailure label expected active =
+        case preflightQuote active quotedSquare of
+            Left actual -> assertEqual (label ++ " one below") expected actual
+            Right actual -> failTest (label ++ " one below unexpectedly passed: " ++ show actual)
+
+quoteReportCounts :: QuoteReport -> [Integer]
+quoteReportCounts report =
+    map
+        toInteger
+        [ quoteTraversalWork report
+        , quoteNodeCount report
+        , quoteSourceDepth report
+        , quoteMaximumPathDepth report
+        , quotePredictedTargetNodes report
+        , quotePredictedTargetDepth report
+        , quoteMaximumCoordinateExtent report
+        , quoteTransformedNodes report
+        , quoteAllocationCount report
+        , quoteRuntimeWork report
+        , quoteTotalWork report
+        , quoteMaximumRationalBits report
+        ]
 
 doubleFiniteDifferences :: IO ()
 doubleFiniteDifferences = do

@@ -2,4 +2,5 @@ Markovian.Autodiff
 Markovian.Autodiff.Check
 Markovian.Autodiff.Compile
 Markovian.Autodiff.Language
+Markovian.Autodiff.Quote
 Markovian.Autodiff.Shape

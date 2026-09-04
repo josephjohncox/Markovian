@@ -27,6 +27,10 @@ jobs:
     environment: markovian-cuda-hardware
     runs-on: [self-hosted, linux, markovian-cuda]
     timeout-minutes: 45
+    permissions:
+      contents: read
+      id-token: write
+      attestations: write
 
     steps:
       - name: Validate the immutable requested revision
@@ -60,33 +64,92 @@ jobs:
           ghc-version: ${{ steps.toolchain.outputs.ghc }}
           cabal-version: ${{ steps.toolchain.outputs.cabal }}
 
-      - name: Require the protected device and CUDA toolchain
+      - name: Record the protected device and toolchain observations
         env:
+          EXPECTED_SHA: ${{ inputs.expected_sha }}
           EXPECTED_UUID: ${{ vars.MARKOVIAN_EXPECTED_CUDA_UUID }}
         run: |
           set -euo pipefail
           test -n "${EXPECTED_UUID}"
-          test "$(git rev-parse HEAD)" = "${{ inputs.expected_sha }}"
+          test "$(git rev-parse HEAD)" = "${EXPECTED_SHA}"
           test -z "$(git status --porcelain --untracked-files=normal)"
           source backends/markovian-gpu/toolchain.env
+          mkdir -p cuda-evidence
+          python3 backends/markovian-gpu/scripts/cuda_profile.py check
+          profile_sha="$(python3 backends/markovian-gpu/scripts/cuda_profile.py digest)"
+          test "${profile_sha}" = "${MARKOVIAN_CUDA_PROFILE_SHA256}"
+          cp --no-preserve=ownership,timestamps \
+            backends/markovian-gpu/profile.json cuda-evidence/profile.json
+          cp --no-preserve=ownership,timestamps \
+            backends/markovian-gpu/cbits/markovian_dense.ptx \
+            cuda-evidence/markovian_dense.ptx
+
           "${MARKOVIAN_NVCC}" --version \
-            | grep -F "release ${MARKOVIAN_CUDA_VERSION}"
+            | tee cuda-evidence/toolkit-version.log
+          toolkit_version="$(python3 - <<'PY'
+          import re
+          from pathlib import Path
+          text = Path("cuda-evidence/toolkit-version.log").read_text()
+          match = re.search(r"\brelease ([0-9]+(?:\.[0-9]+)+)\b", text)
+          if match is None:
+              raise SystemExit("nvcc output has no release version")
+          print(match.group(1))
+          PY
+          )"
+          test "${toolkit_version}" = "${MARKOVIAN_CUDA_VERSION}"
+
           sanitizer="$(dirname "${MARKOVIAN_NVCC}")/compute-sanitizer"
           test -x "${sanitizer}"
-          printf 'MARKOVIAN_COMPUTE_SANITIZER=%s\n' "${sanitizer}" \
-            >> "${GITHUB_ENV}"
-          nvidia-smi --query-gpu=uuid --format=csv,noheader \
-            | grep -Fx "${EXPECTED_UUID}"
-          uuid_no_prefix="$(printf '%s' "${EXPECTED_UUID}" \
+          "${sanitizer}" --version 2>&1 \
+            | tee cuda-evidence/sanitizer-version.log
+          sanitizer_version="$(python3 - <<'PY'
+          import re
+          from pathlib import Path
+          text = Path("cuda-evidence/sanitizer-version.log").read_text()
+          match = re.search(r"Compute Sanitizer[^0-9]*([0-9]+(?:\.[0-9]+)+)", text)
+          if match is None:
+              raise SystemExit("Compute Sanitizer output has no version")
+          print(match.group(1))
+          PY
+          )"
+
+          device_line="$(nvidia-smi \
+            --query-gpu=uuid,driver_version --format=csv,noheader \
+            | awk -F ',[[:space:]]*' -v expected="${EXPECTED_UUID}" \
+                '$1 == expected { print; found += 1 } END { if (found != 1) exit 1 }')"
+          observed_uuid="$(printf '%s\n' "${device_line}" \
+            | awk -F ',[[:space:]]*' '{ print $1 }')"
+          driver_version="$(printf '%s\n' "${device_line}" \
+            | awk -F ',[[:space:]]*' '{ print $2 }')"
+          test -n "${observed_uuid}"
+          test -n "${driver_version}"
+          {
+            printf 'device-query-raw: %s\n' "${device_line}"
+            printf 'device-query-uuid: %s\n' "${observed_uuid}"
+            printf 'device-query-driver-version: %s\n' "${driver_version}"
+          } > cuda-evidence/device-query.log
+
+          uuid_no_prefix="$(printf '%s' "${observed_uuid}" \
             | sed -e 's/^GPU-//' -e 's/-//g')"
           normalized_uuid="$(printf '%s' "${uuid_no_prefix}" \
             | tr '[:upper:]' '[:lower:]')"
           test "${#normalized_uuid}" -eq 32
           case "${normalized_uuid}" in (*[!0-9a-f]*) exit 1;; esac
-          printf 'MARKOVIAN_CUDA_DEVICE_UUID=%s\n' "${normalized_uuid}" \
-            >> "${GITHUB_ENV}"
-          printf 'MARKOVIAN_CUDA_REQUIRE_HARDWARE=1\n' >> "${GITHUB_ENV}"
-          "${sanitizer}" --version
+          session_id="github-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}-${EXPECTED_SHA}"
+          {
+            printf 'PATH=%s:%s\n' "$(dirname "${sanitizer}")" "${PATH}"
+            printf 'MARKOVIAN_COMPUTE_SANITIZER=%s\n' "${sanitizer}"
+            printf 'MARKOVIAN_CUDA_DEVICE_UUID=%s\n' "${normalized_uuid}"
+            printf 'MARKOVIAN_CUDA_REQUIRE_HARDWARE=1\n'
+            printf 'MARKOVIAN_CUDA_PROFILE_SHA256=%s\n' "${profile_sha}"
+            printf 'MARKOVIAN_EVIDENCE_SOURCE_REVISION=%s\n' "${EXPECTED_SHA}"
+            printf 'MARKOVIAN_EVIDENCE_SESSION_ID=%s\n' "${session_id}"
+            printf 'MARKOVIAN_EVIDENCE_DEVICE_UUID=%s\n' "${EXPECTED_UUID}"
+            printf 'MARKOVIAN_EVIDENCE_NVIDIA_SMI_UUID=%s\n' "${observed_uuid}"
+            printf 'MARKOVIAN_EVIDENCE_DRIVER_VERSION=%s\n' "${driver_version}"
+            printf 'MARKOVIAN_EVIDENCE_TOOLKIT_VERSION=%s\n' "${toolkit_version}"
+            printf 'MARKOVIAN_EVIDENCE_SANITIZER_VERSION=%s\n' "${sanitizer_version}"
+          } >> "${GITHUB_ENV}"
 
       - name: Reproduce the committed PTX
         run: |
@@ -95,68 +158,208 @@ jobs:
           git diff --exit-code -- \
             backends/markovian-gpu/cbits/markovian_dense.ptx \
             backends/markovian-gpu/cbits/markovian_dense_ptx.h \
-            backends/markovian-gpu/src/Markovian/Backend/GPU/Artifact.hs
+            backends/markovian-gpu/cbits/markovian_cuda_profile.h \
+            backends/markovian-gpu/src/Markovian/Backend/GPU/Artifact.hs \
+            backends/markovian-gpu/toolchain.env
+          bash backends/markovian-gpu/scripts/check-profile
 
-      - name: Build and run enabled differentials
+      - name: Build and record enabled correctness evidence
         run: |
           set -euo pipefail
-          cabal test markovian-gpu-test \
-            --project-file=cabal.project.ci \
-            -fcuda -fcuda-fault-injection \
-            --extra-include-dirs=/usr/local/cuda/include \
-            --test-show-details=direct
-          bash backends/markovian-gpu/scripts/check-device-boundary
-
-      - name: Run Compute Sanitizer
-        run: |
-          set -euo pipefail
+          kind=correctness
+          command="$(python3 - "${kind}" <<'PY'
+          import json, sys
+          profile = json.load(open("backends/markovian-gpu/profile.json"))
+          record = next(item for item in profile["receiptSchema"]["requiredRecords"] if item["kind"] == sys.argv[1])
+          print(record["command"])
+          PY
+          )"
+          command_sha="$(printf '%s' "${command}" | sha256sum | awk '{print $1}')"
+          log="cuda-evidence/${kind}.log"
+          {
+            printf 'evidence-record-kind: %s\n' "${kind}"
+            printf 'evidence-command: %s\n' "${command}"
+            printf 'evidence-command-sha256: %s\n' "${command_sha}"
+            bash -o pipefail -c "${command}"
+          } 2>&1 | tee "${log}"
           executable="$(cabal list-bin markovian-gpu-test \
             --project-file=cabal.project.ci \
             -fcuda -fcuda-fault-injection \
             --extra-include-dirs=/usr/local/cuda/include)"
+          test -x "${executable}"
+          cp --no-preserve=ownership,timestamps "${executable}" \
+            cuda-evidence/test-executable
+          executable_sha="$(sha256sum cuda-evidence/test-executable | awk '{print $1}')"
+          {
+            printf 'evidence-executable-sha256: %s\n' "${executable_sha}"
+            printf 'evidence-record-exit: 0\n'
+          } >> "${log}"
+
+      - name: Record Compute Sanitizer evidence
+        run: |
+          set -euo pipefail
           markovian_gpu_datadir="${GITHUB_WORKSPACE}/backends/markovian-gpu"
           export markovian_gpu_datadir
+          executable_sha="$(sha256sum cuda-evidence/test-executable | awk '{print $1}')"
           for tool in memcheck initcheck racecheck synccheck; do
-            "${MARKOVIAN_COMPUTE_SANITIZER}" \
-              --error-exitcode=1 --tool "${tool}" "${executable}"
+            kind="sanitizer-${tool}"
+            command="$(python3 - "${kind}" <<'PY'
+          import json, sys
+          profile = json.load(open("backends/markovian-gpu/profile.json"))
+          record = next(item for item in profile["receiptSchema"]["requiredRecords"] if item["kind"] == sys.argv[1])
+          print(record["command"])
+          PY
+            )"
+            command_sha="$(printf '%s' "${command}" | sha256sum | awk '{print $1}')"
+            log="cuda-evidence/${kind}.log"
+            {
+              printf 'evidence-record-kind: %s\n' "${kind}"
+              printf 'evidence-command: %s\n' "${command}"
+              printf 'evidence-command-sha256: %s\n' "${command_sha}"
+              printf 'evidence-executable-sha256: %s\n' "${executable_sha}"
+              bash -o pipefail -c "${command}"
+              printf 'evidence-record-exit: 0\n'
+            } 2>&1 | tee "${log}"
           done
 
-      - name: Run transfer-inclusive benchmark
+      - name: Record transfer-inclusive benchmark evidence
         run: |
-          cabal bench markovian-gpu-bench \
+          set -euo pipefail
+          kind=benchmark
+          command="$(python3 - "${kind}" <<'PY'
+          import json, sys
+          profile = json.load(open("backends/markovian-gpu/profile.json"))
+          record = next(item for item in profile["receiptSchema"]["requiredRecords"] if item["kind"] == sys.argv[1])
+          print(record["command"])
+          PY
+          )"
+          command_sha="$(printf '%s' "${command}" | sha256sum | awk '{print $1}')"
+          log="cuda-evidence/${kind}.log"
+          {
+            printf 'evidence-record-kind: %s\n' "${kind}"
+            printf 'evidence-command: %s\n' "${command}"
+            printf 'evidence-command-sha256: %s\n' "${command_sha}"
+            bash -o pipefail -c "${command}"
+          } 2>&1 | tee "${log}"
+          executable="$(cabal list-bin markovian-gpu-bench \
             --project-file=cabal.project.ci \
             -fcuda -fcuda-fault-injection \
-            --extra-include-dirs=/usr/local/cuda/include
+            --extra-include-dirs=/usr/local/cuda/include)"
+          test -x "${executable}"
+          cp --no-preserve=ownership,timestamps "${executable}" \
+            cuda-evidence/benchmark-executable
+          executable_sha="$(sha256sum cuda-evidence/benchmark-executable | awk '{print $1}')"
+          {
+            printf 'evidence-executable-sha256: %s\n' "${executable_sha}"
+            printf 'evidence-record-exit: 0\n'
+          } >> "${log}"
 
-      - name: Write UUID-bound protected receipt
+      - name: Write and validate the same-session receipt set
         env:
           EXPECTED_SHA: ${{ inputs.expected_sha }}
           EXPECTED_UUID: ${{ vars.MARKOVIAN_EXPECTED_CUDA_UUID }}
         run: |
           set -euo pipefail
-          ptx_path=backends/markovian-gpu/cbits/markovian_dense.ptx
-          ptx_sha="$(sha256sum "${ptx_path}" | awk '{print $1}')"
-          python3 - \
-            "${EXPECTED_SHA}" "${EXPECTED_UUID}" "${ptx_sha}" \
-            > cuda-hardware-receipt.json <<'PY'
-          import json, sys
-          print(json.dumps({
-              "schemaVersion": 1,
-              "sourceRevision": sys.argv[1],
-              "expectedDeviceUuid": sys.argv[2],
-              "ptxSha256": sys.argv[3],
-              "computeSanitizerTools": [
-                  "memcheck", "initcheck", "racecheck", "synccheck"
-              ],
-              "result": "passed"
-          }, sort_keys=True, indent=2))
-          PY
+          python3 - <<'PY'
+          import hashlib
+          import json
+          import os
+          import re
+          from pathlib import Path
 
-      - name: Upload protected validation receipt
+          evidence = Path("cuda-evidence")
+          profile_path = Path("backends/markovian-gpu/profile.json")
+          profile = json.loads(profile_path.read_text(encoding="utf-8"))
+
+          def digest(path):
+              return hashlib.sha256(Path(path).read_bytes()).hexdigest()
+
+          def unique_marker(path, name):
+              pattern = re.compile(rf"^{re.escape(name)}: (.+)$", re.MULTILINE)
+              values = sorted(set(pattern.findall(Path(path).read_text(encoding="utf-8"))))
+              if len(values) != 1:
+                  raise SystemExit(f"{path} does not contain one {name}")
+              return values[0]
+
+          records = []
+          for spec in profile["receiptSchema"]["requiredRecords"]:
+              kind = spec["kind"]
+              log = evidence / f"{kind}.log"
+              executable = evidence / spec["executable"]
+              command = spec["command"]
+              records.append({
+                  "command": command,
+                  "commandSha256": hashlib.sha256(command.encode()).hexdigest(),
+                  "executable": spec["executable"],
+                  "executableSha256": digest(executable),
+                  "exitCode": 0,
+                  "kind": kind,
+                  "log": log.name,
+                  "logSha256": digest(log),
+              })
+
+          correctness_log = evidence / "correctness.log"
+          native_uuid = unique_marker(correctness_log, "native-observed-device-uuid")
+          driver_api = int(unique_marker(correctness_log, "native-observed-driver-api-version"))
+          value = {
+              "benchmark": {
+                  "exactSemanticChecksum": profile["benchmarkFixture"]["exactSemanticChecksum"],
+                  "rawSampleCount": profile["benchmarkFixture"]["measuredSampleCount"],
+              },
+              "expectedDeviceUuid": os.environ["EXPECTED_UUID"],
+              "observations": {
+                  "deviceQueryLog": "device-query.log",
+                  "deviceQueryLogSha256": digest(evidence / "device-query.log"),
+                  "driverApiVersion": driver_api,
+                  "driverVersion": os.environ["MARKOVIAN_EVIDENCE_DRIVER_VERSION"],
+                  "nativeObservedDeviceUuid": native_uuid,
+                  "nvidiaSmiDeviceUuid": os.environ["MARKOVIAN_EVIDENCE_NVIDIA_SMI_UUID"],
+                  "sanitizerLog": "sanitizer-version.log",
+                  "sanitizerLogSha256": digest(evidence / "sanitizer-version.log"),
+                  "sanitizerVersion": os.environ["MARKOVIAN_EVIDENCE_SANITIZER_VERSION"],
+                  "toolkitLog": "toolkit-version.log",
+                  "toolkitLogSha256": digest(evidence / "toolkit-version.log"),
+                  "toolkitVersion": os.environ["MARKOVIAN_EVIDENCE_TOOLKIT_VERSION"],
+              },
+              "profileArtifact": "profile.json",
+              "profileSha256": digest(profile_path),
+              "ptxArtifact": "markovian_dense.ptx",
+              "ptxSha256": digest("backends/markovian-gpu/cbits/markovian_dense.ptx"),
+              "records": records,
+              "result": "passed",
+              "schemaVersion": profile["receiptSchema"]["schemaVersion"],
+              "sessionId": os.environ["MARKOVIAN_EVIDENCE_SESSION_ID"],
+              "sourceRevision": os.environ["EXPECTED_SHA"],
+              "workflow": {
+                  "job": "cuda-hardware",
+                  "repository": os.environ["GITHUB_REPOSITORY"],
+                  "runAttempt": int(os.environ["GITHUB_RUN_ATTEMPT"]),
+                  "runId": os.environ["GITHUB_RUN_ID"],
+                  "workflow": ".github/workflows/cuda-hardware.yml",
+              },
+          }
+          (evidence / "receipt.json").write_text(
+              json.dumps(value, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+          )
+          PY
+          python3 backends/markovian-gpu/scripts/cuda_profile.py \
+            validate-receipt cuda-evidence/receipt.json \
+            --expected-revision "${EXPECTED_SHA}" \
+            --expected-session "${MARKOVIAN_EVIDENCE_SESSION_ID}" \
+            --expected-uuid "${EXPECTED_UUID}"
+
+      - name: Attest the validated evidence set
+        # actions/attest v4.2.2
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6
+        with:
+          subject-path: cuda-evidence/*
+
+      - name: Upload protected validation receipt set
         # actions/upload-artifact v4.6.2
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: cuda-hardware-${{ inputs.expected_sha }}
-          path: cuda-hardware-receipt.json
+          name: cuda-hardware-${{ inputs.expected_sha }}-${{ github.run_attempt }}
+          path: cuda-evidence
           if-no-files-found: error
-          retention-days: 30
+          overwrite: false
+          retention-days: 90

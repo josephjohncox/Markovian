@@ -8,6 +8,32 @@ It does not differentiate arbitrary Haskell functions.
 The polynomial fragment has constants, owned parameters, addition, multiplication, negation, products, fixed vectors, dot products, and sums.
 The smooth fragment adds `tanh` for checked `Double` execution.
 
+## Explicit first-order quotation
+
+`Quote` adds explicit first-order `let` syntax to the exact polynomial fragment.
+`Path` selects a value from the current associated-product environment.
+Its constructors and representation are private, and both indexes have nominal roles.
+`withQuoteScope` makes a generative lexical scope token.
+`pathLeft` and `pathRight` require the token for the matching environment extension.
+Paths from independent scopes do not type-check, even when their runtime shapes match.
+Use `project` to make a quotation from a path.
+
+`letQuote scope e body` evaluates `e` before `body`, even when `body` does not use the bound value.
+The body uses the extended environment `Product environment bound`.
+The function stores no Haskell callback.
+Its parameter tree is exactly `ParameterProduct (ParameterProduct NoParameters p) q`.
+
+One `QuotationLimits` value bounds traversal, syntax depth, paths, coordinates, machine extent, target size, allocation, and work.
+Preflight charges each item before it descends and visits children from left to right.
+The successful `QuoteReport` contains the timing-free cumulative ledger.
+The execution preflight functions add input and direction traversal to that report.
+`lowerQuote` constructs no target `Program` until this preflight succeeds.
+`compileExactQuote` uses the same limits for the exact compiler and returns both reports.
+
+`interpretExactQuote` and `interpretExactQuoteJVP` recurse directly over quotation and source syntax.
+They do not call the reverse compiler or its primitive VJPs.
+Reverse lowering uses `compose (fanout identity e) body` and provides separate VJP evidence.
+
 Programs use static shapes for units, scalars, fixed vectors, and associated products.
 Parameter trees keep each type-level owner and each product association.
 Independent duplicate owners fail during bounded preparation.
@@ -33,7 +59,11 @@ The test suite contains a closed `2 -> 2 tanh -> 2` program with two dense layer
 
 ## Boundaries
 
-The package has no recursion, branches, loops, stochastic nodes, division, arbitrary indexing, `abs`, ReLU, higher derivatives, tensor runtime, or device lowering. The multilayer fixture uses only public closed-language combinators and distinct nominal parameter owners; it does not add a matrix primitive or arbitrary callback.
+The package has no recursion, branches, loops, stochastic nodes, division, arbitrary indexing, `abs`, ReLU, higher derivatives, tensor runtime, or device lowering.
+Quotation is not ordinary Haskell quotation, Template Haskell, a compiler plugin, or tracing.
+It has no effects, higher-order values, nested differentiation, or exact transcendental `Double` semantics.
+The multilayer fixture uses public closed-language combinators and distinct nominal parameter owners.
+It does not add a matrix primitive or an arbitrary callback.
 It does not provide matrix dagger, Bayesian inversion, payoff pullback, feedback, strategic duality, or disintegration.
 The package makes no release-readiness claim.
 
