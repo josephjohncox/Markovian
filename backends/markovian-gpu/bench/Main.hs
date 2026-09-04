@@ -3,7 +3,9 @@
 
 module Main (main) where
 
-import Control.Monad (replicateM, unless)
+import Control.Monad (replicateM, unless, when)
+import Data.List (isInfixOf)
+import Data.Maybe (fromMaybe)
 import Data.Proxy (Proxy (..))
 import Data.Version (showVersion)
 import GHC.Clock (getMonotonicTimeNSec)
@@ -19,6 +21,9 @@ shape64 = SCons (Proxy @64) (SCons (Proxy @64) SNil)
 
 main :: IO ()
 main = do
+    printEvidenceBindings
+    requireHardware <- (== Just "1") <$> lookupEnv "MARKOVIAN_CUDA_REQUIRE_HARDWARE"
+    when requireHardware requireEvidenceBindings
     configuredUUID <- lookupEnv "MARKOVIAN_CUDA_DEVICE_UUID"
     probe <- probeCUDA
     let selector = maybe DeterministicFirstDevice DeviceByUUID configuredUUID
@@ -27,9 +32,9 @@ main = do
         valuesRight = [if row == column then 1 else fromIntegral ((row * 3 + column) `mod` 5 - 2) / 32 | row <- indices, column <- indices]
         limits = tensorSessionLimits 4 1024 1000000 8000000 128000000 1024 1000000000
         executionLimits = deviceLimits 1000000 100000000 2
-        expected = oracleMatMul64 valuesLeft valuesRight
-        expectedChecksum = semanticChecksum expected
-    unless (expectedChecksum == 386.2421875) (failBenchmark "committed semantic checksum changed")
+        expectedExact = exactMatMul64 valuesLeft valuesRight
+        expectedChecksum = exactSemanticChecksum expectedExact
+    unless (expectedChecksum == 49439 / 128) (failBenchmark "profile exact semantic checksum changed")
     putStrLn "benchmark-report-version: 1"
     putStrLn ("host-os: " ++ os)
     putStrLn ("host-arch: " ++ arch)
@@ -39,28 +44,36 @@ main = do
     putStrLn ("cuda-fault-injection-compiled: " ++ show gpuFaultInjectionCompiled)
     putStrLn ("cuda-driver-version: " ++ show (cudaProbeDriverVersion probe))
     putStrLn ("selected-device: " ++ show selector)
-    printf "expected-semantic-checksum: %.17g\n" expectedChecksum
+    putStrLn "exact-semantic-checksum: 49439/128"
+    printf "expected-semantic-checksum-decimal: %.17g\n" (fromRational expectedChecksum :: Double)
     sessionResult <- withTensorSession limits $ \session -> do
         left <- fst <$> requireTensor (finiteTensorFromList session shape64 valuesLeft)
         right <- fst <$> requireTensor (finiteTensorFromList session shape64 valuesRight)
         prepared <- requirePlan (prepareMatMul executionLimits left right)
         cpuWarmup <- requireDevice (runPreparedMatMul session CPUOnly prepared)
-        assertOutput "CPU warmup" expected (deviceTensorValues (fst cpuWarmup))
-        cpuSamples <- replicateM 20 (timeCPU expected session prepared)
+        assertOutput "CPU operation-order warmup refinement" expectedExact (deviceTensorValues (fst cpuWarmup))
+        cpuSamples <- replicateM 20 (timeCPU expectedExact session prepared)
         printSamples "cpu-total" cpuSamples
         if gpuBackendCompiled
             then do
                 cudaResult <- withCUDAExecutor selector $ \executor -> do
                     cudaWarmup <- requireCUDA (runPreparedMatMulCUDA executor prepared)
-                    assertOutput "CUDA warmup" expected (deviceTensorValues (fst cudaWarmup))
+                    assertOutput "CUDA FMA warmup refinement" expectedExact (deviceTensorValues (fst cudaWarmup))
                     samples <- replicateM 20 (requireCUDA (runPreparedMatMulCUDA executor prepared))
-                    mapM_ (assertOutput "CUDA measured output" expected . deviceTensorValues . fst) samples
+                    mapM_ (assertOutput "CUDA FMA measured refinement" expectedExact . deviceTensorValues . fst) samples
                     let times = concatMap (deviceExecutionTransferInclusiveMilliseconds . snd) samples
-                        checksum = semanticChecksum (deviceTensorValues (fst (last samples)))
+                        checksum = observedSemanticChecksum (deviceTensorValues (fst (last samples)))
+                        planReport = renderDevicePlanReport (deviceExecutionPlan (snd (last samples)))
+                    requireProfileBinding planReport
                     printSamples "cuda-transfer-inclusive" times
                     printf "cuda-semantic-checksum: %.17g\n" checksum
-                    putStrLn ("cuda-admission: " ++ show (cudaExecutorAdmission executor))
-                    putStrLn (renderDevicePlanReport (deviceExecutionPlan (snd (last samples))))
+                    let admission = cudaExecutorAdmission executor
+                    putStrLn ("cuda-admission: " ++ show admission)
+                    putStrLn ("native-observed-device-uuid: " ++ evidenceUUID (cudaAdmissionNativeVerifiedUUID admission))
+                    case cudaProbeDriverVersion probe of
+                        Just version -> putStrLn ("native-observed-driver-api-version: " ++ show version)
+                        Nothing -> failBenchmark "admitted CUDA benchmark lacks a driver API version"
+                    putStrLn planReport
                     pure (Right ())
                 case cudaResult of
                     Left problem -> failBenchmark ("CUDA benchmark failed: " ++ show problem)
@@ -68,6 +81,51 @@ main = do
             else putStrLn "cuda-transfer-inclusive: disabled build (contract tested; no hardware timing claimed)"
         pure (Right ())
     either (failBenchmark . show) pure sessionResult
+
+printEvidenceBindings :: IO ()
+printEvidenceBindings = do
+    session <- fromMaybe "unrecorded-local-session" <$> lookupEnv "MARKOVIAN_EVIDENCE_SESSION_ID"
+    revision <- fromMaybe "unrecorded-local-revision" <$> lookupEnv "MARKOVIAN_EVIDENCE_SOURCE_REVISION"
+    profile <- fromMaybe "unrecorded-local-profile" <$> lookupEnv "MARKOVIAN_CUDA_PROFILE_SHA256"
+    device <- fromMaybe "unrecorded-local-device" <$> lookupEnv "MARKOVIAN_EVIDENCE_DEVICE_UUID"
+    driver <- fromMaybe "unrecorded-local-driver" <$> lookupEnv "MARKOVIAN_EVIDENCE_DRIVER_VERSION"
+    toolkit <- fromMaybe "unrecorded-local-toolkit" <$> lookupEnv "MARKOVIAN_EVIDENCE_TOOLKIT_VERSION"
+    putStrLn ("evidence-session-id: " ++ session)
+    putStrLn ("source-revision: " ++ revision)
+    putStrLn ("profile-sha256: " ++ profile)
+    putStrLn ("evidence-device-uuid: " ++ device)
+    putStrLn ("evidence-driver-version: " ++ driver)
+    putStrLn ("evidence-toolkit-version: " ++ toolkit)
+
+requireEvidenceBindings :: IO ()
+requireEvidenceBindings = do
+    session <- lookupEnv "MARKOVIAN_EVIDENCE_SESSION_ID"
+    revision <- lookupEnv "MARKOVIAN_EVIDENCE_SOURCE_REVISION"
+    profile <- lookupEnv "MARKOVIAN_CUDA_PROFILE_SHA256"
+    device <- lookupEnv "MARKOVIAN_EVIDENCE_DEVICE_UUID"
+    driver <- lookupEnv "MARKOVIAN_EVIDENCE_DRIVER_VERSION"
+    toolkit <- lookupEnv "MARKOVIAN_EVIDENCE_TOOLKIT_VERSION"
+    unless (maybe False ((>= 8) . length) session) (failBenchmark "hardware evidence session identity is missing")
+    unless (maybe False ((== 40) . length) revision) (failBenchmark "hardware evidence source revision is missing")
+    unless (maybe False ((== 64) . length) profile) (failBenchmark "hardware evidence profile digest is missing")
+    unless (maybe False ((>= 40) . length) device) (failBenchmark "hardware evidence device UUID is missing")
+    unless (maybe False (not . null) driver) (failBenchmark "hardware evidence driver version is missing")
+    unless (maybe False (not . null) toolkit) (failBenchmark "hardware evidence toolkit version is missing")
+
+requireProfileBinding :: String -> IO ()
+requireProfileBinding report = do
+    expected <- lookupEnv "MARKOVIAN_CUDA_PROFILE_SHA256"
+    case expected of
+        Just digest -> unless (("profile-sha256: " ++ digest) `isInfixOf` report) (failBenchmark "runtime report profile digest changed")
+        Nothing -> pure ()
+
+evidenceUUID :: String -> String
+evidenceUUID raw =
+    let (first, rest1) = splitAt 8 raw
+        (second, rest2) = splitAt 4 rest1
+        (third, rest3) = splitAt 4 rest2
+        (fourth, fifth) = splitAt 4 rest3
+     in "GPU-" ++ first ++ "-" ++ second ++ "-" ++ third ++ "-" ++ fourth ++ "-" ++ fifth
 
 requireTensor :: (Show error) => IO (Either error value) -> IO value
 requireTensor action = action >>= either (failBenchmark . show) pure
@@ -81,7 +139,7 @@ requireDevice action = action >>= either (failBenchmark . show) pure
 requireCUDA :: (Show error) => IO (Either error value) -> IO value
 requireCUDA action = action >>= either (failBenchmark . show) pure
 
-timeCPU :: [Double] -> TensorSession region -> PreparedMatMul region rows inner columns -> IO Double
+timeCPU :: [Rational] -> TensorSession region -> PreparedMatMul region rows inner columns -> IO Double
 timeCPU expected session prepared = do
     start <- getMonotonicTimeNSec
     result <- runPreparedMatMulCPU session prepared
@@ -90,25 +148,29 @@ timeCPU expected session prepared = do
     end <- getMonotonicTimeNSec
     pure (fromIntegral (end - start) / 1000000)
 
-oracleMatMul64 :: [Double] -> [Double] -> [Double]
-oracleMatMul64 left right =
-    [ sum [left !! (row * 64 + k) * right !! (k * 64 + column) | k <- [0 .. 63]]
+exactMatMul64 :: [Double] -> [Double] -> [Rational]
+exactMatMul64 left right =
+    [ sum [toRational (left !! (row * 64 + k)) * toRational (right !! (k * 64 + column)) | k <- [0 .. 63]]
     | row <- [0 .. 63]
     , column <- [0 .. 63]
     ]
 
-semanticChecksum :: [Double] -> Double
-semanticChecksum = sum . zipWith (*) [1 ..]
+exactSemanticChecksum :: [Rational] -> Rational
+exactSemanticChecksum = sum . zipWith (*) [1 ..]
 
-assertOutput :: String -> [Double] -> [Double] -> IO ()
+observedSemanticChecksum :: [Double] -> Double
+observedSemanticChecksum = sum . zipWith (*) [1 ..]
+
+assertOutput :: String -> [Rational] -> [Double] -> IO ()
 assertOutput label expected actual = do
     unless (length expected == length actual) (failBenchmark (label ++ " length changed"))
     mapM_ check (zip3 [0 :: Int ..] expected actual)
   where
-    check (index, wanted, observed) =
-        let tolerance = 2e-12 + 2e-12 * max (abs wanted) (abs observed)
+    check (index, exact, observed) =
+        let wanted = fromRational exact
+            tolerance = 2e-12 + 2e-12 * max (abs wanted) (abs observed)
          in unless (abs (wanted - observed) <= tolerance) $
-                failBenchmark (label ++ " coordinate " ++ show index ++ " changed: expected " ++ show wanted ++ ", got " ++ show observed)
+                failBenchmark (label ++ " coordinate " ++ show index ++ " changed: exact " ++ show exact ++ ", got " ++ show observed)
 
 printSamples :: String -> [Double] -> IO ()
 printSamples label samples = do

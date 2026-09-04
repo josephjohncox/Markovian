@@ -8,7 +8,7 @@ import Control.Concurrent (forkIO, newEmptyMVar, putMVar, takeMVar)
 import Control.Exception (bracket, bracket_)
 import Control.Monad (forM_, unless, void, when)
 import Data.List (isInfixOf)
-import Data.Maybe (isJust)
+import Data.Maybe (fromMaybe, isJust)
 import Data.Proxy (Proxy (..))
 import Markovian.Backend.GPU
 import Markovian.Tensor
@@ -32,29 +32,44 @@ rightShape = SCons (Proxy @3) (SCons (Proxy @2) SNil)
 outputShape :: SShape '[2, 2]
 outputShape = SCons (Proxy @2) (SCons (Proxy @2) SNil)
 
+cancellationLeftShape :: SShape '[1, 3]
+cancellationLeftShape = SCons (Proxy @1) (SCons (Proxy @3) SNil)
+
+cancellationRightShape :: SShape '[3, 1]
+cancellationRightShape = SCons (Proxy @3) (SCons (Proxy @1) SNil)
+
 main :: IO ()
 main = do
+    printEvidenceBindings
     selector <- selectedDevice
     probe <- probeCUDA
     assertEqual "compiled probe classification" gpuBackendCompiled (cudaProbeCompiledSupport probe)
     sessionResult <- withTensorSession limits $ \session -> do
-        left <- fst <$> expectRightIO "left tensor" (finiteTensorFromList session matrixShape [1, 2, 3, 4, 5, 6])
-        right <- fst <$> expectRightIO "right tensor" (finiteTensorFromList session rightShape [7, 8, 9, 10, 11, 12])
-        seed <- fst <$> expectRightIO "seed tensor" (finiteTensorFromList session outputShape [0.5, -1, 2, 0.25])
+        let leftWords = [1, 2, 3, 4, 5, 6]
+            rightWords = [7, 8, 9, 10, 11, 12]
+            seedWords = [0.5, -1, 2, 0.25]
+        left <- fst <$> expectRightIO "left tensor" (finiteTensorFromList session matrixShape leftWords)
+        right <- fst <$> expectRightIO "right tensor" (finiteTensorFromList session rightShape rightWords)
+        seed <- fst <$> expectRightIO "seed tensor" (finiteTensorFromList session outputShape seedWords)
         prepared <- expectRight "prepare matmul" (prepareMatMul deviceBudget left right)
         preparedVJP <- expectRight "prepare matmul VJP" (prepareMatMulVJP deviceBudget left right seed)
-        let expected = [58, 64, 139, 154]
-            expectedLeft = [-4.5, -5.5, -6.5, 16, 20.5, 25]
-            expectedRight = [8.5, 0, 11, -0.75, 13.5, -1.5]
+        let expectedExact = exactMatMul 2 3 2 leftWords rightWords
+            (expectedLeftExact, expectedRightExact) = exactMatMulVJP 2 3 2 leftWords rightWords seedWords
+            expectedLeft = map fromRational expectedLeftExact
+            expectedRight = map fromRational expectedRightExact
+        assertEqual "exact dyadic matrix denotation" [58, 64, 139, 154] expectedExact
+        assertEqual "exact dyadic left VJP denotation" (map toRational ([-4.5, -5.5, -6.5, 16, 20.5, 25] :: [Double])) expectedLeftExact
+        assertEqual "exact dyadic right VJP denotation" (map toRational ([8.5, 0, 11, -0.75, 13.5, -1.5] :: [Double])) expectedRightExact
 
         cpu <- expectRightIO "CPU matrix product" (runPreparedMatMul session CPUOnly prepared)
-        assertApproxList "CPU matrix differential" expected (deviceTensorValues (fst cpu))
+        assertRefinesExact "CPU operation-order matrix refinement" expectedExact (deviceTensorValues (fst cpu))
         cpuVJP <- expectRightIO "CPU matrix VJP" (runPreparedMatMulVJP session CPUOnly preparedVJP)
-        assertVJP expectedLeft expectedRight (fst cpuVJP)
+        assertVJP "CPU operation-order" expectedLeftExact expectedRightExact (fst cpuVJP)
         goldenPath <- getDataFileName "test/golden/device-plan.txt"
         golden <- readFile goldenPath
         assertEqual "deterministic plan golden" golden (renderDevicePlanReport (deviceExecutionPlan (snd cpu)))
         checkFiniteDifferences left right seed expectedLeft expectedRight
+        checkCPUOperationOrder session
 
         case prepareMatMul (deviceLimits 95 1000000 1) left right of
             Left (DeviceTransferLimitExceeded 95 128) -> pure ()
@@ -81,17 +96,23 @@ main = do
             then do
                 when gpuFaultInjectionCompiled (checkDynamicLoaderFailures session prepared)
                 requireHardware <- (== Just "1") <$> lookupEnv "MARKOVIAN_CUDA_REQUIRE_HARDWARE"
+                when requireHardware requireEvidenceBindings
                 available <- gpuBackendAvailable
                 if available
                     then do
                         cuda <- expectRightIO "required CUDA matrix product" (runPreparedMatMul session (RequireCUDA selector) prepared)
-                        assertApproxList "CPU/CUDA matrix differential" expected (deviceTensorValues (fst cuda))
+                        assertRefinesExact "CUDA FMA matrix refinement" expectedExact (deviceTensorValues (fst cuda))
                         cudaVJP <- expectRightIO "required CUDA matrix VJP" (runPreparedMatMulVJP session (RequireCUDA selector) preparedVJP)
-                        assertVJP expectedLeft expectedRight (fst cudaVJP)
+                        assertVJP "CUDA FMA" expectedLeftExact expectedRightExact (fst cudaVJP)
                         case deviceExecutionBackend (snd cuda) of
                             CUDASelected admission -> do
                                 assertEqual "PTX target" "sm_121" (cudaAdmissionPTXTarget admission)
+                                requireProfileBinding (renderDevicePlanReport (deviceExecutionPlan (snd cuda)))
                                 assertEqual "native UUID admission binding" (cudaDeviceUUID (cudaAdmissionDevice admission)) (cudaAdmissionNativeVerifiedUUID admission)
+                                putStrLn ("native-observed-device-uuid: " ++ evidenceUUID (cudaAdmissionNativeVerifiedUUID admission))
+                                case cudaProbeDriverVersion probe of
+                                    Just version -> putStrLn ("native-observed-driver-api-version: " ++ show version)
+                                    Nothing -> failTest "admitted CUDA execution lacks a driver API version"
                                 assert "admission self-test" (cudaAdmissionSelfTestPassed admission)
                             other -> failTest ("required CUDA selected another backend: " ++ show other)
                         checkScopedFork selector prepared
@@ -104,6 +125,55 @@ main = do
         pure (Right ())
     either (failTest . show) pure sessionResult
     putStrLn "markovian-gpu: device contract tests passed"
+
+printEvidenceBindings :: IO ()
+printEvidenceBindings = do
+    session <- fromMaybe "unrecorded-local-session" <$> lookupEnv "MARKOVIAN_EVIDENCE_SESSION_ID"
+    revision <- fromMaybe "unrecorded-local-revision" <$> lookupEnv "MARKOVIAN_EVIDENCE_SOURCE_REVISION"
+    profile <- fromMaybe "unrecorded-local-profile" <$> lookupEnv "MARKOVIAN_CUDA_PROFILE_SHA256"
+    device <- fromMaybe "unrecorded-local-device" <$> lookupEnv "MARKOVIAN_EVIDENCE_DEVICE_UUID"
+    driver <- fromMaybe "unrecorded-local-driver" <$> lookupEnv "MARKOVIAN_EVIDENCE_DRIVER_VERSION"
+    toolkit <- fromMaybe "unrecorded-local-toolkit" <$> lookupEnv "MARKOVIAN_EVIDENCE_TOOLKIT_VERSION"
+    putStrLn ("evidence-session-id: " ++ session)
+    putStrLn ("source-revision: " ++ revision)
+    putStrLn ("profile-sha256: " ++ profile)
+    putStrLn ("evidence-device-uuid: " ++ device)
+    putStrLn ("evidence-driver-version: " ++ driver)
+    putStrLn ("evidence-toolkit-version: " ++ toolkit)
+
+requireEvidenceBindings :: IO ()
+requireEvidenceBindings = do
+    session <- lookupEnv "MARKOVIAN_EVIDENCE_SESSION_ID"
+    revision <- lookupEnv "MARKOVIAN_EVIDENCE_SOURCE_REVISION"
+    profile <- lookupEnv "MARKOVIAN_CUDA_PROFILE_SHA256"
+    device <- lookupEnv "MARKOVIAN_EVIDENCE_DEVICE_UUID"
+    driver <- lookupEnv "MARKOVIAN_EVIDENCE_DRIVER_VERSION"
+    toolkit <- lookupEnv "MARKOVIAN_EVIDENCE_TOOLKIT_VERSION"
+    assert "hardware evidence session identity" (maybe False ((>= 8) . length) session)
+    assert "hardware evidence source revision" (maybe False ((== 40) . length) revision)
+    assert "hardware evidence profile digest" (maybe False ((== 64) . length) profile)
+    assert "hardware evidence device UUID" (maybe False ((>= 40) . length) device)
+    assert "hardware evidence driver version" (maybe False (not . null) driver)
+    assert "hardware evidence toolkit version" (maybe False (not . null) toolkit)
+
+requireProfileBinding :: String -> IO ()
+requireProfileBinding report = do
+    expected <- lookupEnv "MARKOVIAN_CUDA_PROFILE_SHA256"
+    case expected of
+        Just digest -> assert "runtime report profile binding" (("profile-sha256: " ++ digest) `isInfixOf` report)
+        Nothing -> failTest "hardware execution requires MARKOVIAN_CUDA_PROFILE_SHA256"
+
+evidenceUUID :: String -> String
+evidenceUUID raw = case splitUUID raw of
+    [first, second, third, fourth, fifth] -> "GPU-" ++ first ++ "-" ++ second ++ "-" ++ third ++ "-" ++ fourth ++ "-" ++ fifth
+    _ -> raw
+  where
+    splitUUID value =
+        let (first, rest1) = splitAt 8 value
+            (second, rest2) = splitAt 4 rest1
+            (third, rest3) = splitAt 4 rest2
+            (fourth, fifth) = splitAt 4 rest3
+         in [first, second, third, fourth, fifth]
 
 selectedDevice :: IO DeviceSelector
 selectedDevice = do
@@ -275,11 +345,37 @@ checkFiniteDifferences left right seed expectedLeft expectedRight = do
     assertApproxListWith 2e-8 "all-coordinate right finite difference" expectedRight (map finiteDifferenceRight [0 .. length rightValues - 1])
 
 oracleMatMul :: Int -> Int -> Int -> [Double] -> [Double] -> [Double]
-oracleMatMul rows inner columns left right =
-    [ sum [left !! (row * inner + k) * right !! (k * columns + column) | k <- [0 .. inner - 1]]
+oracleMatMul rows inner columns left right = map fromRational (exactMatMul rows inner columns left right)
+
+exactMatMul :: Int -> Int -> Int -> [Double] -> [Double] -> [Rational]
+exactMatMul rows inner columns left right =
+    [ sum [toRational (left !! (row * inner + k)) * toRational (right !! (k * columns + column)) | k <- [0 .. inner - 1]]
     | row <- [0 .. rows - 1]
     , column <- [0 .. columns - 1]
     ]
+
+exactMatMulVJP :: Int -> Int -> Int -> [Double] -> [Double] -> [Double] -> ([Rational], [Rational])
+exactMatMulVJP rows inner columns left right seed =
+    ( exactMatMul rows columns inner seed (transposeWords inner columns right)
+    , exactMatMul inner rows columns (transposeWords rows inner left) seed
+    )
+
+transposeWords :: Int -> Int -> [Double] -> [Double]
+transposeWords rows columns values =
+    [values !! (row * columns + column) | column <- [0 .. columns - 1], row <- [0 .. rows - 1]]
+
+checkCPUOperationOrder :: TensorSession region -> IO ()
+checkCPUOperationOrder session = do
+    let large = 9007199254740992
+        leftWords = [large, 1, -large]
+        rightWords = [1, 1, 1]
+        exact = exactMatMul 1 3 1 leftWords rightWords
+    assertEqual "cancellation exact dyadic denotation" [1] exact
+    left <- fst <$> expectRightIO "cancellation left tensor" (finiteTensorFromList session cancellationLeftShape leftWords)
+    right <- fst <$> expectRightIO "cancellation right tensor" (finiteTensorFromList session cancellationRightShape rightWords)
+    prepared <- expectRight "cancellation CPU plan" (prepareMatMul deviceBudget left right)
+    cpu <- expectRightIO "cancellation CPU execution" (runPreparedMatMul session CPUOnly prepared)
+    assertEqual "CPU k-ascending separate-operation refinement" [0] (deviceTensorValues (fst cpu))
 
 perturb :: Int -> Double -> [Double] -> [Double]
 perturb target delta = zipWith (\index value -> if index == target then value + delta else value) [0 ..]
@@ -377,10 +473,13 @@ showPrepared :: (Show error) => Either error value -> String
 showPrepared (Left problem) = "Left " ++ show problem
 showPrepared (Right _) = "Right <prepared>"
 
-assertVJP :: [Double] -> [Double] -> DeviceVJP left right -> IO ()
-assertVJP expectedLeft expectedRight gradients = do
-    assertApproxList "left VJP differential" expectedLeft (deviceTensorValues (deviceLeftGradient gradients))
-    assertApproxList "right VJP differential" expectedRight (deviceTensorValues (deviceRightGradient gradients))
+assertVJP :: String -> [Rational] -> [Rational] -> DeviceVJP left right -> IO ()
+assertVJP policy expectedLeft expectedRight gradients = do
+    assertRefinesExact (policy ++ " left VJP refinement") expectedLeft (deviceTensorValues (deviceLeftGradient gradients))
+    assertRefinesExact (policy ++ " right VJP refinement") expectedRight (deviceTensorValues (deviceRightGradient gradients))
+
+assertRefinesExact :: String -> [Rational] -> [Double] -> IO ()
+assertRefinesExact label expected = assertApproxList label (map fromRational expected)
 
 assertApproxList :: String -> [Double] -> [Double] -> IO ()
 assertApproxList = assertApproxListWith 2e-12

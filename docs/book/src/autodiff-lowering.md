@@ -44,6 +44,46 @@ The public API has no primitive callback constructor.
 It also has no `Num`, `Fractional`, or `Floating` instance for programs.
 Thus, this API does not differentiate arbitrary Haskell.
 
+## Explicit quotation
+
+The exact polynomial fragment has a separate explicit `Quote` syntax.
+A hidden `Path environment selected` projects one value from an associated-product environment.
+The path indexes have nominal roles.
+`withQuoteScope` makes a generative token for one lexical scope.
+`pathLeft` and `pathRight` require the token for the matching environment extension.
+Independent scopes remain different when their runtime shapes are equal.
+
+`letQuote scope e body` extends the body environment with the result of `e`.
+The function takes quotation syntax, not a Haskell function.
+It evaluates `e` before the body and does not skip an unused bound term.
+Its parameter type keeps the exact tree `ParameterProduct (ParameterProduct NoParameters p) q`.
+
+One cumulative ledger includes these dimensions:
+
+1. traversal work
+2. quotation nodes
+3. source depth
+4. path depth
+5. coordinate and machine extent
+6. predicted target nodes and depth
+7. transformed nodes
+8. allocation units
+9. exact runtime arithmetic work
+10. total work
+11. rational numerator and denominator bits
+
+Preflight charges an item before it descends into that item.
+It visits children from left to right and stops at the first failed charge.
+Each count uses bounded arithmetic at its active limit.
+A failure returns no lowered `Program`.
+A successful `letQuote` lowers as `compose (fanout identity e) body`.
+A compiler-owned projection primitive keeps path projection parameter-free.
+Its VJP inserts zeros outside the selected path.
+
+The direct exact primal and JVP interpreters recurse over the quotation and source syntax.
+They check rational size after each operation.
+They do not call the reverse compiler, a reverse tape, or a primitive VJP.
+
 ## Semantics
 
 A program represents a finite map
@@ -109,6 +149,10 @@ It has no elapsed time or byte estimate.
 The focused tests include:
 
 - exact polynomial primal and VJP values
+- used-once, duplicated, unused, and nested-path quotation fixtures
+- exact and one-below quotation limits with frozen failure precedence
+- a bounded quotation grammar with exact primal and coordinate-pairing checks
+- callback, effect, path, role, endpoint, and parameter-tree compile failures
 - a test-only syntax-recursive exact primal and JVP interpreter that does not call backend primitives
 - shared-owner diagonal accumulation
 - a missing-diagonal counterexample
@@ -133,6 +177,8 @@ The multilayer program is assembled from scalar closed-language combinators. Its
 ## Nonclaims
 
 The package does not support recursion, loops, branches, stochastic nodes, division, arbitrary indexing, `abs`, ReLU, tensor execution, devices, or higher derivatives.
+The quotation API is not ordinary Haskell quotation, Template Haskell, a compiler plugin, or tracing.
+It has no effects, higher-order values, nested differentiation, or exact transcendental `Double` semantics.
 It does not differentiate sampling.
 It does not claim exact floating algebra or cross-platform transcendental identity.
 It does not claim release readiness.

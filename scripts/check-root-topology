@@ -13,10 +13,11 @@ ghc_environment="${tmp_dir}/ghc.environment"
 # GHC_ENVIRONMENT is expanded by the Cabal child shell.
 # shellcheck disable=SC2016
 cabal exec "${project_args[@]}" -- sh -c 'cp "$GHC_ENVIRONMENT" "$1"' sh "${ghc_environment}"
-local_package_db="$(awk '$1 == "package-db" { path = $2 } END { print path }' "${ghc_environment}")"
-root_unit_id="$(ghc-pkg --package-db="${local_package_db}" field Markovian id --simple-output)"
-if [[ -z "${root_unit_id}" ]]; then
-  echo "root package unit ID is absent from the Cabal package database" >&2
+package_name="$(awk 'tolower($1) == "name:" { print $2; exit }' Markovian.cabal)"
+package_version="$(awk 'tolower($1) == "version:" { print $2; exit }' Markovian.cabal)"
+root_unit_id="${package_name}-${package_version}-inplace"
+if [[ ! "${root_unit_id}" =~ ^Markovian-[0-9]+([.][0-9]+){3}-inplace$ ]]; then
+  printf 'invalid active root package unit ID: %s\n' "${root_unit_id}" >&2
   exit 1
 fi
 isolated_package_args=(-package-env -)

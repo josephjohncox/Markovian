@@ -70,6 +70,7 @@ jobs:
           expected_image="nvidia/cuda:13.0.2-devel-ubuntu22.04@sha256:"
           expected_image+="1c517d4fb96528c8999e14e6e6b16d7e2ff9ae8d194fd788d60fdc88e693e982"
           actual_image="${MARKOVIAN_CUDA_COMPILE_IMAGE}"
+          python3 backends/markovian-gpu/scripts/cuda_profile.py check
           if [[ "${actual_image}" != "${expected_image}" ]]; then
             printf 'Expected compile image %s, found %s.\n' \
               "${expected_image}" "${actual_image}" >&2
@@ -82,7 +83,10 @@ jobs:
           git -c safe.directory="${GITHUB_WORKSPACE}" diff --exit-code -- \
             backends/markovian-gpu/cbits/markovian_dense.ptx \
             backends/markovian-gpu/cbits/markovian_dense_ptx.h \
-            backends/markovian-gpu/src/Markovian/Backend/GPU/Artifact.hs
+            backends/markovian-gpu/cbits/markovian_cuda_profile.h \
+            backends/markovian-gpu/src/Markovian/Backend/GPU/Artifact.hs \
+            backends/markovian-gpu/toolchain.env
+          bash backends/markovian-gpu/scripts/check-profile
           source backends/markovian-gpu/toolchain.env
           cp backends/markovian-gpu/cbits/markovian_dense.ptx /tmp/corrupt.ptx
           printf '\ncorrupt\n' >> /tmp/corrupt.ptx

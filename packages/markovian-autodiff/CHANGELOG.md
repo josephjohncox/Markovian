@@ -1,5 +1,13 @@
 # Changelog for markovian-autodiff
 
+## Unreleased
+
+- Add bounded explicit first-order quotation for the exact polynomial language.
+- Add opaque paths with generative lexical scope tokens and callback-free `letQuote` syntax.
+- Add one cumulative preflight ledger for traversal, extent, allocation, lowering, compilation, work, and rational size.
+- Add independent exact primal and JVP recursion, reverse lowering, deterministic reports, and boundary tests.
+- Keep D-080 proposed. This entry does not publish or tag the package.
+
 ## 2026.9.3.0 — 2026-09-03
 
 - Add a closed typed polynomial and `tanh` language.

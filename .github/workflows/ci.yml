@@ -137,8 +137,10 @@ jobs:
         run: |
           bash packages/markovian-safetensors/scripts/check-safetensors-boundary
 
-      - name: Enforce device plan, executor, and endpoint boundaries
-        run: bash backends/markovian-gpu/scripts/check-device-boundary
+      - name: Enforce CUDA profile, plan, executor, and endpoint boundaries
+        run: |
+          bash backends/markovian-gpu/scripts/check-profile
+          bash backends/markovian-gpu/scripts/check-device-boundary
 
       - name: Run tests
         run: |
@@ -342,6 +344,7 @@ jobs:
             cabal check
             cabal build all
             cabal test all --test-show-details=direct
+            bash scripts/check-profile
             bash scripts/check-device-boundary
             cabal bench markovian-gpu-bench
           )
@@ -590,6 +593,7 @@ jobs:
             scripts/prepare-release \
             packages/markovian-reverse/scripts/check-reverse-boundary \
             backends/markovian-gpu/scripts/build-ptx \
+            backends/markovian-gpu/scripts/check-profile \
             backends/markovian-neural/scripts/check-reverse-program-boundary \
             "${neural_bridge}/scripts/check-exact-support-boundary" \
             packages/markovian-continuous/scripts/check-continuous-boundary \
@@ -612,7 +616,9 @@ jobs:
             scripts/check-book-links \
             scripts/check-haddock-coverage \
             scripts/release_tool.py \
-            scripts/test_release_tool.py
+            scripts/test_release_tool.py \
+            backends/markovian-gpu/scripts/cuda_profile.py \
+            backends/markovian-gpu/test/test_cuda_profile.py
           cabal-fmt --check \
             Markovian.cabal \
             backends/markovian-gpu/markovian-gpu.cabal \

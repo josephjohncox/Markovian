@@ -20,6 +20,7 @@ Markovian.Compile.Exact
 Markovian.Feedback.Channel.Exact
 Markovian.Feedback.Delay.Exact
 Markovian.Feedback.Timed.Exact
+Markovian.Feedback.Value.Exact
 Markovian.Game.Arena
 Markovian.Game.Correlated.Exact
 Markovian.Game.Harsanyi.Exact

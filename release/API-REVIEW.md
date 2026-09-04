@@ -35,15 +35,15 @@ The following package groups have public-module snapshots:
 
 The bounded `markovian-tensor-reverse` package and pinned metadata-free F64 `markovian-safetensors` profile passed the complete archive, compiler, hosted, and release gates. D-067 and D-073 are `Accepted` for those bounded scopes.
 
-D-074 is `Accepted` for the owned dynamic CUDA 13 matrix/VJP fragment. The hosted compile-only, archive-enabled, protected UUID-bound hardware, and four-tool Compute Sanitizer gates passed before approval.
+D-074 is `Accepted` for the owned dynamic CUDA 13 matrix/VJP fragment. The release review records hosted compile-only, archive-enabled, protected UUID-bound hardware, and four-tool sanitizer passes. The repository cannot reconstruct those hardware assertions as one immutable D-077 same-session receipt set. They remain historical release narrative.
 
 ## Version and bounds review
 
-All current packages use version `2026.9.3.0`. Public sibling dependencies use `^>=2026.9.3.0`.
+This review covered packages at `2026.9.3.0` with public sibling dependencies at `^>=2026.9.3.0`. The current bounded proposal work retains those versions and bounds under the task's no-version-change invariant. It is not release source, does not approve a new candidate or any proposed decision, and cannot pass the published-version source boundary from another revision.
 
 The declared `base` bound is `>=4.17.2.1 && <4.20`. The final supported-compiler and lower-bound matrix must confirm it.
 
-A later incompatible public change must increment the PVP major pair.
+A later incompatible public change must increment the PVP major pair. Any post-release source change must also use a new version before release preparation. `release/published-releases.json` blocks reuse of the published version.
 
 ## Completed final review
 

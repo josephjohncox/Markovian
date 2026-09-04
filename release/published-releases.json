@@ -1,0 +1,9 @@
+{
+  "schemaVersion": 1,
+  "versions": {
+    "2026.9.3.0": {
+      "sourceRevision": "fe6abb8db9b3def65ead6602168eef860a79527c",
+      "tag": "v2026.9.3.0"
+    }
+  }
+}

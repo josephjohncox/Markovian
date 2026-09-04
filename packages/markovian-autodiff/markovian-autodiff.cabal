@@ -32,6 +32,9 @@ extra-source-files:
   test/compile-fail/AutodiffHiddenModule.hs
   test/compile-fail/AutodiffOpacity.hs
   test/compile-fail/AutodiffOwnerCoercion.hs
+  test/compile-fail/AutodiffQuoteBoundary.hs
+  test/compile-fail/AutodiffQuoteEffects.hs
+  test/compile-fail/AutodiffQuoteRoles.hs
   test/compile-fail/AutodiffTypes.hs
 
 source-repository head
@@ -51,6 +54,7 @@ library
     Markovian.Autodiff.Check
     Markovian.Autodiff.Compile
     Markovian.Autodiff.Language
+    Markovian.Autodiff.Quote
     Markovian.Autodiff.Shape
 
   other-modules:

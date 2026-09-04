@@ -49,6 +49,7 @@ Floating modules need `markovian-numerical`. Sampling needs `markovian-sampling`
 | Execute explicit one-tick delayed state | `Markovian.Feedback.Delay.Exact` |
 | Close a proper finite first-exit channel | `Markovian.Feedback.Channel.Exact` |
 | Retain reward, duration, and exit jointly in a nilpotent loop | `Markovian.Feedback.Timed.Exact` |
+| Observe proposed strict-discount affine value coefficients | `Markovian.Feedback.Value.Exact` |
 | Compose systems through boundaries | `Markovian.Open.StructuredCospan` |
 | Execute a validated finite DAG | `Markovian.Open.Acyclic.Circuit.Exact` |
 | Define a finite alternating protocol | `Markovian.Game.Arena` and `Markovian.Game.Strategy` |

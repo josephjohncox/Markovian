@@ -9,6 +9,13 @@ the host below. It is not release evidence and does not establish generic
 reverse-program lowering, arbitrary tensor execution, other-device support,
 GPU advantage, or general device correctness.
 
+This file is a historical narrative under D-077. The repository does not retain
+its complete raw command logs, executable digests, profile digest, or one shared
+session identity. The sections below also combine original and later repair
+runs. Therefore, none of these statements or samples can satisfy a D-077
+hardware claim. The retained dates, commands, host facts, and samples are not
+changed.
+
 ## Host and toolchain
 
 - Architecture: `aarch64`
@@ -77,6 +84,10 @@ hosted-runner pass is claimed.
 
 ## Repair validation benchmark
 
+This section retains raw samples, but not the complete comparison inputs or a
+same-session correctness and sanitizer receipt set. It is historical local
+benchmark narrative only.
+
 The repaired benchmark was rerun on the local GB10 with explicit
 `DeviceByUUID "ac353d74ffaf96d27849b8d03d5cd1a7"` selection:
 
@@ -122,6 +133,9 @@ These local measurements do not establish a speedup claim. The paths have
 different implementations, and the report is not protected hosted evidence.
 
 ## Earlier transfer-inclusive benchmark
+
+This section predates the repaired report format. It has no D-077 receipt and
+cannot support a performance comparison.
 
 Command:
 

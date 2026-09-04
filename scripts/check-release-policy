@@ -6,7 +6,9 @@ set -euo pipefail
 workflow=.github/workflows/release-prepare.yml
 prepare=scripts/prepare-release
 
-for file in "${workflow}" "${prepare}"; do
+published=release/published-releases.json
+
+for file in "${workflow}" "${prepare}" "${published}"; do
   [[ -f "${file}" ]] || {
     echo "missing release policy file: ${file}" >&2
     exit 1
@@ -61,6 +63,11 @@ done
 grep -Fq '    cd "${checkout}"' "${prepare}"
 grep -Fq "      bash scripts/prepare-release \\" "${prepare}"
 grep -Fq 'check-haddock-log' "${prepare}"
+grep -Fq 'root_archive="${stage}/unpacked/Markovian-${root_version}"' "${prepare}"
+if grep -Eq 'root_archive=.*Markovian-[0-9]' "${prepare}"; then
+  echo "prepare-release hard-codes a published root archive version" >&2
+  exit 1
+fi
 grep -Fxq 'active-repositories: :none' cabal.project
 if grep -Fq 'bash "${checkout}/scripts/prepare-release"' "${prepare}"; then
   echo "detached preparation must not retain the caller's working directory" >&2
@@ -94,7 +101,15 @@ for hostile in "${hostile_revisions[@]}"; do
   fi
 done
 
+python3 - <<'PY'
+from pathlib import Path
+from scripts import release_tool
+
+release_tool.load_published_releases(Path("release/published-releases.json"))
+PY
+
 python3 -m unittest \
-  scripts.test_release_tool.ReleaseToolTests.test_revision_validation_rejects_hostile_values
+  scripts.test_release_tool.ReleaseToolTests.test_revision_validation_rejects_hostile_values \
+  scripts.test_release_tool.ReleaseToolTests.test_published_release_boundary_is_mandatory
 
 printf 'release policy: validated revision flow, hostile-input rejection, complete attestation scope, secret-free preparation, and full action pins validated\n'

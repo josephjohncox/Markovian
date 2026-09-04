@@ -146,11 +146,20 @@ A(s_0\mid x)\prod_{t=0}^{n-1}B(y_t,s_{t+1}\mid x,s_t).
 
 The final observer keeps `(y_(n-1),s_n)` joint. Timed nilpotent feedback keeps `(G,d,y)` joint with `G = sum_(t=0)^(d-1) gamma^t r_t`.
 
-The operation-wide meter charges every rational operation. Delayed and timed execution also charge every represented branch before descent. Reported maxima include discarded matrix-power, Gaussian, and path values. Limit failure returns no result or partial report.
+Strict-discount affine feedback aggregates expected event rewards `m`, continuation blocks `B,D`, and exit blocks `E`. Its private exact solver and post-checks establish all four equations
 
-The raw trace of the two-state stochastic identity has mass two. A unit internal self-loop has no first exit. A half-loop/half-exit is proper but has unbounded duration support and is rejected by the timed API. These counterexamples prevent a universal stochastic-trace claim.
+\\[
+A_X=m_X+\\gamma B\\alpha,\\quad
+\\alpha=m_U+\\gamma D\\alpha,\\quad
+K_X=\\gamma E_X+\\gamma BQ,\\quad
+Q=\\gamma E_U+\\gamma DQ.
+\\]
 
-**Executable evidence:** `test/FeedbackExact.hs` and `scripts/check-feedback-boundary` in the source distribution.
+The operation-wide meter charges every rational operation. Affine feedback preflights every row-major extraction and event-target aggregation visit; it does not use repeated linear labelled matrix lookup. Delayed and timed execution also charge every represented branch before descent. Reported maxima include discarded matrix-power, Gaussian, and path values. Limit failure returns no result or partial report.
+
+The raw trace of the two-state stochastic identity has mass two. A unit internal self-loop has no first exit. A half-loop/half-exit is proper but has unbounded duration support and is rejected by the timed API. Strict discount gives that closed unit-reward loop `A=1/(1-gamma)` and `K=0`; it does not create a normalized exit law. These counterexamples prevent a universal stochastic-trace claim.
+
+**Executable evidence:** `test/FeedbackExact.hs`, `test/FeedbackValueExact.hs`, `test/golden/affine-feedback-accounting.txt`, and `scripts/check-feedback-boundary` in the source distribution. The affine fixture includes a fixed accounting oracle, adversarial unmatched-event graph bounds, a separately budgeted multi-state/multi-output unrolling oracle, discarded-Gaussian one-below limits, and combined-invalid failure precedence. The affine-value implementation is evidence for D-078, which remains `Proposed`.
 
 ## Tabular one-step targets
 
@@ -187,7 +196,7 @@ The D-068 autodiff fixtures add compiler-owned primitive VJPs for a closed langu
 
 The D-072 tensor fixtures check that rank-zero storage contains one scalar while a zero dimension gives no elements. They check transpose coordinates and storage sharing, fresh materialization, checked reshape, fixed reduction order, zero-inner matrix multiplication, raw IEEE preservation, finite refinement, and nonfinite-result rejection. Matrix-product VJPs are compared with an independent list objective by perturbing every represented coordinate. `tanh` VJPs receive the same finite-difference check. An exact-limit fixture makes a two-output matrix pullback fail before allocation, then successfully consumes the still-available final payload budget. Owner and storage fixtures show that distinct semantic owners can share immutable storage. These checks do not establish general tensor semantics, allocation optimality, a speed claim, or generic reverse-program integration.
 
-The D-074 device fixtures prepare the F64 matrix and matrix-VJP fragment before backend selection. Exact and one-below tests cover transfer, scalar-work, and launch limits. CUDA-disabled tests distinguish required failure, denied fallback, and explicit pre-launch CPU fallback. Enabled tests require module admission and a known-answer self-test, then compare every matrix and both VJP output coordinates with the CPU tensor path. Compile-fail fixtures protect plans, executor resources, result shapes, and VJP endpoints. These fixtures do not prove arbitrary tensor lowering, generic reverse-program lowering, cleanup behavior under every driver fault, support for devices other than the observed admitted device, bitwise CPU/CUDA equality, GPU advantage, or general device correctness.
+The D-074 device fixtures prepare the F64 matrix and matrix-VJP fragment before backend selection. Exact and one-below tests cover transfer, scalar-work, and launch limits. CUDA-disabled tests distinguish required failure, denied fallback, and explicit pre-launch CPU fallback. Enabled tests require module admission and a known-answer self-test. D-077 now defines exact dyadic matrix and VJP fixtures first. It compares the CPU operation-order and CUDA FMA paths separately with those exact values. Compile-fail fixtures protect plans, executor resources, result shapes, and VJP endpoints. These fixtures do not prove arbitrary tensor lowering, generic reverse-program lowering, cleanup behavior under every driver fault, support for devices other than the observed admitted device, bitwise CPU/CUDA equality, GPU advantage, or general device correctness.
 
 The tests also check REINFORCE, actor-critic, replay, target synchronization, and DQN update fixtures. The floating checks use explicit tolerances. They provide local evidence for supplied VJPs. They do not prove all-input derivatives, general autodiff, checkpoint optimality, or training convergence.
 

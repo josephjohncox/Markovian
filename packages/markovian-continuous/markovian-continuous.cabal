@@ -4,7 +4,8 @@ version:            2026.9.3.0
 synopsis:           Restricted exact continuous probability for Markovian
 description:
   Compact rational affine-uniform laws, exact polynomial expectations,
-  affine additive-noise kernels, and finite-observation conditioning.
+  affine additive-noise kernels, bounded joint affine kernel materialization
+  and support extrema, and finite-observation conditioning.
   This package does not provide arbitrary measurable functions or general
   continuous disintegration.
 
@@ -26,8 +27,14 @@ extra-doc-files:
 extra-source-files:
   scripts/check-continuous-boundary
   test/compile-fail/ContinuousBoundary.hs
+  test/compile-fail/JointAffineBoundary.hs
+  test/compile-fail/JointAffineRoles.hs
+  test/compile-fail/JointAffineWrongScope.hs
 
-data-files:         test/golden/bivariate-accounting.txt
+data-files:
+  test/golden/bivariate-accounting.txt
+  test/golden/joint-affine-accounting.txt
+  test/golden/joint-affine-renaming-accounting.txt
 
 source-repository head
   type:     git
@@ -48,6 +55,7 @@ library
   exposed-modules:
     Markovian.Continuous.Condition.Exact
     Markovian.Continuous.Kernel.Exact
+    Markovian.Continuous.Kernel.JointAffine.Exact
     Markovian.Continuous.Map
     Markovian.Continuous.Measure.Exact
     Markovian.Continuous.Polynomial
@@ -64,7 +72,10 @@ test-suite markovian-continuous-test
   type:             exitcode-stdio-1.0
   main-is:          Main.hs
   hs-source-dirs:   test
-  other-modules:    Paths_markovian_continuous
+  other-modules:
+    JointAffine
+    Paths_markovian_continuous
+
   autogen-modules:  Paths_markovian_continuous
   build-depends:
     , base                  >=4.17.2.1   && <4.20

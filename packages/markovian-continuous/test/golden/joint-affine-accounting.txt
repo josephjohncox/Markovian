@@ -1,0 +1,10 @@
+operation	JointAffineSupportExtrema
+raw-entries	3
+declared-owners	3
+retained-owners	3
+outputs	2
+coefficients	10
+preflight-work	12
+arithmetic-work	32
+work	44
+maximum-rational-bits	4

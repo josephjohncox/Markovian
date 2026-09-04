@@ -1,6 +1,6 @@
 # Checked finite feedback
 
-Markovian supports three explicit exact fragments. It does not expose a universal stochastic trace.
+Markovian supports three accepted exact fragments and one proposed strict-discount value fragment. It does not expose a universal stochastic trace.
 
 ## Why raw trace is not stochastic feedback
 
@@ -75,9 +75,41 @@ An outer dynamic model must use `G + gamma^d V(output)`. Terminal payoff remains
 
 Timed closure requires nilpotence. A half-loop and half-exit has a valid marginal exit law but durations `1,2,3,...`. Reward support depends on the event rewards and `gamma`: for example, unit rewards with `gamma = 0` collapse to one accumulated value, while `gamma = 1` gives unbounded accumulated rewards. Infinite duration support alone is enough to exceed this finite result type, so every such cycle is rejected.
 
+## Strict-discount affine value coefficients
+
+`Markovian.Feedback.Value.Exact` accepts the same normalized joint reward-and-route events as timed feedback, but it returns no path law. It requires an `ExactContractionDiscount`, so `0 <= gamma < 1`. For first-exit time `tau`, including `tau = infinity`, the additive functional is
+
+\\[
+G=\\sum_{t=0}^{\\tau}\\gamma^t r_t,
+\\qquad
+V(x)=\\mathbb{E}_x[G]+\\sum_y\\mathbb{E}_x[\\gamma^{\\tau+1}1_{Y_\\tau=y}]v(y).
+\\]
+
+The continuation term is zero on `tau = infinity`. Finite state and event sets make rewards bounded, so the strict-discount reward sum exists even for a closed internal class.
+
+The implementation keeps reward and route in each normalized event while it aggregates expected one-event rewards `m`, internal routing `D`, and exits `E`. One private bounded multi-right-hand-side elimination solves
+
+\\[
+\\alpha=m_U+\\gamma D\\alpha,
+\\qquad
+Q=\\gamma E_U+\\gamma DQ.
+\\]
+
+It then derives
+
+\\[
+A=m_X+\\gamma B\\alpha,
+\\qquad
+K=\\gamma E_X+\\gamma BQ.
+\\]
+
+Construction checks these four equations literally over `Rational`. Public code receives only opaque nominal external and internal `AffineFeedbackCoefficients`. It can observe one `A` or `K` coefficient by a typed label. There is no continuation evaluator and no normalized output channel.
+
+A closed unit-reward loop at `gamma=1/2` has `A=2` and `K=0`. A half-exit, half-loop unit-reward channel has `A=4/3` and `K=1/3`. This fragment is implementation evidence for D-078; D-078 remains `Proposed`.
+
 ## Bounds and reports
 
-`FeedbackLimits` bounds source, loop, and output cardinality. It also bounds cells, graph work, arithmetic work, trace outcomes, and rational size. The interpreters check represented dimensions before result layout construction.
+`FeedbackLimits` bounds source, loop, and output cardinality. It also bounds cells, graph work, arithmetic work, trace outcomes or affine event count, and rational size. The interpreters check represented dimensions before result layout construction. Affine feedback reads the checked channel in row-major order instead of repeatedly calling linear labelled lookup. For `S=|X|+|U|`, `E=|events|`, and `T=|U|+|Y|`, its conservative graph bound is `E*T + S + E + 4*S*E + S*E*T`. This covers event validation, layout comparison, row extraction and observation, reward aggregation, and every event scan for every continuation or exit target.
 
 A single operation-wide meter charges each rational operation. Delayed and timed interpreters also charge each branch before they inspect it or descend. Zero-mass branches consume work. A one-below work limit stops the operation at the first excess charge.
 
@@ -100,9 +132,9 @@ Reports contain deterministic counts and witnesses only. The separate benchmark 
 
 ## Evidence and nonclaims
 
-`test/FeedbackExact.hs` checks equations, normalization, timing, correlations, limits, and rejected cycles. It includes an independent acyclic path enumerator and multi-output absorption.
+`test/FeedbackExact.hs` checks equations, normalization, timing, correlations, limits, and rejected cycles. It includes an independent acyclic path enumerator and multi-output absorption. `test/FeedbackValueExact.hs` checks strict-discount hand solutions, infinite and partial exit, literal equations, a nilpotent timed differential, malformed channels, fixed exact and one-below ledgers, adversarial unmatched-event scans, and combined-invalid failure precedence. Its independent two-loop, two-output finite oracle records `N=4`, preflights a fixed 180-operation plan, and checks exact and one-below horizon, work, and rational limits.
 
-The accounting fixtures use separate operation-count and path oracles. They force discarded maxima above retained maxima for Gaussian, delayed, and timed execution. Each interpreter has exact and one-below work and rational limits. `test/golden/feedback-accounting.txt` fixes the complete first-exit accounting report. The root source archive contains and runs this evidence in an isolated GHC 9.8.4 project. `scripts/check-feedback-boundary` checks constructor opacity and nominal endpoint roles.
+The accounting fixtures use separate operation-count and path oracles. They force discarded maxima above retained maxima for Gaussian, delayed, and timed execution. Each accepted D-069 interpreter has exact and one-below work and rational limits. `test/golden/feedback-accounting.txt` fixes the complete first-exit accounting report. The affine proposal adds `test/golden/affine-feedback-accounting.txt`, including fixed work, graph, phase, and rational maxima; its one-below rational fixture fails on a discarded Gaussian difference. The root source archive contains and runs the accepted D-069 evidence in an isolated GHC 9.8.4 project. `scripts/check-feedback-boundary` checks constructor opacity and nominal endpoint roles. D-078 evidence is in this proposal worktree, not the immutable `v2026.9.3.0` release; package versions remain unchanged under the task invariant.
 
 This subsystem does not establish:
 

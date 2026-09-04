@@ -7,6 +7,7 @@ import CircuitCostRewrite (runCircuitCostRewriteTests)
 import ExactBind (runExactBindTests)
 import ExactControl (runExactControlTests)
 import FeedbackExact (runFeedbackExactTests)
+import FeedbackValueExact (runFeedbackValueExactTests)
 import FiniteOpenGames (runFiniteOpenGameTests)
 import GameCore (runGameCoreTests)
 import MixedBayesianGames (runMixedBayesianGameTests)
@@ -21,6 +22,7 @@ main = do
     runExactBindTests run
     runExactControlTests run
     runFeedbackExactTests run
+    runFeedbackValueExactTests run
     runCircuitCostRewriteTests run
     runGameCoreTests run
     runFiniteOpenGameTests run

@@ -865,7 +865,7 @@ D-061 was accepted after the complete compiler, lower-bound, archive, Haddock, h
 
 **Decision:** Apply coordinated UTC CalVer `YYYY.M.D.N` and the Package Versioning Policy to every public package. Use full sibling bounds such as `^>=2026.9.3.0`, publish package-specific README and changelog files, and record `tested-with` only for compiler releases that pass. Every exposed declaration must have Haddock documentation, and every package must have a reviewed exposed-module golden before release.
 
-**Current boundary:** All 16 packages use `2026.9.3.0`, checked metadata, package README and changelog files, PVP sibling bounds, and exposed-module snapshots. Every `source-repository this` section identifies `v2026.9.3.0` and the applicable package subdirectory. The release gates verify complete public Haddock coverage.
+**Current boundary:** The published 16-package set used `2026.9.3.0`, checked metadata, package README and changelog files, PVP sibling bounds, and exposed-module snapshots. The current bounded proposal work retains those package versions and bounds under the task's no-version-change invariant. It is not release source: `release/published-releases.json` prevents release preparation from rebuilding the published version from another revision. Every `source-repository this` section identifies its package version and applicable subdirectory. The release gates verify complete public Haddock coverage. Version metadata alone does not approve a candidate.
 
 **Consequences:** A later incompatible public change increments the PVP major pair. Hackage revisions may correct metadata but may not carry code or API changes. Compiler support is explicit rather than inferred between tested endpoints.
 
@@ -1053,7 +1053,7 @@ Dispatch distinguishes `CPUOnly`, preferred CUDA, and required CUDA. CPU fallbac
 
 **Consequences:** The committed PTX and admitted hardware profile are bounded to `.target sm_121` and compute capability 12.1. Enabled builds compile against pinned CUDA 13.0 headers and link only `libdl`. The native executor owner opens `libcuda.so.1` with `RTLD_NOW | RTLD_LOCAL`, resolves the complete required table—including CUDA 13 versioned names—before `cuInit`, retains the handle and table, attempts stream/module/context destruction before `dlclose`, and never calls a table entry after unload. C static assertions cover CUDA header version, pointer/device-pointer widths, UUID size, and Haskell-facing fixed array boundaries. Missing libraries, missing symbols, and devices outside the pinned profile are explicit pre-launch errors. Required CUDA returns them; preferred CUDA can fall back only under the existing pre-launch policy. Disabled builds still require no CUDA headers or driver library. Successful admission creates evidence only for that current process and bounded profile. The package does not lower arbitrary tensor graphs, generic `Reverse.Program`, arbitrary Haskell callbacks, stochastic nodes, zero-sized CUDA launches, arbitrary strides, F32, mutation, fusion, or user PTX. It does not claim general device correctness, GPU advantage, cross-device bitwise reproducibility, portable wall-clock termination, or release readiness. D-067 remains the blocker for effect-capable generic CUDA reverse-program lowering.
 
-**Required evidence:** CUDA-disabled required/preferred/fallback fixtures; exact and one-below transfer/work/launch plans; CPU tensor matrix and primitive-tape VJP execution; enabled module admission and known-answer test; every represented output and VJP coordinate against an independent oracle and all-coordinate finite differences; missing-library, missing-symbol, unsupported-device, allocation, transfer, launch, second-launch, synchronization, copy-back, free, teardown, action-exception, and forked-lifetime faults; transfer-inclusive raw benchmark samples with a pinned semantic checksum and host/toolchain metadata; CUDA-header/PTX/generated-header reproduction; hidden-plan, hidden-executor, executor-scope, role, and endpoint compile failures; source-distribution coverage; a digest-pinned no-GPU CUDA 13 compile-only workflow; and a UUID-bound protected hardware workflow that fails rather than skips when selected. The digest-pinned compile-only workflow, complete source-archive execution, and final hosted CI passed. The UUID-bound protected GB10 workflow passed `memcheck`, `initcheck`, `racecheck`, and `synccheck`, all enabled differentials and fault fixtures, PTX reproduction, and the transfer-inclusive benchmark before D-074 acceptance.
+**Required evidence:** CUDA-disabled required/preferred/fallback fixtures; exact and one-below transfer/work/launch plans; CPU tensor matrix and primitive-tape VJP execution; enabled module admission and known-answer test; every represented output and VJP coordinate against an independent oracle and all-coordinate finite differences; missing-library, missing-symbol, unsupported-device, allocation, transfer, launch, second-launch, synchronization, copy-back, free, teardown, action-exception, and forked-lifetime faults; transfer-inclusive raw benchmark samples with a pinned semantic checksum and host/toolchain metadata; CUDA-header/PTX/generated-header reproduction; hidden-plan, hidden-executor, executor-scope, role, and endpoint compile failures; source-distribution coverage; a digest-pinned no-GPU CUDA 13 compile-only workflow; and a UUID-bound protected hardware workflow that fails rather than skips when selected. The digest-pinned compile-only workflow, complete source-archive execution, and final hosted CI passed. The UUID-bound protected GB10 workflow passed `memcheck`, `initcheck`, `racecheck`, and `synccheck`, all enabled differentials and fault fixtures, PTX reproduction, and the transfer-inclusive benchmark before D-074 acceptance. These pass statements are historical release narrative. The repository does not retain the complete raw, immutable, same-session receipt set now required by D-077.
 
 **Official sources:** NVIDIA CUDA 13.0 Driver API for devices, contexts, modules, memory, streams, and kernel launch; NVIDIA PTX ISA 9.0; NVIDIA Compute Sanitizer; and GHC 9.8.4 FFI documentation.
 
@@ -1063,7 +1063,7 @@ Dispatch distinguishes `CPUOnly`, preferred CUDA, and required CUDA. CPU fallbac
 
 **Decision:** A first release requires the completed D-061 package split, reviewed PVP APIs, complete Haddock, package metadata, migration documentation, deterministic source archives, archive-only consumers, compile-fail boundaries, benchmarks, supported-compiler and lower-bound jobs, license inventory, SBOMs, provenance checks, and all protected device evidence for any enabled device claim. Preparation and attestation jobs have no Hackage credential. A separate human authorization is required for candidates or publication.
 
-**Current boundary:** D-061 through D-076 are accepted for their stated bounded scopes. A clean immutable candidate passed the complete hosted compiler, lower-bound, source, CUDA compile-only, protected UUID-bound hardware, four-tool Compute Sanitizer, archive, SBOM, checksum, and attestation gates. The user's release request separately records publication authorization.
+**Current boundary:** D-061 through D-076 are accepted for their stated bounded scopes. The release record states that a clean immutable candidate passed the complete hosted compiler, lower-bound, source, CUDA compile-only, protected UUID-bound hardware, four-tool Compute Sanitizer, archive, SBOM, checksum, and attestation gates. The repository cannot reconstruct the protected hardware assertions as a D-077 same-session receipt set. The user's release request separately records publication authorization.
 
 **Consequences:** No script added under this decision may upload to Hackage, create a tag or release, or imply atomic multi-package publication. Any later partial publication must be reported as partial. Untrusted pull requests must not execute on persistent GPU hardware.
 
@@ -1082,6 +1082,235 @@ Extract the reverse foundation downward to `markovian-reverse`, but do not treat
 **Required evidence:** Exact and one-below machine, work, and rational limits; independent primal and JVP interpretation; typed endpoint compile failures; all-coordinate CPU primitive finite differences; independent JVP/VJP pairings; zero-size and transpose views; atomic allocation failures; committed report and benchmark checksums; warning-free supported compilers, Haddock, mdBook, archive-only tests, and hosted CI.
 
 **Sources:** Griewank and Walther, *Evaluating Derivatives*, second edition, DOI `10.1137/1.9780898717761`; Higham, *Accuracy and Stability of Numerical Algorithms*, second edition, DOI `10.1137/1.9780898718027`; GHC 9.8.4 User's Guide sections on roles, type-level naturals, and the FFI.
+
+The following post-release proposals share one governance gate. Before implementation, each proposal must freeze every exported Haskell signature and the total failure-precedence order. Constructors stay opaque. Nominal roles protect proof, owner, profile, path, shape, and endpoint parameters. Every operation uses one cumulative monotonic bounded ledger. Complete preflight precedes dense allocation. Tests must admit each exact limit and reject one below it without partial output. Proof status and empirical evidence stay separate. Evidence for `v2026.9.3.0` validates only that release. A new package or package edge needs explicit topology approval. These proposals do not authorize a candidate, tag, upload, release, publication, or workflow launch.
+
+### D-077: Govern GPU profiles and evidence truth
+
+**Status:** Proposed
+
+**Decision:** Replace distributed GPU-profile facts with one reviewed, digest-addressed profile authority. The authority must name the CUDA ABI, PTX target and digest, kernel ABI, device constraints, numeric policy, admission tests, and receipt schema. Generated headers, workflow inputs, tests, and reports must derive from that authority or verify literal agreement with it.
+
+Give every admitted F64 input word its exact dyadic rational meaning. Define matrix multiplication and matrix VJP first by exact rational evaluation of those dyadic inputs. Treat the CPU and CUDA results as separate floating refinements of that denotation under separately frozen comparison policies. Neither floating path is the truth oracle for the other.
+
+A device-correctness or performance claim requires immutable same-session receipts. One receipt set must bind the source revision, executable and PTX digests, profile digest, device UUID, driver and toolkit versions, command, semantic checksum, raw samples, and session identity. Correctness, sanitizer, and benchmark records used together must come from that bound session. A mutable log, prose summary, successful admission, or later rerun is insufficient.
+
+**Rationale:** D-074 admitted a bounded implementation and recorded release evidence, but its prose cannot reconstruct every asserted run from immutable same-session receipts. Exact dyadic denotation separates mathematical reference values from two implementations that can round differently. One profile authority prevents code, generated artifacts, tests, and workflows from assigning different meanings to the same profile name.
+
+**Consequences:** D-074 remains historical and `Accepted` for its recorded release scope. Any D-074 assertion without a reconstructible immutable receipt is qualified as historical narrative and cannot satisfy D-077. No general device, portability, reproducibility, or performance claim follows from one admitted profile. No speedup claim may compare CUDA with the list-based `-O0` CPU reference or with a receipt from another session.
+
+**Required evidence:** Freeze the profile schema, receipt schema, exported signatures, and failure order before code changes. Add authority-drift checks, exact dyadic matrix and VJP oracles, independent CPU and CUDA refinements, exact and one-below plans, malformed and mismatched receipt fixtures, and digest-bound same-session hardware evidence. Preserve raw samples and all comparison inputs. Record proof obligations separately from measured hardware results.
+
+**Current repair boundary:** The repository now has one canonical profile authority, generated C and Haskell profile artifacts, authority-drift checks, exact dyadic matrix and VJP fixtures, separate CPU and CUDA comparison labels, and a strict same-session receipt validator. The repair changes no exported Haskell signature or public failure precedence. No protected workflow ran for this repair, and no D-077 hardware receipt exists. D-077 remains `Proposed`.
+
+### D-078: Add strict-discount affine feedback value coefficients
+
+**Status:** Proposed
+
+**Frozen public contract:** Place the feature in the root, `base`-only `Markovian` package as `Markovian.Feedback.Value.Exact`. It reuses `FeedbackLimits`, `FeedbackAccounting`, opaque nominal `LoopLayout`, timed `FeedbackEvent`, `ExactContractionDiscount`, and the existing normalized `StochasticMatrix`; it adds no package edge. Package versions and sibling bounds remain unchanged under the task invariant. The immutable `2026.9.3.0` release remains recorded separately in `release/published-releases.json` and does not contain this module.
+
+The module exports the common feedback limit/accounting constructors and these exact declarations:
+
+```haskell
+data AffineFeedbackError loop output
+  = AffineFeedbackLimitError FeedbackLimitError
+  | AffineFeedbackSourceLayoutMismatch
+  | AffineFeedbackContinueOutsideLoop loop
+  | AffineFeedbackExitOutsideOutput output
+  | AffineFeedbackSingularInternalSystem
+  | AffineFeedbackExternalConstantEquationFailure Int
+  | AffineFeedbackInternalConstantEquationFailure loop
+  | AffineFeedbackExternalContinuationEquationFailure Int output
+  | AffineFeedbackInternalContinuationEquationFailure loop output
+
+data AffineFeedbackReport owner = AffineFeedbackReport
+  { affineFeedbackOwner :: owner
+  , affineFeedbackDiscount :: Rational
+  , affineFeedbackSourceCount :: Natural
+  , affineFeedbackLoopCount :: Natural
+  , affineFeedbackOutputCount :: Natural
+  , affineFeedbackEventCount :: Natural
+  , affineFeedbackMatrixCellCount :: Natural
+  , affineFeedbackGraphWorkCharged :: Natural
+  , affineFeedbackValidatedEquationCount :: Natural
+  , affineFeedbackArithmeticWorkCharged :: Natural
+  , affineFeedbackMaximumResultBits :: Natural
+  , affineFeedbackAccounting :: FeedbackAccounting
+  }
+data AffineFeedbackCoefficients source output -- opaque
+
+affineConstantCoefficient
+  :: Eq source
+  => AffineFeedbackCoefficients source output -> source -> Maybe ExactReward
+affineContinuationCoefficient
+  :: (Eq source, Eq output)
+  => AffineFeedbackCoefficients source output -> source -> output -> Maybe Rational
+
+data CheckedAffineFeedback owner input loop output -- opaque
+
+closeAffineFeedback
+  :: (Eq input, Eq output)
+  => FeedbackLimits
+  -> ExactContractionDiscount
+  -> FiniteSet input
+  -> LoopLayout owner loop
+  -> FiniteSet output
+  -> StochasticMatrix NonNegativeRational (Either input loop) (FeedbackEvent loop output)
+  -> Either (AffineFeedbackError loop output) (CheckedAffineFeedback owner input loop output)
+affineFeedbackExternalCoefficients
+  :: CheckedAffineFeedback owner input loop output
+  -> AffineFeedbackCoefficients input output
+affineFeedbackInternalCoefficients
+  :: CheckedAffineFeedback owner input loop output
+  -> AffineFeedbackCoefficients loop output
+affineFeedbackReport
+  :: CheckedAffineFeedback owner input loop output -> AffineFeedbackReport owner
+```
+
+`AffineFeedbackCoefficients` has nominal source and output roles. `CheckedAffineFeedback` has nominal owner, input, loop, and output roles. Its owner comes only from the checked `LoopLayout` and is retained in the report. Constructors for both types remain private. Public code can observe one typed coefficient but cannot extract a row representation, weaken an endpoint or owner role, or use coefficients as a stochastic channel.
+
+The shared trace-outcome limit bounds affine event count; no trace is produced. With `S=|X|+|U|`, `E=|events|`, and `T=|U|+|Y|`, matrix cells are `S*E` and the frozen conservative graph charge is `E*T + S + E + 4*S*E + S*E*T`. Checked `Natural` sums and products fail before event validation or row materialization. The four cell terms cover row-major extraction, scalar conversion/observation, and expected-reward traversal. The final term covers every event scan for every internal or output target.
+
+The total public failure order is:
+
+1. source, loop, and output count limits, in that order;
+2. event count, combined source/cardinality overflow, matrix cells, graph-work arithmetic, and graph-work limit, in that order;
+3. the first malformed event in target layout order, where a `Continue` checks loop membership and an `Exit` checks output membership;
+4. source layout mismatch;
+5. the atomic rational ledger: discount input, event rewards in target order, channel entries in row-major order, external then internal aggregation, internal coefficient/RHS construction and multi-RHS elimination, external derivation, external-constant equation, internal-constant equation, external-continuation equation, internal-continuation equation, then retained external/internal `A` and `K` observations.
+
+Within the ledger, every arithmetic operation charges work before it checks the result's rational size. A missing pivot occurs at its elimination position. Each equation failure occurs only after all earlier metered work and checks. Any failure returns no coefficients, checked result, or partial report.
+
+**Decision:** Add only exact affine value coefficients for a validated normalized finite event channel and a strict discount `0 <= gamma < 1`. For a routing channel `X + U -> Y + U`, let `C_XY` and `C_UY` be exit blocks, `D_XU` and `D_UU` be feedback blocks, and let `r_X` and `r_U` be exact expected one-event rewards. The opaque result stores external and internal constant coefficients `A_X`, `A_U` and continuation coefficients `K_X`, `K_U`.
+
+Validation must check these four equations literally over `Rational`:
+
+1. `A_X = r_X + gamma D_XU A_U`.
+2. `A_U = r_U + gamma D_UU A_U`.
+3. `K_X = gamma C_XY + gamma D_XU K_U`.
+4. `K_U = gamma C_UY + gamma D_UU K_U`.
+
+The input channel must preserve each normalized reward-and-route event until the exact expected reward and routing blocks are materialized. Construction, elimination, equation validation, and reporting share one cumulative bounded ledger. The ledger includes dimensions, cells, events, graph work, rational operations, and intermediate rational size.
+
+**Rationale:** Strict discount makes the represented affine value problem contractive without asserting a total stochastic trace. Opaque `A` and `K` coefficients expose only the checked affine map from an external continuation to value. Literal equation checks provide an independent postcondition for elimination.
+
+**Consequences:** This proposal does not add universal trace, undiscounted cyclic value semantics, a cyclic `OpenSystem` adapter, path enumeration, or a general feedback operator. It does not preserve a universal trace distribution. D-069's three accepted fragments remain separate.
+
+**Required evidence:** Freeze channel, coefficient, limit, report, and error signatures plus failure precedence. Test normalization, reward timing, discount placement, each literal equation, layout changes, self-loops, multi-state cycles, `gamma=0`, discounts approaching one, malformed channels, and rational growth.
+
+Use this finite unrolling oracle with an explicit preflighted horizon `N`. Set `A_U^(0)=0` and `K_U^(0)=0`. For `n < N`, compute `A_U^(n+1)=r_U+gamma D_UU A_U^(n)` and `K_U^(n+1)=gamma C_UY+gamma D_UU K_U^(n)`. Then compute `A_X^(N)=r_X+gamma D_XU A_U^(N)` and `K_X^(N)=gamma C_XY+gamma D_XU K_U^(N)`. The fixture selects `N` explicitly and records it. No implementation can choose a hidden horizon.
+
+Use the vector maximum norm and matrix maximum absolute row-sum norm. Let `R=||r_U||`, `E=||C_UY||`, and `d_X=||D_XU||`. The oracle passes only if exact rational subtraction satisfies all four bounds: `||A_U-A_U^(N)|| <= gamma^N R/(1-gamma)`, `||K_U-K_U^(N)|| <= gamma^(N+1) E/(1-gamma)`, `||A_X-A_X^(N)|| <= d_X gamma^(N+1) R/(1-gamma)`, and `||K_X-K_X^(N)|| <= d_X gamma^(N+2) E/(1-gamma)`. It must also pass the four literal equations above. Exact and one-below ledger tests must cover the finite oracle, discarded elimination intermediates, and atomic failure.
+
+**Current implementation boundary:** `Markovian.Feedback.Value.Exact` now implements the frozen contract above with opaque nominal external and internal observations, the existing strict contraction discount witness, a private bounded multi-right-hand-side solver, four literal post-checks, and one cumulative feedback ledger. Row-major channel extraction removes repeated linear `matrixEntry` lookup. The graph preflight includes event-target membership, source-layout, event-reward, channel-cell, reward, and all continuation/exit aggregation visits. Fixed accounting evidence covers independent operation counts, a report golden, unmatched-event graph scans, and discarded Gaussian rational growth. A separately budgeted multi-state, multi-output finite oracle records its explicit horizon and has exact and one-below horizon, work, and rational limits. Combined-invalid fixtures lock the total failure order. It adds no evaluator, output law, `gamma=1`, trace, timed-law extension, or `OpenSystem` adapter. This is implementation evidence only; D-078 remains `Proposed`.
+
+### D-079: Add exact joint affine continuous kernels
+
+**Status:** Proposed
+
+**Decision:** Add exact joint affine kernels whose outputs are rational affine forms over one bounded opaque owner table. Each owner appears once with its compact rational source law. Each output stores rational coefficients that refer only to that table. Construction must detect duplicate owner declarations before it removes zero coefficients or filters unused entries. A kernel may retain caller owners and introduce fresh local owners, but local owners cannot escape their declared kernel scope or collide during composition.
+
+Materialization must produce complete rational affine output forms without callbacks. Support extrema use exact endpoint selection for every signed coefficient, followed by checked rational accumulation. The same owner table determines shared noise. Independent composition requires explicit fresh-owner evidence rather than renaming by convention.
+
+**Rationale:** One owner table makes correlation and locality inspectable. Duplicate-before-filter validation prevents a zero coefficient from hiding an ownership collision. Exact extrema for affine forms on compact product intervals need no numerical optimizer.
+
+**Consequences:** This proposal does not add arbitrary callback kernels, a Radon--Nikodym or regular-conditional-probability operator, point conditioning, general disintegration, continuous MDP execution, or multi-step control. It does not widen D-070 to arbitrary measurable functions.
+
+**Required evidence:** Freeze exact signatures, owner-locality rules, canonical order, and failure precedence. Test shared and independent owners, hidden zero-coefficient duplicates, local-owner escape, collisions under composition, negative and zero coefficients, exact extrema, rational materialization, and reordered layouts. Independent symbolic expansion and corner enumeration must agree on bounded fixtures. Exact and one-below tests must cover raw entries, owners, outputs, coefficients, work, and rational size under one cumulative ledger.
+
+**Frozen Gate A public contract:** Place the feature in `markovian-continuous` as `Markovian.Continuous.Kernel.JointAffine.Exact` with no new package edge. `ExactAffineInputCoordinate`, `ExactJointAffineLimits`, and `ExactJointAffineKernel` are opaque. Kernel owner, source-label, reward-label, and successor-label roles are nominal. Coordinate phantoms are labels only. `materializeJointAffineKernel` returns only `ExactJointLaw RealBorel RealBorel`. `alphaRenameJointAffineKernel` has one owner-scope parameter on both sides and permits partial mappings. `reScopeJointAffineKernel` has distinct old and new scope parameters and requires a complete injective mapping of every retained owner. Both renamers reject duplicate sources, duplicate targets, unknown sources, and final collisions.
+
+All operations validate configured limits in raw-entry, owner, output, coefficient, work, then rational-bit order. Stored-kernel admission checks represented values in that order. Construction then admits the bounded raw spine, preflights owner/output/coefficient/work counts, rejects duplicate owners, validates both coordinate rationals, and validates each row's interval then endpoint and coefficient rationals before filtering two-zero rows and sorting by owner. Renaming admits the bounded mapping spine and immediately preflights stored work, mapping traversal, source and target pair scans, retained membership, complete coverage when applicable, mapping lookup, final collision scans, and canonical sorting. Only then does it report duplicate source, duplicate target, unknown source, incomplete mapping, or final collision in that order. Materialization checks its complete work plan before input bits, then performs reward input, successor input, reward support, and successor support arithmetic. Support checks its complete work plan before interval order and endpoint bits, then reward and successor extrema. Rational operations check each result before it can enter a returned law or interval. Any failure returns no kernel, law, interval pair, or report.
+
+**Current Gate A implementation boundary:** `Markovian.Continuous.Kernel.JointAffine.Exact` now provides an opaque nominal kernel with two affine input coordinates and one canonical local owner table, exact materialization to `ExactJointLaw RealBorel RealBorel`, exact support extrema, same-scope partial alpha-renaming, complete-map scope transitions, cumulative bounded preflight, checked rational arithmetic, frozen operation precedence, and deterministic reports. Coordinate phantoms are labels and never become joint-law space parameters. Measurability is discharged syntax by syntax: affine real coordinates are continuous and Borel measurable, compact uniforms are Borel laws, finite products remain standard Borel, and finite affine projections are Borel measurable. Fixtures cover duplicate-before-zero-filter validation, shared and distinct owners, independent multinomial expansion, empty and omitted scope mappings, complete renaming preflight, adversarial failure precedence, reordered rows, negative signed-owner extrema against corner enumeration, exact and one-below limits, machine overflow, opacity, real-Borel output restriction, and nominal coordinate roles. Gate A intentionally has no cross-kernel composition; the composition-collision and explicit fresh-owner evidence required by the full proposal remain future work. The package and repository metadata retain `2026.9.3.0` under the no-version-change task invariant; this worktree is not the immutable published source, and no candidate, tag, publication, or workflow was authorized. This implementation evidence does not accept the decision. D-079 remains `Proposed`.
+
+### D-080: Add bounded first-order quotation with callback-free let
+
+**Status:** Proposed
+
+**Decision:** Extend only the closed first-order autodiff language with explicit quotation. Quoted variables use hidden scope-indexed nominal paths. Public code cannot construct, inspect, coerce, or reuse a path outside its scope. A callback-free `let` node binds one quoted first-order term in another quoted term. The syntax stores no Haskell function.
+
+Evaluation and differentiation are left-to-right and call by value. The bound term is evaluated and its failure is reported even when the body does not use its value. Preflight uses saturating arithmetic and preserves the frozen first failing limit. It must finish before dense environments, tables, tapes, or output buffers are allocated.
+
+Provide independent exact primal and JVP interpreters by direct recursion over quotation syntax. They must not call the reverse compiler, reuse its primitive VJPs, or derive their result from a produced tape. Reverse lowering remains a separate implementation checked against these interpreters.
+
+**Rationale:** Hidden nominal paths give first-order binding without exposing de Bruijn indexes or higher-order abstract syntax callbacks. Call-by-value failure behavior makes unused bindings observable only through the declared error contract. Independent recursion avoids a self-confirming autodiff differential.
+
+**Consequences:** This proposal does not differentiate arbitrary Haskell, closures, callbacks, recursion, loops, branches, effects, sampling, tensors, or devices. It adds no higher-order function space and no claim of general automatic differentiation.
+
+**Required evidence:** Freeze constructors, eliminators, exported signatures, path roles, evaluation order, and failure precedence. Add compile failures for forged, escaped, weakened, or endpoint-mismatched paths. Test used and unused lets, nested shadowing, left-to-right failures, saturation, exact and one-below limits, and no allocation before preflight. Compare exact primal, exact JVP, formal derivatives, and reverse VJPs on every represented coordinate without shared derivative code.
+
+**Current implementation boundary:** `Markovian.Autodiff.Quote` now provides opaque nominal paths with generative lexical scope tokens. Independent equal-shaped scopes cannot exchange paths. `letQuote` stores exact-polynomial body syntax and no callback. One cumulative ledger bounds traversal, syntax depth, paths, coordinates, machine extent, target size, allocation, lowering work, compilation, arithmetic work, and rational size. Preflight charges before descent and allocates no target `Program` on failure. Direct primal and JVP recursion is separate from reverse lowering. Tests cover used and unused bindings, nested scopes, projections, all-coordinate pairing, deterministic reports, exact and one-below limits, failure precedence, and stop-before-descent behavior. Compile-fail fixtures cover hidden constructors, path roles, escaped tokens, and independent same-shape scopes. The proposal-stage API is present while package metadata remains unchanged under the task invariant. The published `v2026.9.3.0` surface stays unchanged. This evidence does not add Haskell quotation, effects, higher-order values, branches, recursion, or nested differentiation. D-080 remains `Proposed`.
+
+### D-081: Add immutable host-F64 affine views after reverse-equivalence evidence repair
+
+**Status:** Proposed
+
+**Decision:** Repair the reverse-equivalence evidence for existing materialized views before admitting a wider view API. This requirement records an evidence gap, not a demonstrated implementation defect. The proposed view is an immutable host-F64 affine coordinate map with an opaque base offset, signed per-axis strides, and a checked finite shape. Every represented coordinate must map within one owned immutable storage object. Non-singleton zero strides and overlapping coordinate maps are rejected, so broadcasting is not represented.
+
+View creation allocates no payload. Materialization and each primitive preflight the complete destination and work before allocation. Reverse rules create fresh cotangents and must agree with a materialize-first reference under the frozen host-F64 comparison policy. Semantic `TensorOwner`, physical `StorageId`, region, shape, and view-map evidence remain distinct and nominal.
+
+**Rationale:** Immutable affine views can represent transpose, reversal, and bounded slicing without introducing mutable aliases. The existing accepted evidence does not establish the proposed direct-view pullbacks against a simple materialized reference. The wider view language therefore needs this comparison before admission.
+
+**Consequences:** No affine-view implementation may start until the reverse-equivalence evidence repair has exact coordinate-oracle and all-coordinate finite-difference results. Existing D-072 and D-076 acceptance stays unchanged, and this proposal records no current tensor defect. This proposal adds no general dtype, mutation, arbitrary overlapping stride, broadcast pullback, borrowed pointer, pinned allocation, memory mapping, or persistent-device claim.
+
+**Required evidence:** Freeze all view constructors, admitted maps, signatures, and failure precedence. Test scalars, empty dimensions, transpose, reversal, slicing, composed views, negative strides, bounds, overlap, storage sharing, materialization, and region escape. Compare direct and materialized primal and pullback paths for every coordinate. Exact and one-below shape, offset, payload, buffer, and work tests must use one cumulative ledger and prove preflight before allocation.
+
+### D-082: Add bounded CUDA multiply-chain graphs
+
+**Status:** Proposed
+
+**Decision:** After D-077 and D-081 are accepted with complete evidence, add only a closed typed DAG of F64 matrix inputs, admitted affine views, and matrix-multiply nodes. Preparation validates dimensions, node order, sharing, view maps, transfer bytes, host and device payloads, scalar work, and forward and VJP launch counts before executor admission or allocation. One prepared graph owns its immutable plan. One scoped executor owns all device resources.
+
+Define the graph first by D-077's exact dyadic matrix denotation. Compare CPU and CUDA execution independently with that denotation under their frozen policies. Reverse execution covers only the graph's declared matrix-multiply VJP and affine-view pullbacks. Scheduling and buffer reuse cannot change visible failure precedence or ownership.
+
+**Rationale:** A multiply-chain DAG is a bounded extension of the admitted matrix fragment. It can test shared inputs, view-based transposes, scheduling, and lifetime accounting without pretending that an arbitrary reverse program is device-lowerable.
+
+**Consequences:** This proposal does not lower generic `ReverseProgram`, arbitrary tensor graphs, callbacks, stochastic nodes, mutation, new dtypes, user kernels, or unapproved device profiles. It makes no speedup, fusion, optimal-schedule, or general device claim.
+
+**Required evidence:** D-077 and D-081 acceptance are hard prerequisites. Freeze graph signatures, ownership, schedule, cleanup behavior, and failure precedence. Add exact and one-below graph, dimension, transfer, payload, work, launch, and cleanup tests. Compare every forward and VJP coordinate with independent dyadic and CPU references. Protected hardware evidence must use immutable same-session receipts and all applicable sanitizer checks.
+
+### D-083: Add exact bounded CE and CCE one-witness solvers
+
+**Status:** Proposed
+
+**Decision:** Add separate exact solvers that return at most one checked rational CE witness or one checked rational CCE witness for an existing bounded complete normal game. Generate candidate active constraint sets in a frozen deterministic order. Stream one active set and one candidate at a time. Do not allocate the family of active sets, all vertices, or all equilibria.
+
+Solve each candidate system with checked rational elimination. Classify rank deficiency, inconsistency, violated inactive inequalities, and rational-limit exhaustion explicitly. Revalidate a candidate with the existing literal CE or CCE checker before return. Stop at the first valid witness in the declared order. A no-witness result requires completed bounded traversal, not budget exhaustion.
+
+**Rationale:** Finite rational CE and CCE polytopes permit exact feasibility checks. A deterministic active-set search can produce one auditable witness without introducing a floating LP dependency or claiming complete polytope enumeration.
+
+**Consequences:** This proposal is not an unrestricted equilibrium solver. It does not solve Nash, mixed Nash, extensive, stochastic, Bayesian, continuous, or real-coefficient games. It does not enumerate all CE or CCE points, prove a general complexity bound, or add LP/LCP claims. Package placement needs explicit topology approval before implementation.
+
+**Required evidence:** Freeze solver signatures, active-set order, normalization convention, reports, and failure precedence. Test CE and CCE separately on unique, degenerate, redundant, and rank-deficient fixtures. Check the returned witness with an independent exact inequality evaluator. Compare small games with exhaustive rational or vertex fixtures. One cumulative ledger must cover constraints, streamed active sets, elimination work, candidate checks, and rational size with exact and one-below atomic failures.
+
+### D-084: Add a bounded reference DQN trainer contract
+
+**Status:** Proposed
+
+**Decision:** Add only a resumable reference trainer around the existing checked DQN batch update. The trainer receives explicit positive fuel, environment state, generator state, online and target parameters, replay state, checkpoint state, schedules, masks, and limits. Fuel counts attempted environment transitions and is consumed before the environment callback. Exhaustion returns a resumable state and does not imply convergence.
+
+Freeze this event order: observe and validate the current action mask, choose one action, execute one environment transition, append the owned transition to replay, select an ordered replay batch, attempt one atomic online update, then advance the target checkpoint only after a successful update. Terminal and truncation timing, bootstrap rules, failed-update scheduling, and generator advancement must be explicit. The replay owner controls IDs, capacity, eviction, and sampling state. The checkpoint owner controls target parameters and synchronization count. Neither owner is inferred from storage aliasing.
+
+**Rationale:** The current package defines replay, target synchronization, and one DQN update but not their complete temporal composition. A fuel-bounded trainer can serve as a deterministic integration reference without a production-training claim.
+
+**Consequences:** This proposal adds no production trainer, convergence result, environment framework, tensor runtime, device execution, distributed replay, asynchronous actor, hidden thread, global RNG, or scalability claim. Wall-clock measurements remain empirical and separate from semantic step reports.
+
+**Required evidence:** Freeze the trainer signature, ownership types, transition record, event timing, resumable state, and failure precedence. Test terminal, truncation, empty and warming replay, eviction, ordered sampling, standard and Double-DQN targets, checkpoint schedules, split-run equality, callback failures, and atomic failed updates. Exact and one-below fuel, replay, batch, step, work, and checkpoint tests must use one cumulative ledger. Benchmark receipts must identify whether timing includes environment callbacks, replay, updates, and checkpoints.
+
+### D-085: Add interpreter-relative exact tabulation for one retained-circuit consumer
+
+**Status:** Proposed
+
+**Decision:** Add deterministic exact tabulation only for `Markovian.Open.Acyclic.Circuit.Exact` as the named retained-circuit consumer. Under a frozen exact primitive interpreter and finite endpoint layouts, tabulate a local circuit's complete exact matrix denotation once and retain the checked table for repeated matching label-and-signature uses. The cache key includes the interpreter identity, circuit identity, endpoint layouts, and all semantic limits. Equality of a Haskell closure is never used as a key.
+
+Tabulation is interpreter-relative. It preserves the selected interpreter's literal exact denotation and failure contract. Cache construction and lookup use one cumulative bounded ledger. Preflight covers input cells, output cells, circuit work, cache entries, and rational size before table allocation. The uncached interpreter remains the reference path.
+
+**Rationale:** The acyclic open-circuit interpreter is a concrete consumer that can reuse exact local denotations. This use case permits a measured cache comparison without claiming a universal normalizer or optimizer.
+
+**Consequences:** This proposal does not add universal normalization by evaluation, a general circuit optimizer, callback quotation, cross-interpreter cache reuse, persistent cache files, semantic hashing of arbitrary Haskell, or asymptotic improvement. A cache hit is an execution fact, not proof of a normalization theorem.
+
+**Required evidence:** Freeze the retained-table, interpreter-identity, cache, limit, and error signatures plus failure precedence. Test key separation, layout changes, repeated labels, primitive failures, deterministic insertion and lookup, cache saturation, and exact denotational equality with the uncached path. Exact and one-below tests must cover every ledger limit. A benchmark must compare retained and uncached execution on the same workload and report raw time, allocation, cache-hit, and table-size data without a universal optimization claim.
 
 ## Required evidence for advanced work
 

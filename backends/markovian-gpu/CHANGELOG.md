@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Add the proposed D-077 canonical CUDA profile and typed same-session receipt validation. Retain profile, PTX, executable, command, outcome, native observation, sanitizer, and ordered benchmark evidence. D-077 remains Proposed, and no protected run is recorded.
+
 ## 2026.9.3.0 — 2026-09-03
 
 - Replace the list-only dense call with bounded typed matrix and matrix-VJP

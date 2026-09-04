@@ -16,6 +16,8 @@ The checked graph contains 16 packages, 18 test suites, and 11 benchmarks. Relea
 
 ## Release evidence
 
+These bullets preserve the release record. The repository does not retain a complete immutable D-077 same-session receipt for the hardware bullets. Those bullets cannot satisfy a new device-correctness, sanitizer-universality, or performance claim.
+
 - The complete GHC 9.4.8, GHC 9.8.4, lower-bound, source, documentation, archive, and benchmark matrix passed.
 - The digest-pinned CUDA 13.0.2 compile-only workflow reproduced the checked PTX and passed enabled missing-driver and missing-symbol fixtures without GPU access.
 - The UUID-bound protected NVIDIA GB10 workflow passed enabled matrix and VJP differentials, lifecycle fault fixtures, PTX reproduction, the transfer-inclusive benchmark, and Compute Sanitizer `memcheck`, `initcheck`, `racecheck`, and `synccheck`.

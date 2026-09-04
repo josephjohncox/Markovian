@@ -2,14 +2,42 @@
 set -euo pipefail
 
 package_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+project_root="$(cd "${package_dir}/../.." && pwd)"
 cd "${package_dir}"
+
+project_args=()
+if [[ -f "${project_root}/cabal.project.ci" ]]; then
+  project_args+=(--project-dir="${project_root}" --project-file=cabal.project.ci)
+fi
+package_name="$(awk 'tolower($1) == "name:" { print $2; exit }' markovian-autodiff.cabal)"
+package_version="$(awk 'tolower($1) == "version:" { print $2; exit }' markovian-autodiff.cabal)"
+autodiff_unit_id="${package_name}-${package_version}-inplace"
+if [[ ! "${autodiff_unit_id}" =~ ^markovian-autodiff-[0-9]+([.][0-9]+){3}-inplace$ ]]; then
+  printf 'invalid active autodiff package unit ID: %s\n' "${autodiff_unit_id}" >&2
+  exit 1
+fi
+
+tmp_dir="$(mktemp -d)"
+trap 'rm -rf "${tmp_dir}"' EXIT
+ghc_environment="${tmp_dir}/ghc.environment"
+# GHC_ENVIRONMENT is expanded by the Cabal child shell.
+# shellcheck disable=SC2016
+cabal exec "${project_args[@]}" -- sh -c 'cp "$GHC_ENVIRONMENT" "$1"' sh "${ghc_environment}"
+isolated_package_args=(-package-env -)
+while read -r package_db; do
+  isolated_package_args+=(-package-db "${package_db}")
+done < <(awk '$1 == "package-db" { print $2 }' "${ghc_environment}")
 
 check_failure() {
   local fixture="$1"
   shift
   local log_file
   log_file="$(mktemp)"
-  if cabal exec -- ghc -hide-all-packages -fno-code -fmax-errors=100 -package base -package markovian-autodiff "${fixture}" >"${log_file}" 2>&1; then
+  if cabal exec "${project_args[@]}" -- ghc \
+      "${isolated_package_args[@]}" \
+      -hide-all-packages -fno-code -fmax-errors=100 \
+      -package base -package-id "${autodiff_unit_id}" \
+      "${fixture}" >"${log_file}" 2>&1; then
     rm -f "${log_file}"
     echo "Autodiff boundary fixture unexpectedly compiled: ${fixture}" >&2
     exit 1
@@ -43,4 +71,16 @@ check_failure test/compile-fail/AutodiffEndpoints.hs \
   badWrongSeed badWrongFragment badWrongTree badCrossEndpoint \
   "Couldn't match type"
 
-echo "PASS: autodiff syntax, values, tapes, shapes, owners, fragments, and endpoints remain protected"
+check_failure test/compile-fail/AutodiffQuoteBoundary.hs \
+  badPathConstructor badQuoteConstructor badReportConstructor badCompilationReportConstructor badLimitConstructor badLetCallback badEscapedScope leftPath WrongParameters \
+  'not in scope' "Couldn't match"
+
+check_failure test/compile-fail/AutodiffQuoteRoles.hs \
+  badPathEnvironmentRole badPathSelectedRole badQuoteEnvironmentRole badQuoteParameterRole \
+  "Couldn't match type"
+
+check_failure test/compile-fail/AutodiffQuoteEffects.hs \
+  badHaskellFunction badEffect \
+  "Couldn't match expected type"
+
+echo "PASS: autodiff syntax, values, tapes, shapes, owners, fragments, endpoints, paths, quotations, callbacks, and effects remain protected"

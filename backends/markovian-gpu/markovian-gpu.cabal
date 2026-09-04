@@ -26,15 +26,20 @@ extra-doc-files:
 
 data-files:         test/golden/device-plan.txt
 extra-source-files:
+  cbits/markovian_cuda_profile.h
   cbits/markovian_dense.cu
   cbits/markovian_dense.ptx
   cbits/markovian_dense_ptx.h
   cbits/markovian_gpu.h
+  profile.json
   scripts/build-ptx
   scripts/check-device-boundary
+  scripts/check-profile
+  scripts/cuda_profile.py
   test/cbits/incomplete_cuda_driver.c
   test/compile-fail/DeviceBoundary.hs
   test/compile-fail/DeviceRoles.hs
+  test/test_cuda_profile.py
   toolchain.env
 
 source-repository head

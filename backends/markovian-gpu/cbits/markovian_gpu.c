@@ -1,6 +1,7 @@
 #define _POSIX_C_SOURCE 200809L
 
 #include "markovian_gpu.h"
+#include "markovian_cuda_profile.h"
 
 #include <cuda.h>
 #include <dlfcn.h>
@@ -13,8 +14,8 @@
 
 #include "markovian_dense_ptx.h"
 
-#if CUDA_VERSION != 13000
-#error "markovian-gpu requires the pinned CUDA 13.0 headers"
+#if CUDA_VERSION != MARKOVIAN_CUDA_HEADER_VERSION
+#error "markovian-gpu requires the profile-authority CUDA headers"
 #endif
 
 _Static_assert(CHAR_BIT == 8, "the bridge requires eight-bit bytes");
@@ -31,9 +32,6 @@ _Static_assert(MARKOVIAN_CUDA_STATUS_INTS == 20, "Haskell status buffer boundary
 _Static_assert(4 + 2 * MARKOVIAN_CUDA_MAX_CLEANUP_FAILURES == MARKOVIAN_CUDA_STATUS_INTS,
                "cleanup diagnostics do not fit the status buffer");
 
-#define MARKOVIAN_CUDA_LIBRARY "libcuda.so.1"
-#define MARKOVIAN_CUDA_REQUIRED_MAJOR 12
-#define MARKOVIAN_CUDA_REQUIRED_MINOR 1
 #define MARKOVIAN_CUDA_ERROR_LIBRARY_UNAVAILABLE (-70001)
 #define MARKOVIAN_CUDA_ERROR_SYMBOL_UNAVAILABLE (-70002)
 #define MARKOVIAN_CUDA_ERROR_DRIVER_UNLOAD (-70003)
@@ -164,7 +162,7 @@ static const char* driver_library_name(void) {
     const char* override = getenv("MARKOVIAN_CUDA_DRIVER_LIBRARY");
     if (override != NULL && *override != '\0') return override;
 #endif
-    return MARKOVIAN_CUDA_LIBRARY;
+    return MARKOVIAN_CUDA_DRIVER_LIBRARY;
 }
 
 static int unsupported_device_fixture_enabled(void) {
@@ -396,7 +394,7 @@ static CUresult launch_matmul(
     CUdeviceptr left,
     CUdeviceptr right,
     CUdeviceptr output) {
-    unsigned int block_size = 128;
+    unsigned int block_size = MARKOVIAN_DENSE_BLOCK_THREADS;
     unsigned int output_elements = (unsigned int)rows * (unsigned int)columns;
     unsigned int grid_size = (output_elements + block_size - 1U) / block_size;
     void* arguments[] = {&rows, &inner, &columns, &left, &right, &output};
@@ -561,6 +559,7 @@ void markovian_cuda_executor_create(
     int context_current = 0;
     int major = 0;
     int minor = 0;
+    int maximum_threads_per_block = 0;
     int stage;
     int bridge_result;
 
@@ -600,11 +599,13 @@ void markovian_cuda_executor_create(
     memcpy(verified_uuid, native_uuid.bytes, MARKOVIAN_CUDA_UUID_BYTES);
     result = executor->driver.device_get_attribute(&major, CU_DEVICE_ATTRIBUTE_COMPUTE_CAPABILITY_MAJOR, executor->device);
     if (result == CUDA_SUCCESS) result = executor->driver.device_get_attribute(&minor, CU_DEVICE_ATTRIBUTE_COMPUTE_CAPABILITY_MINOR, executor->device);
+    if (result == CUDA_SUCCESS) result = executor->driver.device_get_attribute(&maximum_threads_per_block, CU_DEVICE_ATTRIBUTE_MAX_THREADS_PER_BLOCK, executor->device);
     if (result != CUDA_SUCCESS) {
         status_primary(status, MARKOVIAN_STAGE_DEVICE_COMPATIBILITY, (int)result);
         goto failure;
     }
-    if (major != MARKOVIAN_CUDA_REQUIRED_MAJOR || minor != MARKOVIAN_CUDA_REQUIRED_MINOR) {
+    if (major != MARKOVIAN_CUDA_REQUIRED_MAJOR || minor != MARKOVIAN_CUDA_REQUIRED_MINOR ||
+        maximum_threads_per_block < MARKOVIAN_CUDA_REQUIRED_THREADS) {
         status_primary(status, MARKOVIAN_STAGE_DEVICE_COMPATIBILITY, MARKOVIAN_CUDA_ERROR_UNSUPPORTED_DEVICE);
         goto failure;
     }

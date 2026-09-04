@@ -8,6 +8,7 @@
 -- | Private constructors for the closed typed source language.
 module Markovian.Autodiff.Internal.Syntax (
     Fragment (..),
+    Projection (..),
     Primitive (..),
     Program (..),
     identity,
@@ -38,6 +39,14 @@ import Markovian.Autodiff.Internal.Shape
 -- | Closed differentiability fragments.
 data Fragment = Polynomial | Smooth
 
+-- | Compiler-owned structural projection. Constructors remain internal.
+data Projection (environment :: Shape) (selected :: Shape) where
+    ProjectionHere :: SShape shape -> Projection shape shape
+    ProjectionLeft :: Projection left selected -> SShape right -> Projection ('Product left right) selected
+    ProjectionRight :: SShape left -> Projection right selected -> Projection ('Product left right) selected
+
+type role Projection nominal nominal
+
 -- | Compiler-owned primitive signature. There is no callback constructor.
 data Primitive scalar (fragment :: Fragment) parameters input output where
     ConstantScalar :: SShape input -> !scalar -> Primitive scalar fragment 'NoParameters input 'Scalar
@@ -54,6 +63,7 @@ data Primitive scalar (fragment :: Fragment) parameters input output where
     TanhVector :: SShape ('Vector n) -> Primitive scalar 'Smooth 'NoParameters ('Vector n) ('Vector n)
     First :: SShape left -> SShape right -> Primitive scalar fragment 'NoParameters ('Product left right) left
     Second :: SShape left -> SShape right -> Primitive scalar fragment 'NoParameters ('Product left right) right
+    ProjectValue :: Projection environment selected -> Primitive scalar fragment 'NoParameters environment selected
 
 -- | Finite first-order syntax. Constructors are hidden by the public module.
 data Program scalar (fragment :: Fragment) parameters input output where
@@ -190,3 +200,4 @@ liftPrimitive (Dot shape) = Dot shape
 liftPrimitive (SumVector shape) = SumVector shape
 liftPrimitive (First left right) = First left right
 liftPrimitive (Second left right) = Second left right
+liftPrimitive (ProjectValue path) = ProjectValue path
