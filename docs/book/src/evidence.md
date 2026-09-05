@@ -10,6 +10,12 @@ The repository keeps durable command evidence for hardware-specific and proof-bo
 
 [Tensor allocation and SafeTensors repair evidence](https://github.com/josephjohncox/Markovian/blob/main/docs/evidence/TENSOR-SAFETENSORS-REPAIR.md) records deterministic allocation-fault, malformed-corpus, raw-IEEE, canonical-byte, boundary, and two-package unpacked-archive results for the dirty 16-package overlay. It does not accept D-072 or D-073 or replace complete release evidence.
 
+## D-081 transpose reverse-equivalence evidence
+
+[D-081 prerequisite evidence](https://github.com/josephjohncox/Markovian/blob/main/docs/evidence/D081-TRANSPOSE-REVERSE-EQUIVALENCE.md) compares direct transpose-view execution with `contiguousCopy`-first execution. It covers every closed primitive primal and pullback. Independent finite differences check every logical coordinate. A rectangular matrix fixture checks dimension and stride reversal.
+
+The evidence does not define a pullback into base-storage coordinates. It does not implement the proposed affine-view API or accept D-081.
+
 ## CUDA evidence
 
 [CUDA evidence for 2026-08-26](https://github.com/josephjohncox/Markovian/blob/main/docs/evidence/CUDA-2026-08-26.md) records:

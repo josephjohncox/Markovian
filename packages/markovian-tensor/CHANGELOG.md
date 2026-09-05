@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Repair the D-081 prerequisite evidence gap for the existing rank-two transpose fragment. Compare direct-view and `contiguousCopy`-first primals and pullbacks for every closed primitive tape, add all-logical-coordinate finite differences, and include a rectangular matrix fixture. This does not add the proposed affine-view API or accept D-081.
+
 ## 2026.9.3.0 — 2026-09-03
 
 - Add bounded region-scoped host F64 buffers and typed shapes.
