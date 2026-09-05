@@ -109,6 +109,8 @@ independent directional JVP/VJP pairing also checks pointwise multiplication wit
 `1e-6 * max 1 |x|`, absolute tolerance `2e-10`, and relative tolerance
 `2e-8`.
 
+The D-081 prerequisite repair adds direct-versus-`contiguousCopy`-first tests for every closed primitive primal and pullback on the existing rank-two transpose view. It checks every logical coordinate by finite differences and includes a rectangular `3 x 2` by `2 x 4` matrix case that detects dimension and stride reversal. Multiplication and matrix pullbacks allocate cotangents distinct from operand and seed storage. Addition deliberately retains its accepted immutable seed-sharing behavior. This is evidence for differentiation with respect to logical view coordinates only. It does not define a pullback into the underlying base tensor or implement signed strides, reversal, slicing, overlap, or broadcasting. D-081 remains `Proposed`.
+
 These operations are reverse derivatives under a finite coordinate pairing.
 They are not matrix dagger, Bayesian inversion, payoff pullback, feedback,
 strategic duality, or disintegration.

@@ -80,6 +80,6 @@ matmulWithTape session left right =
 applyUnaryTape :: TensorSession region -> UnaryTape region input output -> FiniteTensor region 'F64 output -> IO (Either TensorError (FiniteTensor region 'F64 input, TensorOperationReport))
 applyUnaryTape session (UnaryTape tape) = Internal.applyUnaryTape session tape
 
--- | Apply one closed binary tape and allocate both cotangents atomically.
+-- | Apply one closed binary tape. Allocating pullbacks stage both cotangents atomically; addition safely returns the shared immutable seed without allocation.
 applyBinaryTape :: TensorSession region -> BinaryTape region left right output -> FiniteTensor region 'F64 output -> IO (Either TensorError ((FiniteTensor region 'F64 left, FiniteTensor region 'F64 right), TensorOperationReport))
 applyBinaryTape session (BinaryTape tape) = Internal.applyBinaryTape session tape
