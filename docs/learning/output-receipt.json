@@ -1,0 +1,8 @@
+{
+  "sources": "a223f521b9b30529823170886647347719b942c5d83fb440e6f221c0bd8c4abd",
+  "outputs": {
+    "docs/learning/sample-output.txt": "bfb557017a03153c8a9f8df88a8c985efa13b9df8183f63bf93a141cc8e7114e",
+    "docs/learning/exact-output.txt": "2d02769dd8a1087b9e5c6ec0a6865d1f6c0797acce28798234171645ea1037d0",
+    "docs/learning/tensor-output.txt": "61c3213b61ba2e474c067bf0b044dc8986242c41908b39aec20d01258a444237"
+  }
+}

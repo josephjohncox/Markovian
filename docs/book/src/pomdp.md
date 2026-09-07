@@ -31,7 +31,7 @@ pomdp = exactPOMDP model initialBelief observe
 Prediction integrates the transition over the current belief:
 
 ```haskell
-predicted <- predictExactBelief pomdp action prior
+predicted <- predictExactBelief pomdp action incomingPrior
 ```
 
 \\[
@@ -59,7 +59,7 @@ The operation returns `ImpossibleExactObservation` when the denominator is zero.
 Use `filterExactBelief` to perform prediction and conditioning in one call:
 
 ```haskell
-posterior <- filterExactBelief pomdp action observation prior
+posterior <- filterExactBelief pomdp action observation incomingPrior
 ```
 
 ## Worked observation update
@@ -91,7 +91,7 @@ After `Slip`, the wet-state posterior is:
 A belief policy maps the current belief to an action distribution:
 
 ```haskell
-policy = exactBeliefPolicy chooseAction
+let policy = exactBeliefPolicy chooseAction
 value  <- expectedExactBeliefReturn objective pomdp policy
 ```
 

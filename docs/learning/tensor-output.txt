@@ -1,0 +1,10 @@
+E F64 ((a+b)+c, a+(b+c)) = ([1.0],[0.0])
+E rounded b+c = [-1.0e16]
+E Rational associations = (1 % 1,1 % 1)
+F logical view coordinates = [1.0,4.0,2.0,5.0,3.0,6.0]
+F view shares base storage = True
+F copy shares view storage = False
+F materialized coordinates = [1.0,4.0,2.0,5.0,3.0,6.0]
+F primitive-on-view gradient = [2.0,16.0,12.0,40.0,30.0,72.0]
+F explicit view-to-base gradient = [2.0,12.0,30.0,16.0,40.0,72.0]
+F independent base-coordinate differences = [2.0,12.0,30.0,16.0,40.0,72.0]

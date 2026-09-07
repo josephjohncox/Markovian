@@ -59,6 +59,7 @@ jobs:
           python3 scripts/test_release_tool.py
           python3 scripts/check-capabilities
           python3 scripts/test_capabilities.py
+          python3 scripts/test_learning.py
           while IFS=$'\t' read -r package_name package_dir _dependency_tier; do
             if [[ -z "${package_name}" || "${package_name}" == \#* ]]; then
               continue
@@ -85,6 +86,9 @@ jobs:
             markovian-tensor-bench \
             markovian-gpu-bench \
             --project-file=cabal.project.ci
+
+      - name: Compile teaching contexts and check executed output
+        run: python3 scripts/check-learning --run
 
       - name: Enforce base-only exact root topology
         run: bash scripts/check-root-topology
@@ -199,6 +203,7 @@ jobs:
           rm -rf sdist sdist-unpacked
           mkdir sdist sdist-unpacked
           cabal sdist all --output-directory=sdist
+          python3 scripts/check-learning-archive sdist
           tarball_count="$(
             find sdist -maxdepth 1 -type f -name '*.tar.gz' | wc -l
           )"
@@ -557,7 +562,7 @@ jobs:
           test "$(mdbook --version)" = \
             "mdbook v${MARKOVIAN_MDBOOK_VERSION}"
           hlint \
-            app src test \
+            app src test docs/learning \
             backends/*/src backends/*/test backends/*/bench \
             packages/*/src packages/*/test packages/*/bench
           mapfile -d '' repository_files < <(
@@ -611,12 +616,16 @@ jobs:
             find src app test backends packages -type f -name '*.lhs' | wc -l
           )"
           test "${literate_source_count}" -eq 3
-          find src app test backends packages -type f -name '*.hs' -print0 \
+          find src app test docs/learning backends packages \
+            -type f -name '*.hs' -print0 \
             | sort -z \
             | xargs -0 fourmolu --mode check
           python3 -m py_compile \
             scripts/check-book-links \
             scripts/check-haddock-coverage \
+            scripts/check-learning \
+            scripts/check-learning-archive \
+            scripts/test_learning.py \
             scripts/release_tool.py \
             scripts/test_release_tool.py \
             backends/markovian-gpu/scripts/cuda_profile.py \

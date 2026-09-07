@@ -60,7 +60,10 @@ test-suite markovian-dense-exact-test
   import:           warnings
   type:             exitcode-stdio-1.0
   main-is:          Main.hs
-  other-modules:    StochasticCircuit
+  other-modules:
+    DenseContexts
+    StochasticCircuit
+
   hs-source-dirs:   test
   build-depends:
     , base                                    >=4.17.2.1    && <4.20

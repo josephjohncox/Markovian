@@ -251,7 +251,7 @@ The optional neural package evaluates information quantities from stable logits:
 ```haskell
 entropy <- entropyFromLogits logits
 crossEntropy <- crossEntropyFromLogits targetLogits predictionLogits
-divergence <- klDivergenceFromLogits sourceLogits targetLogits
+divergence <- klDivergenceFromLogits targetLogits predictionLogits
 mutualInformation <-
   mutualInformationFromJointLogits leftSize rightSize jointLogits
 

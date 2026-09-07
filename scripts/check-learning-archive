@@ -1,0 +1,37 @@
+#!/usr/bin/env python3
+"""Repeat the teaching gate using only validated source archives, without Git."""
+from __future__ import annotations
+
+import argparse
+import shutil
+import subprocess
+import tempfile
+from pathlib import Path
+
+from release_tool import extract_archive, parse_manifest, validate_archive
+
+ROOT = Path(__file__).resolve().parent.parent
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("archives", type=Path)
+    args = parser.parse_args()
+    packages = parse_manifest(ROOT / "release/packages.tsv")
+    with tempfile.TemporaryDirectory(prefix="markovian-learning-archive-") as temporary:
+        scratch = Path(temporary)
+        layout = scratch / "source"
+        for package in packages:
+            info = validate_archive(args.archives.resolve() / f"{package.archive_stem}.tar.gz", package)
+            extracted = extract_archive(info, scratch / "unpacked")
+            destination = layout / package.directory
+            destination.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copytree(extracted, destination)
+        # Invoke archived tools, not the originals. No symlinks to the checkout.
+        subprocess.run(["python3", "scripts/check-learning", "--run"], cwd=layout, check=True)
+        subprocess.run(["python3", "scripts/test_learning.py"], cwd=layout, check=True)
+        print("Archive-only learning compilation, execution, freshness and negative tests passed.")
+
+
+if __name__ == "__main__":
+    main()

@@ -58,11 +58,12 @@ The exact rational solve does not use approximate iteration. A unit self-loop is
 `Markovian.Feedback.Timed.Exact` puts one exact reward on each microstep and returns the joint value
 
 ```haskell
-TimedFeedbackExit
-  { timedFeedbackReward   :: ExactReward
-  , timedFeedbackDuration :: Natural
-  , timedFeedbackOutput   :: output
-  }
+data TimedFeedbackExit output = TimedFeedbackExit
+    { timedFeedbackReward :: !ExactReward
+    , timedFeedbackDuration :: !Natural
+    , timedFeedbackOutput :: !output
+    }
+    deriving (Eq, Show)
 ```
 
 For duration `d`, the accumulated reward is

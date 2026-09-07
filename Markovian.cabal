@@ -41,6 +41,9 @@ extra-doc-files:
   docs/evidence/LEARNING-REVIEW-2026-09-05.md
   docs/evidence/S6-ACYCLIC-OPEN-2026-08-27.md
   docs/evidence/TENSOR-SAFETENSORS-REPAIR.md
+  docs/learning/*.txt
+  docs/learning/fences.json
+  docs/learning/output-receipt.json
   docs/plans/EL-03-PAIRED-DIFFERENCE.md
   docs/plans/EL-04-REWARD-JVP.md
   docs/plans/EL-05-AGGREGATION.md
@@ -105,6 +108,8 @@ extra-source-files:
   scripts/check-feedback-boundary
   scripts/check-game-core-boundary
   scripts/check-haddock-coverage
+  scripts/check-learning
+  scripts/check-learning-archive
   scripts/check-mixed-game-boundary
   scripts/check-package-manifest
   scripts/check-refinement-roles
@@ -117,6 +122,7 @@ extra-source-files:
   scripts/prepare-release
   scripts/release_tool.py
   scripts/test_capabilities.py
+  scripts/test_learning.py
   scripts/test_release_tool.py
   test/compile-fail/ActionRoles.hs
   test/compile-fail/AcyclicProofBoundary.hs
@@ -262,13 +268,15 @@ test-suite Markovian-test
     FeedbackValueExact
     FiniteOpenGames
     GameCore
+    LawLaboratory
     MixedBayesianGames
     OpenSystems
     PushPullExact
+    RootContexts
 
   build-depends:
     , base       >=4.17.2.1   && <4.20
     , Markovian  ==2026.9.3.0
 
-  hs-source-dirs:   test
+  hs-source-dirs:   test docs/learning
   default-language: GHC2021

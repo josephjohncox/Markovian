@@ -19,8 +19,7 @@ Do not store these as independent distributions. That model would permit impossi
 A state has one explicit status:
 
 ```haskell
-ExactContinuing
-ExactTerminal payoff
+(ExactContinuing, ExactTerminal payoff)
 ```
 
 A terminal payoff is not a transition reward. The evaluator reads it when execution reaches the terminal state.
@@ -64,8 +63,7 @@ The finite discount domain permits values from zero through one. The Bellman con
 A sampled or enumerated trace records one stop reason:
 
 ```haskell
-TerminalStop payoff
-HorizonStop
+(TerminalStop payoff, HorizonStop)
 ```
 
 A horizon stop in a continuing state does not invent a terminal payoff. A terminal stop records the payoff used in the return.

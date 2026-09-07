@@ -13,7 +13,9 @@ import Markovian.Tensor.Ownership
 import Markovian.Tensor.Primitive
 import Markovian.Tensor.Reverse
 import Paths_markovian_tensor (getDataFileName)
+import System.Environment (getArgs)
 import System.Exit (exitFailure)
+import TensorLawLaboratory (runTensorLawLaboratory)
 
 largeLimits :: SessionLimits
 largeLimits = tensorSessionLimits 8 1024 1000000 8000000 64000000 256 100000000
@@ -26,6 +28,12 @@ vectorShape = SCons (Proxy @length) SNil
 
 main :: IO ()
 main = do
+    args <- getArgs
+    if args == ["--learning"] then runTensorLawLaboratory else allTests
+
+allTests :: IO ()
+allTests = do
+    runTensorLawLaboratory
     shapeAndLayoutTests
     primitiveTests
     reverseTests

@@ -30,7 +30,7 @@ negation <-
 A deterministic matrix embeds into the stochastic refinement:
 
 ```haskell
-asChannel = embedDeterministic negation
+let asChannel = embedDeterministic negation
 ```
 
 The proof permits copy naturality:
@@ -58,7 +58,7 @@ family <-
   convexFamily
     ((safeWeight, safePolicy) :| [(fastWeight, fastPolicy)])
 
-mixedPolicy = convexMixture family
+let mixedPolicy = convexMixture family
 ```
 
 The denotation is:

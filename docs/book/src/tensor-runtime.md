@@ -11,12 +11,16 @@ rank-zero scalar. `SCons` adds a dimension. A zero dimension gives zero
 elements.
 
 ```haskell
-matrixShape = SCons (Proxy @2) (SCons (Proxy @3) SNil)
-
-result <- withTensorSession limits $ \session -> do
-  input <- finiteTensorFromList session matrixShape [1, 2, 3, 4, 5, 6]
-  -- inspect or execute input here; it cannot escape this region
+let matrixShape = SCons (Proxy @2) (SCons (Proxy @3) SNil)
+    viewShape = SCons (Proxy @3) (SCons (Proxy @2) SNil)
+(base, _) <- checked =<< finiteTensorFromList session matrixShape [1, 2, 3, 4, 5, 6]
+let view = transposeFinite2D base
 ```
+
+This fragment runs inside the checked `withTensorSession` in
+[laboratory F](law-laboratory.md#f-logical-coordinates-storage-and-derivatives).
+Its `checked` helper turns a failed `Either` into an IO failure; neither tensor
+nor view escapes the region. The same laboratory shows the complete runnable context.
 
 Session admission consumes at most the allowed rank plus one singleton nodes.
 It checks rank and each dimension before it evaluates a capped element product,

@@ -10,12 +10,20 @@ import FeedbackExact (runFeedbackExactTests)
 import FeedbackValueExact (runFeedbackValueExactTests)
 import FiniteOpenGames (runFiniteOpenGameTests)
 import GameCore (runGameCoreTests)
+import LawLaboratory (runLawLaboratory)
 import MixedBayesianGames (runMixedBayesianGameTests)
 import OpenSystems (runOpenSystemTests)
 import PushPullExact (runPushPullExactTests)
+import System.Environment (getArgs)
 
 main :: IO ()
 main = do
+    args <- getArgs
+    if args == ["--learning"] then runLawLaboratory else allTests
+
+allTests :: IO ()
+allTests = do
+    runLawLaboratory
     runAlgebraicFoundationTests run
     runBayesianExactTests run
     runPushPullExactTests run

@@ -20,6 +20,7 @@ if [[ "$actual" != "$expected" ]]; then
 fi
 
 python3 "$project_root/scripts/check-capabilities"
+python3 "$project_root/scripts/check-learning"
 python3 "$project_root/scripts/check-book-links" "$project_root/docs/book/src"
 
 mathjax="$project_root/docs/book/theme/vendor/mathjax/tex-svg-full.js"

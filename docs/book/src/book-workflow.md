@@ -24,7 +24,7 @@ scripts/check-book
 
 This command performs these checks:
 
-1. Check the installed `mdbook` version.
+1. Check the installed `mdbook` version, capability records, snippet classification and static generated-output receipt.
 2. Validate local Markdown links and anchors.
 3. Validate escaped and balanced display-math delimiters.
 4. Build the complete HTML book.
@@ -89,6 +89,51 @@ Prefer a complete executable source over an isolated fragment. The first MDP cha
 When a fragment omits imports or error conversion, explain that fact. Do not present pseudocode as a complete program.
 
 Use exact rational numbers for semantic examples. State an approximation boundary before you use `Double`.
+
+## Snippet classification
+
+Every Haskell fence in the book, including Markdown appendices, is classified in
+[`docs/learning/fences.json`](../../learning/fences.json). Fence IDs are the
+source path and the one-based Haskell-fence ordinal. Adding, deleting or moving
+a fence requires updating the manifest. Three classes have different promises:
+
+- **Runnable:** the complete `Sample` program or a complete laboratory module
+  invoked by the registered existing test component. The checker builds the
+  component, executes the fixture and compares its entire stdout with the
+  displayed generated file. These examples are not pseudocode.
+- **Compiled-source fragment:** a literal excerpt (ignoring whitespace) from a
+  registered source module. The manifest verifies that module belongs to the
+  named Cabal component; `--run` compiles that component. The book omits imports,
+  inferred parameters and surrounding result handling. Blank lines can separate
+  excerpts with distinct contexts/error types; do not paste them as one `do`
+  block. The new `*Contexts.hs` test modules supply the complete wrappers. They
+  infer parameter constraints rather than presenting new public signatures.
+- **Explicit pseudocode:** only the conceptual `Parametric` sketch in
+  [categorical learning](categorical-learning.md), the proposed `Flow`/`Signal`
+  sketch in [polarity and games](polarity-and-games.md), and the historical
+  opaque API synopsis in the decisions appendix. Each has a reason and a pinned
+  text digest. None is a runnable example or a new implemented API.
+
+All other Haskell fences are compiled fragments unless identified as runnable
+above. The snippets retain real API calls: different `Either` error types are
+converted explicitly with `either (fail . show) pure` where a single IO context
+joins them. Type-checking a fragment does not claim its callbacks run successfully
+for arbitrary parameters or that CUDA hardware was exercised.
+
+```sh
+python3 scripts/check-learning          # static references and output receipt
+python3 scripts/check-learning --run    # compile contexts, run and compare outputs
+python3 scripts/test_learning.py        # deliberate checker failures
+python3 scripts/check-learning --write  # execute before regenerating; review the diff
+```
+
+The static receipt binds displayed outputs to fixture/context sources, their
+Cabal membership, the manifest/checker and package implementation sources. It
+is a freshness check, not a cryptographic proof that someone ran a compiler.
+Source CI executes `--run`; `check-book`/Pages need only Python for the static
+gate. Source archives include the same artifacts. The archive gate reconstructs
+the original package layout without Git and repeats compilation and execution.
+Do not edit a receipt or displayed answer to make a failed experiment pass.
 
 ## Document a semantic change
 

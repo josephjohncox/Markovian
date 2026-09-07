@@ -1,0 +1,230 @@
+#!/usr/bin/env python3
+"""Check every Haskell fence in the book (including Markdown includes).
+
+Static checks do not claim compilation. --run builds the registered Cabal
+components and executes fixtures; --write additionally refreshes their output.
+"""
+from __future__ import annotations
+
+import argparse
+import hashlib
+import json
+import re
+import subprocess
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parent.parent
+MANIFEST = "docs/learning/fences.json"
+RECEIPT = "docs/learning/output-receipt.json"
+
+
+class LearningError(ValueError):
+    pass
+
+
+def require(ok, message):
+    if not ok:
+        raise LearningError(message)
+
+
+def local(root, name):
+    path = Path(name)
+    require(not path.is_absolute() and ".." not in path.parts, f"unsafe reference: {name}")
+    resolved = (root / path).resolve()
+    require(resolved.is_relative_to(root.resolve()) and resolved.is_file(), f"missing reference: {name}")
+    return resolved
+
+
+def includes(root, path, text):
+    for match in re.finditer(r"\{\{#include\s+([^}\s]+)\s*}}", text):
+        pieces = match[1].split(":")
+        target = (path.parent / pieces[0]).resolve()
+        require(target.is_relative_to(root.resolve()) and target.is_file(), f"invalid include: {match[1]}")
+        yield match, target, pieces[1:]
+
+
+def inventory(root):
+    pending = list((root / "docs/book/src").rglob("*.md"))
+    seen, found = set(), {}
+    while pending:
+        path = pending.pop()
+        if path in seen:
+            continue
+        seen.add(path)
+        text = path.read_text()
+        for _, target, _ in includes(root, path, text):
+            if target.suffix == ".md":
+                pending.append(target)
+        fence, language, body, ordinal = None, None, [], 0
+        for line in text.splitlines(keepends=True):
+            match = re.match(r"^\s*(`{3,}|~{3,})(.*)$", line.rstrip())
+            if fence:
+                if match and match[1][0] == fence[0] and len(match[1]) >= len(fence) and not match[2].strip():
+                    if language in {"haskell", "hs"}:
+                        ordinal += 1
+                        found[f"{path.relative_to(root)}#{ordinal}"] = (path, "".join(body))
+                    fence, body = None, []
+                else:
+                    body.append(line)
+            elif match:
+                fence = match[1]
+                language = re.split(r"[ ,{.]", match[2].strip().lower())[0]
+        require(fence is None, f"unclosed fence: {path}")
+    return found
+
+
+def field(text, name):
+    match = re.search(rf"(?mi)^([ ]+){re.escape(name)}:[ ]*(.*)$", text)
+    if not match:
+        return []
+    lines = [match[2]]
+    for line in text[match.end():].splitlines():
+        if line.strip() and len(line) - len(line.lstrip()) <= len(match[1]):
+            break
+        lines.append(line)
+    return re.findall(r"[\w./'-]+", " ".join(lines))
+
+
+def context_source(root, context):
+    require(set(context) == {"source", "cabal", "target"}, "invalid context fields")
+    source = local(root, context["source"])
+    cabal = local(root, context["cabal"])
+    package, kind, name = context["target"].split(":")
+    text = cabal.read_text()
+    require(re.search(rf"(?mi)^name:\s+{re.escape(package)}\s*$", text), "context package mismatch")
+    header = {"test": f"test-suite {name}", "exe": f"executable {name}", "lib": "library" if name == package else f"library {name}"}.get(kind)
+    require(header is not None, "invalid component kind")
+    match = re.search(rf"(?m)^{re.escape(header)}\s*\n((?:[ \t].*\n|\n)*)", text)
+    require(match is not None, f"missing compiled component: {context['target']}")
+    section = match[1]
+    module = re.search(r"(?m)^module\s+([\w.]+)", source.read_text())
+    require(module is not None, f"missing source module: {source}")
+    dirs = field(section, "hs-source-dirs") or ["."]
+    modules = field(section, "other-modules") + field(section, "exposed-modules")
+    candidates = []
+    if module[1] in modules:
+        candidates += [module[1].replace(".", "/") + suffix for suffix in [".hs", ".lhs"]]
+    if module[1] == "Main":
+        candidates += field(section, "main-is")
+    require(any((cabal.parent / directory / candidate).resolve() == source for directory in dirs for candidate in candidates), f"source not in compiled component: {source}")
+    return source
+
+
+def normalized(text):
+    return " ".join(text.split())
+
+
+def expanded(root, path, body):
+    for match, target, bounds in reversed(list(includes(root, path, body))):
+        require(target.suffix in {".hs", ".lhs"}, "Haskell fence must include Haskell source")
+        lines = target.read_text().splitlines(keepends=True)
+        if bounds:
+            require(len(bounds) == 2 and all(x.isdigit() for x in bounds), "invalid include range")
+            first, last = map(int, bounds)
+            require(1 <= first <= last <= len(lines), "stale include range")
+            lines = lines[first - 1:last]
+        body = body[:match.start()] + "".join(lines) + body[match.end():]
+    return body
+
+
+def validate(root, manifest):
+    require(set(manifest) == {"schemaVersion", "contexts", "fences", "runs"} and manifest["schemaVersion"] == 1, "invalid manifest schema")
+    contexts = {key: context_source(root, value) for key, value in manifest["contexts"].items()}
+    found = inventory(root)
+    require(set(found) == set(manifest["fences"]), f"unclassified or stale fences: {sorted(set(found) ^ set(manifest['fences']))}")
+    stale = []
+    for key, (path, body) in found.items():
+        record = manifest["fences"][key]
+        kind = record.get("class")
+        if kind == "pseudocode":
+            require(set(record) == {"class", "reason", "sha256"} and len(record["reason"].strip()) >= 20, f"pseudocode needs explicit reason: {key}")
+            require(record["sha256"] == hashlib.sha256(body.encode()).hexdigest(), f"stale pseudocode classification: {key}")
+            continue
+        require(kind in {"fragment", "runnable"} and set(record) == {"class", "contexts"}, f"invalid classification: {key}")
+        require(record["contexts"] and all(c in contexts for c in record["contexts"]), f"invalid context reference: {key}")
+        texts = [normalized(contexts[c].read_text()) for c in record["contexts"]]
+        for _, target, _ in includes(root, path, body):
+            require(target in [contexts[c] for c in record["contexts"]], f"include outside compiled context: {key}")
+        code = expanded(root, path, body)
+        # Blank lines separate excerpts that have distinct checked contexts,
+        # not an implied shared Either error type or one monolithic do block.
+        for part in re.split(r"\n\s*\n", code.strip()):
+            if not any(normalized(part) in text for text in texts):
+                stale.append(f"{key}: {part[:90]}")
+        if kind == "runnable":
+            require(normalized(code) in texts, f"runnable must show its complete source context: {key}")
+            require(any(run["context"] in record["contexts"] for run in manifest["runs"]), f"runnable has no execution: {key}")
+    require(not stale, "stale source fragments:\n" + "\n".join(stale))
+    outputs = set()
+    for run in manifest["runs"]:
+        require(set(run) == {"context", "args", "output"} and run["context"] in contexts, "invalid run")
+        require(isinstance(run["args"], list) and all(isinstance(x, str) for x in run["args"]), "invalid run args")
+        require(run["output"].startswith("docs/learning/") and run["output"].endswith(".txt") and run["output"] not in outputs, "invalid or duplicate output")
+        outputs.add(run["output"])
+        local(root, run["output"])
+    return contexts
+
+
+def source_digest(root, manifest):
+    paths = {MANIFEST, "scripts/check-learning"}
+    for context in manifest["contexts"].values():
+        paths.update([context["source"], context["cabal"]])
+    # Bind receipts to implementation sources as well as teaching fixtures.
+    # Paths come from package roots, not Git, so archive-only validation works.
+    for line in local(root, "release/packages.tsv").read_text().splitlines():
+        if not line or line.startswith("#"):
+            continue
+        _, directory, _, _ = line.split("\t")
+        for subdir in ["src", "legacy"]:
+            for path in (root / directory / subdir).rglob("*"):
+                if path.suffix in {".hs", ".lhs"}:
+                    paths.add(str(path.relative_to(root)))
+    digest = hashlib.sha256()
+    for path in sorted(paths):
+        digest.update(path.encode() + b"\0" + local(root, path).read_bytes() + b"\0")
+    return digest.hexdigest()
+
+
+def receipt(root, manifest):
+    return {"sources": source_digest(root, manifest), "outputs": {run["output"]: hashlib.sha256(local(root, run["output"]).read_bytes()).hexdigest() for run in manifest["runs"]}}
+
+
+def execute(root, manifest, project, builddir, write=False):
+    options = [f"--project-file={project}", f"--builddir={builddir}"]
+    targets = sorted({c["target"] for c in manifest["contexts"].values()})
+    subprocess.run(["cabal", "build", *targets, *options], cwd=root, check=True)
+    for run in manifest["runs"]:
+        target = manifest["contexts"][run["context"]]["target"]
+        binary = subprocess.check_output(["cabal", "list-bin", target, *options], cwd=root, text=True).strip()
+        output = subprocess.check_output([binary, *run["args"]], cwd=root, text=True)
+        destination = local(root, run["output"])
+        if write:
+            destination.write_text(output)
+        else:
+            require(destination.read_text() == output, f"stale executed output: {run['output']}")
+    if write:
+        (root / RECEIPT).write_text(json.dumps(receipt(root, manifest), indent=2) + "\n")
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--root", type=Path, default=ROOT)
+    parser.add_argument("--run", action="store_true")
+    parser.add_argument("--write", action="store_true")
+    parser.add_argument("--project-file", default="cabal.project.ci")
+    parser.add_argument("--builddir", default="dist-newstyle")
+    args = parser.parse_args()
+    root = args.root.resolve()
+    manifest = json.loads(local(root, MANIFEST).read_text())
+    validate(root, manifest)
+    if args.run or args.write:
+        execute(root, manifest, args.project_file, args.builddir, args.write)
+    require(json.loads(local(root, RECEIPT).read_text()) == receipt(root, manifest), "stale output receipt; execute --write and review the diff")
+    print(f"Checked {len(manifest['fences'])} Haskell fences; " + ("compiled contexts and executed fixtures." if args.run or args.write else "static references and output receipt only."))
+
+
+if __name__ == "__main__":
+    try:
+        main()
+    except (LearningError, OSError, ValueError, KeyError, TypeError, subprocess.CalledProcessError) as error:
+        raise SystemExit(f"learning check failed: {error}") from error

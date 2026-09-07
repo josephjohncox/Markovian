@@ -7,9 +7,8 @@ The semantic core does not depend on tensors, CUDA, autodiff, or a neural framew
 The CPU backend lowers an exact IR or circuit to a row-major rational matrix:
 
 ```haskell
-dense <- lowerExactCircuit primitives circuit
-
-result <- runDenseExactKernel dense input
+dense <- either (fail . show) pure (lowerExactCircuit primitives circuit)
+result <- either (fail . show) pure (runDenseExactKernel dense input)
 ```
 
 The finite source and target layouts define the row and column indexes. The backend performs no random draws.
@@ -22,6 +21,7 @@ The optional GPU package executes only prepared positive-size F64 matrix product
 
 ```haskell
 prepared <- prepareMatMul limits left right
+
 result <- runPreparedMatMul session
   (PreferCUDA DeterministicFirstDevice FallbackBeforeUserLaunch)
   prepared

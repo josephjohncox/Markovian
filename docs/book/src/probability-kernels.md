@@ -32,6 +32,7 @@ Use checked sequencing with explicit limits:
 
 ```haskell
 limits <- exactBindLimits 4096 8320 13 13
+
 (result, report) <-
   bindExactFiniteDistChecked limits outer (Right . continuation)
 ```
@@ -85,6 +86,7 @@ Support equality ignores order. Layout equality compares both support and repres
 
 ```haskell
 sameFiniteSupport left right
+
 sameFiniteLayout left right
 ```
 
