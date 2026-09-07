@@ -148,6 +148,14 @@ This item resolves D-085's contract. It does not implement the full cache propos
 - Structured stage evidence destination: `/home/josephcox/.pi/agent/sessions/--home-josephcox-dev-Markovian--/subagent-artifacts/outputs/c4bb5762-3f07-456b-bae3-7564338015d5/stages/truth-contracts-write.json`.
 - Remaining work: independent EL-01 contract/correctness review (no implementation stages independently reviewed yet), EL-02 executable lessons, EL-03–EL-05 semantic implementations after review, the EL-06 checked experiment, and EL-07 full integration. No full Haskell build/test/Haddock/hardware campaign was run for this documentation/Python-only stage. All package versions, dependency edges, released tag/history and D-077–D-085 statuses remain unchanged.
 
+### 2026-09-07 — Handoff protocol recovery
+
+- Workflow `c4bb5762-3f07-456b-bae3-7564338015d5` stopped after `truth-contracts-write`. The child committed `2d3140e` but omitted the runtime-required `structured_output` call. Writing a JSON artifact did not satisfy that protocol.
+- Parent verified branch `frontier/executable-learning`, the committed implementation, and a clean working tree. No rollback or duplicate implementation is needed.
+- Parent reran `python3 scripts/test_capabilities.py` (20 passing tests), `python3 scripts/check-capabilities --verify-release` (nine checked records), and `git diff --check` (passed).
+- Resume at independent EL-01 contract review. Later semantic implementation remains gated by that review. Recovery uses the same native subagent protocol, ordinary writer handoffs, and explicit JSON reviewer verdicts checked by the orchestration code. Malformed verdicts fail closed.
+- No decision is accepted by this recovery. EL-02 through EL-07 remain incomplete.
+
 ## Completion standard
 
 This program is complete only when EL-00 through EL-07 have evidence for every applicable item. Do not replace implementation with plans. Do not mark a failed or unexecuted gate as passed. Scope changes require explicit rationale and supervisor review. Unsupported universal features remain excluded rather than becoming hidden obligations.
