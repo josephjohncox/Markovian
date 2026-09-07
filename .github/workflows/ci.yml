@@ -124,6 +124,9 @@ jobs:
       - name: Enforce checked-feedback witness and endpoint boundaries
         run: bash scripts/check-feedback-boundary
 
+      - name: Enforce supplied-partition aggregation boundaries
+        run: bash scripts/check-aggregation-boundary
+
       - name: Enforce restricted continuous package boundaries
         run: |
           cont_num=packages/markovian-continuous-numerical
@@ -271,6 +274,7 @@ jobs:
                 bash scripts/check-game-core-boundary
                 bash scripts/check-mixed-game-boundary
                 bash scripts/check-feedback-boundary
+                bash scripts/check-aggregation-boundary
                 bash scripts/check-root-topology
               fi
               if grep -q '^name: *markovian-reverse$' \
@@ -593,6 +597,7 @@ jobs:
             scripts/check-game-core-boundary \
             scripts/check-mixed-game-boundary \
             scripts/check-feedback-boundary \
+            scripts/check-aggregation-boundary \
             scripts/check-release-archive \
             scripts/check-release-metadata \
             scripts/check-release-policy \

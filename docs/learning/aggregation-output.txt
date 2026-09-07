@@ -1,0 +1,5 @@
+aggregation mapping = [(20,8),(30,8),(10,4),(11,4)]
+live values h=0,1,2 = [0 % 1,11 % 4,55 % 16]
+terminal value h=0 = 7
+failed merge states = (0,1)
+failed merge witness = AggregationJointMassDifference (ExactReward (0 % 1)) 1 (1 % 2) (0 % 1)

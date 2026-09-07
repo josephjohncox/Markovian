@@ -101,6 +101,7 @@ extra-source-files:
   scripts/bootstrap-tools
   scripts/check-acyclic-proof-boundary
   scripts/check-acyclic-purity
+  scripts/check-aggregation-boundary
   scripts/check-book
   scripts/check-book-links
   scripts/check-capabilities
@@ -127,6 +128,10 @@ extra-source-files:
   test/compile-fail/ActionRoles.hs
   test/compile-fail/AcyclicProofBoundary.hs
   test/compile-fail/AcyclicPurity.hs
+  test/compile-fail/AggregationOpacity.hs
+  test/compile-fail/AggregationRoles.hs
+  test/compile-fail/AggregationUpdate.hs
+  test/compile-fail/AggregationWitnessUpdate.hs
   test/compile-fail/CircuitPurity.hs
   test/compile-fail/CompiledStateRoles.hs
   test/compile-fail/ExactApplicative.hs
@@ -171,6 +176,7 @@ library
   import:           warnings
   exposed-modules:
     Markovian.Action
+    Markovian.Aggregation.Exact
     Markovian.Algebra.NonNegativeRational
     Markovian.Algebra.Semiring
     Markovian.Bayesian.Channel.Exact
@@ -262,6 +268,7 @@ test-suite Markovian-test
   main-is:          Main.hs
   other-modules:
     AcyclicOpenSystems
+    AggregationExact
     AlgebraicFoundation
     BayesianExact
     CircuitCostRewrite

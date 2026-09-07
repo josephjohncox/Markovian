@@ -51,6 +51,7 @@ D-061 is `Accepted` for the reviewed package graph. D-067 is accepted only for t
 | --- | --- |
 | `Markovian.Interpreter.Exact` | Exact traces and expected returns |
 | `Markovian.Compile.Exact` | Policy-free exact MDP compilation and separate policy closure |
+| `Markovian.Aggregation.Exact` | Unreleased [supplied-partition fixed-policy checker](aggregation.md): opaque owned quotient or bounded distinguishing witness; joint reward/next-block laws, observations and terminal payoffs; EL-05 Proposed |
 | `Markovian.Interpreter.DynamicProgramming.Exact` | Finite-horizon policy evaluation |
 | `Markovian.Interpreter.Bellman.Exact` | Discounted contraction policy evaluation |
 | `Markovian.Interpreter.Control.Exact` | Exact value iteration, greedy extraction, and policy iteration |

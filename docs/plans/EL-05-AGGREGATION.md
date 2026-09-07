@@ -2,7 +2,12 @@
 
 **Status:** Proposed
 
-Frozen for independent review; not implementation evidence. Place the new `Markovian.Aggregation.Exact` module in the exact root. No new package or dependency edge; D-077–D-085 retain their statuses. This is a finite fixed-policy checker, not MDP-wide bisimulation, partition discovery, POMDP inference, or optimal-policy preservation.
+Frozen declarations and algorithm retained after independent contract review.
+Implemented in `src/Markovian/Aggregation/Exact.hs`, with independent finite-value
+and labeled-trace fixtures in `test/AggregationExact.hs`, runnable lesson
+`docs/book/src/aggregation.md`, and `scripts/check-aggregation-boundary`.
+Implementation review remains required; this contract alone is not implementation
+evidence. The new `Markovian.Aggregation.Exact` module is in the exact root. No new package or dependency edge; D-077–D-085 retain their statuses. This is a finite fixed-policy checker, not MDP-wide bisimulation, partition discovery, POMDP inference, or optimal-policy preservation.
 
 ## Existing consumer and topology
 

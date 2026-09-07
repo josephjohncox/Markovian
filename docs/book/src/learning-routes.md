@@ -16,7 +16,8 @@ control without confusing evaluation with learning.
 1. Run the [first MDP](first-mdp.md).
 2. Read [model semantics](model-semantics.md), then [exact evaluation](exact-evaluation.md).
 3. Predict and check [laboratory C and D](law-laboratory.md#c-reward-and-successor-correlation).
-4. Compare [sampling and tabular learning](sampling-learning.md) with the exact reference.
+4. Check a supplied partition in the [aggregation lesson](aggregation.md); distinguish equal means from equal joint laws.
+5. Compare [sampling and tabular learning](sampling-learning.md) with the exact reference.
 
 **Checkpoint:** with immediate reward 2, terminal payoff 7 and discount 1/2,
 explain why one transition gives 11/2 but zero transitions from a continuing

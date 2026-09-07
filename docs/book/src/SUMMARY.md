@@ -11,6 +11,7 @@
 - [Orientation and notation](./orientation.md)
 - [Executable law laboratory](./law-laboratory.md)
 - [First exact MDP](./first-mdp.md)
+- [Checked fixed-policy aggregation](./aggregation.md)
 - [Choose an API](./choose-an-api.md)
 - [Checked capability status](./capabilities.md)
 

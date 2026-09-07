@@ -62,6 +62,22 @@ class CapabilityTests(unittest.TestCase):
         self.assertEqual(record["evidence"], "test/FeedbackRewardJVP.hs")
         self.assertEqual(record["evidenceScope"], "implementation-fixtures")
 
+    def test_aggregation_proposal_implementation_transition(self):
+        record = cap.validate(cap.ROOT, self.document, self.current, self.released)[8]
+        self.assertEqual(record["availability"], "unreleased")
+        self.assertEqual(record["decisionStatus"], "Proposed")
+        self.assertEqual(record["module"], "Markovian.Aggregation.Exact")
+        self.assertEqual(record["evidence"], "test/AggregationExact.hs")
+        self.assertEqual(record["evidenceScope"], "implementation-fixtures")
+
+    def test_aggregation_cannot_claim_release(self):
+        self.rejected(self.changed(8, availability="released", evidenceScope="bounded-release"),
+                      "not in immutable released membership")
+
+    def test_aggregation_cannot_reuse_contract_evidence(self):
+        self.rejected(self.changed(8, evidence=cap.PROPOSAL_CONTRACTS["EL-05"]),
+                      "requires implementation evidence")
+
     def test_reward_jvp_cannot_claim_release(self):
         self.rejected(self.changed(7, availability="released", evidenceScope="bounded-release"),
                       "not in immutable released membership")

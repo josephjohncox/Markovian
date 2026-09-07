@@ -1,6 +1,7 @@
 module Main (main) where
 
 import AcyclicOpenSystems (runAcyclicOpenSystemTests)
+import AggregationExact (runAggregationLesson, runAggregationTests)
 import AlgebraicFoundation (runAlgebraicFoundationTests)
 import BayesianExact (runBayesianExactTests)
 import CircuitCostRewrite (runCircuitCostRewriteTests)
@@ -23,6 +24,7 @@ main = do
     case args of
         ["--learning"] -> runLawLaboratory
         ["--reward-jvp"] -> runRewardJVPLesson
+        ["--aggregation"] -> runAggregationLesson
         _ -> allTests
 
 allTests :: IO ()
@@ -36,6 +38,7 @@ allTests = do
     runFeedbackExactTests run
     runFeedbackValueExactTests run
     runFeedbackRewardJVPTests run
+    runAggregationTests run
     runCircuitCostRewriteTests run
     runGameCoreTests run
     runFiniteOpenGameTests run

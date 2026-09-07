@@ -160,7 +160,12 @@ exact root under the frozen contract, with one cumulative base-plus-derivative
 meter, exact layouts, nominal ownership, independent determinant/dual-unrolling
 tests and an executed retry lesson. Its probabilities and discount are fixed;
 the lesson's symbolic probability derivative is explicitly outside the API.
-Independent EL-04 implementation review, EL-05 aggregation, EL-06's experiment,
+EL-04 passed the supplied independent implementation review. EL-05 now implements
+supplied-partition fixed-policy aggregation in the exact root: an opaque owned
+quotient or bounded distinguishing witness preserves joint reward/next-block laws,
+declared observations and terminal/payoff timing under one cumulative meter.
+Independent finite-value/trace fixtures and an executed success/witness lesson
+provide unreleased evidence. Independent EL-05 review, EL-06's experiment,
 and final EL-07 integration remain pending. The [durable checklist](plans/EXECUTABLE-LEARNING-TODO.md)
 records actual commands and residual gates; none of these implementations accepts
 D-077–D-085 or changes package versions, topology or immutable released evidence.
