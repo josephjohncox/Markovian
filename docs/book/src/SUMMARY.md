@@ -35,6 +35,7 @@
 - [Sampling and tabular learning](./sampling-learning.md)
 - [POMDP filtering and planning](./pomdp.md)
 - [Restricted continuous probability](./continuous-probability.md)
+- [Paired differences and common noise](./paired-difference.md)
 - [Bounded autodiff lowering](./autodiff-lowering.md)
 - [Checked host tensor runtime](./tensor-runtime.md)
 

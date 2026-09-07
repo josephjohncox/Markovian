@@ -1,5 +1,9 @@
 # Revision history for Markovian
 
+## Unreleased
+
+- Add the bounded EL-03 paired-difference report in `markovian-continuous`, with one cumulative exact meter, independent moment-oracle tests and an executable common-noise-worsens-variance lesson. Update current capability evidence without changing package versions, published history or Proposed decision statuses.
+
 ## 2026.9.3.0 — 2026-09-03
 
 - Closed the compiled state-layout coercion boundary with nominal roles for state indexes, compiled states, MDPs, and MRPs. Added source-distribution compile-fail coverage for incompatible equality instances.

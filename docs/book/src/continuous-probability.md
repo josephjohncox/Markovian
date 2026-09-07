@@ -36,6 +36,17 @@ E[U U]=1/3,\qquad E[U_1U_2]=1/4.
 
 A future dynamic adapter must construct one joint reward, successor, and post-transition observation. It must first inspect terminal status. It must pay terminal value once. A zero horizon must not draw noise. Each transition applies one reward and one discount. Lead time must remain explicit.
 
+### Exact paired differences (unreleased EL-03)
+
+`pairedDifferenceReport` consumes one existing joint law and retains exact means,
+variances, covariance, mean difference, difference variance, an independent
+marginal variance baseline and a signed comparison. A single meter spans
+structural admission, all five moments and twelve derived work units; no partial
+report escapes failure. The [executable paired-difference lesson](paired-difference.md)
+checks both U versus U and U versus 1-U: common noise can worsen variance.
+This adds no coupling constructor or trajectory/policy comparison. EL-03 remains
+Proposed, separately from the accepted older continuous fragment.
+
 ## Kernels
 
 The executable kernel family has this form:
@@ -94,4 +105,4 @@ Tests compare exact moments with GK15. They also compare GK15 with an independen
 
 ## Nonclaims
 
-These packages do not claim arbitrary measurability, a Giry monad, universal kernel composition, or arbitrary disintegration. They do not claim certified floating bounds, multidimensional cubature, differentiation through sampling, or cross-platform bitwise reproduction. The accounting covers only the bounded affine-uniform bivariate polynomial algorithm. The numerical checks remain fixture evidence. D-070 and D-071 are `Accepted` only for the restricted exact and numerical scopes after all package, archive, compiler, and hosted gates passed. The packages do not provide continuous MDP solving, tensor semantics, or feedback.
+These packages do not claim arbitrary measurability, a Giry monad, universal kernel composition, or arbitrary disintegration. They do not claim certified floating bounds, multidimensional cubature, differentiation through sampling, or cross-platform bitwise reproduction. The new paired accounting covers only the bounded affine-uniform report, and the older bivariate accounting retains its own operation order. The numerical checks remain fixture evidence. D-070 and D-071 are `Accepted` only for the restricted exact and numerical scopes after all package, archive, compiler, and hosted gates passed. The packages do not provide continuous MDP solving, tensor semantics, or feedback.

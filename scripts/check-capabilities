@@ -21,6 +21,11 @@ RELEASE_EVIDENCE_SHA256 = "22d1c36aea8f285830f585a1e1b4bd673fbe7e71c3bf9cb5e4054
 RECORDS = Path("docs/capabilities/current.json")
 RELEASE_EVIDENCE = Path("docs/capabilities/released-modules.json")
 OUTPUT = Path("docs/book/src/capabilities.md")
+PROPOSAL_CONTRACTS = {
+    "EL-03": "docs/plans/EL-03-PAIRED-DIFFERENCE.md",
+    "EL-04": "docs/plans/EL-04-REWARD-JVP.md",
+    "EL-05": "docs/plans/EL-05-AGGREGATION.md",
+}
 
 
 class CapabilityError(ValueError):
@@ -119,9 +124,14 @@ def validate(root: Path, document: dict, current: dict, released: dict) -> list[
             require(match is not None and match[1] == status,
                     f"decision status mismatch: {decision}")
         else:
-            require(availability == "unimplemented" and status == "Proposed"
-                    and decision in {"EL-03", "EL-04", "EL-05"}, "invalid proposal decision")
-            text = evidence.read_text()
+            require(availability in {"unimplemented", "unreleased"} and status == "Proposed"
+                    and decision in PROPOSAL_CONTRACTS, "invalid proposal decision")
+            contract = local_file(root, PROPOSAL_CONTRACTS[decision])
+            require(availability != "unimplemented" or evidence == contract,
+                    "contract-only evidence must name the proposal contract")
+            require(availability != "unreleased" or evidence != contract,
+                    "implemented proposal requires implementation evidence")
+            text = contract.read_text()
             require(text.startswith(f"# {decision} —") and "**Status:** Proposed" in text
                     and f"`{module}`" in text, "proposal contract/module mismatch")
         # These scope labels are not a universal status lattice. In particular,
@@ -144,7 +154,7 @@ def render(records: list[dict]) -> str:
         lines.append(f"| {record['label']} | `{record['package']}: {module}`{planned} | "
                      f"{record['availability']} | {record['decision']} {record['decisionStatus']} | "
                      f"{record['evidenceScope']} (`{record['evidence']}`) | {record['boundary']} |")
-    lines.extend(["", "Repository evidence paths above name files, not promises that all their claims apply to this capability. Contract-only rows have no implementation evidence. See the [current module map](api-map.md) for navigation. Independent contract review and the later executable-learning stages remain open.", ""])
+    lines.extend(["", "Repository evidence paths above name files, not promises that all their claims apply to this capability. Contract-only rows have no implementation evidence. See the [current module map](api-map.md) for navigation. Independent contract review passed; later implementation reviews and executable-learning stages remain separately gated.", ""])
     return "\n".join(lines)
 
 

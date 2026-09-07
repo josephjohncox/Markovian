@@ -40,14 +40,46 @@ class CapabilityTests(unittest.TestCase):
         self.assertEqual(records[5]["availability"], "unreleased")
         self.assertEqual(records[5]["decisionStatus"], "Proposed")
 
+    def test_paired_proposal_implementation_transition(self):
+        record = cap.validate(cap.ROOT, self.document, self.current, self.released)[6]
+        self.assertEqual(record["availability"], "unreleased")
+        self.assertEqual(record["decisionStatus"], "Proposed")
+        self.assertEqual(record["evidenceScope"], "implementation-fixtures")
+
+    def test_implemented_proposal_cannot_claim_release(self):
+        self.rejected(self.changed(6, availability="released", evidenceScope="bounded-release"),
+                      "invalid proposal")
+
+    def test_implemented_proposal_cannot_claim_acceptance(self):
+        self.rejected(self.changed(6, decisionStatus="Accepted"), "invalid proposal")
+
+    def test_implemented_proposal_cannot_reuse_contract_evidence(self):
+        self.rejected(self.changed(6, evidence=cap.PROPOSAL_CONTRACTS["EL-03"]),
+                      "requires implementation evidence")
+
+    def test_implemented_proposal_still_checks_contract_module(self):
+        self.rejected(self.changed(6, module="Markovian.Continuous.Space"),
+                      "contract/module mismatch")
+
+    def test_contract_only_requires_contract_evidence(self):
+        self.rejected(self.changed(7, evidence="test/FeedbackValueExact.hs"),
+                      "must name the proposal contract")
+
+    def test_missing_implemented_proposal_contract(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = self.fixture(directory)
+            (root / cap.PROPOSAL_CONTRACTS["EL-03"]).unlink()
+            with self.assertRaisesRegex(cap.CapabilityError, "missing or escaping"):
+                cap.check(root)
+
     def test_unknown_availability(self):
         self.rejected(self.changed(availability="ready"), "invalid availability")
 
     def test_contract_only_cannot_claim_release_evidence(self):
-        self.rejected(self.changed(6, evidenceScope="bounded-release"), "combination")
+        self.rejected(self.changed(7, evidenceScope="bounded-release"), "combination")
 
     def test_unimplemented_cannot_claim_accepted(self):
-        self.rejected(self.changed(6, decisionStatus="Accepted"), "invalid proposal")
+        self.rejected(self.changed(7, decisionStatus="Accepted"), "invalid proposal")
 
     def test_stale_decision_status(self):
         self.rejected(self.changed(decisionStatus="Proposed"), "status mismatch")
@@ -81,10 +113,10 @@ class CapabilityTests(unittest.TestCase):
         self.rejected(document, "duplicate capability")
 
     def test_invalid_planned_placement(self):
-        self.rejected(self.changed(6, plannedModule="Markovian.NoSuchModule"), "contract/module mismatch")
+        self.rejected(self.changed(7, plannedModule="Markovian.NoSuchModule"), "contract/module mismatch")
 
     def test_implemented_field_cannot_disguise_unimplemented_placement(self):
-        self.rejected(self.changed(6, module="Markovian.Continuous.Measure.Exact"), "invalid record fields")
+        self.rejected(self.changed(7, module="Markovian.Feedback.Value.Exact"), "invalid record fields")
 
     def fixture(self, directory):
         root = Path(directory)
@@ -92,6 +124,7 @@ class CapabilityTests(unittest.TestCase):
                  Path("docs/DECISIONS.md"), Path("release/packages.tsv"),
                  Path("release/published-releases.json")]
         files += [Path(r["evidence"]) for r in self.document["capabilities"]]
+        files += [Path(p) for p in cap.PROPOSAL_CONTRACTS.values()]
         files += [p.relative_to(cap.ROOT) for p in (cap.ROOT / "release/exposed-modules").glob("*.txt")]
         for package in cap.parse_manifest(cap.ROOT / "release/packages.tsv"):
             files.append(cap.one_cabal_file(cap.ROOT / package.directory).relative_to(cap.ROOT))

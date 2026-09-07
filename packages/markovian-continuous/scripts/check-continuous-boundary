@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 log_file="$(mktemp)"
-trap 'rm -f "${log_file}"' EXIT
+private_dir="$(mktemp -d)"
+trap 'rm -f "${log_file}"; rm -rf "${private_dir}"' EXIT
 project_args=()
 if [[ -f cabal.project && -f cabal.project.ci ]]; then
   project_args+=(--project-file=cabal.project.ci)
@@ -49,4 +50,22 @@ fi
 for rejected in OwnerA OwnerB "Couldn't match type"; do
   grep -F "${rejected}" "${log_file}" >/dev/null || { cat "${log_file}" >&2; echo "Missing wrong-scope owner rejection: ${rejected}." >&2; exit 1; }
 done
-echo "PASS: continuous opacity, coordinate and owner roles, owner locality, and conditioning boundary"
+paired_fixture="${package_dir}/test/compile-fail/PairedDifferenceBoundary.hs"
+if cabal exec "${project_args[@]}" -- ghc "${ghc_args[@]}" "${paired_fixture}" >"${log_file}" 2>&1; then
+  echo "Paired report constructor or record update escaped." >&2
+  exit 1
+fi
+grep -F badPairedConstructor "${log_file}" >/dev/null || { cat "${log_file}" >&2; exit 1; }
+if cabal exec "${project_args[@]}" -- ghc "${ghc_args[@]}" "${package_dir}/test/compile-fail/PairedDifferenceRecordUpdate.hs" >"${log_file}" 2>&1; then
+  echo "Paired report record update escaped." >&2
+  exit 1
+fi
+grep -F badPairedRecordUpdate "${log_file}" >/dev/null || { cat "${log_file}" >&2; exit 1; }
+# Compile only the private source and invariant probes in an isolated output
+# directory. This does not expose a module or add a package dependency edge.
+cabal exec "${project_args[@]}" -- ghc -Wall -Werror -XGHC2021 -XDerivingStrategies \
+  -hide-all-packages -package base -i"${package_dir}/src" \
+  -outputdir "${private_dir}" -o "${private_dir}/paired-private" \
+  "${package_dir}/test/PairedDifferencePrivate.hs"
+"${private_dir}/paired-private"
+echo "PASS: continuous opacity, coordinate and owner roles, owner locality, conditioning and paired-report boundary"

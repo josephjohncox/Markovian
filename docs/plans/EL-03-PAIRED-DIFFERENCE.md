@@ -2,7 +2,7 @@
 
 **Status:** Proposed
 
-Frozen for independent review before semantic implementation. No implementation or acceptance is asserted. Owner: existing `markovian-continuous`, public module `Markovian.Continuous.Measure.Exact`; private machinery stays in `Markovian.Continuous.Internal`. No dependency changes. Related D-070 is Accepted for its older bounded fragment; D-079 remains Proposed.
+Frozen and independently reviewed before semantic implementation. Unreleased implementation evidence now lives in `packages/markovian-continuous/test/PairedDifference.hs` and the [executable lesson](../book/src/paired-difference.md); independent implementation review remains a separate gate. This contract asserts no acceptance. Owner: existing `markovian-continuous`, public module `Markovian.Continuous.Measure.Exact`; private machinery stays in `Markovian.Continuous.Internal`. No dependency changes. Related D-070 is Accepted for its older bounded fragment; D-079 remains Proposed.
 
 ## Consumer and semantics
 
@@ -12,7 +12,7 @@ For coordinates X,Y return E[X], E[Y], Var(X), Var(Y), Cov(X,Y), E[X-Y], Var(X-Y
 
 ## Complete new public surface
 
-These are future Haskell declarations, not runnable book examples. Only constructors explicitly listed here will be exported. Existing `ExactLimits(..)` and `ExactError(..)` are reused unchanged.
+These are the reviewed Haskell declarations, not runnable book examples. Only constructors explicitly listed here will be exported. Existing `ExactLimits(..)` and `ExactError(..)` are reused unchanged.
 
 ```haskell
 -- Opaque report; no constructor export.
@@ -59,5 +59,7 @@ Use a single private continuous meter, not five public calls to `expectBivariate
 At each metered step check work before arithmetic; rational overflow follows that operation's work check. Raw-pair and canonical-growth checks retain the existing bivariate ordering. Work reservations are semantic admission charges, not wall-clock estimates. Report exact successful charges; rejected required counts saturate at the configured limit plus one. Existing positive-limit and machine-bound policies remain in force. Input construction is a separately budgeted operation and is not retroactively included.
 
 ## Required evidence before completion
+
+Executed evidence and remaining integration gates are recorded in [the checklist](EXECUTABLE-LEARNING-TODO.md). The required semantic contract below is unchanged.
 
 Use an independent direct affine uniform moment formula, not production expansion, for every reported identity. Include `(U,U)` (difference variance 0), `(U,1-U)` (covariance -1/12 and difference variance 1/3), independent uniforms (baseline and actual variance 1/6), zero variance, negative scales, independent owners, shared owners, and equivalent reordered construction inputs. Check the sign in all three cases. Fix a full deterministic ledger golden, exact and one-below each applicable limit, discarded rational growth, cancellation saturation, and combined-invalid precedence. Preserve old bivariate goldens. Add source archives, current module snapshots if needed, changelog, capability transition, and a runnable lesson at implementation time; never mutate published history.

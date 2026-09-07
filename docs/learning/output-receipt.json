@@ -1,6 +1,7 @@
 {
-  "sources": "454f3ee04760bfc95536d73d4c668067379da56abae37ea0b572ace7615e0c0f",
+  "sources": "b1ac36ee7db2d20ea60c9906c8a9dd66d149a6ee77d8eb1f06a5d8edd2aacc41",
   "outputs": {
+    "docs/learning/paired-output.txt": "0310cc3d3bd7abd9fdf8f246eb3624e7df5c5c5b0373c5bed381b07a1aa83bc8",
     "docs/learning/sample-output.txt": "bfb557017a03153c8a9f8df88a8c985efa13b9df8183f63bf93a141cc8e7114e",
     "docs/learning/exact-output.txt": "2d02769dd8a1087b9e5c6ec0a6865d1f6c0797acce28798234171645ea1037d0",
     "docs/learning/tensor-output.txt": "61c3213b61ba2e474c067bf0b044dc8986242c41908b39aec20d01258a444237"

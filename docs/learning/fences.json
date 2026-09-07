@@ -1,6 +1,8 @@
 {
   "schemaVersion": 1,
   "contexts": {
+    "paired": {"source": "packages/markovian-continuous/test/PairedDifference.hs", "cabal": "packages/markovian-continuous/markovian-continuous.cabal", "target": "markovian-continuous:test:markovian-continuous-test"},
+    "paired-main": {"source": "packages/markovian-continuous/test/Main.hs", "cabal": "packages/markovian-continuous/markovian-continuous.cabal", "target": "markovian-continuous:test:markovian-continuous-test"},
     "root": {"source": "docs/learning/RootContexts.hs", "cabal": "Markovian.cabal", "target": "Markovian:test:Markovian-test"},
     "sample": {"source": "app/Sample/Main.hs", "cabal": "Markovian.cabal", "target": "Markovian:exe:Sample"},
     "lab-root": {"source": "test/LawLaboratory.hs", "cabal": "Markovian.cabal", "target": "Markovian:test:Markovian-test"},
@@ -18,6 +20,7 @@
     "payoff": {"source": "src/Markovian/Category/Payoff/Exact.hs", "cabal": "Markovian.cabal", "target": "Markovian:lib:Markovian"}
   },
   "fences": {
+    "docs/book/src/paired-difference.md#1": {"class": "runnable", "contexts": ["paired"]},
     "docs/book/src/law-laboratory.md#1": {"class": "runnable", "contexts": ["lab-root"]},
     "docs/book/src/law-laboratory.md#2": {"class": "runnable", "contexts": ["lab-tensor"]},
     "docs/DECISIONS.md#1": {"class": "pseudocode", "sha256": "6a11a6c97afb12f6e6649f5de51fd306b74737da034d86c5ce86a8262aa739f4", "reason": "Historical API synopsis: opaque bodies, strictness and implementations intentionally omitted; not executable definitions."},
@@ -93,6 +96,7 @@
     "docs/book/src/tensor-runtime.md#1": {"class": "fragment", "contexts": ["lab-tensor"]}
   },
   "runs": [
+    {"context": "paired", "args": ["--learning"], "output": "docs/learning/paired-output.txt"},
     {"context": "sample", "args": [], "output": "docs/learning/sample-output.txt"},
     {"context": "lab-root", "args": ["--learning"], "output": "docs/learning/exact-output.txt"},
     {"context": "lab-tensor", "args": ["--learning"], "output": "docs/learning/tensor-output.txt"}

@@ -165,7 +165,7 @@ These are candidate semantics, not unrestricted solvers. They provide no equilib
 | `markovian-continuous: Markovian.Continuous.Space` | Closed finite, real, and product standard-Borel witnesses |
 | `markovian-continuous: Markovian.Continuous.Map` | Rational affine measurable real maps |
 | `markovian-continuous: Markovian.Continuous.Polynomial` | Bounded rational univariate and bivariate polynomials |
-| `markovian-continuous: Markovian.Continuous.Measure.Exact` | Affine-uniform laws, exact polynomial moments, and shared-noise joints |
+| `markovian-continuous: Markovian.Continuous.Measure.Exact` | Affine-uniform laws, exact polynomial moments, shared-noise joints, and the unreleased [paired-difference report](paired-difference.md) |
 | `markovian-continuous: Markovian.Continuous.Kernel.Exact` | Checked affine additive-uniform kernels and fallible composition |
 | `markovian-continuous: Markovian.Continuous.Condition.Exact` | Positive-evidence finite affine-likelihood conditioning |
 | `markovian-continuous-numerical: Markovian.Continuous.Numerical.Value` | Finite values and explicit rational rounding reports |
