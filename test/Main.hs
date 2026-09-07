@@ -16,6 +16,7 @@ import LawLaboratory (runLawLaboratory)
 import MixedBayesianGames (runMixedBayesianGameTests)
 import OpenSystems (runOpenSystemTests)
 import PushPullExact (runPushPullExactTests)
+import ResourceAdmission (runResourceAdmissionLesson, runResourceAdmissionTests)
 import System.Environment (getArgs)
 
 main :: IO ()
@@ -25,6 +26,7 @@ main = do
         ["--learning"] -> runLawLaboratory
         ["--reward-jvp"] -> runRewardJVPLesson
         ["--aggregation"] -> runAggregationLesson
+        ["--resource-admission"] -> runResourceAdmissionLesson
         _ -> allTests
 
 allTests :: IO ()
@@ -39,6 +41,7 @@ allTests = do
     runFeedbackValueExactTests run
     runFeedbackRewardJVPTests run
     runAggregationTests run
+    runResourceAdmissionTests run
     runCircuitCostRewriteTests run
     runGameCoreTests run
     runFiniteOpenGameTests run

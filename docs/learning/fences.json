@@ -1,6 +1,7 @@
 {
   "schemaVersion": 1,
   "contexts": {
+    "resource-admission": {"source": "test/ResourceAdmission.hs", "cabal": "Markovian.cabal", "target": "Markovian:test:Markovian-test"},
     "aggregation": {"source": "test/AggregationExact.hs", "cabal": "Markovian.cabal", "target": "Markovian:test:Markovian-test"},
     "reward-jvp": {"source": "test/FeedbackRewardJVP.hs", "cabal": "Markovian.cabal", "target": "Markovian:test:Markovian-test"},
     "paired": {"source": "packages/markovian-continuous/test/PairedDifference.hs", "cabal": "packages/markovian-continuous/markovian-continuous.cabal", "target": "markovian-continuous:test:markovian-continuous-test"},
@@ -22,6 +23,7 @@
     "payoff": {"source": "src/Markovian/Category/Payoff/Exact.hs", "cabal": "Markovian.cabal", "target": "Markovian:lib:Markovian"}
   },
   "fences": {
+    "docs/book/src/resource-admission.md#1": {"class": "runnable", "contexts": ["resource-admission"]},
     "docs/book/src/aggregation.md#1": {"class": "runnable", "contexts": ["aggregation"]},
     "docs/book/src/reward-jvp.md#1": {"class": "runnable", "contexts": ["reward-jvp"]},
     "docs/book/src/paired-difference.md#1": {"class": "runnable", "contexts": ["paired"]},
@@ -100,6 +102,7 @@
     "docs/book/src/tensor-runtime.md#1": {"class": "fragment", "contexts": ["lab-tensor"]}
   },
   "runs": [
+    {"context": "resource-admission", "args": ["--resource-admission"], "output": "docs/learning/resource-admission-output.txt"},
     {"context": "aggregation", "args": ["--aggregation"], "output": "docs/learning/aggregation-output.txt"},
     {"context": "reward-jvp", "args": ["--reward-jvp"], "output": "docs/learning/reward-jvp-output.txt"},
     {"context": "paired", "args": ["--learning"], "output": "docs/learning/paired-output.txt"},

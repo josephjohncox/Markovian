@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Resolve EL-06/D-085 source-semantic admission versus separately bounded executor cost with a checked 100/1/10 accounting-model lesson, cumulative construction/hit and ordered discarded-rational boundaries, and a real checked-bind association contrast. Wire its executed output through existing source/archive learning gates. D-085 remains Proposed; no cache, public API, package edge or version change.
+
 - Add EL-05 supplied-partition fixed-policy aggregation in `Markovian.Aggregation.Exact`: opaque owned quotient or checked first-difference witness, exact joint reward/next-block laws, observations and terminal/payoff timing, bounded admission and one cumulative rational ledger. Include independent finite-value/trace fixtures, nominal/opacity gates and an executable success/counterexample lesson. No partition discovery or general MDP/POMDP claim; versions and Proposed decisions are unchanged.
 
 - Add EL-04 fixed-topology event-reward feedback JVP with one base-plus-derivative ledger, eight checked coefficient equation families, nominal ownership, independent determinant/dual-unrolling fixtures and an executable retry lesson. Probabilities and discount are fixed; reward derivative 4/3 and separately symbolic probability derivative 8/9 are not conflated. Preserve existing affine behavior, package versions and Proposed decisions.

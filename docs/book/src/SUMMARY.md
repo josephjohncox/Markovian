@@ -10,6 +10,7 @@
 - [Three learning routes](./learning-routes.md)
 - [Orientation and notation](./orientation.md)
 - [Executable law laboratory](./law-laboratory.md)
+- [Resource admission and association](./resource-admission.md)
 - [First exact MDP](./first-mdp.md)
 - [Checked fixed-policy aggregation](./aggregation.md)
 - [Choose an API](./choose-an-api.md)

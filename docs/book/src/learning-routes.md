@@ -39,7 +39,8 @@ proof boundary between deterministic and stochastic copy laws.
 1. Read [probability and kernels](probability-kernels.md) and [matrices](matrices.md).
 2. Read [matrix refinements](matrix-refinements.md) and [Bayesian inference](bayesian.md).
 3. Predict and check [laboratory A and B](law-laboratory.md#a-shared-randomness-and-determinism).
-4. Continue to [circuits](circuits.md) and [laws and boundaries](laws-and-boundaries.md).
+4. Predict the checked-bind admission contrast in [resource laboratory G](resource-admission.md).
+5. Continue to [circuits](circuits.md) and [laws and boundaries](laws-and-boundaries.md).
 
 **Checkpoint:** explain why a matrix transpose whose first row sums to 3/2
 cannot be a Bayesian inverse. Laboratory B computes the actual posterior.

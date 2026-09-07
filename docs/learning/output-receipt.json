@@ -1,6 +1,7 @@
 {
-  "sources": "49a8bb0e5bfd05c65f1469939570dba90baae0d84961174dbaef79404d0f8405",
+  "sources": "1d6ad77fcaf84695e8a8f1e3f4a163b5bec0b5a6f05ecf94b8f4e70b56f2db03",
   "outputs": {
+    "docs/learning/resource-admission-output.txt": "e0741f495cd28a62707416a1960c18b1edb040b58ad14adfb8bd0156d5755478",
     "docs/learning/aggregation-output.txt": "b8426c923298e6f15515cd0e33dd566dbcbcfb6ee8b7a8af9d342a1362b07551",
     "docs/learning/reward-jvp-output.txt": "95b7587cded8ce566b6a3dc0ba79831181fd396d70d22c1a33bf4a2e290cb4cd",
     "docs/learning/paired-output.txt": "0310cc3d3bd7abd9fdf8f246eb3624e7df5c5c5b0373c5bed381b07a1aa83bc8",

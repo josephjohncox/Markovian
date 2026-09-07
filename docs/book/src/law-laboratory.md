@@ -2,7 +2,8 @@
 
 **Prerequisites:** follow one of the [three routes](learning-routes.md), read
 [orientation](orientation.md), and build with the pinned toolchain.
-**Outcomes:** refute six tempting identifications with small checked computations,
+**Outcomes:** refute six tempting identifications below and compare resource
+admission in the linked seventh experiment with small checked computations,
 state each experiment's hypotheses, and read a failure witness rather than
 silently extending a theorem. **Next:** [laws and proof boundaries](laws-and-boundaries.md).
 
@@ -150,6 +151,14 @@ for add, multiply, matmul and tanh. Materialize-first comparison alone would
 be a circular oracle; the independent formulas and perturbations supply the
 additional evidence. No CUDA execution or arbitrary view autodiff is claimed.
 
+## G: Resource admission and association
+
+The [seventh laboratory](resource-admission.md) checks the 100-source-unit versus
+one-hypothetical-executor-unit example under budget ten, ordered discarded
+rational failures, and an association-sensitive admission contrast using the
+real checked-bind API. Its two-account experiment is explicitly a model, not a
+cache implementation; its public binds retain their separate per-call budgets.
+
 ## Checked output
 
 Exact fixtures (Haskell prints rational numerator and denominator with `%`):
@@ -186,5 +195,5 @@ masses, not calls back into production evaluation to manufacture expected values
 Related independent references remain `test/AlgebraicFoundation.hs`,
 `test/BayesianExact.hs`, `test/ExactControl.hs` and the tensor test module above.
 These are regression experiments under stated hypotheses, not proofs of all
-possible inputs. Resource-aware admission remains the explicitly later EL-06
-experiment; no checked-bind Monad or optimization-admission equivalence follows.
+possible inputs. The separately linked EL-06 accounting model checks its stated
+source-admission relation; no checked-bind Monad or universal optimizer law follows.
