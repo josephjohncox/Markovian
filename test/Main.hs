@@ -7,6 +7,7 @@ import CircuitCostRewrite (runCircuitCostRewriteTests)
 import ExactBind (runExactBindTests)
 import ExactControl (runExactControlTests)
 import FeedbackExact (runFeedbackExactTests)
+import FeedbackRewardJVP (runFeedbackRewardJVPTests, runRewardJVPLesson)
 import FeedbackValueExact (runFeedbackValueExactTests)
 import FiniteOpenGames (runFiniteOpenGameTests)
 import GameCore (runGameCoreTests)
@@ -19,7 +20,10 @@ import System.Environment (getArgs)
 main :: IO ()
 main = do
     args <- getArgs
-    if args == ["--learning"] then runLawLaboratory else allTests
+    case args of
+        ["--learning"] -> runLawLaboratory
+        ["--reward-jvp"] -> runRewardJVPLesson
+        _ -> allTests
 
 allTests :: IO ()
 allTests = do
@@ -31,6 +35,7 @@ allTests = do
     runExactControlTests run
     runFeedbackExactTests run
     runFeedbackValueExactTests run
+    runFeedbackRewardJVPTests run
     runCircuitCostRewriteTests run
     runGameCoreTests run
     runFiniteOpenGameTests run

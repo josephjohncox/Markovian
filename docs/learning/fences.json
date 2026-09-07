@@ -1,6 +1,7 @@
 {
   "schemaVersion": 1,
   "contexts": {
+    "reward-jvp": {"source": "test/FeedbackRewardJVP.hs", "cabal": "Markovian.cabal", "target": "Markovian:test:Markovian-test"},
     "paired": {"source": "packages/markovian-continuous/test/PairedDifference.hs", "cabal": "packages/markovian-continuous/markovian-continuous.cabal", "target": "markovian-continuous:test:markovian-continuous-test"},
     "paired-main": {"source": "packages/markovian-continuous/test/Main.hs", "cabal": "packages/markovian-continuous/markovian-continuous.cabal", "target": "markovian-continuous:test:markovian-continuous-test"},
     "root": {"source": "docs/learning/RootContexts.hs", "cabal": "Markovian.cabal", "target": "Markovian:test:Markovian-test"},
@@ -20,6 +21,7 @@
     "payoff": {"source": "src/Markovian/Category/Payoff/Exact.hs", "cabal": "Markovian.cabal", "target": "Markovian:lib:Markovian"}
   },
   "fences": {
+    "docs/book/src/reward-jvp.md#1": {"class": "runnable", "contexts": ["reward-jvp"]},
     "docs/book/src/paired-difference.md#1": {"class": "runnable", "contexts": ["paired"]},
     "docs/book/src/law-laboratory.md#1": {"class": "runnable", "contexts": ["lab-root"]},
     "docs/book/src/law-laboratory.md#2": {"class": "runnable", "contexts": ["lab-tensor"]},
@@ -96,6 +98,7 @@
     "docs/book/src/tensor-runtime.md#1": {"class": "fragment", "contexts": ["lab-tensor"]}
   },
   "runs": [
+    {"context": "reward-jvp", "args": ["--reward-jvp"], "output": "docs/learning/reward-jvp-output.txt"},
     {"context": "paired", "args": ["--learning"], "output": "docs/learning/paired-output.txt"},
     {"context": "sample", "args": [], "output": "docs/learning/sample-output.txt"},
     {"context": "lab-root", "args": ["--learning"], "output": "docs/learning/exact-output.txt"},

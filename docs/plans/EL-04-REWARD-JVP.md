@@ -2,7 +2,7 @@
 
 **Status:** Proposed
 
-Frozen for independent review, not implemented or accepted. Extend only the exact root's `Markovian.Feedback.Value.Exact`, using `Markovian.Feedback.Internal`. D-078 remains Proposed. No numerical, autodiff, continuous, or new package edge.
+Frozen declarations and algorithm passed independent contract review. Implemented with local fixture evidence in `test/FeedbackRewardJVP.hs`; independent implementation review remains required. Not accepted or released. Extends only the exact root's `Markovian.Feedback.Value.Exact`, using `Markovian.Feedback.Internal`. D-078 remains Proposed. No numerical, autodiff, continuous, or new package edge.
 
 ## Parameterized semantics and admitted directions
 

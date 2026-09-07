@@ -1,0 +1,5 @@
+Retry solved V = 4 % 3
+API reward derivative dV/da = 4 % 3
+Four-event unrolling (V, dV/da) = (85 % 64,85 % 64)
+Symbolic only dV/dp = 8 % 9
+Symbolic four-event dV/dp = 27 % 32

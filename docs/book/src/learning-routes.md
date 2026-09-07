@@ -61,7 +61,10 @@ avoid inferring GPU or general autodiff support from a host fixture.
    [polarity and games](polarity-and-games.md).
 2. Read [bounded autodiff lowering](autodiff-lowering.md) and [tensor runtime](tensor-runtime.md).
 3. Predict and check [laboratory E and F](law-laboratory.md#e-exact-equality-and-floating-reassociation).
-4. Read [backend boundaries](backends.md) and the [checked capabilities](capabilities.md).
+4. Compare the solved-system and finite-unrolling derivatives in the
+   [fixed-topology reward JVP lesson](reward-jvp.md). Its separate symbolic
+   probability exercise is not a probability-tangent API.
+5. Read [backend boundaries](backends.md) and the [checked capabilities](capabilities.md).
 
 **Checkpoint:** a transpose view shares storage with its base, yet its logical
 cotangent order is different. Laboratory F checks both the primitive-on-view

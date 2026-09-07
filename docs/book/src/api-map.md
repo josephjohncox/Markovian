@@ -109,7 +109,7 @@ The old `Markovian.Category.Finite.Exact` module is private regression code. No 
 | `Markovian.Feedback.Channel.Exact` | Proper first-exit coproduct routing with exact solve evidence |
 | `Markovian.Feedback.Delay.Exact` | Explicit seed and bounded one-tick delayed execution |
 | `Markovian.Feedback.Timed.Exact` | Nilpotent reward-, duration-, and output-preserving closure |
-| `Markovian.Feedback.Value.Exact` | Unreleased, implemented strict-discount affine `A` and `K` value coefficients; D-078 Proposed |
+| `Markovian.Feedback.Value.Exact` | Unreleased strict-discount affine `A`/`K` coefficients and `closeAffineFeedbackRewardJVP`: opaque jointly owned base and event-reward derivative, exact layout checks and one cumulative ledger; fixed probabilities/discount only; D-078 and EL-04 Proposed |
 
 These modules provide no universal trace, instantaneous fixed-point operator, cyclic open-system black-boxing, or stationary-distribution selector. The value module returns no evaluator or normalized output channel. D-078 remains `Proposed`.
 

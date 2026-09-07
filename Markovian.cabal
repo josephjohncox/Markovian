@@ -139,12 +139,15 @@ extra-source-files:
   test/compile-fail/ExactUnchecked.hs
   test/compile-fail/ExactUncheckedBind.hs
   test/compile-fail/FeedbackBoundary.hs
+  test/compile-fail/FeedbackRewardJVPBoundary.hs
+  test/compile-fail/FeedbackRewardJVPOpacity.hs
   test/compile-fail/GameCoreBoundary.hs
   test/compile-fail/MDPActionIdExport.hs
   test/compile-fail/MixedGameBoundary.hs
   test/compile-fail/PushoutKind.hs
   test/compile-fail/RefinementRoles.hs
   test/compile-fail/RootMovedModules.hs
+  test/FeedbackRewardJVPPrivate.hs
   test/golden/affine-feedback-accounting.txt
   test/golden/feedback-accounting.txt
   test/golden/mixed-nash-zero.txt
@@ -265,6 +268,7 @@ test-suite Markovian-test
     ExactBind
     ExactControl
     FeedbackExact
+    FeedbackRewardJVP
     FeedbackValueExact
     FiniteOpenGames
     GameCore

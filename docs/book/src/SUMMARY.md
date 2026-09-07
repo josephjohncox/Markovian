@@ -47,6 +47,7 @@
 - [Stochastic circuits and deterministic compilation](./circuits.md)
 - [Open systems and acyclic networks](./open-systems.md)
 - [Checked finite feedback](./feedback.md)
+- [Fixed-topology reward sensitivity](./reward-jvp.md)
 - [Finite alternating interaction protocols](./finite-interaction-protocols.md)
 - [Finite open games and pure equilibria](./finite-open-games.md)
 - [Exact mixed, stochastic, and Bayesian games](./mixed-and-bayesian-games.md)

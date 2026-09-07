@@ -28,6 +28,15 @@ class CapabilityTests(unittest.TestCase):
         document["capabilities"][index].update(changes)
         return document
 
+    def reward_contract(self, **changes):
+        document = self.changed(7, availability="unimplemented", evidenceScope="contract-only",
+                                evidence=cap.PROPOSAL_CONTRACTS["EL-04"])
+        record = document["capabilities"][7]
+        record.pop("module", None)
+        record["plannedModule"] = "Markovian.Feedback.Value.Exact"
+        record.update(changes)
+        return document
+
     def rejected(self, document, message):
         with self.assertRaisesRegex(cap.CapabilityError, message):
             cap.validate(cap.ROOT, document, self.current, self.released)
@@ -46,6 +55,21 @@ class CapabilityTests(unittest.TestCase):
         self.assertEqual(record["decisionStatus"], "Proposed")
         self.assertEqual(record["evidenceScope"], "implementation-fixtures")
 
+    def test_reward_jvp_proposal_implementation_transition(self):
+        record = cap.validate(cap.ROOT, self.document, self.current, self.released)[7]
+        self.assertEqual(record["availability"], "unreleased")
+        self.assertEqual(record["decisionStatus"], "Proposed")
+        self.assertEqual(record["evidence"], "test/FeedbackRewardJVP.hs")
+        self.assertEqual(record["evidenceScope"], "implementation-fixtures")
+
+    def test_reward_jvp_cannot_claim_release(self):
+        self.rejected(self.changed(7, availability="released", evidenceScope="bounded-release"),
+                      "not in immutable released membership")
+
+    def test_reward_jvp_cannot_reuse_contract_evidence(self):
+        self.rejected(self.changed(7, evidence=cap.PROPOSAL_CONTRACTS["EL-04"]),
+                      "requires implementation evidence")
+
     def test_implemented_proposal_cannot_claim_release(self):
         self.rejected(self.changed(6, availability="released", evidenceScope="bounded-release"),
                       "invalid proposal")
@@ -62,7 +86,7 @@ class CapabilityTests(unittest.TestCase):
                       "contract/module mismatch")
 
     def test_contract_only_requires_contract_evidence(self):
-        self.rejected(self.changed(7, evidence="test/FeedbackValueExact.hs"),
+        self.rejected(self.reward_contract(evidence="test/FeedbackValueExact.hs"),
                       "must name the proposal contract")
 
     def test_missing_implemented_proposal_contract(self):
@@ -76,10 +100,10 @@ class CapabilityTests(unittest.TestCase):
         self.rejected(self.changed(availability="ready"), "invalid availability")
 
     def test_contract_only_cannot_claim_release_evidence(self):
-        self.rejected(self.changed(7, evidenceScope="bounded-release"), "combination")
+        self.rejected(self.reward_contract(evidenceScope="bounded-release"), "combination")
 
     def test_unimplemented_cannot_claim_accepted(self):
-        self.rejected(self.changed(7, decisionStatus="Accepted"), "invalid proposal")
+        self.rejected(self.reward_contract(decisionStatus="Accepted"), "invalid proposal")
 
     def test_stale_decision_status(self):
         self.rejected(self.changed(decisionStatus="Proposed"), "status mismatch")
@@ -113,10 +137,10 @@ class CapabilityTests(unittest.TestCase):
         self.rejected(document, "duplicate capability")
 
     def test_invalid_planned_placement(self):
-        self.rejected(self.changed(7, plannedModule="Markovian.NoSuchModule"), "contract/module mismatch")
+        self.rejected(self.reward_contract(plannedModule="Markovian.NoSuchModule"), "contract/module mismatch")
 
     def test_implemented_field_cannot_disguise_unimplemented_placement(self):
-        self.rejected(self.changed(7, module="Markovian.Feedback.Value.Exact"), "invalid record fields")
+        self.rejected(self.reward_contract(module="Markovian.Feedback.Value.Exact"), "invalid record fields")
 
     def fixture(self, directory):
         root = Path(directory)

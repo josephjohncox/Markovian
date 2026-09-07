@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Add EL-04 fixed-topology event-reward feedback JVP with one base-plus-derivative ledger, eight checked coefficient equation families, nominal ownership, independent determinant/dual-unrolling fixtures and an executable retry lesson. Probabilities and discount are fixed; reward derivative 4/3 and separately symbolic probability derivative 8/9 are not conflated. Preserve existing affine behavior, package versions and Proposed decisions.
+
 - Add the bounded EL-03 paired-difference report in `markovian-continuous`, with one cumulative exact meter, independent moment-oracle tests and an executable common-noise-worsens-variance lesson. Update current capability evidence without changing package versions, published history or Proposed decision statuses.
 
 ## 2026.9.3.0 — 2026-09-03

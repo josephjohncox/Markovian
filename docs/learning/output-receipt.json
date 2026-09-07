@@ -1,6 +1,7 @@
 {
-  "sources": "b1ac36ee7db2d20ea60c9906c8a9dd66d149a6ee77d8eb1f06a5d8edd2aacc41",
+  "sources": "9ee5f176286d5c4eec2dd99db36eef6298538aaea17409a7c6db6b90e6f4610f",
   "outputs": {
+    "docs/learning/reward-jvp-output.txt": "95b7587cded8ce566b6a3dc0ba79831181fd396d70d22c1a33bf4a2e290cb4cd",
     "docs/learning/paired-output.txt": "0310cc3d3bd7abd9fdf8f246eb3624e7df5c5c5b0373c5bed381b07a1aa83bc8",
     "docs/learning/sample-output.txt": "bfb557017a03153c8a9f8df88a8c985efa13b9df8183f63bf93a141cc8e7114e",
     "docs/learning/exact-output.txt": "2d02769dd8a1087b9e5c6ec0a6865d1f6c0797acce28798234171645ea1037d0",

@@ -131,6 +131,16 @@ The interpreters check rational size at each observation. A limit failure return
 
 Reports contain deterministic counts and witnesses only. The separate benchmark reports one excluded warmup and twenty raw timing samples. Timing is local reproducibility data, not a complexity or production-performance claim. D-069 is `Accepted` for these three checked feedback fragments.
 
+## Fixed-topology reward sensitivity
+
+`closeAffineFeedbackRewardJVP` now checks an exact event-reward direction while
+holding probabilities, strict discount, routes and slots fixed. Its opaque result
+owns base and derivative coefficients together, with one operation-wide ledger
+and eight literal equation families. The [runnable retry lesson](reward-jvp.md)
+separates reward derivative 4/3 from the symbolic probability derivative 8/9 and
+from finite-unrolling derivatives. This remains unreleased EL-04/D-078 Proposed
+implementation evidence, not general autodiff or probability sensitivity.
+
 ## Evidence and nonclaims
 
 `test/FeedbackExact.hs` checks equations, normalization, timing, correlations, limits, and rejected cycles. It includes an independent acyclic path enumerator and multi-output absorption. `test/FeedbackValueExact.hs` checks strict-discount hand solutions, infinite and partial exit, literal equations, a nilpotent timed differential, malformed channels, fixed exact and one-below ledgers, adversarial unmatched-event scans, and combined-invalid failure precedence. Its independent two-loop, two-output finite oracle records `N=4`, preflights a fixed 180-operation plan, and checks exact and one-below horizon, work, and rational limits.
