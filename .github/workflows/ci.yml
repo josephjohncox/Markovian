@@ -69,7 +69,8 @@ jobs:
 
       - name: Build without compiler warnings or unused public dependencies
         run: |
-          cabal build all --project-file=cabal.project.ci
+          cabal build all --project-file=cabal.project.ci \
+            --enable-tests --enable-benchmarks
           cabal build all \
             --project-file=cabal.project.ci \
             --ghc-options=-Wunused-packages
@@ -628,6 +629,8 @@ jobs:
           python3 -m py_compile \
             scripts/check-book-links \
             scripts/check-haddock-coverage \
+            scripts/check-capabilities \
+            scripts/test_capabilities.py \
             scripts/check-learning \
             scripts/check-learning-archive \
             scripts/test_learning.py \

@@ -114,11 +114,10 @@ def main() -> int:
                         f"{document}:{line_number}: missing link target {relative!r}"
                     )
                     continue
-                if fragment and target.suffix.lower() == ".md":
-                    if fragment not in anchors(target):
-                        failures.append(
-                            f"{document}:{line_number}: missing anchor {fragment!r} in {target}"
-                        )
+                if fragment and target.suffix.lower() == ".md" and fragment not in anchors(target):
+                    failures.append(
+                        f"{document}:{line_number}: missing anchor {fragment!r} in {target}"
+                    )
             for match in INCLUDE.finditer(line):
                 target = (document.parent / match.group(1)).resolve()
                 if not target.is_file():

@@ -28,9 +28,13 @@ def main():
             destination.parent.mkdir(parents=True, exist_ok=True)
             shutil.copytree(extracted, destination)
         # Invoke archived tools, not the originals. No symlinks to the checkout.
+        # Capability checks also require the separately shipped frozen contracts
+        # and immutable membership record; a checkout must not supply them.
+        subprocess.run(["python3", "scripts/check-capabilities"], cwd=layout, check=True)
+        subprocess.run(["python3", "scripts/test_capabilities.py"], cwd=layout, check=True)
         subprocess.run(["python3", "scripts/check-learning", "--run"], cwd=layout, check=True)
         subprocess.run(["python3", "scripts/test_learning.py"], cwd=layout, check=True)
-        print("Archive-only learning compilation, execution, freshness and negative tests passed.")
+        print("Archive-only capabilities, learning compilation, execution, freshness and negative tests passed.")
 
 
 if __name__ == "__main__":
