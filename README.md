@@ -4,14 +4,14 @@ Markovian is an experimental Haskell package for finite stochastic kernels, Mark
 
 Markovian `2026.9.3.0` is the first release. It uses coordinated UTC CalVer and the matching Git tag `v2026.9.3.0`. Incorrect interfaces were removed before this release instead of being retained behind compatibility shims.
 
-Capability labels in this repository have these meanings:
+The [checked capability record](docs/book/src/capabilities.md) separates availability (released, unreleased, unimplemented), decision status, and evidence scope. Current module snapshots are not published API snapshots. Older progress labels below describe evidence, not availability:
 
 - **Accepted:** the stated bounded capability and its complete evidence matrix passed.
 - **Partial:** a restricted capability has executable fixtures, but its contract or evidence matrix is incomplete.
 - **Blocked:** a safety or semantic prerequisite fails or has no executable evidence.
 - **Out of scope:** no support claim exists for convergence, production training, general tensor semantics, arbitrary-Haskell autodiff, or neural devices.
 
-D-053 through D-076 are accepted only for their stated finite, bounded scopes. Mixed games, closed-language autodiff, checked feedback, restricted continuous probability, host F64 tensors, the metadata-free F64 SafeTensors profile, and the GB10 CUDA matrix/VJP fragment have complete release evidence. Their explicit nonclaims remain in force.
+D-053 through D-076 are accepted only for their stated bounded, represented scopes. Mixed games, closed-language autodiff, checked feedback, restricted continuous probability, host F64 tensors, the metadata-free F64 SafeTensors profile, and the GB10 CUDA matrix/VJP fragment have complete release evidence. Their explicit nonclaims remain in force.
 
 ## Release status
 
@@ -137,7 +137,7 @@ The autodiff package differentiates only its closed first-order syntax. Its test
 
 The tensor package is host-only and F64-only. Rank zero is one scalar. Numerical primitives require finite values and use fixed-order single-threaded loops. Payload and work budgets are preflighted, including atomic multi-output VJPs. It has no arbitrary strides, broadcasting, mutation, raw pointers, BLAS, device buffers, generic reverse-program lowering, or performance claim. The separate SafeTensors package supports only bounded metadata-free F64 files; it rejects unsupported dtypes and metadata and does not serialize ownership or execution resources. The optional GPU package consumes checked tensor inputs only for positive-size F64 matrix multiplication and its declared VJP. D-067 and D-073 are accepted only for these bounded scopes.
 
-The continuous exact and continuous numerical libraries are each `base`-only. Their integration dependency is test-only. These packages do not provide arbitrary measurable callbacks, point conditioning, continuous-to-continuous disintegration, certified floating bounds, continuous MDP execution, or release-readiness evidence.
+The continuous exact and continuous numerical libraries are each `base`-only. Their integration dependency is test-only. Their bounded released fragments have release evidence; this does not extend to arbitrary measurable callbacks, point conditioning, continuous-to-continuous disintegration, certified floating bounds, or continuous MDP execution.
 
 The bridge depends on the root and neural libraries. Neither existing library depends on it. Complete compilation is preflighted and returns no partial collection after exhaustion. Nominal roles reject representational action relabelling. The bridge gathers available logits or Q-values before softmax or argmax; it does not construct multiplicative numeric masks or additive negative-infinity masks.
 

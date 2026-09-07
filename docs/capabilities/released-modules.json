@@ -1,0 +1,13 @@
+{
+  "schemaVersion": 1,
+  "sourceRevision": "fe6abb8db9b3def65ead6602168eef860a79527c",
+  "tag": "v2026.9.3.0",
+  "scope": "Selected module-membership evidence, not a complete published API or signature snapshot",
+  "modules": {
+    "Markovian": ["Markovian.Feedback.Channel.Exact"],
+    "markovian-autodiff": ["Markovian.Autodiff.Language"],
+    "markovian-continuous": ["Markovian.Continuous.Measure.Exact"],
+    "markovian-reverse": ["Markovian.Reverse.Program.Effect"],
+    "markovian-tensor": ["Markovian.Tensor.Reverse"]
+  }
+}

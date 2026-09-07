@@ -1,0 +1,178 @@
+#!/usr/bin/env python3
+"""Check small capability claims; generate presentation, never release authority."""
+
+from __future__ import annotations
+
+import argparse
+import hashlib
+import json
+import re
+import subprocess
+from pathlib import Path
+
+from release_tool import ReleaseError, exposed_modules, one_cabal_file, parse_manifest
+
+ROOT = Path(__file__).resolve().parent.parent
+RELEASE_REVISION = "fe6abb8db9b3def65ead6602168eef860a79527c"
+RELEASE_TAG = "v2026.9.3.0"
+# Selected membership evidence copied from the immutable revision, not the
+# mutable release/exposed-modules directory. Changing it requires review.
+RELEASE_EVIDENCE_SHA256 = "22d1c36aea8f285830f585a1e1b4bd673fbe7e71c3bf9cb5e4054910966157b5"
+RECORDS = Path("docs/capabilities/current.json")
+RELEASE_EVIDENCE = Path("docs/capabilities/released-modules.json")
+OUTPUT = Path("docs/book/src/capabilities.md")
+
+
+class CapabilityError(ValueError):
+    pass
+
+
+def require(condition: bool, message: str) -> None:
+    if not condition:
+        raise CapabilityError(message)
+
+
+def local_file(root: Path, name: str) -> Path:
+    path = Path(name)
+    require(not path.is_absolute() and ".." not in path.parts,
+            f"unsafe reference: {name}")
+    resolved = (root / path).resolve()
+    require(resolved.is_relative_to(root.resolve()) and resolved.is_file(),
+            f"missing or escaping reference: {name}")
+    return resolved
+
+
+def surfaces(root: Path, verify_release: bool = False) -> tuple[dict, dict]:
+    current = {}
+    packages = parse_manifest(root / "release/packages.tsv")
+    for package in packages:
+        cabal = one_cabal_file(root / package.directory)
+        modules = exposed_modules(cabal)
+        snapshot = root / "release/exposed-modules" / f"{package.name}.txt"
+        require(sorted(modules) == sorted(snapshot.read_text().splitlines()),
+                f"stale current module snapshot: {package.name}")
+        current[package.name] = set(modules)
+    raw = (root / RELEASE_EVIDENCE).read_bytes()
+    require(hashlib.sha256(raw).hexdigest() == RELEASE_EVIDENCE_SHA256,
+            "immutable release membership evidence changed")
+    released = json.loads(raw)
+    require(released["sourceRevision"] == RELEASE_REVISION
+            and released["tag"] == RELEASE_TAG, "wrong released source")
+    authority = json.loads((root / "release/published-releases.json").read_text())
+    require(authority["versions"]["2026.9.3.0"] == {
+        "sourceRevision": RELEASE_REVISION, "tag": RELEASE_TAG},
+        "published release authority changed")
+    if verify_release:
+        target = subprocess.check_output(
+            ["git", "rev-parse", f"{RELEASE_TAG}^{{commit}}"], cwd=root, text=True).strip()
+        require(target == RELEASE_REVISION, "released tag target changed")
+        for package, modules in released["modules"].items():
+            text = subprocess.check_output(
+                ["git", "show", f"{RELEASE_REVISION}:release/exposed-modules/{package}.txt"],
+                cwd=root, text=True)
+            require(set(modules) <= set(text.splitlines()),
+                    f"module absent from immutable released surface: {package}")
+    return current, released["modules"]
+
+
+def validate(root: Path, document: dict, current: dict, released: dict) -> list[dict]:
+    require(set(document) == {"schemaVersion", "capabilities"}
+            and document["schemaVersion"] == 1, "invalid capability schema")
+    records = document["capabilities"]
+    require(isinstance(records, list) and 0 < len(records) <= 32,
+            "expected 1..32 capability records")
+    seen = set()
+    decisions = (root / "docs/DECISIONS.md").read_text()
+    base_fields = {"id", "label", "package", "availability", "decision",
+                   "decisionStatus", "evidenceScope", "evidence", "boundary"}
+    scopes = {"released": "bounded-release", "unreleased": "implementation-fixtures",
+              "unimplemented": "contract-only"}
+    for record in records:
+        require(isinstance(record, dict), "record must be an object")
+        availability = record.get("availability")
+        require(availability in scopes, "invalid availability")
+        module_key = "plannedModule" if availability == "unimplemented" else "module"
+        require(set(record) == base_fields | {module_key}, "invalid record fields")
+        require(all(isinstance(v, str) and v.strip() and not any(c in v for c in "\n\r|`")
+                    for v in record.values()), "invalid record text")
+        identifier = record["id"]
+        require(re.fullmatch(r"[a-z][a-z0-9-]*", identifier) is not None
+                and identifier not in seen, "invalid or duplicate capability id")
+        seen.add(identifier)
+        require(record["evidenceScope"] == scopes[availability],
+                f"invalid availability/evidence combination: {identifier}")
+        package, module = record["package"], record[module_key]
+        require(package in current, f"unknown package: {package}")
+        require(re.fullmatch(r"[A-Z][A-Za-z0-9]*(?:\.[A-Z][A-Za-z0-9]*)+", module)
+                is not None, f"invalid module name: {module}")
+        if availability != "unimplemented":
+            require(module in current[package], f"not a current public module: {module}")
+        if availability == "released":
+            require(module in released.get(package, []),
+                    f"not in immutable released membership evidence: {module}")
+        evidence = local_file(root, record["evidence"])
+        decision, status = record["decision"], record["decisionStatus"]
+        require(status in {"Accepted", "Proposed"}, "invalid decision status")
+        if decision.startswith("D-"):
+            match = re.search(rf"(?ms)^### {re.escape(decision)}:.*?^\*\*Status:\*\* ([^\n]+)$",
+                              decisions)
+            require(match is not None and match[1] == status,
+                    f"decision status mismatch: {decision}")
+        else:
+            require(availability == "unimplemented" and status == "Proposed"
+                    and decision in {"EL-03", "EL-04", "EL-05"}, "invalid proposal decision")
+            text = evidence.read_text()
+            require(text.startswith(f"# {decision} —") and "**Status:** Proposed" in text
+                    and f"`{module}`" in text, "proposal contract/module mismatch")
+        # These scope labels are not a universal status lattice. In particular,
+        # implemented unreleased code may legitimately have a Proposed decision.
+        require(availability != "unimplemented" or status == "Proposed",
+                "unimplemented capability cannot claim accepted evidence")
+    return records
+
+
+def render(records: list[dict]) -> str:
+    lines = ["# Checked capability status", "",
+             "Generated by `python3 scripts/check-capabilities --write`; do not edit this table.", "",
+             "This is a selected capability inventory, not a complete API list. Availability, decision status, and evidence scope are separate. A Proposed decision can have implemented unreleased code. Bounded release evidence does not establish a universal capability.", "",
+             f"Released membership is pinned to `{RELEASE_TAG}` at `{RELEASE_REVISION}`. The selected immutable membership evidence is checked independently of the mutable current Cabal and `release/exposed-modules` surfaces; unchanged package versions are not availability evidence. Module membership alone does not certify every later export in that module.", "",
+             "| Capability | Package / module | Availability | Decision | Evidence scope | Boundary |",
+             "| --- | --- | --- | --- | --- | --- |"]
+    for record in records:
+        module = record.get("module", record.get("plannedModule"))
+        planned = " (planned placement)" if record["availability"] == "unimplemented" else ""
+        lines.append(f"| {record['label']} | `{record['package']}: {module}`{planned} | "
+                     f"{record['availability']} | {record['decision']} {record['decisionStatus']} | "
+                     f"{record['evidenceScope']} (`{record['evidence']}`) | {record['boundary']} |")
+    lines.extend(["", "Repository evidence paths above name files, not promises that all their claims apply to this capability. Contract-only rows have no implementation evidence. See the [current module map](api-map.md) for navigation. Independent contract review and the later executable-learning stages remain open.", ""])
+    return "\n".join(lines)
+
+
+def check(root: Path, write: bool = False, verify_release: bool = False) -> int:
+    current, released = surfaces(root, verify_release)
+    records = validate(root, json.loads((root / RECORDS).read_text()), current, released)
+    generated = render(records)
+    if write:
+        (root / OUTPUT).write_text(generated)
+    else:
+        require((root / OUTPUT).is_file() and (root / OUTPUT).read_text() == generated,
+                "stale capability presentation; run python3 scripts/check-capabilities --write")
+    return len(records)
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--write", action="store_true")
+    parser.add_argument("--verify-release", action="store_true",
+                        help="also compare selected membership with the immutable Git source")
+    args = parser.parse_args()
+    try:
+        count = check(ROOT, args.write, args.verify_release)
+    except (CapabilityError, ReleaseError, OSError, KeyError, TypeError,
+            json.JSONDecodeError, subprocess.CalledProcessError) as error:
+        raise SystemExit(f"capabilities: {error}") from error
+    print(f"capabilities: {count} records, current references, released evidence and presentation checked")
+
+
+if __name__ == "__main__":
+    main()

@@ -27,6 +27,8 @@ extra-doc-files:
   docs/book/theme/vendor/mathjax/LICENSE
   docs/book/theme/vendor/mathjax/README.md
   docs/book/theme/vendor/mathjax/tex-svg-full.js
+  docs/capabilities/current.json
+  docs/capabilities/released-modules.json
   docs/CONTEXT.md
   docs/DECISIONS.md
   docs/evidence/CUDA-2026-08-26.md
@@ -39,6 +41,10 @@ extra-doc-files:
   docs/evidence/LEARNING-REVIEW-2026-09-05.md
   docs/evidence/S6-ACYCLIC-OPEN-2026-08-27.md
   docs/evidence/TENSOR-SAFETENSORS-REPAIR.md
+  docs/plans/EL-03-PAIRED-DIFFERENCE.md
+  docs/plans/EL-04-REWARD-JVP.md
+  docs/plans/EL-05-AGGREGATION.md
+  docs/plans/EL-06-RESOURCE-ADMISSION.md
   docs/plans/EXECUTABLE-LEARNING-TODO.md
   docs/WORKFLOWS.md
   MIGRATION.md
@@ -94,6 +100,7 @@ extra-source-files:
   scripts/check-acyclic-purity
   scripts/check-book
   scripts/check-book-links
+  scripts/check-capabilities
   scripts/check-circuit-purity
   scripts/check-feedback-boundary
   scripts/check-game-core-boundary
@@ -109,6 +116,7 @@ extra-source-files:
   scripts/install-doc-tools
   scripts/prepare-release
   scripts/release_tool.py
+  scripts/test_capabilities.py
   scripts/test_release_tool.py
   test/compile-fail/ActionRoles.hs
   test/compile-fail/AcyclicProofBoundary.hs

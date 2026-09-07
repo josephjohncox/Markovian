@@ -60,7 +60,7 @@ let sensor = exactKernel $ \surface ->
 Checked Kleisli-style composition integrates over the intermediate value:
 
 \\[
-(L \mathbin{>=>} K)(x)(z)=\sum_y K(x)(y)L(y)(z).
+(K \mathbin{>=>} L)(x)(z)=\sum_y K(x)(y)L(y)(z).
 \\]
 
 `ExactKernel` has an explicit failure channel. `composeExactKernel` requires `ExactBindLimits`; no unrestricted `Category`, `Arrow`, or `ArrowChoice` instance is available. The kernel is one stochastic layer. It is not a recursive transition tree.

@@ -7,7 +7,7 @@ Implement all recommendations in [the durable review](../evidence/LEARNING-REVIE
 Baseline: `7edc04a2d9a0de6af6fed1ccccb43303442210f5`.
 Branch: `frontier/executable-learning`.
 
-Status: **Active**. Start with EL-01. Every completion needs artifact paths and validation evidence in the execution log below. Keep incomplete items unchecked. A blocked item needs a concrete reason and next action. A passing focused test does not complete final integration.
+Status: **Active**. EL-01 documentation, capability checks, and proposal contracts are implemented; independent contract review is still required before EL-03 through EL-05. Every completion needs artifact paths and validation evidence in the execution log below. Keep incomplete items unchecked. A blocked item needs a concrete reason and next action. A passing focused test does not complete final integration.
 
 ## Invariants and scope
 
@@ -30,14 +30,14 @@ Status: **Active**. Start with EL-01. Every completion needs artifact paths and 
 
 ## EL-01 — Documentation truth and feature contracts
 
-- [ ] Resolve F01-F08 in the review, including the autodiff readiness wording and Kleisli composition order.
-- [ ] Audit nearby current-guidance statements for the same contradictions. Preserve properly labeled historical evidence.
-- [ ] Add checked capability records separating availability, decision status, and evidence scope.
-- [ ] Generate capability presentation and validate package/module references. Do not equate current exposed-module snapshots with released snapshots.
-- [ ] Add negative tests for stale capability output, invalid status combinations/references, and current-versus-release confusion.
-- [ ] Freeze a bounded paired-difference API, ledger, rational limits, and failure precedence before implementation.
-- [ ] Freeze a narrow exact feedback JVP API, admitted directions, nominal layout/ownership, ledger, and failure precedence before implementation.
-- [ ] Freeze supplied-partition fixed-policy aggregation, observations/terminal/payoff rules, witness/quotient types, ledger, and failure precedence before implementation.
+- [x] Resolve F01-F08 in the review, including the autodiff readiness wording and Kleisli composition order.
+- [x] Audit nearby current-guidance statements for the same contradictions. Preserve properly labeled historical evidence.
+- [x] Add checked capability records separating availability, decision status, and evidence scope.
+- [x] Generate capability presentation and validate package/module references. Do not equate current exposed-module snapshots with released snapshots.
+- [x] Add negative tests for stale capability output, invalid status combinations/references, and current-versus-release confusion.
+- [x] Freeze a bounded paired-difference API, ledger, rational limits, and failure precedence before implementation.
+- [x] Freeze a narrow exact feedback JVP API, admitted directions, nominal layout/ownership, ledger, and failure precedence before implementation.
+- [x] Freeze supplied-partition fixed-policy aggregation, observations/terminal/payoff rules, witness/quotient types, ledger, and failure precedence before implementation.
 - [ ] Obtain independent contract review and resolve concrete blockers before implementing EL-03 through EL-05.
 
 ## EL-02 — Executable teaching and learning routes
@@ -131,6 +131,22 @@ This item resolves D-085's contract. It does not implement the full cache propos
 - Confirmed clean baseline and created `frontier/executable-learning`.
 - All three post-merge runs for PR #5 passed. No runtime feature evidence is inferred from those older checks.
 - Next action: complete EL-00 linking, then EL-01 documentation truth and frozen contracts.
+
+### 2026-09-05 — EL-00 verification and EL-01 implementation (independent review pending)
+
+- Corrected F01–F08 in `README.md`, the API map, introduction, tensor, autodiff and kernel chapters. Nearby current guidance repairs include `MIGRATION.md`, `docs/CONTEXT.md`, `release/README.md`, and the feedback/evidence chapters. Historical release evidence and D-037/D-061 history were not rewritten.
+- Added nine checked records in `docs/capabilities/current.json`, digest-pinned selected immutable module-membership evidence in `docs/capabilities/released-modules.json`, and generated `docs/book/src/capabilities.md`. `scripts/check-capabilities` checks current Cabal/snapshot references separately from immutable membership; `--verify-release` additionally checks the released Git source and tag target. These records are selected capability claims, not a complete signature inventory or automatic semantic proof.
+- Added `scripts/test_capabilities.py` (20 tests, including stale output, reference/status errors, current-versus-release substitution and no-Git archive-layout validation). Wired ordinary capability checking into the book gate and CI metadata step, with negative tests in CI. Root source membership includes the checker, tests, records, presentation, and all new contracts.
+- Froze full future declarations and bounded algorithms in [EL-03 paired difference](EL-03-PAIRED-DIFFERENCE.md), [EL-04 event-reward JVP](EL-04-REWARD-JVP.md), and [EL-05 aggregation](EL-05-AGGREGATION.md). No Haskell semantic implementation or public export changed. The JVP holds probabilities and discount fixed; dV/dp=8/9 is explicitly a separate symbolic exercise. Aggregation owns a checked quotient table instead of bypassing compiled-model opacity.
+- Selected source-semantic admission with separate executor cost for D-085 in [the EL-06 policy](EL-06-RESOURCE-ADMISSION.md), amended the Proposed decision, and resolved the 100/1/10 example. EL-06's checked experiment and concrete cache API remain unimplemented; its checkboxes remain open.
+- Commands/results: `python3 scripts/check-capabilities --write --verify-release` generated nine rows and verified immutable membership; `python3 scripts/test_capabilities.py` passed 20 tests; `python3 scripts/check-capabilities --verify-release` passed. Initial checker validation incorrectly required Python's case-sensitive order for current snapshots; corrected to compare sorted contents without modifying snapshots, then reran successfully.
+- Commands/results: `bash scripts/check-package-manifest`, `bash scripts/check-release-metadata`, `bash scripts/check-release-policy`, and `python3 scripts/test_release_tool.py` passed: 16 packages, 18 Haskell suites, 11 benchmarks, two policy tests and 32 release-tool tests. Those suite counts are manifest checks, not a new Haskell-suite execution claim.
+- Commands/results: `bash scripts/check-book` passed with mdBook 0.5.4, local MathJax 3.2.2, 45 Markdown files and 419 checked display-math blocks. Generated HTML: `docs/book/build/index.html` (ignored build artifact).
+- Commands/results: `cabal check`, `cabal-fmt --check Markovian.cabal`, `ruff check scripts/check-capabilities scripts/test_capabilities.py`, `shellcheck -x -P SCRIPTDIR scripts/check-book`, `python3 -m py_compile scripts/check-capabilities scripts/test_capabilities.py`, and `git diff --check` passed. Initial Ruff failures (import order, unused import, executable bits) were corrected. Initial ShellCheck invocations without the script-relative include path failed SC1091; the explicit `-P SCRIPTDIR` invocation passed. An initial read-only decision-heading inspection used a wrong numeric slice, was corrected, and made no edits.
+- Commands/results: `cabal sdist all --project-file=cabal.project.ci --output-directory=dist-newstyle/el01-sdist` produced all 16 development source archives (not release candidates). A Python `tarfile` membership assertion checked 12 required EL-00/EL-01 root paths and the existing root TODO link. Root archive: `dist-newstyle/el01-sdist/Markovian-2026.9.3.0.tar.gz`. Refreshed all archives after the final source edits. A separate Python run reused `release_tool.validate_archive` and `extract_archive` for all 16 archives, assembled their original package layout in a temporary directory without `.git`, and passed the archive-only capability gate plus all 20 negative tests. No Haskell archive compilation is inferred. A later `cabal sdist Markovian` refresh was rejected as a component target (Cabal-7151); the supported `cabal sdist all` command was used instead.
+- An explicit Python/Git invariant check confirmed all 16 versions unchanged from durable-plan commit `69382b2`, D-077–D-085 still Proposed, released tag object `d746952084e09647e7bcd67b92dd6cef9d0e14c9` and target `fe6abb8db9b3def65ead6602168eef860a79527c` unchanged. Metadata checks also confirmed no package/dependency-edge drift.
+- Structured stage evidence destination: `/home/josephcox/.pi/agent/sessions/--home-josephcox-dev-Markovian--/subagent-artifacts/outputs/c4bb5762-3f07-456b-bae3-7564338015d5/stages/truth-contracts-write.json`.
+- Remaining work: independent EL-01 contract/correctness review (no implementation stages independently reviewed yet), EL-02 executable lessons, EL-03–EL-05 semantic implementations after review, the EL-06 checked experiment, and EL-07 full integration. No full Haskell build/test/Haddock/hardware campaign was run for this documentation/Python-only stage. All package versions, dependency edges, released tag/history and D-077–D-085 statuses remain unchanged.
 
 ## Completion standard
 

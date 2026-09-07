@@ -2,7 +2,7 @@
 
 `packages.tsv` lists the current 16-package integration graph. It is not publication approval.
 
-`exposed-modules` contains reviewed public-module snapshots for each manifest package. `API-REVIEW.md` records the completed API review.
+`exposed-modules` contains mutable checked **current-development** public-module snapshots for each manifest package. They may include unreleased proposal modules despite unchanged package versions. `API-REVIEW.md` records the first-release API review, not acceptance of later exports. The immutable released surface is at the source revision in `published-releases.json`. The separately pinned selected membership evidence in `docs/capabilities/released-modules.json` is checked by `python3 scripts/check-capabilities --verify-release` against that Git revision; ordinary checks use its digest-pinned copy and need no Git history.
 
 `components.tsv` lists all 18 mandatory test suites, 11 benchmarks, and component flags. The release tool checks it against all Cabal files. `published-releases.json` is mandatory for ordinary metadata checks and source-checkout checks. It prevents a later revision from rebuilding an already published version. The current bounded proposal work retains package versions and bounds under the task's no-version-change invariant, so it is not release source and cannot pass that source boundary from another revision. A future candidate still requires an intended new version, updated notes, API review, and all release gates. Direct `cabal sdist` output is not an admitted release candidate.
 

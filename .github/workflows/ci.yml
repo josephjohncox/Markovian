@@ -57,6 +57,8 @@ jobs:
           bash scripts/check-release-metadata
           bash scripts/check-release-policy
           python3 scripts/test_release_tool.py
+          python3 scripts/check-capabilities
+          python3 scripts/test_capabilities.py
           while IFS=$'\t' read -r package_name package_dir _dependency_tier; do
             if [[ -z "${package_name}" || "${package_name}" == \#* ]]; then
               continue

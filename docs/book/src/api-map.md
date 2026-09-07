@@ -1,8 +1,8 @@
 # Public module map
 
-This map describes the `2026.9.3.0` released API. `release/exposed-modules` contains the checked package snapshots.
+This map describes the **current development** API. `release/exposed-modules` contains mutable, checked current package snapshots, not immutable published snapshots. The `v2026.9.3.0` API is the surface at its recorded source revision in `release/published-releases.json`; unchanged development versions do not imply release availability. See the [checked capability record](capabilities.md).
 
-The unaccepted D-061 migration keeps the root on exact and exact-neutral structural modules. Optional packages currently own numerical, sampled, learning, dense, and benchmark modules. This map records the working API, not release acceptance.
+The accepted D-061 migration keeps the root on exact and exact-neutral structural modules. Optional packages own numerical, sampled, learning, dense, and benchmark modules.
 
 | Package | Public ownership |
 | --- | --- |
@@ -109,7 +109,7 @@ The old `Markovian.Category.Finite.Exact` module is private regression code. No 
 | `Markovian.Feedback.Channel.Exact` | Proper first-exit coproduct routing with exact solve evidence |
 | `Markovian.Feedback.Delay.Exact` | Explicit seed and bounded one-tick delayed execution |
 | `Markovian.Feedback.Timed.Exact` | Nilpotent reward-, duration-, and output-preserving closure |
-| `Markovian.Feedback.Value.Exact` | Proposed strict-discount affine `A` and `K` value coefficients |
+| `Markovian.Feedback.Value.Exact` | Unreleased, implemented strict-discount affine `A` and `K` value coefficients; D-078 Proposed |
 
 These modules provide no universal trace, instantaneous fixed-point operator, cyclic open-system black-boxing, or stationary-distribution selector. The value module returns no evaluator or normalized output channel. D-078 remains `Proposed`.
 

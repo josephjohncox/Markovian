@@ -1,10 +1,10 @@
 # Migration guide
 
-Markovian has no published release. This guide applies to repository snapshots only.
+Markovian `2026.9.3.0` is released. This guide describes that corrected first-release interface and current development changes explicitly marked as unreleased.
 
 ## D-061 package moves
 
-The unaccepted D-061 migration changes package ownership in this worktree. Add the package that currently owns each moved module; this table does not claim release acceptance.
+The accepted D-061 migration established these package boundaries for the first release. Add the package that owns each moved module.
 
 | Module group | Package |
 | --- | --- |

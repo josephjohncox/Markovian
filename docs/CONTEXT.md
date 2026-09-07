@@ -4,7 +4,7 @@ Read this file, `TODO.md`, and the relevant architecture and decision sections b
 
 ## Current state
 
-Markovian `2026.9.3.0` is the first coordinated 16-package release. D-053 through D-076 are `Accepted` only for their stated finite and bounded scopes. D-077 through D-085 are post-release `Proposed` decisions; implementation evidence does not accept them or authorize a package edge, workflow launch, or publication. The root remains `base`-only and exact. Numerical, sampling, learning, continuous, reverse, autodiff, tensor, SafeTensors, neural, and CUDA execution remain in optional packages.
+Markovian `2026.9.3.0` is the first coordinated 16-package release. D-053 through D-076 are `Accepted` only for their stated bounded, represented scopes. D-077 through D-085 are post-release `Proposed` decisions; implementation evidence does not accept them or authorize a package edge, workflow launch, or publication. The root remains `base`-only and exact. Numerical, sampling, learning, continuous, reverse, autodiff, tensor, SafeTensors, neural, and CUDA execution remain in optional packages.
 
 The release record states that the acceptance candidate passed the compiler, source, documentation, archive, checksum, SPDX, and attestation gates. It also records CUDA compile-only, protected GB10, benchmark, fault, and four-tool sanitizer passes. The repository does not retain enough raw same-session material to reconstruct the protected hardware assertions under D-077.
 
@@ -16,7 +16,7 @@ The exact semantic foundation exposes finite sets and objects, law-bearing scala
 
 The historical D-074 CUDA record does not establish general device correctness, arbitrary devices or dtypes, generic tensor graphs, generic reverse-program lowering, bitwise cross-device reproducibility, or GPU advantage. It cannot satisfy D-077 without the missing same-session receipts. The continuous packages do not establish arbitrary measurable callbacks, point conditioning, general disintegration, certified numerical bounds, or continuous MDP execution. The game packages verify bounded candidates but do not establish equilibrium existence or unrestricted solving. Universal feedback, arbitrary cyclic open black-boxing, arbitrary-Haskell autodiff, and production training remain out of scope.
 
-The pinned mdBook at <https://josephjohncox.github.io/Markovian/> covers the released API, laws, counterexamples, mathematical foundations, inventory fixtures, and evidence boundaries. Display equations use the vendored MathJax 3.2.2 bundle and checked `\[` and `\]` delimiters.
+The pinned mdBook at <https://josephjohncox.github.io/Markovian/> covers the current development API, explicitly separating released fragments from unreleased proposals, together with laws, counterexamples, mathematical foundations, inventory fixtures, and evidence boundaries. The [checked capability inventory](book/src/capabilities.md) separates availability, decision status and evidence scope; its selected released membership is pinned to the immutable release source, not the current snapshots. Display equations use the vendored MathJax 3.2.2 bundle and checked `\[` and `\]` delimiters.
 
 The [S6 evidence record](evidence/S6-ACYCLIC-OPEN-2026-08-27.md) remains historical evidence for the earlier semantic-tower revision. Do not substitute its test counts for the complete release evidence.
 

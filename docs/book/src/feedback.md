@@ -145,6 +145,6 @@ This subsystem does not establish:
 - finite support for rewardful cyclic transience;
 - continuous disintegration;
 - tensor, device, or numerical correctness;
-- release readiness.
+- release readiness for post-release D-078 work (the bounded D-069 fragments have release evidence).
 
 See [Law catalogue](laws-and-boundaries.md), [Public module map](api-map.md), and [References](references.md).
