@@ -36,8 +36,10 @@ extra-doc-files:
   docs/evidence/D077-WORKTREE-SCOPE.md
   docs/evidence/D081-TRANSPOSE-REVERSE-EQUIVALENCE.md
   docs/evidence/INTEGRATION-DOCS-REPAIR.md
+  docs/evidence/LEARNING-REVIEW-2026-09-05.md
   docs/evidence/S6-ACYCLIC-OPEN-2026-08-27.md
   docs/evidence/TENSOR-SAFETENSORS-REPAIR.md
+  docs/plans/EXECUTABLE-LEARNING-TODO.md
   docs/WORKFLOWS.md
   MIGRATION.md
   README.md
