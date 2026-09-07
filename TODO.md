@@ -245,7 +245,7 @@ S7 status: `DONE` for the bounded scopes defined by D-048 through D-060. The res
 
 ## Executable learning and bounded extensions
 
-- [ ] Execute [the durable implementation checklist](docs/plans/EXECUTABLE-LEARNING-TODO.md), covering documentation truth, compiled teaching examples, the law laboratory, paired-difference reports, exact feedback sensitivity, checked state aggregation, and the D-085 resource contract.
+- [x] Execute [the durable implementation checklist](docs/plans/EXECUTABLE-LEARNING-TODO.md), covering documentation truth, compiled teaching examples, the law laboratory, paired-difference reports, exact feedback sensitivity, checked state aggregation, and the D-085 resource contract. Completed with independent reviews and a parent audit; see [integration evidence](docs/evidence/EXECUTABLE-LEARNING-INTEGRATION.md).
 
 The user authorized this program after [the 2026-09-05 review](docs/evidence/LEARNING-REVIEW-2026-09-05.md). Follow its checkboxes and execution log. Freeze and review each semantic contract before implementation. D-077 through D-085 remain `Proposed`, and released history stays immutable.
 

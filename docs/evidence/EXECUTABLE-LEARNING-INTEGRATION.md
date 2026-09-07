@@ -1,6 +1,6 @@
 # Executable learning: EL-07 integration evidence
 
-Status: **local implementation integration; final independent review pending**.
+Status: **bounded local implementation complete; independently reviewed and parent-audited**.
 Branch: `frontier/executable-learning`; implementation input: `42d7295`.
 This is development evidence, not acceptance, publication or release preparation.
 The [checklist](../plans/EXECUTABLE-LEARNING-TODO.md) and
@@ -16,7 +16,8 @@ fully applied and mutation-tested. The supplied EL-06 review also **passed**, wi
 no findings and high confidence: it checked cumulative resource accounting,
 rational boundaries, saturation, atomic failure, error precedence, independent
 Integer/literal oracles, lesson and archive wiring. Those reviews inspected
-source/logs but did not independently rerun commands. None is a final EL-07 review.
+source/logs but did not independently rerun commands. The later final EL-07 review
+and parent command reruns are recorded below.
 
 Requirement-to-artifact audit:
 
@@ -29,7 +30,7 @@ Requirement-to-artifact audit:
 | Fixed-topology reward sensitivity, not probability/general AD | EL-04 contract, root implementation, determinant/dual-unrolling oracles, cumulative prefix tests, four nominal roles |
 | Supplied fixed-policy partition, not policy/POMDP search | EL-05 contract, opaque owned quotient/witness, joint-law/observation/payoff tests, independent finite values/traces and nine nominal roles |
 | Semantic admission distinct from executor assumptions | EL-06 contract and real checked-bind contrast; hypothetical hit is not a cache/performance implementation |
-| Final integration/review | Local gates below; final independent review and parent completion audit remain open |
+| Final integration/review | Local gates below, final independent review and parent command/requirement audit; all bounded checklist items complete |
 
 No semantic rewrite was needed during integration. Narrow integration repairs:
 CI explicitly builds tests and benchmarks together; CI's Python syntax inventory
@@ -188,5 +189,46 @@ matches the preserved working bytes, including that disclosed diff.
   hosted CI, publication, tag, version or proposal-acceptance result is claimed.
   Index/LSP extension tools were unavailable to this worker; actual compiler
   evidence is authoritative. No cache was rebuilt solely for editor diagnostics.
-- Final EL-07 independent correctness/teaching review and parent checkbox/commit
-  audit are still required. Earlier reviews do not self-award that final gate.
+- The later final EL-07 review and parent completion audit below close the local
+  program. Earlier stage reviews were not used to self-award the final gate.
+
+## Final independent review and parent audit
+
+Reviewer `6956062a-0ea9-408a-ba38-f57445866965` reviewed integration commit
+`fe2b6814c106e31a98b4d5b8100533d9b56bc26d` and returned **passed**, no findings,
+high confidence. It checked the complete checklist, frozen contracts, source
+boundaries, independent oracles, teaching and retained logs. It did not rerun
+commands or Git/archive-byte assertions. Its final review is retained under
+workflow `4fb03c6b-8d5b-4487-9da4-397b39aa5f27`, artifact
+`stages-v4/el07-integration-review.json`; the checklist records the absolute path.
+
+Parent independently reran the full warning-enabled build with tests and
+benchmarks, all 18 suites (293 line-start PASS labels), seven teaching executions,
+33 capability tests, 34 learning-checker tests, release-verified capabilities,
+and the continuous/feedback/aggregation exact-unit boundaries. All passed.
+The archive-only capability/learning gate also passed compilation, seven output
+comparisons and both checker suites. Logs are `/tmp/el-parent-{build,tests,
+learning,capabilities,capability-tests,learning-tests,continuous-boundary,
+feedback-boundary,aggregation-boundary,archive}.log`.
+
+Parent revalidated the existing warning-enabled Haddock installation log and
+all 16 installed interfaces, inspected actual-browser evidence, and verified
+unchanged versions/dependency declarations, immutable release records and tag,
+and Proposed statuses. The initial heading-level assumption in a parent status
+assertion failed; correcting that inspection to the actual three-level headings
+passed without a source change. The unrelated Python formatting diff has an
+identical AST and comments and remains uncommitted.
+
+The requirement-to-artifact audit is complete. Optional expanded benchmark
+unused-dependency enforcement is a future policy decision outside the frozen
+package topology, not an outstanding required gate. The platform and publication
+exclusions above still apply. This final closeout changes only already-shipped
+Markdown records; no runtime or test behavior changed.
+
+Parent reran the final book gate and regenerated all 16 source archives after
+closeout. Byte comparison checked all **106** changed/new distributed paths,
+including the three closeout records and the shipped CI YAML. The first parent
+inventory omitted CI YAML; the additional explicit comparison closed that gap.
+Logs: `/tmp/el-parent-book-final.log`, `/tmp/el-parent-sdist-final.log` and
+`/tmp/el-parent-final-archive-bytes.log`. No bounded-program checklist item remains
+unchecked.
