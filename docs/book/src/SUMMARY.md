@@ -7,8 +7,14 @@
 # Start here
 
 - [Install and build](./installation.md)
+- [Three learning routes](./learning-routes.md)
+- [Orientation and notation](./orientation.md)
+- [Executable law laboratory](./law-laboratory.md)
+- [Resource admission and association](./resource-admission.md)
 - [First exact MDP](./first-mdp.md)
+- [Checked fixed-policy aggregation](./aggregation.md)
 - [Choose an API](./choose-an-api.md)
+- [Checked capability status](./capabilities.md)
 
 # Mathematical foundations
 
@@ -31,6 +37,7 @@
 - [Sampling and tabular learning](./sampling-learning.md)
 - [POMDP filtering and planning](./pomdp.md)
 - [Restricted continuous probability](./continuous-probability.md)
+- [Paired differences and common noise](./paired-difference.md)
 - [Bounded autodiff lowering](./autodiff-lowering.md)
 - [Checked host tensor runtime](./tensor-runtime.md)
 
@@ -42,6 +49,7 @@
 - [Stochastic circuits and deterministic compilation](./circuits.md)
 - [Open systems and acyclic networks](./open-systems.md)
 - [Checked finite feedback](./feedback.md)
+- [Fixed-topology reward sensitivity](./reward-jvp.md)
 - [Finite alternating interaction protocols](./finite-interaction-protocols.md)
 - [Finite open games and pure equilibria](./finite-open-games.md)
 - [Exact mixed, stochastic, and Bayesian games](./mixed-and-bayesian-games.md)

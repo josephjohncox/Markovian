@@ -62,7 +62,10 @@ test-suite markovian-learning-test
   import:           warnings
   type:             exitcode-stdio-1.0
   main-is:          Main.hs
-  other-modules:    TabularLearning
+  other-modules:
+    LearningContexts
+    TabularLearning
+
   hs-source-dirs:   test
   build-depends:
     , base                 >=4.17.2.1    && <4.20

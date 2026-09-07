@@ -98,7 +98,10 @@ test-suite markovian-gpu-test
   type:             exitcode-stdio-1.0
   main-is:          Main.lhs
   hs-source-dirs:   test
-  other-modules:    Paths_markovian_gpu
+  other-modules:
+    GPUContexts
+    Paths_markovian_gpu
+
   autogen-modules:  Paths_markovian_gpu
   build-depends:
     , base              >=4.17.2.1    && <4.20

@@ -27,6 +27,8 @@ extra-doc-files:
   docs/book/theme/vendor/mathjax/LICENSE
   docs/book/theme/vendor/mathjax/README.md
   docs/book/theme/vendor/mathjax/tex-svg-full.js
+  docs/capabilities/current.json
+  docs/capabilities/released-modules.json
   docs/CONTEXT.md
   docs/DECISIONS.md
   docs/evidence/CUDA-2026-08-26.md
@@ -35,9 +37,19 @@ extra-doc-files:
   docs/evidence/D061-2026-09-02.md
   docs/evidence/D077-WORKTREE-SCOPE.md
   docs/evidence/D081-TRANSPOSE-REVERSE-EQUIVALENCE.md
+  docs/evidence/EXECUTABLE-LEARNING-INTEGRATION.md
   docs/evidence/INTEGRATION-DOCS-REPAIR.md
+  docs/evidence/LEARNING-REVIEW-2026-09-05.md
   docs/evidence/S6-ACYCLIC-OPEN-2026-08-27.md
   docs/evidence/TENSOR-SAFETENSORS-REPAIR.md
+  docs/learning/*.txt
+  docs/learning/fences.json
+  docs/learning/output-receipt.json
+  docs/plans/EL-03-PAIRED-DIFFERENCE.md
+  docs/plans/EL-04-REWARD-JVP.md
+  docs/plans/EL-05-AGGREGATION.md
+  docs/plans/EL-06-RESOURCE-ADMISSION.md
+  docs/plans/EXECUTABLE-LEARNING-TODO.md
   docs/WORKFLOWS.md
   MIGRATION.md
   README.md
@@ -90,12 +102,16 @@ extra-source-files:
   scripts/bootstrap-tools
   scripts/check-acyclic-proof-boundary
   scripts/check-acyclic-purity
+  scripts/check-aggregation-boundary
   scripts/check-book
   scripts/check-book-links
+  scripts/check-capabilities
   scripts/check-circuit-purity
   scripts/check-feedback-boundary
   scripts/check-game-core-boundary
   scripts/check-haddock-coverage
+  scripts/check-learning
+  scripts/check-learning-archive
   scripts/check-mixed-game-boundary
   scripts/check-package-manifest
   scripts/check-refinement-roles
@@ -107,10 +123,16 @@ extra-source-files:
   scripts/install-doc-tools
   scripts/prepare-release
   scripts/release_tool.py
+  scripts/test_capabilities.py
+  scripts/test_learning.py
   scripts/test_release_tool.py
   test/compile-fail/ActionRoles.hs
   test/compile-fail/AcyclicProofBoundary.hs
   test/compile-fail/AcyclicPurity.hs
+  test/compile-fail/AggregationOpacity.hs
+  test/compile-fail/AggregationRoles.hs
+  test/compile-fail/AggregationUpdate.hs
+  test/compile-fail/AggregationWitnessUpdate.hs
   test/compile-fail/CircuitPurity.hs
   test/compile-fail/CompiledStateRoles.hs
   test/compile-fail/ExactApplicative.hs
@@ -123,12 +145,15 @@ extra-source-files:
   test/compile-fail/ExactUnchecked.hs
   test/compile-fail/ExactUncheckedBind.hs
   test/compile-fail/FeedbackBoundary.hs
+  test/compile-fail/FeedbackRewardJVPBoundary.hs
+  test/compile-fail/FeedbackRewardJVPOpacity.hs
   test/compile-fail/GameCoreBoundary.hs
   test/compile-fail/MDPActionIdExport.hs
   test/compile-fail/MixedGameBoundary.hs
   test/compile-fail/PushoutKind.hs
   test/compile-fail/RefinementRoles.hs
   test/compile-fail/RootMovedModules.hs
+  test/FeedbackRewardJVPPrivate.hs
   test/golden/affine-feedback-accounting.txt
   test/golden/feedback-accounting.txt
   test/golden/mixed-nash-zero.txt
@@ -152,6 +177,7 @@ library
   import:           warnings
   exposed-modules:
     Markovian.Action
+    Markovian.Aggregation.Exact
     Markovian.Algebra.NonNegativeRational
     Markovian.Algebra.Semiring
     Markovian.Bayesian.Channel.Exact
@@ -243,22 +269,27 @@ test-suite Markovian-test
   main-is:          Main.hs
   other-modules:
     AcyclicOpenSystems
+    AggregationExact
     AlgebraicFoundation
     BayesianExact
     CircuitCostRewrite
     ExactBind
     ExactControl
     FeedbackExact
+    FeedbackRewardJVP
     FeedbackValueExact
     FiniteOpenGames
     GameCore
+    LawLaboratory
     MixedBayesianGames
     OpenSystems
     PushPullExact
+    ResourceAdmission
+    RootContexts
 
   build-depends:
     , base       >=4.17.2.1   && <4.20
     , Markovian  ==2026.9.3.0
 
-  hs-source-dirs:   test
+  hs-source-dirs:   test docs/learning
   default-language: GHC2021

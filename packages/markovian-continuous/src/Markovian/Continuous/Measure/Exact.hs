@@ -44,11 +44,26 @@ module Markovian.Continuous.Measure.Exact (
     firstMarginal,
     secondMarginal,
     expectBivariatePolynomial,
+    PairedDifferenceReport,
+    PairedDifferenceAccounting (..),
+    pairedDifferenceReport,
+    pairedMeanFirst,
+    pairedMeanSecond,
+    pairedVarianceFirst,
+    pairedVarianceSecond,
+    pairedCovariance,
+    pairedMeanDifference,
+    pairedVarianceDifference,
+    pairedIndependentVariance,
+    pairedVarianceExcess,
+    pairedVarianceComparison,
+    pairedDifferenceAccounting,
     ExactLimits (..),
     ExactError (..),
 ) where
 
-import Markovian.Continuous.Internal
+import Markovian.Continuous.Internal hiding (pairedCovariance, pairedDifferenceAccounting, pairedIndependentVariance, pairedMeanDifference, pairedMeanFirst, pairedMeanSecond, pairedVarianceComparison, pairedVarianceDifference, pairedVarianceExcess, pairedVarianceFirst, pairedVarianceSecond)
+import Markovian.Continuous.Internal qualified as Internal
 import Numeric.Natural (Natural)
 
 -- | Make a nominal noise owner from a stable identifier.
@@ -129,6 +144,67 @@ secondMarginal (ExactJointLaw _ right) = right
 -- | Integrate a represented bivariate polynomial exactly.
 expectBivariatePolynomial :: ExactLimits -> ExactJointLaw RealBorel RealBorel -> RationalBivariatePolynomial -> Either ExactError ExactIntegralReport
 expectBivariatePolynomial = expectBivariateInternal
+
+{- | Compare the two coordinates of an already coupled affine-uniform law.
+Returns exact means, variances, covariance and X-Y statistics, including the
+signed excess over independent marginals. LT/EQ/GT mean less/equal/more
+variance. Sharing can increase variance: this is not a coupling constructor
+or a trajectory/policy comparison framework.
+
+One cumulative meter covers the structural preflight, five moments in order
+X, Y, X^2, Y^2, XY, and twelve derived work units. Degree 2 and five input
+terms are required even for Dirac inputs. Every rational intermediate is
+bounded, including discarded values; failure returns no partial report.
+Work is admitted before arithmetic, unlike the legacy bivariate evaluator's
+failure precedence. Rejected counts saturate at the applicable limit plus
+one. Input construction is separately budgeted.
+-}
+pairedDifferenceReport :: ExactLimits -> ExactJointLaw RealBorel RealBorel -> Either ExactError PairedDifferenceReport
+pairedDifferenceReport = pairedDifferenceInternal
+
+-- | Retained E[X].
+pairedMeanFirst :: PairedDifferenceReport -> Rational
+pairedMeanFirst = Internal.pairedMeanFirst
+
+-- | Retained E[Y].
+pairedMeanSecond :: PairedDifferenceReport -> Rational
+pairedMeanSecond = Internal.pairedMeanSecond
+
+-- | Retained Var(X).
+pairedVarianceFirst :: PairedDifferenceReport -> Rational
+pairedVarianceFirst = Internal.pairedVarianceFirst
+
+-- | Retained Var(Y).
+pairedVarianceSecond :: PairedDifferenceReport -> Rational
+pairedVarianceSecond = Internal.pairedVarianceSecond
+
+-- | Retained Cov(X,Y).
+pairedCovariance :: PairedDifferenceReport -> Rational
+pairedCovariance = Internal.pairedCovariance
+
+-- | Retained E[X-Y].
+pairedMeanDifference :: PairedDifferenceReport -> Rational
+pairedMeanDifference = Internal.pairedMeanDifference
+
+-- | Retained Var(X-Y).
+pairedVarianceDifference :: PairedDifferenceReport -> Rational
+pairedVarianceDifference = Internal.pairedVarianceDifference
+
+-- | Retained independent-marginal baseline Var(X)+Var(Y).
+pairedIndependentVariance :: PairedDifferenceReport -> Rational
+pairedIndependentVariance = Internal.pairedIndependentVariance
+
+-- | Retained signed excess Var(X-Y) minus the independent baseline.
+pairedVarianceExcess :: PairedDifferenceReport -> Rational
+pairedVarianceExcess = Internal.pairedVarianceExcess
+
+-- | Retained comparison of difference variance with the independent baseline.
+pairedVarianceComparison :: PairedDifferenceReport -> Ordering
+pairedVarianceComparison = Internal.pairedVarianceComparison
+
+-- | Retained operation-wide accounting; no accessor performs arithmetic.
+pairedDifferenceAccounting :: PairedDifferenceReport -> PairedDifferenceAccounting
+pairedDifferenceAccounting = Internal.pairedDifferenceAccounting
 
 -- | Get the exact rational result.
 exactIntegralValue :: ExactIntegralReport -> Rational

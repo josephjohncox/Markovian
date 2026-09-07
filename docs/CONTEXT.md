@@ -4,7 +4,7 @@ Read this file, `TODO.md`, and the relevant architecture and decision sections b
 
 ## Current state
 
-Markovian `2026.9.3.0` is the first coordinated 16-package release. D-053 through D-076 are `Accepted` only for their stated finite and bounded scopes. D-077 through D-085 are post-release `Proposed` decisions; implementation evidence does not accept them or authorize a package edge, workflow launch, or publication. The root remains `base`-only and exact. Numerical, sampling, learning, continuous, reverse, autodiff, tensor, SafeTensors, neural, and CUDA execution remain in optional packages.
+Markovian `2026.9.3.0` is the first coordinated 16-package release. D-053 through D-076 are `Accepted` only for their stated bounded, represented scopes. D-077 through D-085 are post-release `Proposed` decisions; implementation evidence does not accept them or authorize a package edge, workflow launch, or publication. The root remains `base`-only and exact. Numerical, sampling, learning, continuous, reverse, autodiff, tensor, SafeTensors, neural, and CUDA execution remain in optional packages.
 
 The release record states that the acceptance candidate passed the compiler, source, documentation, archive, checksum, SPDX, and attestation gates. It also records CUDA compile-only, protected GB10, benchmark, fault, and four-tool sanitizer passes. The repository does not retain enough raw same-session material to reconstruct the protected hardware assertions under D-077.
 
@@ -16,7 +16,7 @@ The exact semantic foundation exposes finite sets and objects, law-bearing scala
 
 The historical D-074 CUDA record does not establish general device correctness, arbitrary devices or dtypes, generic tensor graphs, generic reverse-program lowering, bitwise cross-device reproducibility, or GPU advantage. It cannot satisfy D-077 without the missing same-session receipts. The continuous packages do not establish arbitrary measurable callbacks, point conditioning, general disintegration, certified numerical bounds, or continuous MDP execution. The game packages verify bounded candidates but do not establish equilibrium existence or unrestricted solving. Universal feedback, arbitrary cyclic open black-boxing, arbitrary-Haskell autodiff, and production training remain out of scope.
 
-The pinned mdBook at <https://josephjohncox.github.io/Markovian/> covers the released API, laws, counterexamples, mathematical foundations, inventory fixtures, and evidence boundaries. Display equations use the vendored MathJax 3.2.2 bundle and checked `\[` and `\]` delimiters.
+The pinned mdBook at <https://josephjohncox.github.io/Markovian/> covers the current development API, explicitly separating released fragments from unreleased proposals, together with laws, counterexamples, mathematical foundations, inventory fixtures, and evidence boundaries. The [checked capability inventory](book/src/capabilities.md) separates availability, decision status and evidence scope; its selected released membership is pinned to the immutable release source, not the current snapshots. Display equations use the vendored MathJax 3.2.2 bundle and checked `\[` and `\]` delimiters.
 
 The [S6 evidence record](evidence/S6-ACYCLIC-OPEN-2026-08-27.md) remains historical evidence for the earlier semantic-tower revision. Do not substitute its test counts for the complete release evidence.
 
@@ -150,6 +150,25 @@ Feature commit `d99b2c011100d200934dce9e5993a7d070398b39` passed matching [push]
 - D-064 through D-066 define exact owned mixtures and CE/CCE, joint-outcome finite-horizon stochastic games, correlated-prior Harsanyi checks, bounded strategic-normal conversion, and the checked closed-context open-game bridge.
 - D-072 defines the checked host F64 tensor runtime; D-073 admits only the pinned bounded metadata-free F64 SafeTensors profile while broader compatibility claims remain blocked; D-074 defines the prepared matrix/VJP CUDA fragment, admission, ownership, synchronization, cleanup, and fallback boundary.
 - D-077 through D-085 propose bounded GPU evidence governance, affine feedback, joint affine kernels, first-order quotation, affine tensor views, CUDA multiply chains, CE/CCE witnesses, a reference DQN trainer, and interpreter-relative tabulation. Their exact signatures, failure precedence, ownership, topology, limits, and evidence remain under review.
+
+## Executable-learning implementation status
+
+EL-01 contracts and EL-02 teaching passed independent review; the supplied EL-03
+implementation review passed with a non-blocking opacity-probe defect, now repaired
+and mutation-tested. EL-04's fixed-topology event-reward JVP is implemented in the
+exact root under the frozen contract, with one cumulative base-plus-derivative
+meter, exact layouts, nominal ownership, independent determinant/dual-unrolling
+tests and an executed retry lesson. Its probabilities and discount are fixed;
+the lesson's symbolic probability derivative is explicitly outside the API.
+EL-04 passed the supplied independent implementation review. EL-05 now implements
+supplied-partition fixed-policy aggregation in the exact root: an opaque owned
+quotient or bounded distinguishing witness preserves joint reward/next-block laws,
+declared observations and terminal/payoff timing under one cumulative meter.
+Independent finite-value/trace fixtures and an executed success/witness lesson
+provide unreleased evidence. Independent EL-05 review, EL-06's experiment,
+and final EL-07 integration remain pending. The [durable checklist](plans/EXECUTABLE-LEARNING-TODO.md)
+records actual commands and residual gates; none of these implementations accepts
+D-077–D-085 or changes package versions, topology or immutable released evidence.
 
 ## Post-release boundaries
 

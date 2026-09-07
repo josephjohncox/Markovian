@@ -369,7 +369,10 @@ data RationalOperation
     | FinalSummation
 
 data ExactMeter = ExactMeter
-    { meterWork :: Natural
+    { -- The paired operation admits work before arithmetic; legacy bivariate
+      -- failure precedence and successful accounting remain unchanged.
+      meterWorkFirst :: Bool
+    , meterWork :: Natural
     , meterRawExpansionPairs :: Natural
     , meterMaximumCanonicalTerms :: Natural
     , meterMonomialPowerMerges :: Natural
@@ -389,7 +392,8 @@ data ExactMeter = ExactMeter
 emptyMeter :: ExactMeter
 emptyMeter =
     ExactMeter
-        { meterWork = 0
+        { meterWorkFirst = False
+        , meterWork = 0
         , meterRawExpansionPairs = 0
         , meterMaximumCanonicalTerms = 0
         , meterMonomialPowerMerges = 0
@@ -453,16 +457,19 @@ chargeRationalOperation limits operation meter = do
 
 observeRational :: ExactLimits -> Rational -> ExactMeter -> Either ExactError ExactMeter
 observeRational limits value meter = do
-    checkRational limits value
+    if meterWorkFirst meter
+        then checkCount limitRationalBits RationalBitLimitExceeded limits (min (limitRationalBits limits + 1) (rationalBits value))
+        else checkRational limits value
     pure meter{meterMaximumRationalBits = max (meterMaximumRationalBits meter) (rationalBits value)}
 
 checkedMeterRational :: ExactLimits -> RationalOperation -> (Rational -> Rational -> Rational) -> Rational -> Rational -> ExactMeter -> Either ExactError (Rational, ExactMeter)
 checkedMeterRational limits kind operation left right meter = do
-    observedLeft <- observeRational limits left meter
+    admitted <- if meterWorkFirst meter then chargeRationalOperation limits kind meter else pure meter
+    observedLeft <- observeRational limits left admitted
     observedRight <- observeRational limits right observedLeft
     let result = operation left right
     observedResult <- observeRational limits result observedRight
-    charged <- chargeRationalOperation limits kind observedResult
+    charged <- if meterWorkFirst meter then pure observedResult else chargeRationalOperation limits kind observedResult
     pure (result, charged)
 
 observeCanonicalCount :: ExactLimits -> Expansion -> ExactMeter -> Either ExactError ExactMeter
@@ -725,3 +732,134 @@ expectBivariateInternal limits (ExactJointLaw left right) (RationalBivariatePoly
     addInterval acc pair@(owner, _)
         | any ((== owner) . fst) acc = acc
         | otherwise = acc ++ [pair]
+
+{- | Exact one-step comparison of the coordinates of an already coupled law.
+The constructor is private; accessors only project admitted retained fields.
+-}
+data PairedDifferenceReport = PairedDifferenceReport
+    { pairedMeanFirst :: !Rational
+    , pairedMeanSecond :: !Rational
+    , pairedVarianceFirst :: !Rational
+    , pairedVarianceSecond :: !Rational
+    , pairedCovariance :: !Rational
+    , pairedMeanDifference :: !Rational
+    , pairedVarianceDifference :: !Rational
+    , pairedIndependentVariance :: !Rational
+    , pairedVarianceExcess :: !Rational
+    , pairedVarianceComparison :: !Ordering
+    , pairedDifferenceAccounting :: !PairedDifferenceAccounting
+    }
+
+-- | Operation-wide semantic admission charges, not elapsed execution cost.
+data PairedDifferenceAccounting = PairedDifferenceAccounting
+    { pairedWork :: !Natural
+    -- ^ Total successful structural, moment and derived admission charges.
+    , pairedMomentCount :: !Natural
+    -- ^ Five evaluated monomials on every success, including Dirac inputs.
+    , pairedDerivedWork :: !Natural
+    -- ^ Eleven rational operations and one comparison on every success.
+    , pairedRawExpansionPairs :: !Natural
+    -- ^ Cumulative generated Cartesian pairs across all five moments.
+    , pairedMaximumCanonicalTerms :: !Natural
+    -- ^ Largest live canonical expansion, not a sum of finalized moments.
+    , pairedMaximumRationalBits :: !Natural
+    -- ^ Largest numerator or denominator bit size, including discarded values.
+    }
+    deriving stock (Eq, Show)
+
+-- Saturation happens before multiplication: even machine-sized admitted
+-- limits cannot cause a large intermediate reservation or an Int overflow.
+pairedPreflightWork :: Natural -> Natural -> Natural -> Natural
+pairedPreflightWork cap n m = add (add count (multiply count count)) 5
+  where
+    count = add n m
+    add a b = if a >= cap || b >= cap - a then cap else a + b
+    multiply a b
+        | a == 0 || b == 0 = 0
+        | a >= cap || b > cap `div` a = cap
+        | otherwise = min cap (a * b)
+
+pairedDifferenceInternal :: ExactLimits -> ExactJointLaw RealBorel RealBorel -> Either ExactError PairedDifferenceReport
+pairedDifferenceInternal limits (ExactJointLaw (ExactLaw lc ln) (ExactLaw rc rn)) = do
+    validateLimits limits
+    leftNoise <- boundedList (limitTerms limits) TermLimitExceeded ln
+    rightNoise <- boundedList (limitTerms limits) TermLimitExceeded rn
+    checkCount limitDegree DegreeLimitExceeded limits (min 2 (limitDegree limits + 1))
+    checkCount limitTerms TermLimitExceeded limits (min 5 (limitTerms limits + 1))
+    let n = fromIntegral (length leftNoise)
+        m = fromIntegral (length rightNoise)
+        reservation = pairedPreflightWork (limitWork limits + 1) n m
+        left = ExactLaw lc leftNoise
+        right = ExactLaw rc rightNoise
+    checkWork limits reservation
+    checkOwners n
+    checkOwners m
+    checkCanonical leftNoise
+    checkCanonical rightNoise
+    let leftIntervals = lookupIntervals left
+        rightIntervals = lookupIntervals right
+        intervals = leftIntervals ++ filter (\(owner, _) -> owner `notElem` map fst leftIntervals) rightIntervals
+    checkOwners (fromIntegral (length intervals))
+    unless (all (\(owner, interval) -> maybe True (== interval) (lookup owner rightIntervals)) leftIntervals) (Left InconsistentSharedNoise)
+    constants <- foldMExact (flip (observeRational limits)) emptyMeter{meterWorkFirst = True, meterWork = reservation} [lc, rc]
+    inputs <- foldMExact observeNoise constants (leftNoise ++ rightNoise)
+    seeded <- observeRational limits 1 inputs
+    leftAccounted <- accountSupportBounds limits left seeded
+    rightAccounted <- accountSupportBounds limits right leftAccounted
+    (mx, a) <- moment left right intervals (1, 0, 1) rightAccounted
+    (my, b) <- moment left right intervals (0, 1, 1) a
+    (mxx, c) <- moment left right intervals (2, 0, 1) b
+    (myy, d) <- moment left right intervals (0, 2, 1) c
+    (mxy, e) <- moment left right intervals (1, 1, 1) d
+    (sx, f) <- derived (*) mx mx e
+    (vx, g) <- derived (-) mxx sx f
+    (sy, h) <- derived (*) my my g
+    (vy, i) <- derived (-) myy sy h
+    (sxy, j) <- derived (*) mx my i
+    (cov, k) <- derived (-) mxy sxy j
+    (meanDiff, l) <- derived (-) mx my k
+    (baseline, o) <- derived (+) vx vy l
+    literal <- observeRational limits 2 o
+    (twiceCov, p) <- derived (*) 2 cov literal
+    (diffVar, q) <- derived (-) baseline twiceCov p
+    (excess, r) <- derived (-) diffVar baseline q
+    compared <- chargeWorkUnit limits r
+    let comparison = compare diffVar baseline
+    final <- foldMExact (flip (observeRational limits)) compared [mx, my, vx, vy, cov, meanDiff, diffVar, baseline, excess]
+    pure
+        PairedDifferenceReport
+            { pairedMeanFirst = mx
+            , pairedMeanSecond = my
+            , pairedVarianceFirst = vx
+            , pairedVarianceSecond = vy
+            , pairedCovariance = cov
+            , pairedMeanDifference = meanDiff
+            , pairedVarianceDifference = diffVar
+            , pairedIndependentVariance = baseline
+            , pairedVarianceExcess = excess
+            , pairedVarianceComparison = comparison
+            , pairedDifferenceAccounting =
+                PairedDifferenceAccounting
+                    { pairedWork = meterWork final
+                    , pairedMomentCount = 5
+                    , pairedDerivedWork = 12
+                    , pairedRawExpansionPairs = meterRawExpansionPairs final
+                    , pairedMaximumCanonicalTerms = meterMaximumCanonicalTerms final
+                    , pairedMaximumRationalBits = meterMaximumRationalBits final
+                    }
+            }
+  where
+    checkOwners = checkCount limitNoiseOwners NoiseOwnerLimitExceeded limits . min (limitNoiseOwners limits + 1)
+    checkCanonical terms = unless (and (zipWith (\(a, _, _) (b, _, _) -> a < b) terms (drop 1 terms))) (Left DuplicateNoiseOwner)
+    observeNoise meter (_, coefficient, RationalInterval lower upper) = do
+        observed <- foldMExact (flip (observeRational limits)) meter [coefficient, lower, upper]
+        when (lower >= upper) (Left (InvalidInterval lower upper))
+        pure observed
+    moment left right intervals term meter = do
+        (expansion, expanded) <- expandPolynomial limits left right [term] meter
+        evaluateExpansion limits intervals expansion expanded
+    derived operation x y meter = do
+        charged <- chargeWorkUnit limits meter
+        let value = operation x y
+        observed <- observeRational limits value charged
+        pure (value, observed)

@@ -1,0 +1,57 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+project_args=()
+if [[ -f cabal.project && -f cabal.project.ci ]]; then
+  project_args+=(--project-file=cabal.project.ci)
+fi
+tmp_dir="$(mktemp -d)"
+trap 'rm -rf "${tmp_dir}"' EXIT
+# shellcheck disable=SC2016
+cabal exec "${project_args[@]}" -- sh -c 'cp "$GHC_ENVIRONMENT" "$1"' sh "${tmp_dir}/environment"
+package_version="$(awk 'tolower($1) == "version:" { print $2; exit }' Markovian.cabal)"
+root_unit_id="Markovian-${package_version}-inplace"
+if [[ ! "${root_unit_id}" =~ ^Markovian-[0-9]+([.][0-9]+){3}-inplace$ ]]; then
+  echo "Invalid current root unit: ${root_unit_id}" >&2
+  exit 1
+fi
+isolated_package_args=(-package-env -)
+while read -r package_db; do
+  isolated_package_args+=(-package-db "${package_db}")
+done < <(awk '$1 == "package-db" { print $2 }' "${tmp_dir}/environment")
+
+for fixture in AggregationOpacity AggregationRoles AggregationUpdate AggregationWitnessUpdate; do
+  log_file="${tmp_dir}/${fixture}.log"
+  if cabal exec "${project_args[@]}" -- ghc \
+    "${isolated_package_args[@]}" -fno-code -fmax-errors=100 -hide-all-packages \
+    -package base -package-id "${root_unit_id}" \
+    "test/compile-fail/${fixture}.hs" >"${log_file}" 2>&1; then
+    echo "Aggregation opacity or nominal role escaped: ${fixture}" >&2
+    exit 1
+  fi
+  if [[ "${fixture}" == AggregationOpacity ]]; then
+    names=(badCheckedConstructor badWitnessConstructor CheckedAggregation AggregationWitness)
+    grep -E 'Data constructor not in scope|Illegal term-level use of the type constructor' "${log_file}" >/dev/null || { cat "${log_file}" >&2; exit 1; }
+  elif [[ "${fixture}" == AggregationUpdate || "${fixture}" == AggregationWitnessUpdate ]]; then
+    if [[ "${fixture}" == AggregationUpdate ]]; then
+      names=(badCheckedUpdate aggregationMapping)
+    else
+      names=(badWitnessUpdate aggregationWitnessStates)
+    fi
+    grep -E 'not a record selector|Not in scope: record field' "${log_file}" >/dev/null || { cat "${log_file}" >&2; exit 1; }
+  else
+    names=(badCheckedState badCheckedBlock badCheckedObservation badWitnessState badWitnessBlock badWitnessObservation badResultState badResultBlock badResultObservation)
+    grep -F "Couldn't match" "${log_file}" >/dev/null || { cat "${log_file}" >&2; exit 1; }
+  fi
+  for name in "${names[@]}"; do
+    grep -F "${name}" "${log_file}" >/dev/null || { cat "${log_file}" >&2; echo "Missing ${name} failure" >&2; exit 1; }
+  done
+done
+
+# Load the private source context without exporting its reservation helper.
+# The oracle uses unbounded Integer multiplication of the complete formula;
+# inputs include machine-sized counts and zero raw support, but n,b are nonzero.
+cabal exec "${project_args[@]}" -- ghc -package-env - -hide-all-packages -package base \
+  -isrc -XGHC2021 -Wall -Werror src/Markovian/Aggregation/Exact.hs \
+  -e 'let big = toInteger (maxBound :: Int); cases = [(l,n,b,k) | l <- [0,1,2,10,100,big], n <- [1,2,10,big], b <- [1,2,10,big], k <- [0,1,2,10,big]] in if and [toInteger (structuralWork (fromInteger l) (fromInteger n) (fromInteger b) (fromInteger k)) == min (l+1) (4*n*n+2*n*b+n+b+k*(n+b+1)) | (l,n,b,k) <- cases] then putStrLn ("PASS: aggregation saturating preflight, " ++ show (length cases) ++ " Integer-oracle cases") else fail "aggregation saturation mismatch"'
+echo "PASS: aggregation constructor/record-update opacity and nine nominal roles"

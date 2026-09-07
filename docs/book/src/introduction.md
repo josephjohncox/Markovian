@@ -60,6 +60,11 @@ No common `Dagger` or reversal class joins these operations. State pushforward a
 
 ## How to read this book
 
+Choose a [learning route](learning-routes.md), use the [notation guide](orientation.md),
+and predict the results of the [executable law laboratory](law-laboratory.md).
+The [snippet convention](book-workflow.md#snippet-classification) identifies
+compiled fragments, runnable contexts and the three explicit conceptual sketches.
+
 Read [First exact MDP](first-mdp.md) for an executable example. Read [Choose an API](choose-an-api.md) when you have a specific task.
 
 Read [Exact evaluation and control](exact-evaluation.md) for model-based methods. Read [Sampling and tabular learning](sampling-learning.md) for sample-based table updates.
@@ -74,7 +79,7 @@ The final chapters state execution boundaries and unsupported claims. The projec
 
 Release `2026.9.3.0` is the first public API. Pre-release incorrect interfaces were removed instead of being preserved behind a compatibility layer.
 
-The implemented scope is finite and discrete. Cyclic MDP value problems use bounded dynamic programming or Bellman fixed points. Arbitrary cyclic open-graph interpretation remains outside the implemented scope.
+The root core is finite and discrete. The optional `markovian-continuous` package also implements a restricted represented continuous fragment: rational affine-uniform laws and exact polynomial moments, not arbitrary measurable semantics. Cyclic MDP value problems use bounded dynamic programming or Bellman fixed points. Arbitrary cyclic open-graph interpretation remains outside the implemented scope.
 
 ## Mathematical guides
 

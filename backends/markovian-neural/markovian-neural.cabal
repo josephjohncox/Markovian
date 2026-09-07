@@ -80,6 +80,7 @@ test-suite markovian-neural-test
     DenseFiniteDifference
     DQN
     Information
+    NeuralContexts
     ParametricReverse
     PolicyGradient
     Reinforce

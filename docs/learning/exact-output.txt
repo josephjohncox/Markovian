@@ -1,0 +1,14 @@
+A shared (00,01,10,11) = [[1 % 2,0 % 1,0 % 1,1 % 2]]
+A independent = [[1 % 4,1 % 4,1 % 4,1 % 4]]
+A deterministic copy law = True
+B transpose first row = [[1 % 1,1 % 2]]
+B posterior at observation 0 = [Just (2 % 5),Just (3 % 5)]
+B inverse supported rows = [[2 % 5,3 % 5],[0 % 1,1 % 1]]
+B zero evidence = True
+C E[reward * indicator Done] joint = 1 % 1
+C E[reward * indicator Done] independent = 1 % 2
+C additive returns agree = [2 % 1,2 % 1]
+C trace support sizes differ = [2,4]
+D returns (truncated, terminal, one step) = [0 % 1,7 % 1,11 % 2]
+D stop reasons = [[HorizonStop],[TerminalStop (ExactReward (7 % 1))]]
+D realized transition counts = [[0],[1]]

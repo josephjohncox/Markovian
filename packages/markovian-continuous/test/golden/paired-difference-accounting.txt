@@ -1,0 +1,1 @@
+PairedDifferenceAccounting {pairedWork = 1234, pairedMomentCount = 5, pairedDerivedWork = 12, pairedRawExpansionPairs = 81, pairedMaximumCanonicalTerms = 10, pairedMaximumRationalBits = 13}

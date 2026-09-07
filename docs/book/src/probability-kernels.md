@@ -32,6 +32,7 @@ Use checked sequencing with explicit limits:
 
 ```haskell
 limits <- exactBindLimits 4096 8320 13 13
+
 (result, report) <-
   bindExactFiniteDistChecked limits outer (Right . continuation)
 ```
@@ -60,7 +61,7 @@ let sensor = exactKernel $ \surface ->
 Checked Kleisli-style composition integrates over the intermediate value:
 
 \\[
-(L \mathbin{>=>} K)(x)(z)=\sum_y K(x)(y)L(y)(z).
+(K \mathbin{>=>} L)(x)(z)=\sum_y K(x)(y)L(y)(z).
 \\]
 
 `ExactKernel` has an explicit failure channel. `composeExactKernel` requires `ExactBindLimits`; no unrestricted `Category`, `Arrow`, or `ArrowChoice` instance is available. The kernel is one stochastic layer. It is not a recursive transition tree.
@@ -85,6 +86,7 @@ Support equality ignores order. Layout equality compares both support and repres
 
 ```haskell
 sameFiniteSupport left right
+
 sameFiniteLayout left right
 ```
 

@@ -57,6 +57,9 @@ jobs:
           bash scripts/check-release-metadata
           bash scripts/check-release-policy
           python3 scripts/test_release_tool.py
+          python3 scripts/check-capabilities
+          python3 scripts/test_capabilities.py
+          python3 scripts/test_learning.py
           while IFS=$'\t' read -r package_name package_dir _dependency_tier; do
             if [[ -z "${package_name}" || "${package_name}" == \#* ]]; then
               continue
@@ -66,7 +69,8 @@ jobs:
 
       - name: Build without compiler warnings or unused public dependencies
         run: |
-          cabal build all --project-file=cabal.project.ci
+          cabal build all --project-file=cabal.project.ci \
+            --enable-tests --enable-benchmarks
           cabal build all \
             --project-file=cabal.project.ci \
             --ghc-options=-Wunused-packages
@@ -83,6 +87,9 @@ jobs:
             markovian-tensor-bench \
             markovian-gpu-bench \
             --project-file=cabal.project.ci
+
+      - name: Compile teaching contexts and check executed output
+        run: python3 scripts/check-learning --run
 
       - name: Enforce base-only exact root topology
         run: bash scripts/check-root-topology
@@ -117,6 +124,9 @@ jobs:
 
       - name: Enforce checked-feedback witness and endpoint boundaries
         run: bash scripts/check-feedback-boundary
+
+      - name: Enforce supplied-partition aggregation boundaries
+        run: bash scripts/check-aggregation-boundary
 
       - name: Enforce restricted continuous package boundaries
         run: |
@@ -197,6 +207,7 @@ jobs:
           rm -rf sdist sdist-unpacked
           mkdir sdist sdist-unpacked
           cabal sdist all --output-directory=sdist
+          python3 scripts/check-learning-archive sdist
           tarball_count="$(
             find sdist -maxdepth 1 -type f -name '*.tar.gz' | wc -l
           )"
@@ -264,6 +275,7 @@ jobs:
                 bash scripts/check-game-core-boundary
                 bash scripts/check-mixed-game-boundary
                 bash scripts/check-feedback-boundary
+                bash scripts/check-aggregation-boundary
                 bash scripts/check-root-topology
               fi
               if grep -q '^name: *markovian-reverse$' \
@@ -555,7 +567,7 @@ jobs:
           test "$(mdbook --version)" = \
             "mdbook v${MARKOVIAN_MDBOOK_VERSION}"
           hlint \
-            app src test \
+            app src test docs/learning \
             backends/*/src backends/*/test backends/*/bench \
             packages/*/src packages/*/test packages/*/bench
           mapfile -d '' repository_files < <(
@@ -586,6 +598,7 @@ jobs:
             scripts/check-game-core-boundary \
             scripts/check-mixed-game-boundary \
             scripts/check-feedback-boundary \
+            scripts/check-aggregation-boundary \
             scripts/check-release-archive \
             scripts/check-release-metadata \
             scripts/check-release-policy \
@@ -609,12 +622,18 @@ jobs:
             find src app test backends packages -type f -name '*.lhs' | wc -l
           )"
           test "${literate_source_count}" -eq 3
-          find src app test backends packages -type f -name '*.hs' -print0 \
+          find src app test docs/learning backends packages \
+            -type f -name '*.hs' -print0 \
             | sort -z \
             | xargs -0 fourmolu --mode check
           python3 -m py_compile \
             scripts/check-book-links \
             scripts/check-haddock-coverage \
+            scripts/check-capabilities \
+            scripts/test_capabilities.py \
+            scripts/check-learning \
+            scripts/check-learning-archive \
+            scripts/test_learning.py \
             scripts/release_tool.py \
             scripts/test_release_tool.py \
             backends/markovian-gpu/scripts/cuda_profile.py \

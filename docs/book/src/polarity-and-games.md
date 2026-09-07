@@ -127,22 +127,22 @@ The current APIs keep the split explicit:
 
 ```haskell
 pushforward ::
-    Eq y =>
-    Prior x ->
-    StochasticMatrix NonNegativeRational x y ->
-    Either BayesianError (Prior y)
+    (Eq target) =>
+    Prior source ->
+    StochasticMatrix NonNegativeRational source target ->
+    Either BayesianError (Prior target)
 
 pullbackPayoff ::
-    Eq y =>
-    StochasticMatrix NonNegativeRational x y ->
-    ExactPayoff y ->
-    Either PayoffPullbackError (ExactPayoff x)
+    (Eq target) =>
+    StochasticMatrix NonNegativeRational source target ->
+    ExactPayoff target ->
+    Either PayoffPullbackError (ExactPayoff source)
 
 bayesianInverse ::
-    (Eq x, Eq y) =>
-    Prior x ->
-    StochasticMatrix NonNegativeRational x y ->
-    Either BayesianError (BayesianInverse x y)
+    (Eq source, Eq target) =>
+    Prior source ->
+    StochasticMatrix NonNegativeRational source target ->
+    Either BayesianError (BayesianInverse source target)
 ```
 
 `pairStatePayoff` accepts a normalized state matrix `1 -> X` and an `ExactPayoff X`. The exact fixtures check

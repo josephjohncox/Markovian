@@ -57,9 +57,12 @@ The validator rejects missing producers, multiple producers, repeated edge outpu
 
 ```haskell
 topology <- acyclicOpenSystem rawSystem
-domains  <- finiteValueDomains domainEntries
-labels   <- labelCircuitTable localCircuits
-network  <- acyclicOpenCircuit topology domains labels
+
+domains <- finiteValueDomains domainEntries
+
+labels <- labelCircuitTable localCircuits
+
+network <- acyclicOpenCircuit topology domains labels
 ```
 
 The exact interpreter executes edges in a stable topological order. Each edge occurrence executes once.

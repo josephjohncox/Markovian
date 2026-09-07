@@ -1,4 +1,5 @@
 Markovian.Action
+Markovian.Aggregation.Exact
 Markovian.Algebra.NonNegativeRational
 Markovian.Algebra.Semiring
 Markovian.Bayesian.Channel.Exact

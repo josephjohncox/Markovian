@@ -9,8 +9,8 @@ The categorical meaning of sequence, tensor, copy, and discard is explained in [
 Each circuit has one provenance index:
 
 ```haskell
-'Deterministic
-'Stochastic
+type DeterministicExample = 'Deterministic
+type StochasticExample = 'Stochastic
 ```
 
 A deterministic primitive must produce a proof-carrying deterministic matrix. A stochastic primitive must produce a normalized stochastic matrix.
@@ -34,7 +34,7 @@ The circuit language supports:
 Assume `coin` is a circuit from `()` to `Bool`.
 
 ```haskell
-shared = shareCircuit coin
+let shared = shareCircuit coin
 independent <- fanoutCircuit coin coin
 ```
 
@@ -90,8 +90,9 @@ For a deterministic map, copy naturality has the supported equation
 The public candidate constructors cover left identity, right identity, composition reassociation, and deterministic fanout changed to one execution followed by output copy.
 
 ```haskell
-candidate = deduplicateDeterministicRewrite deterministicCircuit
+let candidate = deduplicateDeterministicRewrite deterministicCircuit
 checked <- checkDeterministicRewrite rewriteLimits primitives candidate
+
 comparison <- compareCheckedRewriteCosts costLimits costInterpreter checked
 ```
 
@@ -115,7 +116,8 @@ notTerm <-
     ]
 
 circuit <- compileDeterministicTerm notTerm
-matrix  <- denoteDeterministicTerm notTerm
+
+matrix <- denoteDeterministicTerm notTerm
 ```
 
 Quoted tables provide finite extensional data. The compiler does not compare arbitrary Haskell functions.

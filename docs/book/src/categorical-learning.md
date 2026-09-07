@@ -380,10 +380,10 @@ Fong, Spivak, and Tuyéras show that gradient descent and backpropagation can be
 Markovian does not currently expose a universal `Learner` type. Its dense networks, policies, and update functions are executable finite witnesses of the same separation:
 
 ```haskell
-prediction <- denseForward network features
-parameterCotangent <- denseParameterVJP network features outputCotangent
-inputCotangent <- denseInputVJP network features outputCotangent
-updated <- applySGD optimizer parameterCotangent network
+prediction <- either (fail . show) pure (denseForward network features)
+parameterCotangent <- either (fail . show) pure (denseParameterVJP network features outputCotangent)
+inputCotangent <- either (fail . show) pure (denseInputVJP network features outputCotangent)
+updated <- either (fail . show) pure (applySGD optimizer parameterCotangent network)
 ```
 
 ## Reasoning and efficiency available now

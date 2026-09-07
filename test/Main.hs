@@ -1,21 +1,37 @@
 module Main (main) where
 
 import AcyclicOpenSystems (runAcyclicOpenSystemTests)
+import AggregationExact (runAggregationLesson, runAggregationTests)
 import AlgebraicFoundation (runAlgebraicFoundationTests)
 import BayesianExact (runBayesianExactTests)
 import CircuitCostRewrite (runCircuitCostRewriteTests)
 import ExactBind (runExactBindTests)
 import ExactControl (runExactControlTests)
 import FeedbackExact (runFeedbackExactTests)
+import FeedbackRewardJVP (runFeedbackRewardJVPTests, runRewardJVPLesson)
 import FeedbackValueExact (runFeedbackValueExactTests)
 import FiniteOpenGames (runFiniteOpenGameTests)
 import GameCore (runGameCoreTests)
+import LawLaboratory (runLawLaboratory)
 import MixedBayesianGames (runMixedBayesianGameTests)
 import OpenSystems (runOpenSystemTests)
 import PushPullExact (runPushPullExactTests)
+import ResourceAdmission (runResourceAdmissionLesson, runResourceAdmissionTests)
+import System.Environment (getArgs)
 
 main :: IO ()
 main = do
+    args <- getArgs
+    case args of
+        ["--learning"] -> runLawLaboratory
+        ["--reward-jvp"] -> runRewardJVPLesson
+        ["--aggregation"] -> runAggregationLesson
+        ["--resource-admission"] -> runResourceAdmissionLesson
+        _ -> allTests
+
+allTests :: IO ()
+allTests = do
+    runLawLaboratory
     runAlgebraicFoundationTests run
     runBayesianExactTests run
     runPushPullExactTests run
@@ -23,6 +39,9 @@ main = do
     runExactControlTests run
     runFeedbackExactTests run
     runFeedbackValueExactTests run
+    runFeedbackRewardJVPTests run
+    runAggregationTests run
+    runResourceAdmissionTests run
     runCircuitCostRewriteTests run
     runGameCoreTests run
     runFiniteOpenGameTests run

@@ -1,0 +1,10 @@
+G source budget 10 (reference, hypothetical hit) = [Left (SemanticWorkExceeded 11),Left (SemanticWorkExceeded 11)]
+G source budget 100 (values and separate accounts) = [Right ([1 % 1],Account {semanticUsed = 100, maximumNumeratorBits = 1, maximumDenominatorBits = 1, executorReserved = 100}),Right ([1 % 1],Account {semanticUsed = 100, maximumNumeratorBits = 1, maximumDenominatorBits = 1, executorReserved = 1})]
+G executor budget 10 (reference, hypothetical hit) = [Left (ExecutorWorkExceeded 11),Right ([1 % 1],Account {semanticUsed = 100, maximumNumeratorBits = 1, maximumDenominatorBits = 1, executorReserved = 1})]
+G construction then hit (one request) = Right ([1 % 1,1 % 1],Account {semanticUsed = 200, maximumNumeratorBits = 1, maximumDenominatorBits = 1, executorReserved = 103})
+G changed semantic limit matches key = False
+G same aggregates, different first failures = [Left (DenominatorBitsExceeded 9),Left (SemanticWorkExceeded 2)]
+G admitted bind outcomes (both associations) = [[(0,1 % 4),(3,1 % 4),(3,1 % 4),(6,1 % 4)],[(0,1 % 4),(3,1 % 4),(3,1 % 4),(6,1 % 4)]]
+G left per-call work = [12,16]
+G right outer and two inner work = [12,8,8]
+G left second bind at local budget 12 = Left (ExactBindWorkLimitExceeded 13)

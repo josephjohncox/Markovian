@@ -14,6 +14,8 @@ module Markovian.Feedback.Internal (
     FeedbackMeter,
     feedbackLimits,
     runFeedbackMeter,
+    feedbackAccountingSnapshot,
+    mapFeedbackError,
     throwFeedback,
     chargeFeedbackWork,
     recordFeedbackRational,
@@ -28,6 +30,7 @@ module Markovian.Feedback.Internal (
     checkedProduct,
     checkedSum,
     checkedPower,
+    affineRewardJVPReservations,
     rationalBits,
     checkRational,
     checkedRationalPower,
@@ -159,6 +162,15 @@ runFeedbackMeter ::
 runFeedbackMeter limits mapError computation =
     unFeedbackMeter computation limits mapError emptyFeedbackAccounting
 
+-- | Read the current prefix without resetting the operation-wide ledger.
+feedbackAccountingSnapshot :: FeedbackMeter error FeedbackAccounting
+feedbackAccountingSnapshot = FeedbackMeter $ \_ _ accounting -> Right (accounting, accounting)
+
+-- | Adapt semantic errors while retaining the same limits and cumulative state.
+mapFeedbackError :: (FeedbackLimitError -> source) -> (source -> target) -> FeedbackMeter source value -> FeedbackMeter target value
+mapFeedbackError limitError convert computation = FeedbackMeter $ \limits _ accounting ->
+    either (Left . convert) Right (unFeedbackMeter computation limits limitError accounting)
+
 -- | Stop an accounting computation with a semantic error.
 throwFeedback :: error -> FeedbackMeter error value
 throwFeedback failure = FeedbackMeter $ \_ _ _ -> Left failure
@@ -257,6 +269,26 @@ checkedSum dimension = foldl' step (Right 0)
     step (Right left) right
         | left > maxBoundNatural - right = Left (FeedbackNaturalOverflow dimension)
         | otherwise = Right (left + right)
+
+{- | Frozen conservative EL-04 semantic cells and graph visits, before allocation.
+Return channel cells, total cells, base graph prefix and total graph work.
+-}
+affineRewardJVPReservations :: FeedbackLimits -> Natural -> Natural -> Natural -> Natural -> Either FeedbackLimitError (Natural, Natural, Natural, Natural)
+affineRewardJVPReservations limits x u y e = do
+    s <- checkedSum FeedbackMatrixCellCount [x, u]
+    t <- checkedSum FeedbackMatrixCellCount [u, y]
+    resultWidth <- checkedSum FeedbackMatrixCellCount [1, y]
+    solveWidth <- checkedSum FeedbackMatrixCellCount [u, y, 2]
+    cellTerms <- traverse (checkedProduct FeedbackMatrixCellCount) [[2, s, e], [s, t], [2, s, resultWidth], [u, solveWidth]]
+    cells <- checkedSum FeedbackMatrixCellCount cellTerms
+    checkLimit FeedbackMatrixCellCount (maximumFeedbackMatrixCells limits) cells
+    baseCells <- checkedProduct FeedbackMatrixCellCount [s, e]
+    baseGraphTerms <- traverse (checkedProduct FeedbackGraphWork) [[e, t], [4, s, e], [s, e, t]]
+    baseGraph <- checkedSum FeedbackGraphWork (s : e : baseGraphTerms)
+    directionVisits <- checkedProduct FeedbackGraphWork [4, s, e]
+    graph <- checkedSum FeedbackGraphWork [baseGraph, s, e, directionVisits]
+    checkLimit FeedbackGraphWork (maximumFeedbackGraphWork limits) graph
+    pure (baseCells, cells, baseGraph, graph)
 
 checkedPower :: FeedbackLimitDimension -> Natural -> Natural -> Either FeedbackLimitError Natural
 checkedPower dimension base = go 1

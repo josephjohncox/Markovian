@@ -30,11 +30,15 @@ extra-source-files:
   test/compile-fail/JointAffineBoundary.hs
   test/compile-fail/JointAffineRoles.hs
   test/compile-fail/JointAffineWrongScope.hs
+  test/compile-fail/PairedDifferenceBoundary.hs
+  test/compile-fail/PairedDifferenceRecordUpdate.hs
+  test/PairedDifferencePrivate.hs
 
 data-files:
   test/golden/bivariate-accounting.txt
   test/golden/joint-affine-accounting.txt
   test/golden/joint-affine-renaming-accounting.txt
+  test/golden/paired-difference-accounting.txt
 
 source-repository head
   type:     git
@@ -74,6 +78,7 @@ test-suite markovian-continuous-test
   hs-source-dirs:   test
   other-modules:
     JointAffine
+    PairedDifference
     Paths_markovian_continuous
 
   autogen-modules:  Paths_markovian_continuous

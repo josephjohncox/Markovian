@@ -1,0 +1,24 @@
+U versus U
+  means = (1 % 2,1 % 2)
+  variances = (1 % 12,1 % 12)
+  covariance = 1 % 12
+  mean difference = 0 % 1
+  difference variance = 0 % 1
+  independent baseline = 1 % 6
+  signed excess/comparison = ((-1) % 6,LT)
+U versus 1-U
+  means = (1 % 2,1 % 2)
+  variances = (1 % 12,1 % 12)
+  covariance = (-1) % 12
+  mean difference = 0 % 1
+  difference variance = 1 % 3
+  independent baseline = 1 % 6
+  signed excess/comparison = (1 % 6,GT)
+independent uniforms
+  means = (1 % 2,1 % 2)
+  variances = (1 % 12,1 % 12)
+  covariance = 0 % 1
+  mean difference = 0 % 1
+  difference variance = 1 % 6
+  independent baseline = 1 % 6
+  signed excess/comparison = (0 % 1,EQ)

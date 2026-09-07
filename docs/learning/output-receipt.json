@@ -1,0 +1,12 @@
+{
+  "sources": "9a6a84b2dee3ba15e4375c36e65ca81019bdb94678778493366eaf8dc10e2a93",
+  "outputs": {
+    "docs/learning/resource-admission-output.txt": "e0741f495cd28a62707416a1960c18b1edb040b58ad14adfb8bd0156d5755478",
+    "docs/learning/aggregation-output.txt": "b8426c923298e6f15515cd0e33dd566dbcbcfb6ee8b7a8af9d342a1362b07551",
+    "docs/learning/reward-jvp-output.txt": "95b7587cded8ce566b6a3dc0ba79831181fd396d70d22c1a33bf4a2e290cb4cd",
+    "docs/learning/paired-output.txt": "0310cc3d3bd7abd9fdf8f246eb3624e7df5c5c5b0373c5bed381b07a1aa83bc8",
+    "docs/learning/sample-output.txt": "bfb557017a03153c8a9f8df88a8c985efa13b9df8183f63bf93a141cc8e7114e",
+    "docs/learning/exact-output.txt": "2d02769dd8a1087b9e5c6ec0a6865d1f6c0797acce28798234171645ea1037d0",
+    "docs/learning/tensor-output.txt": "61c3213b61ba2e474c067bf0b044dc8986242c41908b39aec20d01258a444237"
+  }
+}

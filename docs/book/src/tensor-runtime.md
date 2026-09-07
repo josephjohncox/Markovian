@@ -11,12 +11,16 @@ rank-zero scalar. `SCons` adds a dimension. A zero dimension gives zero
 elements.
 
 ```haskell
-matrixShape = SCons (Proxy @2) (SCons (Proxy @3) SNil)
-
-result <- withTensorSession limits $ \session -> do
-  input <- finiteTensorFromList session matrixShape [1, 2, 3, 4, 5, 6]
-  -- inspect or execute input here; it cannot escape this region
+let matrixShape = SCons (Proxy @2) (SCons (Proxy @3) SNil)
+    viewShape = SCons (Proxy @3) (SCons (Proxy @2) SNil)
+(base, _) <- checked =<< finiteTensorFromList session matrixShape [1, 2, 3, 4, 5, 6]
+let view = transposeFinite2D base
 ```
+
+This fragment runs inside the checked `withTensorSession` in
+[laboratory F](law-laboratory.md#f-logical-coordinates-storage-and-derivatives).
+Its `checked` helper turns a failed `Either` into an IO failure; neither tensor
+nor view escapes the region. The same laboratory shows the complete runnable context.
 
 Session admission consumes at most the allowed rank plus one singleton nodes.
 It checks rank and each dimension before it evaluates a capped element product,
@@ -117,7 +121,7 @@ strategic duality, or disintegration.
 
 ## Optional device fragment
 
-`markovian-gpu` depends on this package and `markovian-tensor-reverse`, but it
+`markovian-gpu` depends directly on `markovian-tensor`, not on `markovian-tensor-reverse`. It
 does not add a device API to `HostTensor` or a CUDA reverse-program resolver.
 It prepares only positive-size F64 matrix multiplication and the
 declared matrix-product VJP. Plans bound transfer bytes, scalar work, and user
@@ -154,9 +158,9 @@ all primitive symbols.
 `markovian-tensor` owns the public `Markovian.Tensor.Reverse` closed primitive-tape API. Its allocator capability remains private inside that package. `markovian-tensor-reverse` supplies a rank-2 host executor for only F64 `tanh` and pointwise multiplication. Its tapes and tensors cannot escape the session.
 The tensor allocator preflights all outputs, stages allocations before commit,
 rolls back a partial set, and explicitly closes committed allocations after
-success, `Left`, or exceptions. This evidence does not establish arbitrary
-tensor lowering, CUDA lowering, or release readiness. D-067 remains
-`Proposed` until its full gates pass.
+success, `Left`, or exceptions. D-067 is `Accepted` for the released bounded
+effect interpreter and host adapter. That release evidence does not establish
+arbitrary tensor lowering or CUDA reverse-program lowering.
 
 ## Bounded SafeTensors profile
 

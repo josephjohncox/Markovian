@@ -77,7 +77,10 @@ test-suite markovian-tensor-test
   type:             exitcode-stdio-1.0
   main-is:          Main.hs
   hs-source-dirs:   test
-  other-modules:    Paths_markovian_tensor
+  other-modules:
+    Paths_markovian_tensor
+    TensorLawLaboratory
+
   autogen-modules:  Paths_markovian_tensor
   build-depends:
     , base              >=4.17.2.1   && <4.20

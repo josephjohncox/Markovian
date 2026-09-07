@@ -74,3 +74,36 @@ if ! grep -F "Couldn't match" "${log_file}" >/dev/null; then
 fi
 
 echo "PASS: feedback witness and coefficient opacity, nominal roles, and channel separation"
+
+if cabal exec "${project_args[@]}" -- ghc \
+  "${isolated_package_args[@]}" \
+  -fno-code -fmax-errors=100 -hide-all-packages \
+  -package base -package-id "${root_unit_id}" \
+  test/compile-fail/FeedbackRewardJVPBoundary.hs >"${log_file}" 2>&1; then
+  echo "Opaque reward JVP or nominal roles were accepted." >&2
+  exit 1
+fi
+for rejected_operation in badRewardJVPOwnerCoerce badRewardJVPInputCoerce badRewardJVPLoopCoerce badRewardJVPOutputCoerce; do
+  if ! grep -F "${rejected_operation}" "${log_file}" >/dev/null; then
+    cat "${log_file}" >&2
+    echo "Missing reward JVP boundary failure: ${rejected_operation}" >&2
+    exit 1
+  fi
+done
+if cabal exec "${project_args[@]}" -- ghc \
+  "${isolated_package_args[@]}" -fno-code -hide-all-packages \
+  -package base -package-id "${root_unit_id}" \
+  test/compile-fail/FeedbackRewardJVPOpacity.hs >"${log_file}" 2>&1; then
+  echo "Reward JVP constructor escaped." >&2
+  exit 1
+fi
+for rejected_operation in badRewardJVPConstructor UnsafeCheckedAffineRewardJVP; do
+  grep -F "${rejected_operation}" "${log_file}" >/dev/null || { cat "${log_file}" >&2; exit 1; }
+done
+# Compile private reservation probes without exposing the internal module.
+cabal exec "${project_args[@]}" -- ghc \
+  -package-env - -hide-all-packages -package base -isrc -XGHC2021 \
+  -Wall -Werror -outputdir "${tmp_dir}/private" \
+  test/FeedbackRewardJVPPrivate.hs -o "${tmp_dir}/reward-jvp-private"
+"${tmp_dir}/reward-jvp-private"
+echo "PASS: reward JVP constructor opacity and four nominal roles"

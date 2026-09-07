@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Add the opaque EL-03 exact paired-difference report on existing joint laws: exact marginal moments, covariance, difference moments, independent variance baseline and signed comparison. One cumulative meter covers saturated structural preflight, all five moments, twelve derived units and discarded rational intermediates, with work-before-arithmetic admission and atomic failure. Preserve the legacy bivariate API and goldens. Add direct affine-uniform oracle fixtures, exact/one-below and failure-order tests, opacity/private-invariant probes and the executable common-noise counterexample lesson. EL-03 and D-079 remain Proposed; no trajectory/policy framework or dependency edge is added.
+
 - Add D-079 Gate A exact joint affine kernels with nominal local owner scopes, duplicate-before-zero-filter admission, real-Borel exact joint-law materialization, exact support extrema, same-scope partial alpha-renaming, complete-map scope transitions, bounded cumulative reports, and compile-fail role and space checks. D-079 remains Proposed.
 
 ## 2026.9.3.0 — 2026-09-03

@@ -1,8 +1,8 @@
 # Public module map
 
-This map describes the `2026.9.3.0` released API. `release/exposed-modules` contains the checked package snapshots.
+This map describes the **current development** API. `release/exposed-modules` contains mutable, checked current package snapshots, not immutable published snapshots. The `v2026.9.3.0` API is the surface at its recorded source revision in `release/published-releases.json`; unchanged development versions do not imply release availability. See the [checked capability record](capabilities.md).
 
-The unaccepted D-061 migration keeps the root on exact and exact-neutral structural modules. Optional packages currently own numerical, sampled, learning, dense, and benchmark modules. This map records the working API, not release acceptance.
+The accepted D-061 migration keeps the root on exact and exact-neutral structural modules. Optional packages own numerical, sampled, learning, dense, and benchmark modules.
 
 | Package | Public ownership |
 | --- | --- |
@@ -51,6 +51,7 @@ D-061 is `Accepted` for the reviewed package graph. D-067 is accepted only for t
 | --- | --- |
 | `Markovian.Interpreter.Exact` | Exact traces and expected returns |
 | `Markovian.Compile.Exact` | Policy-free exact MDP compilation and separate policy closure |
+| `Markovian.Aggregation.Exact` | Unreleased [supplied-partition fixed-policy checker](aggregation.md): opaque owned quotient or bounded distinguishing witness; joint reward/next-block laws, observations and terminal payoffs; EL-05 Proposed |
 | `Markovian.Interpreter.DynamicProgramming.Exact` | Finite-horizon policy evaluation |
 | `Markovian.Interpreter.Bellman.Exact` | Discounted contraction policy evaluation |
 | `Markovian.Interpreter.Control.Exact` | Exact value iteration, greedy extraction, and policy iteration |
@@ -109,7 +110,7 @@ The old `Markovian.Category.Finite.Exact` module is private regression code. No 
 | `Markovian.Feedback.Channel.Exact` | Proper first-exit coproduct routing with exact solve evidence |
 | `Markovian.Feedback.Delay.Exact` | Explicit seed and bounded one-tick delayed execution |
 | `Markovian.Feedback.Timed.Exact` | Nilpotent reward-, duration-, and output-preserving closure |
-| `Markovian.Feedback.Value.Exact` | Proposed strict-discount affine `A` and `K` value coefficients |
+| `Markovian.Feedback.Value.Exact` | Unreleased strict-discount affine `A`/`K` coefficients and `closeAffineFeedbackRewardJVP`: opaque jointly owned base and event-reward derivative, exact layout checks and one cumulative ledger; fixed probabilities/discount only; D-078 and EL-04 Proposed |
 
 These modules provide no universal trace, instantaneous fixed-point operator, cyclic open-system black-boxing, or stationary-distribution selector. The value module returns no evaluator or normalized output channel. D-078 remains `Proposed`.
 
@@ -165,7 +166,7 @@ These are candidate semantics, not unrestricted solvers. They provide no equilib
 | `markovian-continuous: Markovian.Continuous.Space` | Closed finite, real, and product standard-Borel witnesses |
 | `markovian-continuous: Markovian.Continuous.Map` | Rational affine measurable real maps |
 | `markovian-continuous: Markovian.Continuous.Polynomial` | Bounded rational univariate and bivariate polynomials |
-| `markovian-continuous: Markovian.Continuous.Measure.Exact` | Affine-uniform laws, exact polynomial moments, and shared-noise joints |
+| `markovian-continuous: Markovian.Continuous.Measure.Exact` | Affine-uniform laws, exact polynomial moments, shared-noise joints, and the unreleased [paired-difference report](paired-difference.md) |
 | `markovian-continuous: Markovian.Continuous.Kernel.Exact` | Checked affine additive-uniform kernels and fallible composition |
 | `markovian-continuous: Markovian.Continuous.Condition.Exact` | Positive-evidence finite affine-likelihood conditioning |
 | `markovian-continuous-numerical: Markovian.Continuous.Numerical.Value` | Finite values and explicit rational rounding reports |

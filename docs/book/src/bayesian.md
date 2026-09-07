@@ -27,8 +27,8 @@ q(y)=\sum_x p(x)K(x,y).
 \\]
 
 ```haskell
-outputPrior <- pushforward sourcePrior channel
-evidence    <- observationEvidence sourcePrior channel observed
+outputPrior <- either (fail . show) pure (pushforward sourcePrior channel)
+evidence <- either (fail . show) pure (observationEvidence sourcePrior channel observed)
 ```
 
 ## Conditioning
@@ -71,7 +71,7 @@ Exact arithmetic preserves this result without a floating tolerance.
 
 ```haskell
 inverse <- bayesianInverse sourcePrior channel
-reverseChannel = inverseMatrix inverse
+let reverseChannel = inverseMatrix inverse
 ```
 
 The inverse maps positive output support to positive input support. It does not invent rows for zero-evidence observations.

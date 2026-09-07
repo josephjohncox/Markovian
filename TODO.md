@@ -243,6 +243,12 @@ Do not claim arbitrary-Haskell autodiff, differentiation through sampling, gener
 
 S7 status: `DONE` for the bounded scopes defined by D-048 through D-060. The research boundaries listed below remain out of scope.
 
+## Executable learning and bounded extensions
+
+- [x] Execute [the durable implementation checklist](docs/plans/EXECUTABLE-LEARNING-TODO.md), covering documentation truth, compiled teaching examples, the law laboratory, paired-difference reports, exact feedback sensitivity, checked state aggregation, and the D-085 resource contract. Completed with independent reviews and a parent audit; see [integration evidence](docs/evidence/EXECUTABLE-LEARNING-INTEGRATION.md).
+
+The user authorized this program after [the 2026-09-05 review](docs/evidence/LEARNING-REVIEW-2026-09-05.md). Follow its checkboxes and execution log. Freeze and review each semantic contract before implementation. D-077 through D-085 remain `Proposed`, and released history stays immutable.
+
 ## Post-release roadmap
 
 This roadmap schedules governance review before acceptance. D-077 through D-085 remain `Proposed`. New implementation work is `BLOCKED` until the applicable decision freezes exact exported signatures, failure precedence, package topology, ownership, limits, and evidence. Existing proposal-stage implementation evidence remains unaccepted until it is reviewed against that frozen contract.

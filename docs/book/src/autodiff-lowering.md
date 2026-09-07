@@ -181,7 +181,7 @@ The quotation API is not ordinary Haskell quotation, Template Haskell, a compile
 It has no effects, higher-order values, nested differentiation, or exact transcendental `Double` semantics.
 It does not differentiate sampling.
 It does not claim exact floating algebra or cross-platform transcendental identity.
-It does not claim release readiness.
+The bounded closed-language package has `2026.9.3.0` release evidence. The post-release D-080 quotation work is unreleased and remains `Proposed`; its fixture evidence is not release acceptance. Neither establishes the stronger capabilities excluded above.
 
 ## References
 

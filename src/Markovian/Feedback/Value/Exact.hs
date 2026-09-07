@@ -39,12 +39,20 @@ module Markovian.Feedback.Value.Exact (
     affineFeedbackExternalCoefficients,
     affineFeedbackInternalCoefficients,
     affineFeedbackReport,
+    AffineRewardJVPError (..),
+    AffineRewardJVPReport (..),
+    CheckedAffineRewardJVP,
+    closeAffineFeedbackRewardJVP,
+    affineRewardJVPBase,
+    affineRewardJVPExternal,
+    affineRewardJVPInternal,
+    affineRewardJVPReport,
 ) where
 
 import Data.List (findIndex)
 import Markovian.Algebra.NonNegativeRational (NonNegativeRational, getNonNegativeRational)
 import Markovian.Category.Finite.Set (FiniteSet, finiteSetCardinality, finiteSetValues, sameFiniteLayout)
-import Markovian.Category.Matrix (matrixRows)
+import Markovian.Category.Matrix (Matrix, matrixRows, matrixSource, matrixTarget)
 import Markovian.Category.Matrix.Stochastic
 import Markovian.Feedback.Internal
 import Markovian.Feedback.Timed.Exact (FeedbackEvent (..))
@@ -176,18 +184,7 @@ closeAffineFeedback limits discount inputs (UnsafeLoopLayout owner loops) output
             mapM_
                 (recordFeedbackRational FeedbackInputPhase "affine feedback channel input")
                 (concat rationalRows)
-            (mX, b, eX) <- aggregateRows events inputRows loopValues outputValues
-            (mU, d, eU) <- aggregateRows events internalRows loopValues outputValues
-            (internalA, internalK) <- solveInternal gamma d mU eU
-            (externalA, externalK) <- deriveExternal gamma mX b eX internalA internalK
-            validateExternalConstant gamma mX b internalA externalA
-            validateInternalConstant gamma loopValues mU d internalA
-            validateExternalContinuation gamma outputValues eX b internalK externalK
-            validateInternalContinuation gamma loopValues outputValues eU d internalK
-            mapM_ (recordFeedbackRational FeedbackRetainedResultPhase "affine feedback retained external A") externalA
-            mapM_ (recordFeedbackRational FeedbackRetainedResultPhase "affine feedback retained internal A") internalA
-            mapM_ (mapM_ (recordFeedbackRational FeedbackRetainedResultPhase "affine feedback retained external K")) externalK
-            mapM_ (mapM_ (recordFeedbackRational FeedbackRetainedResultPhase "affine feedback retained internal K")) internalK
+            (externalA, internalA, externalK, internalK, _, _) <- constructBase gamma events inputRows internalRows loopValues outputValues
             pure (externalA, internalA, externalK, internalK)
     let external = UnsafeAffineFeedbackCoefficients inputs outputs externalA externalK
         internal = UnsafeAffineFeedbackCoefficients loops outputs internalA internalK
@@ -228,6 +225,186 @@ affineFeedbackInternalCoefficients (UnsafeCheckedAffineFeedback _ internal _) = 
 affineFeedbackReport :: CheckedAffineFeedback owner input loop output -> AffineFeedbackReport owner
 affineFeedbackReport (UnsafeCheckedAffineFeedback _ _ report) = report
 
+-- | Failure from a fixed-topology event-reward direction.
+data AffineRewardJVPError loop output
+    = AffineRewardJVPBaseError !(AffineFeedbackError loop output)
+    | AffineRewardJVPDirectionSourceLayoutMismatch
+    | AffineRewardJVPDirectionEventLayoutMismatch
+    | AffineRewardJVPInternalConstantEquationFailure !loop
+    | AffineRewardJVPExternalConstantEquationFailure !Int
+    | AffineRewardJVPInternalContinuationEquationFailure !loop !output
+    | AffineRewardJVPExternalContinuationEquationFailure !Int !output
+    deriving (Eq, Show)
+
+{- | Operation-wide reservations and cumulative base-plus-derivative accounting.
+The equation count is eight families, including vacuous families.
+-}
+data AffineRewardJVPReport owner = AffineRewardJVPReport
+    { affineRewardJVPOwner :: !owner
+    , affineRewardJVPMatrixCells :: !Natural
+    , affineRewardJVPGraphWork :: !Natural
+    , affineRewardJVPValidatedEquations :: !Natural
+    , affineRewardJVPAccounting :: !FeedbackAccounting
+    }
+    deriving (Eq, Show)
+
+-- | Opaque jointly owned base coefficients and checked reward derivative.
+type role CheckedAffineRewardJVP nominal nominal nominal nominal
+
+data CheckedAffineRewardJVP owner input loop output
+    = UnsafeCheckedAffineRewardJVP
+        !(CheckedAffineFeedback owner input loop output)
+        !(AffineFeedbackCoefficients input output)
+        !(AffineFeedbackCoefficients loop output)
+        !(AffineRewardJVPReport owner)
+
+-- | Read the base prefix. Its accounting is not the full JVP accounting.
+affineRewardJVPBase :: CheckedAffineRewardJVP owner input loop output -> CheckedAffineFeedback owner input loop output
+affineRewardJVPBase (UnsafeCheckedAffineRewardJVP base _ _ _) = base
+
+-- | External derivative A and zero derivative K on the retained layouts.
+affineRewardJVPExternal :: CheckedAffineRewardJVP owner input loop output -> AffineFeedbackCoefficients input output
+affineRewardJVPExternal (UnsafeCheckedAffineRewardJVP _ external _ _) = external
+
+-- | Internal derivative A and zero derivative K on the retained layouts.
+affineRewardJVPInternal :: CheckedAffineRewardJVP owner input loop output -> AffineFeedbackCoefficients loop output
+affineRewardJVPInternal (UnsafeCheckedAffineRewardJVP _ _ internal _) = internal
+
+-- | Read the authoritative operation-wide account, not a sum of public calls.
+affineRewardJVPReport :: CheckedAffineRewardJVP owner input loop output -> AffineRewardJVPReport owner
+affineRewardJVPReport (UnsafeCheckedAffineRewardJVP _ _ _ report) = report
+
+{- | Differentiate the real family @r(e) + t*h(s,e)@ at rational data.
+
+Probabilities, strict discount, routes and event slots are fixed. Signed
+reward directions (including zero-mass slots) must have exactly the channel's
+ordered source and full event layouts. This is neither probability sensitivity
+nor general autodiff. Four base and four derivative equation families are
+checked literally under one atomic cumulative ledger.
+
+Precedence is source/loop/output/event counts, conservative matrix-cell and
+graph reservations, base event targets, base source layout, direction source
+then event layout, all rational inputs, base prefix, derivative solve and
+validation, retained derivative observations. No zero-direction shortcut is
+used. See the frozen EL-04 contract for the deterministic reservation formula.
+-}
+closeAffineFeedbackRewardJVP ::
+    (Eq input, Eq output) =>
+    FeedbackLimits ->
+    ExactContractionDiscount ->
+    FiniteSet input ->
+    LoopLayout owner loop ->
+    FiniteSet output ->
+    StochasticMatrix NonNegativeRational (Either input loop) (FeedbackEvent loop output) ->
+    Matrix Rational (Either input loop) (FeedbackEvent loop output) ->
+    Either (AffineRewardJVPError loop output) (CheckedAffineRewardJVP owner input loop output)
+closeAffineFeedbackRewardJVP limits discount inputs (UnsafeLoopLayout owner loops) outputs channel direction = do
+    let x = cardinality inputs
+        u = cardinality loops
+        y = cardinality outputs
+        e = cardinality (stochasticTarget channel)
+        events = finiteSetValues (stochasticTarget channel)
+        loopValues = finiteSetValues loops
+        outputValues = finiteSetValues outputs
+        limit = either (Left . AffineRewardJVPBaseError . AffineFeedbackLimitError) Right
+    limit $ checkLimit FeedbackSourceCount (maximumFeedbackSources limits) x
+    limit $ checkLimit FeedbackLoopCount (maximumFeedbackLoops limits) u
+    limit $ checkLimit FeedbackOutputCount (maximumFeedbackOutputs limits) y
+    limit $ checkLimit FeedbackTraceOutcomeCount (maximumFeedbackTraceOutcomes limits) e
+    (baseCells, cells, baseGraph, graph) <- limit $ affineRewardJVPReservations limits x u y e
+    mapM_ (either (Left . AffineRewardJVPBaseError) Right . validateEvent) events
+    if sameFiniteLayout (sumFiniteSet inputs loops) (stochasticSource channel)
+        then Right ()
+        else Left (AffineRewardJVPBaseError AffineFeedbackSourceLayoutMismatch)
+    if sameFiniteLayout (stochasticSource channel) (matrixSource direction)
+        then Right ()
+        else Left AffineRewardJVPDirectionSourceLayoutMismatch
+    if sameFiniteLayout (stochasticTarget channel) (matrixTarget direction)
+        then Right ()
+        else Left AffineRewardJVPDirectionEventLayoutMismatch
+    let gamma = exactContractionDiscountValue discount
+        rows = map (map getNonNegativeRational) (matrixRows (forgetStochastic channel))
+        directions = matrixRows direction
+        (inputRows, internalRows) = splitAt (finiteSetCardinality inputs) rows
+        baseAction = mapFeedbackError AffineFeedbackLimitError AffineRewardJVPBaseError
+        derivativeCheck = mapFeedbackError AffineFeedbackLimitError derivativeError
+    ((baseValues, prefix, dAX, dAU, dKX, dKU), accounting) <-
+        runFeedbackMeter limits (AffineRewardJVPBaseError . AffineFeedbackLimitError) $ do
+            _ <- recordFeedbackRational FeedbackInputPhase "affine feedback discount input" gamma
+            mapM_ (recordEventReward "affine feedback event reward") events
+            mapM_ (recordFeedbackRational FeedbackInputPhase "affine feedback channel input") (concat rows)
+            mapM_ (recordFeedbackRational FeedbackInputPhase "affine reward direction input") (concat directions)
+            baseValues@(_, _, _, _, b, d) <- baseAction $ constructBase gamma events inputRows internalRows loopValues outputValues
+            prefix <- feedbackAccountingSnapshot
+            hm <- traverse (uncurry (dot "affine reward direction")) (zip rows directions)
+            let (hmX, hmU) = splitAt (finiteSetCardinality inputs) hm
+                dKU = replicate (finiteSetCardinality loops) (replicate (finiteSetCardinality outputs) 0)
+                dKX = replicate (finiteSetCardinality inputs) (replicate (finiteSetCardinality outputs) 0)
+            (dAU, _) <- baseAction $ solveInternal gamma d hmU (replicate (finiteSetCardinality loops) [])
+            dAX <- traverse (deriveDirection gamma dAU) (zip hmX b)
+            derivativeCheck $ validateExternalConstant gamma hmX b dAU dAX
+            derivativeCheck $ validateInternalConstant gamma loopValues hmU d dAU
+            derivativeCheck $ validateExternalContinuation gamma outputValues dKX b dKU dKX
+            derivativeCheck $ validateInternalContinuation gamma loopValues outputValues dKU d dKU
+            mapM_ (recordFeedbackRational FeedbackRetainedResultPhase "affine reward JVP retained external A") dAX
+            mapM_ (recordFeedbackRational FeedbackRetainedResultPhase "affine reward JVP retained internal A") dAU
+            mapM_ (mapM_ (recordFeedbackRational FeedbackRetainedResultPhase "affine reward JVP retained external K")) dKX
+            mapM_ (mapM_ (recordFeedbackRational FeedbackRetainedResultPhase "affine reward JVP retained internal K")) dKU
+            pure (baseValues, prefix, dAX, dAU, dKX, dKU)
+    let (aX, aU, kX, kU, _, _) = baseValues
+        baseReport = AffineFeedbackReport owner gamma x u y e baseCells baseGraph 4 (feedbackArithmeticWork prefix) (feedbackMaximumRetainedResultBits prefix) prefix
+        base = UnsafeCheckedAffineFeedback (UnsafeAffineFeedbackCoefficients inputs outputs aX kX) (UnsafeAffineFeedbackCoefficients loops outputs aU kU) baseReport
+        external = UnsafeAffineFeedbackCoefficients inputs outputs dAX dKX
+        internal = UnsafeAffineFeedbackCoefficients loops outputs dAU dKU
+        report = AffineRewardJVPReport owner cells graph 8 accounting
+    pure (UnsafeCheckedAffineRewardJVP base external internal report)
+  where
+    validateEvent (Continue _ value)
+        | value `elem` finiteSetValues loops = Right ()
+        | otherwise = Left (AffineFeedbackContinueOutsideLoop value)
+    validateEvent (Exit _ value)
+        | value `elem` finiteSetValues outputs = Right ()
+        | otherwise = Left (AffineFeedbackExitOutsideOutput value)
+    derivativeError (AffineFeedbackExternalConstantEquationFailure index) = AffineRewardJVPExternalConstantEquationFailure index
+    derivativeError (AffineFeedbackInternalConstantEquationFailure value) = AffineRewardJVPInternalConstantEquationFailure value
+    derivativeError (AffineFeedbackExternalContinuationEquationFailure index value) = AffineRewardJVPExternalContinuationEquationFailure index value
+    derivativeError (AffineFeedbackInternalContinuationEquationFailure value output) = AffineRewardJVPInternalContinuationEquationFailure value output
+    derivativeError failure = AffineRewardJVPBaseError failure
+
+-- Frozen derivative derivation order differs from the base dot-then-scale order.
+deriveDirection :: Rational -> [Rational] -> (Rational, [Rational]) -> FeedbackMeter error Rational
+deriveDirection gamma internal (reward, row) = foldlM term reward (zip row internal)
+  where
+    term total (mass, value) = do
+        scaled <- feedbackMultiply FeedbackOtherIntermediatePhase "affine reward JVP external scaled mass" gamma mass
+        productValue <- feedbackMultiply FeedbackOtherIntermediatePhase "affine reward JVP external product" scaled value
+        feedbackAdd FeedbackOtherIntermediatePhase "affine reward JVP external sum" total productValue
+
+-- The same metered prefix is used by the base operation and reward JVP.
+constructBase ::
+    (Eq loop, Eq output) =>
+    Rational ->
+    [FeedbackEvent loop output] ->
+    [[Rational]] ->
+    [[Rational]] ->
+    [loop] ->
+    [output] ->
+    FeedbackMeter (AffineFeedbackError loop output) ([Rational], [Rational], [[Rational]], [[Rational]], [[Rational]], [[Rational]])
+constructBase gamma events inputRows internalRows loopValues outputValues = do
+    (mX, b, eX) <- aggregateRows events inputRows loopValues outputValues
+    (mU, d, eU) <- aggregateRows events internalRows loopValues outputValues
+    (internalA, internalK) <- solveInternal gamma d mU eU
+    (externalA, externalK) <- deriveExternal gamma mX b eX internalA internalK
+    validateExternalConstant gamma mX b internalA externalA
+    validateInternalConstant gamma loopValues mU d internalA
+    validateExternalContinuation gamma outputValues eX b internalK externalK
+    validateInternalContinuation gamma loopValues outputValues eU d internalK
+    mapM_ (recordFeedbackRational FeedbackRetainedResultPhase "affine feedback retained external A") externalA
+    mapM_ (recordFeedbackRational FeedbackRetainedResultPhase "affine feedback retained internal A") internalA
+    mapM_ (mapM_ (recordFeedbackRational FeedbackRetainedResultPhase "affine feedback retained external K")) externalK
+    mapM_ (mapM_ (recordFeedbackRational FeedbackRetainedResultPhase "affine feedback retained internal K")) internalK
+    pure (externalA, internalA, externalK, internalK, b, d)
+
 aggregateRows ::
     (Eq loop, Eq output) =>
     [FeedbackEvent loop output] ->
@@ -265,8 +442,8 @@ recordEventReward :: String -> FeedbackEvent loop output -> FeedbackMeter error 
 recordEventReward label = recordFeedbackRational FeedbackInputPhase label . eventReward
 
 -- The solver handles A and every column of K in one augmented elimination.
--- Its only call site has already bounded dimensions, matrix cells, work, and
--- every input rational under the operation-wide meter.
+-- Both base and one-RHS derivative callers have already bounded dimensions,
+-- matrix cells, work, and every input rational under the operation-wide meter.
 solveInternal ::
     Rational ->
     [[Rational]] ->

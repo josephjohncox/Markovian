@@ -9,9 +9,7 @@ A sampled evaluation consumes one generator and returns the next generator:
 ```haskell
 sample <- sampleReturn objective model policy generator
 
-sampledReturn sample
-sampledTrace sample
-sampledGenerator sample
+pure (sampledReturn sample, sampledTrace sample, sampledGenerator sample)
 ```
 
 Use the returned generator for the next draw. Reusing the input generator repeats the same random stream.
@@ -192,13 +190,13 @@ Each algorithm has an empty-start runner and a resumable `...From` runner:
 A Q-learning configuration is explicit:
 
 ```haskell
-config =
-  qLearningConfig
-    discount
-    (ConstantLearningRate alpha)
-    (ConstantExploration epsilon)
-    episodeLimit
-    episodeStepLimit
+let config =
+      qLearningConfig
+        discount
+        (ConstantLearningRate alpha)
+        (ConstantExploration epsilon)
+        episodeLimit
+        episodeStepLimit
 
 result <- learnEpisodes config model generator
 ```

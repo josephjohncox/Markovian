@@ -11,7 +11,9 @@ import Markovian.Continuous.Measure.Exact
 import Markovian.Continuous.Polynomial
 import Markovian.Continuous.Space
 import Numeric.Natural (Natural)
+import PairedDifference (runPairedDifferenceLesson, runPairedDifferenceTests)
 import Paths_markovian_continuous (getDataFileName)
+import System.Environment (getArgs)
 import System.Exit (exitFailure)
 
 data Coin = Heads | Tails deriving (Eq, Show)
@@ -27,6 +29,14 @@ limits = ExactLimits 16 20000 200000 20000 32 200000 2048
 
 main :: IO ()
 main = do
+    args <- getArgs
+    if args == ["--learning"]
+        then runPairedDifferenceLesson
+        else runTests
+
+runTests :: IO ()
+runTests = do
+    runPairedDifferenceTests
     check "real space witness" (spaceDescription realBorel == "real Borel")
     checkRight "finite discrete witness" (finiteDiscrete 2 [Heads, Tails]) (const True)
     checkLeft "infinite discrete input is bounded" (finiteDiscrete 3 ([0 ..] :: [Integer])) (== DiscreteLayoutLimitExceeded 3 4)
