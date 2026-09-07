@@ -101,9 +101,12 @@ a fence requires updating the manifest. Three classes have different promises:
   invoked by the registered existing test component. The checker builds the
   component, executes the fixture and compares its entire stdout with the
   displayed generated file. These examples are not pseudocode.
-- **Compiled-source fragment:** a literal excerpt (ignoring whitespace) from a
-  registered source module. The manifest verifies that module belongs to the
-  named Cabal component; `--run` compiles that component. The book omits imports,
+- **Compiled-source fragment:** an excerpt from a registered source module.
+  Matching allows line wrapping and different indentation widths, but preserves
+  the relative column ordering of displayed line starts against the source.
+  This catches layout drift without claiming a standalone Haskell parser.
+  The manifest verifies that module belongs to the named Cabal component;
+  `--run` compiles that component. The book omits imports,
   inferred parameters and surrounding result handling. Blank lines can separate
   excerpts with distinct contexts/error types; do not paste them as one `do`
   block. The new `*Contexts.hs` test modules supply the complete wrappers. They

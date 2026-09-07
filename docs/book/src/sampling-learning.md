@@ -192,11 +192,11 @@ A Q-learning configuration is explicit:
 ```haskell
 let config =
       qLearningConfig
-    discount
-    (ConstantLearningRate alpha)
-    (ConstantExploration epsilon)
-    episodeLimit
-    episodeStepLimit
+        discount
+        (ConstantLearningRate alpha)
+        (ConstantExploration epsilon)
+        episodeLimit
+        episodeStepLimit
 
 result <- learnEpisodes config model generator
 ```

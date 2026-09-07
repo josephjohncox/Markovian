@@ -106,6 +106,62 @@ executable fixture
         self.put("docs/book/src/lesson.md", '```haskell\nmain = putStrLn "stale"\n```\n')
         self.rejects("stale source fragment")
 
+    def layout_fixture(self, arguments_indent=8):
+        self.put("app/Main.hs", '''module Main where
+main :: IO ()
+main = do
+    let config =
+            qLearningConfig
+                discount
+                (ConstantLearningRate alpha)
+                (ConstantExploration epsilon)
+                episodeLimit
+                episodeStepLimit
+    print config
+data LearningRate = ConstantLearningRate Int
+data Exploration = ConstantExploration Int
+qLearningConfig d (ConstantLearningRate a) (ConstantExploration e) n s = d + a + e + n + s
+discount, alpha, epsilon, episodeLimit, episodeStepLimit :: Int
+discount = 1
+alpha = 2
+epsilon = 3
+episodeLimit = 4
+episodeStepLimit = 5
+''')
+        arguments = ["discount", "(ConstantLearningRate alpha)",
+                     "(ConstantExploration epsilon)", "episodeLimit", "episodeStepLimit"]
+        snippet = "let config =\n      qLearningConfig\n" + "".join(
+            " " * arguments_indent + argument + "\n" for argument in arguments)
+        self.put("docs/book/src/lesson.md", "```haskell\n" + snippet + "```\n")
+        return snippet
+
+    def test_fragment_accepts_different_indentation_width(self):
+        self.layout_fixture()
+        self.validate()
+
+    def test_fragment_rejects_qlearning_arguments_at_declaration_column(self):
+        self.layout_fixture(arguments_indent=4)
+        self.rejects("relative layout")
+
+    def test_fragment_rejects_changed_layout_with_same_tokens(self):
+        self.layout_fixture(arguments_indent=6)
+        self.rejects("relative layout")
+
+    def test_real_compiler_confirms_displayed_layout_regression(self):
+        snippet = self.layout_fixture(arguments_indent=4)
+        self.rejects("relative layout")
+        path = self.root / "app/Main.hs"
+        valid = path.read_text()
+        begin, end = valid.index("    let config"), valid.index("    print config")
+        malformed = valid[:begin] + "".join("    " + line + "\n" for line in snippet.splitlines()) + valid[end:]
+        path.write_text(malformed)
+        with self.assertRaises(subprocess.CalledProcessError):
+            CHECK["execute"](self.root, self.manifest, "cabal.project.ci", "dist")
+        self.layout_fixture()
+        self.validate()
+        self.put("docs/learning/output.txt", "15\n")
+        CHECK["execute"](self.root, self.manifest, "cabal.project.ci", "dist")
+
     def test_unclosed_fence(self):
         self.put("docs/book/src/lesson.md", "```haskell\nx\n")
         self.rejects("unclosed")
