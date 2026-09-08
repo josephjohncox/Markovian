@@ -5,6 +5,9 @@
 - Add the proposed D-077 canonical CUDA profile and typed same-session receipt validation. Retain profile, PTX, executable, command, outcome, native observation, sanitizer, and ordered benchmark evidence. D-077 remains Proposed; no successful hardware receipt is recorded.
 - Fix sanitizer-version collection after protected run 34172607126 stopped before hardware tests. Use the same anchored Version-line parser for collection and receipt validation; reject partial or ambiguous observations. Add real-banner and malformed-input regression tests without changing the profile or public interfaces.
 
+- Correct racecheck's success marker after run 34175882779 failed receipt validation. Require zero hazards, errors and warnings in its tool-specific summary; retain the other sanitizer markers and exit/binding checks. Regenerate the profile-bound outputs and plan golden, and test against independently recorded summaries. This creates a new profile identity, not a repaired historical receipt or hardware evidence.
+- Rename the benchmark statistic label to `standard deviation (sample)` so it cannot be counted as a raw sample. Preserve the statistic, all 20 raw samples, and strict receipt validation; add producer-drift and rehashed-log regressions.
+
 ## 2026.9.3.0 — 2026-09-03
 
 - Replace the list-only dense call with bounded typed matrix and matrix-VJP

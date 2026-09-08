@@ -2,11 +2,11 @@
 
 **Decision status:** Proposed
 
-This document defines the repository-side receipt boundary. No successful D-077 hardware receipt is recorded. The failed attempt below stopped before hardware tests and supplies no device-correctness or performance evidence.
+This document defines the repository-side receipt boundary. No successful D-077 hardware receipt is recorded. Neither failed attempt below produced a validated, attested D-077 receipt. No device-correctness or performance claim follows from these attempts.
 
 ## Profile authority
 
-`backends/markovian-gpu/profile.json` is the only GPU profile authority. Its SHA-256 addresses the complete reviewed profile.
+`backends/markovian-gpu/profile.json` is the only GPU profile authority. Its SHA-256 addresses the complete profile. A new digest does not itself establish review or acceptance.
 
 The authority fixes these items:
 
@@ -108,6 +108,44 @@ Local validation passed all 16 profile/receipt tests, including the real multili
 Independent precommit review `49e6b779-caba-4807-9515-07e94d9f1664` passed the six-file repair with no findings. It inspected source and parent logs, not independent command reruns. Parent also passed 33 capability tests, release-policy checks, book/MathJax checks, all 16 source archives, archive-only teaching/capability gates, and all 16 archived profile tests. All six changed files matched their archive bytes. Logs are `/tmp/d077-version-{profile,capabilities,capability-tests,policy,book,sdist,archive,archive-profile}.log`. The unrelated learning-checker formatting edit remains outside the repair.
 
 Failure evidence is retained privately at `/home/josephcox/.local/share/markovian/evidence/d077-34172607126/failure-audit.DYyL4s3F`, with API records, failed-job and runner-end logs, and `SHA256SUMS`. The failed-job log digest is `4dc279538d9b593e3b8b38d021e5ab8cdbc4d23e3ab41ff4096fb1e0374a3260`. These local copies are not an immutable publication. The named GitHub environment had no required-reviewer or deployment-branch rules; this restoration did not add or imply those protections.
+
+## Racecheck summary repair contract — 2026-09-08
+
+[Run 34175882779](https://github.com/josephjohncox/Markovian/actions/runs/34175882779), attempt 1, selected source `6a6ebfc5744aa10704c9bdbc8967ee05b289422d`. Steps 6–10 completed successfully, but step 11 rejected the candidate receipt with `R011_RECEIPT_OUTCOME`. The profile required `ERROR SUMMARY: 0 errors` for racecheck. The retained tool log instead ended with:
+
+```text
+========= RACECHECK SUMMARY: 0 hazards displayed (0 errors, 0 warnings)
+evidence-record-exit: 0
+```
+
+Attestation and upload were skipped. Runner 26 processed this one job, deregistered and exited. The raw 14-file candidate payload is preserved unchanged at `/home/josephcox/.local/share/markovian/evidence/d077-34175882779/failed-payload-preserved`, with a sibling digest manifest and explicit failed-attempt label. It is not a validated receipt or immutable publication.
+
+The following repair boundary is frozen before implementation:
+
+- Change only racecheck's required success marker to `RACECHECK SUMMARY: 0 hazards displayed (0 errors, 0 warnings)` in the profile authority and its validator specification. Do not accept the generic error summary as an alternative for racecheck.
+- Keep memcheck, initcheck and synccheck on `ERROR SUMMARY: 0 errors`. Keep all commands, exit-code requirements, record/binding checks, failure-class order, schema versions, numeric policies, PTX, public Haskell interfaces, package versions and dependency edges unchanged.
+- Regenerate all three profile-bound outputs with the new profile digest. This is a new profile identity, not a reinterpretation of the failed run's profile.
+- Build sanitizer test output from independently recorded tool-specific summaries, not from the profile's expected marker list. Require regressions for the observed racecheck summary, generic/wrong-tool summaries, missing summaries, and nonzero hazard/error/warning counts. Recompute mutated log digests so these tests reach the outcome check.
+- Obtain independent repair review and pass local/archive/hosted gates before another hardware run. The new run must bind the newly merged source and profile; do not rewrite or relabel either failed payload.
+
+The implemented correction has profile digest `5fbed61193cf483a2ff5642c7487ad052add4ed52da1a83a110da4711c7480dd`. The three generated artifacts and the deterministic plan golden now bind that digest. A structural comparison confirmed that the racecheck marker is the only profile-value change. The teaching output receipt was refreshed by executing the teaching gate; only its source fingerprint changed.
+
+The independent observed-summary fixture first reproduced the old `R011_RECEIPT_OUTCOME` failure. After repair, all 19 profile/receipt tests and the warning-error-enabled CUDA-disabled GPU suite passed. The plan test initially rejected the old profile digest, then passed after that digest alone was updated. Capability/release-policy checks, 77 compiled Haskell fences and teaching executions, book/MathJax checks, and all 16 source archives with archive-only teaching/capability checks passed. Logs are `/tmp/d077-racecheck-{red,profile,gpu,capabilities,policy,learning,book,sdist,archive}.log`.
+
+Independent review `9a648cbf-dc8e-4430-bd29-c815f625ab29` passed the racecheck-only repair at `15bc22d327ca2865a029906291d7de7e8f079830` with no findings after reviewer quota became available. It inspected source and parent logs, not independent test executions. Earlier quota/authentication failures produced no verdict. The follow-on reporting correction below is a separate review scope; the combined repair must pass its review and hosted gates before a new run. No new hardware run is authorized by these local checks alone. D-077 remains Proposed. Successful command steps do not replace validated, attested and immutably retained same-session evidence. Environment protections and release governance are unchanged.
+
+## Follow-on benchmark label contract — 2026-09-08
+
+A read-only check of the same retained failed payload found a second issue hidden behind R011. The benchmark contains 20 correctly numbered raw sample lines, followed by `cuda-transfer-inclusive sample standard deviation: 0.019122359 ms`. The R012 collector treats every line beginning `cuda-transfer-inclusive sample ` as a raw sample, so that statistic becomes an invalid 21st entry. This diagnostic does not validate or modify the failed receipt.
+
+Before implementation, freeze this additional producer-only correction:
+
+- Rename the printed statistic label from `sample standard deviation` to `standard deviation (sample)`. Retain its sample-statistic meaning, formula, value and units; raw sample labels and ordering remain unchanged.
+- Do not relax the validator, alter its sample-line pattern, discard arbitrary malformed sample lines, or change the required count of 20. The profile digest remains `5fbed61193cf483a2ff5642c7487ad052add4ed52da1a83a110da4711c7480dd`.
+- Add the noncolliding producer label to consumer checks, include the summary statistic in positive receipt fixtures, and retain a rehashed negative fixture with the old colliding label. Run the actual CUDA-disabled benchmark to exercise its shared formatter without claiming GPU evidence.
+- Review the combined repair and pass the gates before a newly bound hardware run. Historical payloads remain untouched.
+
+The observed colliding-label fixture reproduced `R012_RECEIPT_BENCHMARK` before the correction. Afterward, all 21 profile tests passed, including producer-label drift and rehashed colliding-summary rejection. The actual shared formatter was exercised through the warning-error-enabled CUDA-disabled benchmark: it emitted exactly 20 parseable `cpu-total sample NN` lines and a separate `standard deviation (sample)` line. This is reporting evidence, not GPU performance evidence. Logs are `/tmp/d077-summary-{red,profile,ruff,benchmark}.log`.
 
 ## Historical D-074 boundary
 

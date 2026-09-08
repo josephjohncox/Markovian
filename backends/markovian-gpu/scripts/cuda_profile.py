@@ -153,7 +153,9 @@ RECORD_SPECS = [
         "kind": "sanitizer-racecheck",
         "command": "compute-sanitizer --error-exitcode=1 --tool racecheck cuda-evidence/test-executable",
         "executable": "test-executable",
-        "successMarkers": ["ERROR SUMMARY: 0 errors"],
+        "successMarkers": [
+            "RACECHECK SUMMARY: 0 hazards displayed (0 errors, 0 warnings)"
+        ],
     },
     {
         "kind": "sanitizer-synccheck",
@@ -990,13 +992,14 @@ def check_consumers(root: Path, profile: dict[str, Any]) -> None:
         f"replicateM {count}",
         f"unless (length samples == {count})",
         f'putStrLn (label ++ " warmups: {warmups} (excluded)")',
+        'printf "%s standard deviation (sample): %.9f ms\\n" label (sqrt variance)',
         f"tolerance = {profile['numericPolicy']['cuda']['comparisonAbsoluteTolerance']} + {profile['numericPolicy']['cuda']['comparisonRelativeTolerance']} * max",
         f'putStrLn "exact-semantic-checksum: {profile["benchmarkFixture"]["exactSemanticChecksum"]}"',
     ]
     if any(literal not in benchmark for literal in benchmark_literals):
         fail(
             "P007_PROFILE_CONSUMER",
-            "benchmark inputs, policy, count, warmup, or checksum differ from profile authority",
+            "benchmark inputs, policy, count, warmup, summary label, or checksum differ from profile authority",
         )
 
     c_source = text_file(

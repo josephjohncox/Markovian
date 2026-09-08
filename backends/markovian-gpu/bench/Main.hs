@@ -182,7 +182,7 @@ printSamples label samples = do
     putStrLn (label ++ " measured samples: 20")
     mapM_ (\(index, sample) -> printf "%s sample %02d: %.9f ms\n" label (index :: Int) sample) (zip [1 ..] samples)
     printf "%s mean: %.9f ms\n" label average
-    printf "%s sample standard deviation: %.9f ms\n" label (sqrt variance)
+    printf "%s standard deviation (sample): %.9f ms\n" label (sqrt variance)
     printf "%s minimum: %.9f ms\n" label (minimum samples)
     printf "%s maximum: %.9f ms\n" label (maximum samples)
 
