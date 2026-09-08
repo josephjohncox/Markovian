@@ -72,6 +72,7 @@ extra-source-files:
   cabal.project
   cabal.project.ci
   ci/packages.tsv
+  docs/plans/D079-LEFT-SUCCESSOR-SUBSTITUTION.md
   examples/release/exact/app/Main.hs
   examples/release/exact/markovian-release-example.cabal
   hie.yaml
