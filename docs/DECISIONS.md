@@ -1246,6 +1246,199 @@ Provide independent exact primal and JVP interpreters by direct recursion over q
 
 **Current implementation boundary:** `Markovian.Autodiff.Quote` now provides opaque nominal paths with generative lexical scope tokens. Independent equal-shaped scopes cannot exchange paths. `letQuote` stores exact-polynomial body syntax and no callback. One cumulative ledger bounds traversal, syntax depth, paths, coordinates, machine extent, target size, allocation, lowering work, compilation, arithmetic work, and rational size. Preflight charges before descent and allocates no target `Program` on failure. Direct primal and JVP recursion is separate from reverse lowering. Tests cover used and unused bindings, nested scopes, projections, all-coordinate pairing, deterministic reports, exact and one-below limits, failure precedence, and stop-before-descent behavior. Compile-fail fixtures cover hidden constructors, path roles, escaped tokens, and independent same-shape scopes. The proposal-stage API is present while package metadata remains unchanged under the task invariant. The published `v2026.9.3.0` surface stays unchanged. This evidence does not add Haskell quotation, effects, higher-order values, branches, recursion, or nested differentiation. D-080 remains `Proposed`.
 
+#### D-080 existing API freeze — declaration reference
+
+This freeze records the existing `Markovian.Autodiff.Quote` implementation at `c86b4e0241debe0a9ea51b6e9f962d89ea8293df`. It adds no runtime API and does not accept D-080. Placement stays in `markovian-autodiff`, with the existing `markovian-reverse` dependency and no new package edge. The declarations below are API reference tables, not executable examples or standalone Haskell modules. No teaching fence or compiled-example claim is added. The source module supplies the implementations; the tables omit private constructor bodies explicitly.
+
+**Type exports and opacity.** `Type`, `Shape`, `Fragment`, `Parameters`, `SShape`, `Program`, `Value`, `ParameterValue`, `Natural`, `TapePolicy`, `ExactExecutable`, `CompileReport`, and `CompileError` in these declarations retain their existing definitions; this module does not newly define or export them. The two environment aliases below name private promoted constructors. Their equations record the existing representation, not permission to use those constructors from client code.
+
+| Exported type declaration / alias | Existing boundary |
+| --- | --- |
+| `data Environment` | Private alternatives are `RootEnvironmentConstructor Shape` and `BindEnvironmentConstructor Type Environment Shape`; neither constructor is exported. |
+| `type RootEnvironment shape = 'RootEnvironmentConstructor shape` | Root environment alias. |
+| `type BindEnvironment scope environment bound = 'BindEnvironmentConstructor scope environment bound` | Lexical extension alias; scope identity is retained. |
+| `type family EnvironmentShape (environment :: Environment) :: Shape` | Closed family: root maps to `shape`; binding maps to `'Product (EnvironmentShape environment) bound`. No flattening or reassociation. |
+| `data QuoteEnvironment (environment :: Environment)` | Private witnesses; `type role QuoteEnvironment nominal`. |
+| `data QuoteScope (scope :: Type)` | Private token constructor; `type role QuoteScope nominal`. |
+| `data Path (environment :: Environment) (selected :: Shape)` | Private `PathHere`, `PathLeft`, `PathRight`; `type role Path nominal nominal`. No path inspector or raw index API. |
+| `data Quote scalar (fragment :: Fragment) (environment :: Environment) (parameters :: Parameters) (output :: Shape)` | Private `ProgramQuote`, `ProjectQuote`, `ComposeQuote`, `FanoutQuote`, `LetQuote`; `type role Quote nominal nominal nominal nominal nominal`. No public fold or pattern-match eliminator. |
+| `data QuotationLimits` | Private `QuotationLimitsValue`; `Eq`, `Show`. Twelve strict `Natural` fields. |
+| `data QuoteReport` | Private constructor; exported strict record selectors listed below; `Eq`, `Show`. A report is an account, not an admission witness accepted by another operation. |
+| `data QuoteCompilationReport` | Private constructor; two exported strict record selectors listed below; `Eq`, `Show`. |
+| `data QuoteError` | All constructors in the failure table are exported, with strict fields; `Eq`, `Show`. |
+| `data QuoteCompileError` | Both constructors in the failure table are exported, with strict fields; `Eq`, `Show`. |
+
+**Complete construction signature schedule.** Parameter products are literal associated trees, including every `NoParameters` leaf. They do not normalize to unit or flatten to a list.
+
+| Export | Exact signature |
+| --- | --- |
+| `rootEnvironment` | `rootEnvironment :: SShape shape -> QuoteEnvironment (RootEnvironment shape)` |
+| `extendEnvironment` | `extendEnvironment :: QuoteScope scope -> QuoteEnvironment environment -> SShape bound -> QuoteEnvironment (BindEnvironment scope environment bound)` |
+| `withQuoteScope` | `withQuoteScope :: (forall scope. QuoteScope scope -> result) -> result` |
+| `pathHere` | `pathHere :: SShape shape -> Path (RootEnvironment shape) shape` |
+| `pathLeft` | `pathLeft :: QuoteScope scope -> Path environment selected -> SShape bound -> Path (BindEnvironment scope environment bound) selected` |
+| `pathRight` | `pathRight :: QuoteScope scope -> QuoteEnvironment environment -> SShape bound -> Path (BindEnvironment scope environment bound) bound` |
+| `quoteProgram` | `quoteProgram :: Program scalar fragment parameters input output -> Quote scalar fragment (RootEnvironment input) parameters output` |
+| `quoteProgramAt` | `quoteProgramAt :: QuoteEnvironment environment -> Program scalar fragment parameters (EnvironmentShape environment) output -> Quote scalar fragment environment parameters output` |
+| `project` | `project :: Path environment output -> Quote scalar fragment environment 'NoParameters output` |
+| `composeQuote` | `composeQuote :: Quote scalar fragment environment p middle -> Program scalar fragment q middle output -> Quote scalar fragment environment ('ParameterProduct p q) output` |
+| `fanoutQuote` | `fanoutQuote :: Quote scalar fragment environment p leftOutput -> Quote scalar fragment environment q rightOutput -> Quote scalar fragment environment ('ParameterProduct p q) ('Product leftOutput rightOutput)` |
+| `letQuote` | `letQuote :: QuoteScope scope -> Quote scalar fragment environment p bound -> Quote scalar fragment (BindEnvironment scope environment bound) q output -> Quote scalar fragment environment ('ParameterProduct ('ParameterProduct 'NoParameters p) q) output` |
+| `quotationLimits` | `quotationLimits :: Natural -> Natural -> Natural -> Natural -> Natural -> Natural -> Natural -> Natural -> Natural -> Natural -> Natural -> Natural -> QuotationLimits` |
+
+`withQuoteScope` takes a rank-2 **construction-time Haskell continuation**. Independent invocations introduce distinct lexical type identities even for equal shapes. The token is not linear: syntax may reuse one token within its scope, and a completed quotation may leave the continuation after the bound scope disappears from its result type. This is neither a runtime scope allocator nor a promise that clients cannot package existential syntax. The boundary rejects treating independently generated scope indexes as equal or returning the fresh token as an arbitrary caller-chosen `QuoteScope scope`.
+
+`pathHere` selects the entire root. `pathLeft` retains an old selection through one extension; `pathRight` selects the newest bound value, not an arbitrary numeric slot. `extendEnvironment` supplies a witness for the associated product. `quoteProgram` infers the root witness from the program input; `quoteProgramAt` receives the matching witness. These are typed constructors, not bounded validation operations: they return no `Either`, run no quotation preflight, and do not report `QuoteError`. Neither do the report selectors. The failure schedules below concern finite defined syntax and represented values, not arbitrary Haskell bottoms or exceptions during syntax construction.
+
+Stored `Quote` syntax is callback-free, even though its builder can use `withQuoteScope`. Construction signatures are polymorphic in `scalar` and `fragment`; only the operations below admit `Rational` and `'Polynomial`. `letQuote` stores an already supplied body term and token, not a continuation, and has no arbitrary-Haskell, effect, higher-order, or smooth execution overload.
+
+**Complete observer and operation signature schedule.** All twelve `QuoteReport` selectors return `Natural`; their explicit types follow to distinguish report order from limit argument order.
+
+| Export | Exact signature |
+| --- | --- |
+| `quoteNodeCount` | `quoteNodeCount :: QuoteReport -> Natural` |
+| `quoteSourceDepth` | `quoteSourceDepth :: QuoteReport -> Natural` |
+| `quoteMaximumPathDepth` | `quoteMaximumPathDepth :: QuoteReport -> Natural` |
+| `quotePredictedTargetNodes` | `quotePredictedTargetNodes :: QuoteReport -> Natural` |
+| `quotePredictedTargetDepth` | `quotePredictedTargetDepth :: QuoteReport -> Natural` |
+| `quoteTransformedNodes` | `quoteTransformedNodes :: QuoteReport -> Natural` |
+| `quoteMaximumCoordinateExtent` | `quoteMaximumCoordinateExtent :: QuoteReport -> Natural` |
+| `quoteAllocationCount` | `quoteAllocationCount :: QuoteReport -> Natural` |
+| `quoteRuntimeWork` | `quoteRuntimeWork :: QuoteReport -> Natural` |
+| `quoteTraversalWork` | `quoteTraversalWork :: QuoteReport -> Natural` |
+| `quoteTotalWork` | `quoteTotalWork :: QuoteReport -> Natural` |
+| `quoteMaximumRationalBits` | `quoteMaximumRationalBits :: QuoteReport -> Natural` |
+| `quoteCompilationPreflight` | `quoteCompilationPreflight :: QuoteCompilationReport -> QuoteReport` |
+| `quoteCompilationTarget` | `quoteCompilationTarget :: QuoteCompilationReport -> CompileReport` |
+| `preflightQuote` | `preflightQuote :: QuotationLimits -> Quote Rational 'Polynomial environment parameters output -> Either QuoteError QuoteReport` |
+| `preflightExactQuoteExecution` | `preflightExactQuoteExecution :: QuotationLimits -> Quote Rational 'Polynomial environment parameters output -> ParameterValue Rational parameters -> Value Rational (EnvironmentShape environment) -> Either QuoteError QuoteReport` |
+| `preflightExactQuoteJVPExecution` | `preflightExactQuoteJVPExecution :: QuotationLimits -> Quote Rational 'Polynomial environment parameters output -> ParameterValue Rational parameters -> ParameterValue Rational parameters -> Value Rational (EnvironmentShape environment) -> Value Rational (EnvironmentShape environment) -> Either QuoteError QuoteReport` |
+| `lowerQuote` | `lowerQuote :: QuotationLimits -> Quote Rational 'Polynomial environment parameters output -> Either QuoteError (Program Rational 'Polynomial parameters (EnvironmentShape environment) output)` |
+| `compileExactQuote` | `compileExactQuote :: QuotationLimits -> TapePolicy -> Quote Rational 'Polynomial environment parameters output -> Either QuoteCompileError (ExactExecutable parameters (EnvironmentShape environment) output, QuoteCompilationReport)` |
+| `interpretExactQuote` | `interpretExactQuote :: QuotationLimits -> Quote Rational 'Polynomial environment parameters output -> ParameterValue Rational parameters -> Value Rational (EnvironmentShape environment) -> Either QuoteError (Value Rational output)` |
+| `interpretExactQuoteJVP` | `interpretExactQuoteJVP :: QuotationLimits -> Quote Rational 'Polynomial environment parameters output -> ParameterValue Rational parameters -> ParameterValue Rational parameters -> Value Rational (EnvironmentShape environment) -> Value Rational (EnvironmentShape environment) -> Either QuoteError (Value Rational output, Value Rational output)` |
+
+#### D-080 failure schedule and cumulative account
+
+The twelve inclusive `quotationLimits` arguments are, in order: traversal, quotation nodes, source depth, path depth, target nodes, target depth, coordinate extent, transformed nodes, allocation units, runtime work, total work, rational bits. Zero is a real limit, not a default or unlimited sentinel.
+
+| Exported constructor declaration (strict fields) | Payload and first-failure rule |
+| --- | --- |
+| `QuoteTraversalLimitExceeded !Natural !Natural` | Active traversal limit, saturated required count. |
+| `QuoteNodeLimitExceeded !Natural !Natural` | Active quotation-node limit, saturated required count. |
+| `QuoteSourceDepthLimitExceeded !Natural !Natural` | Active source-depth limit, actual encountered depth. |
+| `QuotePathDepthLimitExceeded !Natural !Natural` | Active path-depth limit, actual encountered depth. |
+| `QuoteTargetNodeLimitExceeded !Natural !Natural` | Active target-node limit, saturated required count. |
+| `QuoteTargetDepthLimitExceeded !Natural !Natural` | Active target-depth limit, actual completed subtree depth. |
+| `QuoteCoordinateExtentLimitExceeded !Natural !Natural` | Active coordinate limit, actual inspected shape extent. |
+| `QuoteMachineExtentExceeded !Natural` | Actual shape extent exceeding `maxBound :: Int`; precedes the coordinate-limit check on that shape. |
+| `QuoteTransformedNodeLimitExceeded !Natural !Natural` | Active transformed-node limit, saturated required count. |
+| `QuoteAllocationLimitExceeded !Natural !Natural` | Active allocation limit, saturated required count. |
+| `QuoteRuntimeWorkLimitExceeded !Natural !Natural` | Active runtime-work limit, saturated required count. |
+| `QuoteTotalWorkLimitExceeded !Natural !Natural` | Active total-work limit, saturated required count. |
+| `QuoteRationalMagnitudeLimitExceeded !String !Natural !Natural` | Context, zero-based coordinate, active bit limit; not actual bit size. |
+| `QuoteInternalVectorLengthMismatch !String` | Direct arithmetic helper context; defensive internal shape invariant failure. |
+| `QuoteCompilePreflightFailure !QuoteError` | First quotation syntax-preflight failure; target compiler is not called. |
+| `QuoteCompileTargetFailure !CompileError` | Existing opaque target compiler error, unchanged and not converted to a quotation limit error. |
+
+The last two constructors belong to `QuoteCompileError`; the preceding fourteen belong to `QuoteError`. There is no partial successful report or output in a `Left`.
+
+**Total operation precedence.** Each row expands the named phases using the ordered rules below. A first `Left` stops the row; there is no sorting by constructor name, error accumulation, rollback report, or later-child preference.
+
+| Public operation | Ordered phases / success |
+| --- | --- |
+| `preflightQuote` | Start empty ledger; syntax DFS at depth 1; return syntax report. No evaluation or lowering. |
+| `lowerQuote` | Entire `preflightQuote`; then `buildQuote`; return target `Program`. No target compilation or direct value scan. |
+| `compileExactQuote` | Entire `preflightQuote` (wrap failure); then `buildQuote`; then `compileExactPolynomial` with the mapped limits and supplied tape policy (wrap failure); return executable plus both reports. No direct runtime value scan or run. |
+| `preflightExactQuoteExecution` | Syntax DFS; scan all parameters; scan all input coordinates in the same ledger; return report. No primal arithmetic. |
+| `preflightExactQuoteJVPExecution` | Syntax DFS; all parameters; all parameter directions; all inputs; all input directions, in the same ledger; return report. No primal/JVP arithmetic. |
+| `interpretExactQuote` | Entire `preflightExactQuoteExecution`; then direct primal recursion with the rational-bit limit; return value only. |
+| `interpretExactQuoteJVP` | Entire `preflightExactQuoteJVPExecution`; then direct primal/JVP recursion with the rational-bit limit; return primal and tangent only. |
+
+All input and parameter coordinates are scanned, including ignored values, unused bound parameters, and directions that cannot affect the output. `parameterScalars` flattens owner values and parameter products left to right; `valueScalars` flattens value products left to right and vectors in list order. Unit and no-parameter leaves have zero coordinates. Scan contexts are exactly `parameter`, `parameter-direction`, `input`, `input-direction`; numbering restarts at zero for each scan. Each coordinate first charges traversal (including total work), then checks the maximum bit count of the absolute numerator and positive denominator. Bit count is repeated division by two, with zero having zero bits and denominator one having one bit. Thus a zero bit limit rejects even rational zero in this quotation implementation. Successful scans update the maximum admitted bits, not a sum. Syntax literal contexts are `source/constant-scalar` and `source/constant-vector`.
+
+**Ledger primitives.** All fields start at zero. A failed increment or cumulative addition reports `(limit, limit + 1)`, even when the attempted amount is much larger. Addition tests `amount > limit - min limit current` before adding; it never needs a machine-width sum. Depth and extent checks instead report the actual attempted value and update maxima only on success.
+
+- Traversal charge: check traversal increment, then total work by 1.
+- Quotation-node charge: check quotation-node increment only. Depth, extent, path depth, and rational maxima add no total work themselves.
+- Allocation or runtime or transformed-node charge by `a`: check that dimension, then total work by `a`.
+- Target-node charge by `a`: check target-node dimension; charge allocation by `a` (allocation limit, then total); then charge total by `a` for the target nodes themselves. This nested ordering is observable when limits compete.
+- Shape inspection: compute represented extent (unit 0, scalar 1, vector length, product sum); machine extent before coordinate extent. Parameter-shape inspection skips `NoParameters`, inspects an owner's shape, and visits parameter products left then right. It does not separately check their combined parameter-product extent.
+
+The successful `quoteTotalWork` equals traversal + target nodes + transformed nodes + allocation units + runtime work. Quotation-node count and maxima are separate dimensions, not extra summands. Allocation includes target-node units plus the output/primitive units below; it is not bytes, measured allocations, peak liveness, or a claim of allocation-free Haskell traversal. `quoteRuntimeWork` includes conservative direct JVP work **and** compiler-oriented work, even for a primal-only request. Direct arithmetic does not increment the ledger again. Reports describe bounded admission, not measured performed arithmetic or a proof that every possible intermediate rational fits.
+
+**Ordered syntax DFS.** On every quotation entry: traversal (then total), quotation node, source depth, then the row below. `T(a)`, `A(a)`, `R(a)`, and `X(a)` below denote target, allocation, runtime, and transformed charges with the nested checks just defined. `E(s)` is shape extent. Children use source depth + 1. Target-depth checks occur after the children, not at entry.
+
+| Private source form (not client constructors) | Exact order after quotation entry; returned target depth |
+| --- | --- |
+| `ProgramQuote` | Walk embedded program at source depth + 1. No extra target or transformed node for the wrapper. |
+| `ProjectQuote` | Inspect environment shape; selected shape; `T(1)`; `A(E(selected))`; `R(1 + E(environment) + E(selected))`; `X(1)`; walk path from path depth 1; check target depth 1. |
+| `ComposeQuote` | Inspect following program output; `T(1)`; `A(E(output))`; `R(1)`; `X(1)`; walk quoted child; walk following program; check target depth `1 + max(leftDepth, rightDepth)`. |
+| `FanoutQuote` | Inspect paired output shape; `T(1)`; `A(E(paired output))`; `R(1)`; `X(1)`; walk left quote; walk right quote; check target depth `1 + max(leftDepth, rightDepth)`. |
+| `LetQuote` | Inspect environment `e`; extended product `(e,bound)`; body output `o`; `T(3)`; `A(E(e) + E((e,bound)) + E(o))`; `R(4 + E(e))`; `X(3)`; walk bound; walk body; check target depth `1 + max(1 + max(1, boundDepth), bodyDepth)`. |
+
+Path entry charges traversal (then total), then checks path depth. `PathHere` and `PathRight` stop there. `PathLeft` visits its inner path at depth + 1. Thus path depth counts visited path constructors, not the number of binders represented by a `PathRight` environment witness.
+
+Embedded program entry charges traversal (then total), checks source depth, inspects output shape, charges `T(1)`, then `A(E(output))`. A primitive then uses the inspection schedule below and finishes target depth 1. Identity inspects its shape, charges `R(1 + E(shape))`, and finishes depth 1. Composition, parallel, fanout, and shared-parameter nodes charge `R(1)`, walk left then right at source depth + 1, and finish target depth `1 + max(leftDepth, rightDepth)`. Embedded source nodes add target nodes but not transformed nodes. Shape queries can inspect descendant shape metadata before the charged child walk; charge-before-descent is not a termination guarantee for arbitrary host-language bottoms.
+
+Primitive inspection order is input shape, output shape, parameter shape, `A(2 * E(output))`, direct-JVP runtime charge, compiler-oriented runtime charge, then any literal scan. Output shape was also inspected at program entry. The compiler-oriented charge is `1 + parameterExtent + inputExtent + outputExtent + 3 * arithmetic`; parameter extent sums the represented owner tree. Exact-polynomial primitive charges are:
+
+| Primitive | Direct JVP charge | Arithmetic used in compiler-oriented charge |
+| --- | --- | --- |
+| Scalar constant | 0 | 0 |
+| Vector constant, parameter | 0 | Output extent |
+| Scalar negate, scalar add | 2 | 1 |
+| Scalar multiply | 4 | 1 |
+| Vector add, length `n` | `2*n` | `n` |
+| Hadamard, length `n` | `4*n` | `n` |
+| Dot, length `n` | `1 + 6*n` | `2*n` |
+| Vector sum, length `n` | `2*n` | `n` |
+| First, second, internal value projection | 0 | 0 |
+
+`buildQuote` reuses embedded programs, lowers a path to one internal `ProjectValue` primitive, and uses existing composition and fanout. A let lowers literally to `compose (fanout identity bound) body`, with the environment-shaped identity and parameter tree `ParameterProduct (ParameterProduct NoParameters p) q`. No dead-let elimination occurs. Successful quotation preflight precedes construction of this target and direct output/environment evaluation; failed preflight returns no target, dense output, or tape.
+
+**Target compilation boundary.** `limitsCompiler` maps the same limit record to `compilerLimits targetNodes allocation targetDepth targetNodes coordinates coordinates allocation targetDepth runtime bits`, whose arguments mean source nodes, primitive nodes, depth, owners, primal extent, cotangent extent, structure nodes, structure depth, scalar work, and rational bits. This is an exact mapping, not twelve independently configurable compiler limits. `compileExactPolynomial` first performs the existing reverse preparation (`prepareReverseProgram` over `lower` with `resolveTargetPrimitive`), then `preflightSource`, then constructs its executable/report. Target errors retain the existing opaque `CompileError` and its existing internal precedence; quotation does not reinterpret them. `preflightSource` visits children left to right, checks primitive parameter, input, output and parameter extents before forward then reverse costs; at structural joins it adds/checks forward before reverse cost. No execution, seed validation, or VJP occurs during `compileExactQuote`.
+
+There is one cumulative **quotation** ledger per operation. Compilation then uses the existing target compiler's separate bounded account; it does not continue or subtract from the quotation ledger, and the two reports are not summed. Repeated public operations each start a fresh ledger. The earlier summary's phrase “one cumulative ledger ... compilation” must be read as this conservative quotation admission plus mapped target compilation, not as a shared mutable compilation/runtime meter. Whether that existing split meets the proposal-wide governance requirement is a review item, not a runtime repair authorized by this freeze.
+
+**Direct evaluation and first arithmetic failure.** `evalQuotePrimal` and `evalQuoteJVP` recurse on quotation and embedded source programs, independently of `compileExactPolynomial`, reverse primitive VJPs, produced tapes, and `Compile.interpretExactPolynomial`. They share shape/syntax representations, not derivative implementations. Composition evaluates the left term before the right; fanout evaluates the complete left branch before the right. A let evaluates the bound once, even if unused, then evaluates the body in `(oldEnvironment, boundValue)`; JVP also extends with `(oldDirection, boundDirection)`. Its nested parameter products split into identity/no-parameters, bound parameters, and body parameters without reassociation. Program parallel splits input and parameters; program fanout splits parameters but shares input; shared-parameter syntax splits input but passes the same parameters to both branches. All evaluate left before right.
+
+A quotation projection validates all current environment bits under `project-input`, then selects the path. JVP additionally validates all environment directions under `project-input-direction` before selection. Program identity validates `identity-input`, then (JVP only) `identity-direction`. Neither simply bypasses validation of discarded coordinates.
+
+At each primitive, primal validation order is `parameter`, `primitive-input`, primitive arithmetic, `primitive-output`. JVP order is `parameter`, `parameter-direction`, `primitive-input`, `primitive-input-direction`, primitive arithmetic, `primitive-output`, `primitive-output-direction`. Each validation flattens all represented coordinates with a fresh zero-based index. Every checked intermediate tests numerator and denominator bits before proceeding. Evaluation checks use the same `QuoteRationalMagnitudeLimitExceeded context coordinate bits` constructor but do not add preflight traversal charges.
+
+| Primitive arithmetic | Ordered checks after input validation |
+| --- | --- |
+| Scalar constant | `constant-scalar` at 0; JVP tangent is zero. |
+| Vector constant | All `constant-vector` coordinates; JVP creates matching zeros. |
+| Parameter | Select owned parameter value (and direction for JVP); output validation still follows. |
+| Scalar negate / add | Primal `negate` / `add` at 0; then JVP `jvp/negate` / `jvp/add` at 0. |
+| Scalar multiply | `multiply`, then JVP `jvp/multiply-left` for `dLeft * right`, `jvp/multiply-right` for `left * dRight`, `jvp/multiply-add` for their sum, all at 0. |
+| Vector add | Primal `vector-add` in coordinate order. JVP first checks all four list lengths, then all primal coordinates, then all `jvp/vector-add` coordinates. |
+| Hadamard | Primal `hadamard` in coordinate order. JVP first checks all four list lengths; at each coordinate: `hadamard`, `jvp/hadamard-left`, `jvp/hadamard-right`, `jvp/hadamard-add`, then next coordinate. |
+| Dot | Check the two list lengths before arithmetic. At each coordinate, check product under `dot/multiply`, then running sum under `dot/add`, starting accumulator zero. JVP completes that primal dot, then a dot with context `jvp/dot-left`, then `jvp/dot-right` (each with `/multiply` then `/add` per coordinate); finally checks `jvp/dot-add` at 0. |
+| Vector sum | Running sum from zero under `sum` in coordinate order; JVP completes primal then runs direction sum under `jvp/sum`. |
+| First / second / internal value projection | Select component or projection (and corresponding direction); input and output validation still surround selection. |
+
+Primal vector zip helpers check/check-advance matched coordinates and return `QuoteInternalVectorLengthMismatch` only when a remaining tail does not match. Dot length mismatch precedes products. JVP vector-add and Hadamard four-list mismatch precedes their arithmetic. Contexts are `vector-add`, `hadamard`, or the active dot context, respectively. Public value construction protects lengths; these failures are defensive, not a newly exposed malformed-vector input API. Empty dots and sums produce zero without loop-body arithmetic, then undergo normal output validation. This ordering preserves discarded-intermediate failures: for example, an unused bound `16 * 16` exceeds eight bits under `multiply` even though both source constants and the returned old environment fit.
+
+#### D-080 evidence map and remaining review boundary
+
+The source of this freeze is `packages/markovian-autodiff/src/Markovian/Autodiff/Quote.hs`: export list and declarations; `walkQuote`, `walkProgram`, `walkPath`, `inspectPrimitive`, charge helpers and `scanRationals`; `limitsCompiler`; `buildQuote`; direct evaluators and checked arithmetic helpers. Supporting definitions are `Internal/Shape.hs` (`valueScalars`, `parameterScalars`) and `Compile.hs` (`compileExactPolynomial`, `preflightSource`). This is a characterization of existing code, not a proof that the complete governance evidence matrix has passed.
+
+| Existing evidence seam | What it checks; limit of the evidence |
+| --- | --- |
+| `test/Main.hs`: `quotationEvidence`, `boundedQuotationGrammar` | Four scalar leaves (path, identity, negate, constant), used/unused lets, nested old-environment paths, square primal 9/JVP 6 at input 3, direct/lowered primal and scalar JVP/VJP pairing. Not exhaustive enumeration of quotation trees or vector primitives. |
+| `test/Main.hs`: `parameterizedLet` assertions | Both parameter coordinates return cotangents `[0,23]` and the input cotangent is 0; direct tangent is 17 for parameter directions `[13,17]` and input direction 19. Bound parameter is unused but retained in the associated tree. This fixture checks every represented parameter/input cotangent, not every independent basis direction for arbitrary programs. |
+| `test/Main.hs`: unused failing bound | Source constants fit eight bits; direct bound multiplication fails first; the separately compiled reverse run also fails at multiplication. |
+| `test/Main.hs`: `quotationBudgets` | Used/unused fixed reports, repeated reports, exact and one-below syntax dimensions, execution traversal one-below, source/input rational-bit cases, traversal-before-total and total-before-node precedence, poisoned embedded program stopped by node exhaustion, machine extent rejection. Does not fault-instrument allocation or exhaust all competing failure pairs. |
+| `test/compile-fail/AutodiffQuoteBoundary.hs` | Private path/quote/report/limit constructors, callback misuse, escaped scope token, independent equal-shaped scopes, wrong associated let parameter tree. |
+| `test/compile-fail/AutodiffQuoteRoles.hs` | Path environment/selection and quote environment/parameter coercions rejected; not a separate probe for every declared nominal role. |
+| `test/compile-fail/AutodiffQuoteEffects.hs` | Arbitrary Haskell function and `IO` cannot be embedded as a `Program`. |
+| `scripts/check-autodiff-boundary` in the autodiff package | Runs the above negative fixtures against the isolated public package and checks required diagnostics; also runs the package's existing non-quotation boundaries. |
+
+All paths in the evidence table are relative to `packages/markovian-autodiff`. Quotation-specific reverse comparisons currently use `StorePullbacks`; broader package tests with `RecomputePullbacks` are not quotation-specific evidence. The finite scalar grammar, nested old-path fixture, and parameterized let do not establish full vector/product basis coverage, full shadowing variants, or all rational failure contexts. “All input/parameter coordinates” is a validation/admission rule and a required differential evidence scope, not a claim that every possible quotation has been tested. Keep those gaps, the separate target account, and any further implementation-review findings for independent review. Do not implement an extension or change a status from this freeze alone.
+
 ### D-081: Add immutable host-F64 affine views after reverse-equivalence evidence repair
 
 **Status:** Proposed
