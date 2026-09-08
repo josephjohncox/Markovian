@@ -2,7 +2,7 @@
 
 **Decision status:** Proposed
 
-This document defines the repository-side receipt boundary. Run `34181389307` produced a validated same-session receipt and 14 cryptographically verified subjects, recorded below. Immutable retention and governance requirements remain open; D-077 is still Proposed. The two earlier failed attempts remain unvalidated and are not combined with the successful run.
+This document defines the repository-side receipt boundary. Run `34181389307` produced a validated same-session receipt and 14 cryptographically verified subjects, recorded below. The [2026-09-08 user amendment](../WORKFLOWS.md#82-deployment-scoped-gpu-evidence-amendment--2026-09-08) replaces permanent retention with deployment-scoped availability and verification. Separate governance review remains open. D-077 is still Proposed. The two earlier failed attempts remain unvalidated and are not combined with the successful run.
 
 ## Profile authority
 
@@ -57,7 +57,9 @@ The validator rejects unknown fields, missing records, changed artifacts, cross-
 
 The workflow and receipt validator share one sanitizer-version parser. It reads exactly one anchored `Version` line and compares the complete version token. Copyright/build numbers, unanchored strings, missing or malformed versions, duplicate Version lines, and partial version matches cannot supply the observation.
 
-The workflow asks GitHub to attest every validated evidence file. A workflow artifact remains temporary storage. A future claim must retain the evidence and verified attestation in an immutable release or provenance store.
+The workflow asks GitHub to attest every validated evidence file. A workflow artifact remains temporary storage. The current 90-day retention is allowed under the user amendment.
+
+At each GPU deployment or promotion, verify the complete raw directory and every attestation subject against the actual deployed revision. Preserve signature, issuer, source, workflow/run, and transparency checks. Later expiry does not invalidate past verification, but missing raw data cannot support new verification or promotion. Keep compact revision, profile, run/session, subject-digest, verification-result, and expiry records after raw-data expiry.
 
 ## Validation failure order
 
@@ -113,11 +115,15 @@ The signed statement was also checked for the exact repository, workflow path/re
 
 **Materialization boundary:** The raw extraction gave both executable files mode `0600`, so the unchanged validator rejected it with `R009_RECEIPT_ARTIFACT`. After all 14 subjects passed cryptographic verification, parent made a separate byte-identical copy and restored only owner execute permission on those two files (`0600` to `0700`). The exact committed validator then passed with explicit revision/session/UUID arguments. The ZIP and raw extraction were not modified, no validator check was bypassed, and no downloaded executable was run.
 
-**Retained audit:** `/home/josephcox/.local/share/markovian/evidence/d077-34181389307/audit-txi4c5bv` contains the raw ZIP/payload, separate verification copy, exact-commit validator, API metadata, selected bundle/statement, all 14 verification commands/results/logs, materialization record, and checksum manifests. `AUDIT-SHA256SUMS` binds the local audit files; this is not a claim that local storage is immutable.
+**Retained audit:** `/home/josephcox/.local/share/markovian/evidence/d077-34181389307/audit-txi4c5bv` contains the raw ZIP/payload, separate verification copy, exact-commit validator, API metadata, selected bundle/statement, all 14 verification commands/results/logs, materialization record, and checksum manifests. `AUDIT-SHA256SUMS` binds the local audit files; this is not a claim that local storage is immutable. This audit records the original verification. This amendment does not assert a fresh check of local availability.
 
 Runner 27 processed this one job, removed its registration and exited with listener code 0. A fresh runners API query returned zero runners. The pinned, update-disabled runner archive was version 2.337.0 with SHA-256 `9b1dc70626422526e3c94767cf024896beb15da5342a3f4819bf2feac13e0393`.
 
-**Remaining limits:** The GitHub artifact expires on `2026-12-07T02:49:34Z`; expiring artifacts and local copies do not satisfy immutable retention. The named environment has no required-reviewer rules or deployment-branch policy, as independently rechecked without modification. This run does not accept D-077, publish a release, establish general GPU correctness, or justify a speedup claim. Those governance and claim boundaries remain unchanged.
+**Original retention limit:** The GitHub artifact expires on `2026-12-07T02:49:34Z`. The policy at verification time required immutable retention. Expiring artifacts and local copies did not satisfy that requirement.
+
+**Current limits after the 2026-09-08 user amendment:** Permanent retention is no longer a future deployment or promotion blocker. Full evidence and signature verification remain mandatory at deployment or promotion. The compact record above preserves the exact tested revision, profile, run/session, subject digests, verification method/result, and artifact expiry. It does not replace missing raw data or attest a descendant revision. Governance acceptance may cite exact tested `3e850085fa96c4e48a80270b9e49e9f55fe0f757` plus an explicit reviewed docs-only delta. Actual GPU deployment requires evidence binding its deployed revision.
+
+The recorded named environment has no required-reviewer rules or deployment-branch policy, as independently rechecked during the original audit without modification. The user amendment changes no permissions and adds no infrastructure gate. This run does not accept D-077, publish a release, establish general GPU correctness, or justify a speedup claim.
 
 ## Failed protected attempt and parser repair — 2026-09-08
 
@@ -162,7 +168,7 @@ The implemented correction has profile digest `5fbed61193cf483a2ff5642c7487ad052
 
 The independent observed-summary fixture first reproduced the old `R011_RECEIPT_OUTCOME` failure. After repair, all 19 profile/receipt tests and the warning-error-enabled CUDA-disabled GPU suite passed. The plan test initially rejected the old profile digest, then passed after that digest alone was updated. Capability/release-policy checks, 77 compiled Haskell fences and teaching executions, book/MathJax checks, and all 16 source archives with archive-only teaching/capability checks passed. Logs are `/tmp/d077-racecheck-{red,profile,gpu,capabilities,policy,learning,book,sdist,archive}.log`.
 
-Independent review `9a648cbf-dc8e-4430-bd29-c815f625ab29` passed the racecheck-only repair at `15bc22d327ca2865a029906291d7de7e8f079830` with no findings after reviewer quota became available. It inspected source and parent logs, not independent test executions. Earlier quota/authentication failures produced no verdict. The follow-on reporting correction below is a separate review scope; the combined repair must pass its review and hosted gates before a new run. No new hardware run is authorized by these local checks alone. D-077 remains Proposed. Successful command steps do not replace validated, attested and immutably retained same-session evidence. Environment protections and release governance are unchanged.
+Independent review `9a648cbf-dc8e-4430-bd29-c815f625ab29` passed the racecheck-only repair at `15bc22d327ca2865a029906291d7de7e8f079830` with no findings after reviewer quota became available. It inspected source and parent logs, not independent test executions. Earlier quota/authentication failures produced no verdict. The follow-on reporting correction below is a separate review scope; the combined repair must pass its review and hosted gates before a new run. No new hardware run is authorized by these local checks alone. D-077 remains Proposed. At that review, successful command steps did not replace validated, attested and immutably retained same-session evidence. The 2026-09-08 user amendment supersedes only the forward-looking permanent-retention requirement. Environment protections and release governance are unchanged.
 
 ## Follow-on benchmark label contract — 2026-09-08
 

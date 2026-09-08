@@ -165,10 +165,12 @@ supplied-partition fixed-policy aggregation in the exact root: an opaque owned
 quotient or bounded distinguishing witness preserves joint reward/next-block laws,
 declared observations and terminal/payoff timing under one cumulative meter.
 Independent finite-value/trace fixtures and an executed success/witness lesson
-provide unreleased evidence. Independent EL-05 review, EL-06's experiment,
-and final EL-07 integration remain pending. The [durable checklist](plans/EXECUTABLE-LEARNING-TODO.md)
-records actual commands and residual gates; none of these implementations accepts
-D-077–D-085 or changes package versions, topology or immutable released evidence.
+provide unreleased evidence. EL-00 through EL-07 are complete for the bounded local program.
+The [integration record](evidence/EXECUTABLE-LEARNING-INTEGRATION.md) records independent reviews and the parent audit.
+The [durable checklist](plans/EXECUTABLE-LEARNING-TODO.md) retains commands and residual limits.
+The current queue starts with policy review, then D-077 governance review in the [all-nine checklist](../TODO.md#all-nine-execution-checklist).
+Apply the [2026-09-08 deployment-scoped evidence amendment](WORKFLOWS.md#82-deployment-scoped-gpu-evidence-amendment--2026-09-08).
+None of this work accepts D-077–D-085 or changes package versions, topology, or immutable released evidence.
 
 ## Post-release boundaries
 

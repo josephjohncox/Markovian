@@ -253,7 +253,8 @@ The user authorized this program after [the 2026-09-05 review](docs/evidence/LEA
 
 This roadmap schedules governance review before acceptance. D-077 through D-085 remain `Proposed`. New implementation work is `BLOCKED` until the applicable decision freezes exact exported signatures, failure precedence, package topology, ownership, limits, and evidence. Existing proposal-stage implementation evidence remains unaccepted until it is reviewed against that frozen contract.
 
-- [ ] **R1 (`NEXT`) Review D-077 GPU profile and evidence truth.** The bounded repair selected one profile authority and same-session receipt format. It separates exact dyadic, CPU operation-order, and CUDA FMA fixtures. D-074 assertions without retained receipts are historical only. Acceptance still needs reviewed immutable hardware receipts.
+- [ ] **R0 (`NEXT`) Review the 2026-09-08 deployment-scoped evidence amendment.** Check active policy projections and historical boundaries before D-077 acceptance review.
+- [ ] **R1 (`READY` after R0) Review D-077 GPU profile and evidence truth.** The bounded repair selected one profile authority and same-session receipt format. It separates exact dyadic, CPU operation-order, and CUDA FMA fixtures. D-074 assertions without complete receipts are historical only. Review tested `3e850085fa96c4e48a80270b9e49e9f55fe0f757` and any explicit docs-only delta separately. Permanent retention is no longer required. GPU deployment or promotion still requires complete raw evidence and signature verification bound to its deployed revision.
 - [ ] **R2 (`READY`) Review D-078 strict-discount affine feedback.** The decision now freezes exact signatures, root package placement, nominal ownership, the total failure order, opaque `A` and `K` coefficients, four literal equations, normalized finite event input, and cumulative accounting. Review the proposal-stage implementation and fixed evidence against that contract. Keep universal trace and cyclic open adapters excluded; D-078 remains `Proposed`.
 - [ ] **R3 (`READY`) Review D-079 exact joint affine kernels.** Gate A implements one owner table, duplicate-before-filter validation, same-scope partial renaming, complete-map scope transitions, real-Borel materialization, signed support extrema, complete renaming preflight, frozen failure precedence, and bounded reports. Cross-kernel composition and explicit fresh-owner composition evidence remain unimplemented. Keep callbacks, RCP, point conditioning, and multi-step control excluded; D-079 remains `Proposed`.
 - [ ] **R4 (`READY`) Review D-080 bounded first-order quotation.** Freeze hidden nominal paths, callback-free call-by-value `let`, saturating preflight, and independent exact primal and JVP recursion. Keep arbitrary-Haskell autodiff excluded.
@@ -265,7 +266,134 @@ This roadmap schedules governance review before acceptance. D-077 through D-085 
 
 For every roadmap item, one cumulative bounded ledger covers the complete operation. Preflight precedes dense allocation. Exact and one-below tests are mandatory. Proof records and empirical receipts remain separate. Evidence for `v2026.9.3.0` does not validate post-release work. No roadmap item authorizes publication or a workflow launch.
 
-Post-release roadmap status: `NEXT` is D-077 governance review. New device features remain `BLOCKED` while D-077 is `Proposed`. The evidence-truth repair does not accept D-077.
+Post-release roadmap status: `NEXT` is policy review, then D-077 governance review. New device features remain `BLOCKED` while D-077 is `Proposed`. The evidence-truth repair and policy amendment do not accept D-077.
+
+### All-nine execution checklist
+
+The user requested continuation through all nine proposals on 2026-09-08.
+This checklist schedules that work. It does not claim implementation or acceptance is complete.
+EL-00 through EL-07 are complete for their bounded program. Do not reopen their historical execution log.
+
+Keep all 16 versions, package edges, public APIs, and ownership boundaries unchanged during this documentation stage.
+Add no packages. This stage freezes no new public signatures.
+Later changes must follow each reviewed proposal contract and preserve unrelated APIs and ownership boundaries.
+The parent owns status edits, commits, pushes, and separately authorized external operations.
+No checklist item authorizes GitHub, runner, environment, authentication, release, publication, or network mutations.
+
+Complete each stage in order: reviewed contract, implementation, tests, fresh independent review, then a separate parent status edit.
+For existing code, review the implementation against its contract rather than treating its presence as acceptance.
+Record exact revisions, changed paths, commands, exit results, log locations, and review identifiers beside completed checkboxes.
+Record accepted scope and the parent status-edit revision separately.
+Leave blocked or failed items unchecked. Do not check a box from plans or another stage's evidence.
+Tests must cover independent oracles, opacity/nominal roles, cumulative limits, exact/one-below boundaries, and atomic failure where applicable.
+Preflight must precede dense allocation. Keep proof results separate from execution and benchmark evidence.
+
+#### R0 — Policy review
+
+- [ ] Review [section 8.2](docs/WORKFLOWS.md#82-deployment-scoped-gpu-evidence-amendment--2026-09-08) and its active projections.
+- [ ] Check full deployment-time evidence, signatures, issuer/source/run/transparency checks, finite retention, compact records, and deployed-revision binding.
+- [ ] Confirm historical receipts, failed attempts, released assets, tensor immutability, and action pins remain truthful and unchanged in meaning.
+- [x] Run capability release verification, release-policy, book, and diff checks. Record failures without weakening checks.
+- [ ] Obtain fresh independent policy review. Record the verdict before D-077 acceptance review.
+
+Local documentation validation on 2026-09-08 used the uncommitted seven-file delta from `80949faed2da16d603d7eebd0586ea9d94b325f9`.
+Changed paths: `TODO.md`, `RELEASE-CHECKLIST.md`, `docs/WORKFLOWS.md`, `docs/DECISIONS.md`, `docs/CONTEXT.md`, `docs/evidence/CUDA-D077-RECEIPTS.md`, and `backends/markovian-gpu/CHANGELOG.md`.
+All commands ran from `/home/josephcox/dev/Markovian-proposals` and returned exit 0:
+
+- `python3 scripts/check-capabilities --verify-release`: nine records checked. Log: `/tmp/deployment-policy-capabilities.log`.
+- `bash scripts/check-release-policy`: revision flow, provenance scope, hostile-input rejection, and action pins passed. Log: `/tmp/deployment-policy-release-policy.log`.
+- `bash scripts/check-book`: 77 static fences, 52 linked book files, and 422 display-math blocks checked. Log: `/tmp/deployment-policy-book.log`.
+- `git diff --check`: passed. Log: `/tmp/deployment-policy-diff.log`.
+
+These checks do not rerun Haskell teaching programs, hardware tests, or attestation verification. Independent review remains open.
+
+#### R1 — D-077 profile and evidence governance
+
+Existing evidence: [D-077 receipt record](docs/evidence/CUDA-D077-RECEIPTS.md) and the current repair boundary in [D-077](docs/DECISIONS.md#d-077-govern-gpu-profiles-and-evidence-truth).
+
+- [ ] Review the existing profile/receipt contract, signatures, failure order, ownership, numeric policies, and deployment-scoped evidence plan.
+- [ ] Review the existing repair against that contract. Implement only separately reviewed gaps, if any.
+- [ ] Check authority drift, dyadic/CPU/CUDA fixtures, bounded preflight, malformed receipts, and the exact tested run's verification records.
+- [ ] Obtain fresh independent D-077 review. Identify tested `3e850085fa96c4e48a80270b9e49e9f55fe0f757` and both endpoints/paths of any reviewed docs-only delta.
+- [ ] Parent records acceptance, if supported, in a separate reviewed status edit. Deployment still needs evidence binding its deployed revision.
+
+#### R2 — D-078 strict-discount affine feedback
+
+Existing evidence: the frozen contract and current implementation boundary in D-078.
+
+- [ ] Review the existing exact signatures, root placement, nominal coefficients, failure table, four equations, and cumulative ledger.
+- [ ] Review the existing implementation against that contract. Repair only reviewed gaps.
+- [ ] Run literal-equation, explicit-horizon finite-oracle, normalization, timing, layout, rational-growth, and exact/one-below tests.
+- [ ] Obtain fresh independent review of the contract, implementation, and current test evidence.
+- [ ] Parent records any acceptance in a separate reviewed status edit. Keep universal trace and cyclic open adapters excluded.
+
+#### R3 — D-079 joint affine kernels
+
+Existing evidence: the frozen Gate A contract and implementation. Cross-kernel composition and explicit fresh-owner evidence are absent.
+
+- [ ] Review Gate A. Freeze and independently review composition signatures, fresh-owner evidence, locality, canonical order, failure precedence, and cumulative limits.
+- [ ] Implement only the reviewed composition and fresh-owner contract. Preserve Gate A's real-Borel outputs and nominal ownership.
+- [ ] Test shared/independent owners, composition collisions, local escape, duplicate-before-filter behavior, symbolic expansion, corner extrema, and exact/one-below limits.
+- [ ] Obtain fresh independent review of Gate A and the completed composition implementation with current evidence.
+- [ ] Parent records any full-proposal acceptance in a separate reviewed status edit. Gate A alone cannot complete D-079.
+
+#### R4 — D-080 first-order quotation
+
+Existing evidence: the proposal-stage quotation implementation and current evidence boundary in D-080.
+
+- [ ] Freeze and review the exact existing signature schedule, constructors/eliminators, path roles, call-by-value order, and total failure table.
+- [ ] Review the existing implementation against that schedule. Repair only reviewed gaps.
+- [ ] Run forged/escaped-path compile failures, used/unused lets, shadowing, saturation, preflight, and independent primal/JVP/reverse coordinate comparisons.
+- [ ] Obtain fresh independent contract and implementation review with current test evidence.
+- [ ] Parent records any acceptance in a separate reviewed status edit. Keep arbitrary-Haskell and higher-order autodiff excluded.
+
+#### R5 — D-081 immutable host-F64 affine views
+
+Existing evidence: [transpose reverse-equivalence repair](docs/evidence/D081-TRANSPOSE-REVERSE-EQUIVALENCE.md), not a wider affine-view implementation.
+
+- [ ] Review prerequisite coordinate and finite-difference evidence. Freeze and review affine maps, signatures, ownership, pullbacks, materialization, limits, and failure order.
+- [ ] Implement only the reviewed affine-view contract after the prerequisite review. Preserve immutable storage and distinct owner/storage/region evidence.
+- [ ] Test empty/scalar shapes, signed strides, offsets, transpose/reversal/slicing/composition, bounds, overlap rejection, region escape, and direct/materialized pullbacks.
+- [ ] Obtain fresh independent review with all-coordinate oracles, finite differences, allocation/preflight checks, and exact/one-below evidence.
+- [ ] Parent records any acceptance in a separate reviewed status edit. The existing transpose evidence alone cannot complete D-081.
+
+#### R6 — D-082 CUDA multiply-chain graphs
+
+**Blocked until separate reviewed acceptance of both D-077 and D-081.**
+
+- [ ] Verify both prerequisite acceptance records. Freeze and review graph signatures, admitted nodes/views, ownership, schedule, cleanup, ledgers, and failure precedence.
+- [ ] Implement only the reviewed closed matrix-input/view/multiply DAG and its declared VJPs.
+- [ ] Test graph/transfer/payload/work/launch limits, cleanup, and every forward/VJP coordinate against independent dyadic and CPU references.
+- [ ] Obtain fresh independent review with same-session hardware/sanitizer evidence under section 8.2. Obtain separate authorization before hardware workflows.
+- [ ] Parent records any acceptance in a separate reviewed status edit. Bind actual GPU deployment evidence to its deployed revision.
+
+#### R7 — D-083 CE and CCE one-witness solvers
+
+Package placement needs explicit approval. This checklist authorizes no new package or edge.
+
+- [ ] Obtain placement approval within the unchanged topology. Freeze and review signatures, streamed active-set order, normalization, reports, ledgers, and failure precedence.
+- [ ] Implement separate bounded exact CE and CCE one-witness solvers under the reviewed contract.
+- [ ] Test independent witness inequalities, small exhaustive fixtures, degeneracy, rank deficiency, inconsistency, no-witness traversal, and exact/one-below atomic failures.
+- [ ] Obtain fresh independent review of placement, solver behavior, accounting, and current evidence.
+- [ ] Parent records any acceptance in a separate reviewed status edit. Keep Nash and unrestricted solver claims excluded.
+
+#### R8 — D-084 reference DQN trainer
+
+- [ ] Freeze and review trainer signatures, fuel, replay/checkpoint owners, event order, terminal/truncation rules, RNG advancement, resumption, and failures.
+- [ ] Implement only the reviewed resumable reference trainer around the existing checked batch update.
+- [ ] Test split-run equality, masks, replay warming/eviction/order, target schedules, standard/Double-DQN, callback failures, atomic updates, and exact/one-below limits.
+- [ ] Obtain fresh independent review with semantic step evidence and separately scoped timing receipts.
+- [ ] Parent records any acceptance in a separate reviewed status edit. Keep production, convergence, device, and distributed claims excluded.
+
+#### R9 — D-085 retained-circuit trace cache
+
+Existing evidence: [EL-06 resource policy](docs/plans/EL-06-RESOURCE-ADMISSION.md) and its completed lesson, not the concrete cache.
+
+- [ ] Freeze and review concrete table/cache/interpreter/trace signatures, key identity, ordered validation replay, dual ledgers, and failure precedence.
+- [ ] Implement only the named retained-circuit consumer under source-semantic admission. Preserve full source charges and separately bounded executor costs.
+- [ ] Test discarded-intermediate checks, source failure order, key separation, changed-limit misses, no partial entries, exact uncached equality, and exact/one-below limits.
+- [ ] Obtain fresh independent review with same-workload raw time/allocation/hit/table-size evidence. Do not substitute EL-06's hypothetical hit cost.
+- [ ] Parent records any acceptance in a separate reviewed status edit. Keep universal normalization and optimization claims excluded.
 
 ## Requirements for new work
 

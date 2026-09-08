@@ -361,12 +361,54 @@ Apply this gate to D-077 through D-085 and later post-release proposals:
 8. Separate mathematical proof status from compiler, device, and benchmark evidence.
 9. Treat `v2026.9.3.0` evidence as evidence for that release only.
 10. Get explicit topology approval before adding a package or package edge.
-11. Do not infer a general device or performance claim without immutable same-session receipts.
+11. Limit device and performance claims to verified same-session receipts under section 8.2. One admitted profile proves no general claim.
 12. Do not launch a workflow, prepare a candidate, tag, upload, release, or publish without separate authorization.
 
 A proposal can advance only after the decision records its exact API schedule, failure table, ownership model, ledger, tests, and evidence plan. A status change requires a separate reviewed edit.
 
-For D-077 hardware evidence, start one session identity before correctness tests. Use the same test executable for correctness and all sanitizer tools. Bind each executable, command, and raw log by SHA-256. Run the benchmark in that session and retain every raw sample. Validate the complete directory with `backends/markovian-gpu/scripts/cuda_profile.py validate-receipt`. A temporary workflow artifact is not durable evidence.
+For D-077 hardware evidence, start one session identity before correctness tests. Use the same test executable for correctness and all sanitizer tools. Bind each executable, command, and raw log by SHA-256. Run the benchmark in that session and retain every raw sample through deployment or promotion verification. Validate the complete directory with `backends/markovian-gpu/scripts/cuda_profile.py validate-receipt`.
+
+### 8.2 Deployment-scoped GPU evidence amendment — 2026-09-08
+
+The user amended the evidence policy: "I don't think we need immutable evidence forever, just deployments. then continue with all proposals."
+This amendment supersedes the permanent immutable-retention requirement for future GPU deployment and promotion evidence.
+It does not rewrite historical receipts or release obligations.
+
+At each GPU deployment or promotion, require the complete raw evidence and verify it against the actual deployed revision.
+Preserve source, profile, PTX, executable, command, log, session, UUID, tool-version, checksum, and all 20 ordered raw-sample bindings.
+Keep correctness, all four sanitizer records, and benchmark evidence in one bound session.
+Reject missing or changed bytes, substituted commands, mismatched identities, and failed outcomes under the existing validator rules.
+
+Verify signatures for every evidence subject against its actual bytes.
+Keep certificate identity, issuer, repository, workflow, source revision, run/attempt, claims, and transparency checks.
+Unsigned metadata, artifact retrieval, digests alone, and prose summaries do not replace cryptographic verification.
+Do not weaken validator failure order, numeric comparisons, sanitizer markers, or the semantic checksum.
+
+Finite storage is allowed, including the current 90-day workflow retention.
+The complete evidence must remain available through deployment or promotion verification, not forever afterward.
+Later expiry does not retroactively fail a completed verification or deployment.
+Missing raw data cannot support a new verification or promotion.
+Obtain newly bound evidence when the required raw data is unavailable.
+
+Preserve a compact record after raw-data expiry.
+Record the tested revision, deployed revision when applicable, profile identity, workflow run/attempt, session, and subject digests.
+Also record the verification date, commands/tool identity, signature checks, result, evidence location, and retention expiry.
+Keep the original result and record later data unavailability separately.
+A compact record records past verification. It does not replace raw evidence for a new verification.
+
+Governance acceptance may cite exact tested revision `3e850085fa96c4e48a80270b9e49e9f55fe0f757` plus an explicit, separately reviewed docs-only delta.
+Name both delta endpoints and changed paths. Do not assume a descendant commit has the tested revision's hardware evidence.
+Actual GPU deployment still requires evidence that binds its deployed revision.
+Do not relabel failed runs or combine them with a successful receipt.
+
+The recorded environment has no required-reviewer rules or deployment-branch restrictions.
+This amendment changes neither permissions nor environment configuration and adds no infrastructure gate.
+Keep separate review and authorization requirements. Do not infer technical enforcement that the environment does not provide.
+D-077 through D-085 remain `Proposed` until separate reviewed status edits.
+
+Released source, tags, assets, immutable tensor storage, action pins, and digest-based content identity retain their existing requirements.
+Continue the proposals through the [durable stage checklist](../TODO.md#all-nine-execution-checklist).
+This amendment alone authorizes no workflow, runner, environment, authentication, release, publication, or network mutation.
 
 ## 9. Failure handling
 
