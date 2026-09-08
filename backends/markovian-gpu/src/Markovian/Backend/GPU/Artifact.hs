@@ -2,7 +2,7 @@
 module Markovian.Backend.GPU.Artifact where
 
 profileSHA256 :: String
-profileSHA256 = "150e39b7844d270cd145851327f8fcb1cd6681149ed882c47b56bb43ab9f45f2"
+profileSHA256 = "5fbed61193cf483a2ff5642c7487ad052add4ed52da1a83a110da4711c7480dd"
 
 ptxTarget :: String
 ptxTarget = "sm_121"

@@ -127,6 +127,15 @@ class CUDAProfileTests(unittest.TestCase):
         ]
 
     def write_record_logs(self) -> list[dict[str, object]]:
+        # Observed tool output, deliberately independent of expected profile markers.
+        sanitizer_summaries = {
+            "sanitizer-memcheck": "========= ERROR SUMMARY: 0 errors",
+            "sanitizer-initcheck": "========= ERROR SUMMARY: 0 errors",
+            "sanitizer-racecheck": (
+                "========= RACECHECK SUMMARY: 0 hazards displayed (0 errors, 0 warnings)"
+            ),
+            "sanitizer-synccheck": "========= ERROR SUMMARY: 0 errors",
+        }
         records: list[dict[str, object]] = []
         for spec in self.profile["receiptSchema"]["requiredRecords"]:
             kind = spec["kind"]
@@ -141,7 +150,11 @@ class CUDAProfileTests(unittest.TestCase):
                 f"evidence-command-sha256: {command_digest}",
                 f"evidence-executable-sha256: {executable_digest}",
                 "evidence-record-exit: 0",
-                *spec["successMarkers"],
+                *(
+                    [sanitizer_summaries[kind]]
+                    if kind in sanitizer_summaries
+                    else spec["successMarkers"]
+                ),
             ]
             if kind == "benchmark":
                 lines.extend(
@@ -193,6 +206,57 @@ class CUDAProfileTests(unittest.TestCase):
     def test_authority_and_artifact_bound_same_session_receipt_pass(self) -> None:
         self.assertRegex(cuda_profile.check_profile(PACKAGE_ROOT), r"^[0-9a-f]{64}$")
         self.assertEqual(self.validate()["result"], "passed")
+
+    def test_racecheck_rejects_generic_missing_and_nonzero_summaries(self) -> None:
+        path = self.root / "sanitizer-racecheck.log"
+        original = path.read_text(encoding="utf-8")
+        observed = "RACECHECK SUMMARY: 0 hazards displayed (0 errors, 0 warnings)"
+        self.assertIn(observed, original)
+        for summary in [
+            "ERROR SUMMARY: 0 errors",
+            "",
+            "RACECHECK SUMMARY: 1 hazards displayed (0 errors, 0 warnings)",
+            "RACECHECK SUMMARY: 0 hazards displayed (1 errors, 0 warnings)",
+            "RACECHECK SUMMARY: 0 hazards displayed (0 errors, 1 warnings)",
+        ]:
+            with self.subTest(summary=summary):
+                path.write_text(original.replace(observed, summary), encoding="utf-8")
+                value = copy.deepcopy(self.receipt)
+                record = next(
+                    r for r in value["records"] if r["kind"] == "sanitizer-racecheck"
+                )
+                record["logSha256"] = self.digest("sanitizer-racecheck.log")
+                self.expect_code(value, "R011_RECEIPT_OUTCOME")
+
+    def test_other_sanitizers_reject_racecheck_summary(self) -> None:
+        for tool in ["memcheck", "initcheck", "synccheck"]:
+            with self.subTest(tool=tool):
+                name = f"sanitizer-{tool}.log"
+                path = self.root / name
+                original = path.read_text(encoding="utf-8")
+                path.write_text(
+                    original.replace(
+                        "ERROR SUMMARY: 0 errors",
+                        "RACECHECK SUMMARY: 0 hazards displayed (0 errors, 0 warnings)",
+                    ),
+                    encoding="utf-8",
+                )
+                value = copy.deepcopy(self.receipt)
+                record = next(r for r in value["records"] if r["log"] == name)
+                record["logSha256"] = self.digest(name)
+                self.expect_code(value, "R011_RECEIPT_OUTCOME")
+                path.write_text(original, encoding="utf-8")
+
+    def test_racecheck_profile_rejects_generic_marker(self) -> None:
+        value = copy.deepcopy(self.profile)
+        value["receiptSchema"]["requiredRecords"][3]["successMarkers"] = [
+            "ERROR SUMMARY: 0 errors"
+        ]
+        path = self.root / "wrong-profile.json"
+        path.write_text(json.dumps(value, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+        with self.assertRaises(cuda_profile.ProfileError) as caught:
+            cuda_profile.load_profile(path)
+        self.assertEqual(caught.exception.code, "P006_PROFILE_VALUE")
 
     def test_sanitizer_version_uses_the_real_version_line(self) -> None:
         text = (self.root / "sanitizer-version.log").read_text(encoding="utf-8")

@@ -2,11 +2,11 @@
 
 **Decision status:** Proposed
 
-This document defines the repository-side receipt boundary. No successful D-077 hardware receipt is recorded. The failed attempt below stopped before hardware tests and supplies no device-correctness or performance evidence.
+This document defines the repository-side receipt boundary. No successful D-077 hardware receipt is recorded. Neither failed attempt below produced a validated, attested D-077 receipt. No device-correctness or performance claim follows from these attempts.
 
 ## Profile authority
 
-`backends/markovian-gpu/profile.json` is the only GPU profile authority. Its SHA-256 addresses the complete reviewed profile.
+`backends/markovian-gpu/profile.json` is the only GPU profile authority. Its SHA-256 addresses the complete profile. A new digest does not itself establish review or acceptance.
 
 The authority fixes these items:
 
@@ -128,7 +128,11 @@ The following repair boundary is frozen before implementation:
 - Build sanitizer test output from independently recorded tool-specific summaries, not from the profile's expected marker list. Require regressions for the observed racecheck summary, generic/wrong-tool summaries, missing summaries, and nonzero hazard/error/warning counts. Recompute mutated log digests so these tests reach the outcome check.
 - Obtain independent repair review and pass local/archive/hosted gates before another hardware run. The new run must bind the newly merged source and profile; do not rewrite or relabel either failed payload.
 
-D-077 remains Proposed. Successful command steps do not replace validated, attested and immutably retained same-session evidence. Environment protections and release governance are unchanged.
+The implemented correction has profile digest `5fbed61193cf483a2ff5642c7487ad052add4ed52da1a83a110da4711c7480dd`. The three generated artifacts and the deterministic plan golden now bind that digest. A structural comparison confirmed that the racecheck marker is the only profile-value change. The teaching output receipt was refreshed by executing the teaching gate; only its source fingerprint changed.
+
+The independent observed-summary fixture first reproduced the old `R011_RECEIPT_OUTCOME` failure. After repair, all 19 profile/receipt tests and the warning-error-enabled CUDA-disabled GPU suite passed. The plan test initially rejected the old profile digest, then passed after that digest alone was updated. Capability/release-policy checks, 77 compiled Haskell fences and teaching executions, book/MathJax checks, and all 16 source archives with archive-only teaching/capability checks passed. Logs are `/tmp/d077-racecheck-{red,profile,gpu,capabilities,policy,learning,book,sdist,archive}.log`.
+
+Independent repair review is still pending: reviewer quota and authentication failures produced no verdict. No new hardware run is authorized by these local checks alone. D-077 remains Proposed. Successful command steps do not replace validated, attested and immutably retained same-session evidence. Environment protections and release governance are unchanged.
 
 ## Historical D-074 boundary
 

@@ -153,7 +153,9 @@ RECORD_SPECS = [
         "kind": "sanitizer-racecheck",
         "command": "compute-sanitizer --error-exitcode=1 --tool racecheck cuda-evidence/test-executable",
         "executable": "test-executable",
-        "successMarkers": ["ERROR SUMMARY: 0 errors"],
+        "successMarkers": [
+            "RACECHECK SUMMARY: 0 hazards displayed (0 errors, 0 warnings)"
+        ],
     },
     {
         "kind": "sanitizer-synccheck",
