@@ -61,6 +61,46 @@ if cabal exec "${project_args[@]}" -- ghc "${ghc_args[@]}" "${package_dir}/test/
   exit 1
 fi
 grep -F badPairedRecordUpdate "${log_file}" >/dev/null || { cat "${log_file}" >&2; exit 1; }
+# Positive installed client first: missing APIs cannot impersonate opacity.
+cabal exec "${project_args[@]}" -- ghc -Wall -Werror -XGHC2021 \
+  -hide-all-packages -package base -package-id "${continuous_unit_id}" \
+  -outputdir "${private_dir}/client" -o "${private_dir}/successor-client" \
+  "${package_dir}/test/SuccessorSubstitutionClient.hs"
+"${private_dir}/successor-client"
+check_successor_failure() {
+  local name="$1" diagnostic="$2"
+  shift 2
+  if cabal exec "${project_args[@]}" -- ghc "${ghc_args[@]}" -fmax-errors=100 \
+      "${package_dir}/test/compile-fail/${name}.hs" >"${log_file}" 2>&1; then
+    echo "Substitution boundary escaped: ${name}" >&2
+    exit 1
+  fi
+  for rejected in "$diagnostic" "$@"; do
+    grep -F "$rejected" "${log_file}" >/dev/null || { cat "${log_file}" >&2; echo "Missing ${name} diagnostic: ${rejected}" >&2; exit 1; }
+  done
+  if [[ "$name" == SuccessorSubstitutionReportUpdate ]]; then
+    # GHC 9.8 and 9.4 reject the same update with different wording.
+    grep -E 'Not in scope: record field [^[:alnum:]_]*substitutionMaximumRationalBits([^[:alnum:]_]|$)|(^|[^[:alnum:]_])substitutionMaximumRationalBits[^[:alnum:]_]+is not a record selector' "${log_file}" >/dev/null || {
+      cat "${log_file}" >&2
+      echo "Missing ${name} record-update rejection for substitutionMaximumRationalBits." >&2
+      exit 1
+    }
+  fi
+  echo "PASS: ${name} named diagnostics"
+}
+check_successor_failure SuccessorSubstitutionConstructors 'Data constructor not in scope' \
+  badSubstitutionConstructor badSharedWitnessConstructor badFreshWitnessConstructor \
+  badOwnerRequestConstructor badSubstitutionLimitsConstructor badSubstitutionReportConstructor
+check_successor_failure SuccessorSubstitutionRoles "Couldn't match" \
+  badSubstitutionSourceRole badSubstitutionRewardRole badSubstitutionSuccessorRole badRequestLeftRole badRequestRightRole
+check_successor_failure SuccessorSubstitutionWrongScope "Couldn't match type" \
+  badSuccessorSharedScope badSuccessorFreshScope OwnerA OwnerB
+check_successor_failure SuccessorSubstitutionIntermediate "Couldn't match type" badIntermediateLabel
+check_successor_failure SuccessorSubstitutionSpace "Couldn't match type" badSubstitutionSpace RealBorel
+check_successor_failure SuccessorSubstitutionExtraction 'Not in scope' badUnderlyingKernel
+check_successor_failure SuccessorSubstitutionLocalOwner 'not in scope' badLocalOwner
+check_successor_failure SuccessorSubstitutionSealing "Couldn't match expected type" badSealedReScope badSealedChaining
+check_successor_failure SuccessorSubstitutionReportUpdate substitutionMaximumRationalBits badSubstitutionReportUpdate
 # Compile only the private source and invariant probes in an isolated output
 # directory. This does not expose a module or add a package dependency edge.
 cabal exec "${project_args[@]}" -- ghc -Wall -Werror -XGHC2021 -XDerivingStrategies \
@@ -68,4 +108,24 @@ cabal exec "${project_args[@]}" -- ghc -Wall -Werror -XGHC2021 -XDerivingStrateg
   -outputdir "${private_dir}" -o "${private_dir}/paired-private" \
   "${package_dir}/test/PairedDifferencePrivate.hs"
 "${private_dir}/paired-private"
+# Run private joint-affine probes in GHC's source expression context. Append
+# test declarations only to a temporary copy, exporting only the IO test entry
+# there to keep -Wunused-top-binds enabled. The installed source/module remain
+# unchanged; no constructor, private accessor, or kernel callback is exported.
+python3 - "${package_dir}" "${private_dir}/JointAffineProbe.hs" <<'PY'
+from pathlib import Path
+import sys
+package, target = map(Path, sys.argv[1:])
+source = package / "src/Markovian/Continuous/Kernel/JointAffine/Exact.hs"
+probe = package / "test/JointAffinePrivate.inc"
+text = source.read_text()
+header = "module Markovian.Continuous.Kernel.JointAffine.Exact ("
+assert text.count(header) == 1
+text = text.replace(header, header + "\n    privateSuccessorTests,", 1)
+target.write_text(text + probe.read_text())
+PY
+cabal exec "${project_args[@]}" -- ghc -Wall -Werror -XGHC2021 -XDerivingStrategies \
+  -hide-all-packages -package base -i"${package_dir}/src" \
+  -outputdir "${private_dir}" "${private_dir}/JointAffineProbe.hs" \
+  -e privateSuccessorTests
 echo "PASS: continuous opacity, coordinate and owner roles, owner locality, conditioning and paired-report boundary"

@@ -32,7 +32,18 @@ extra-source-files:
   test/compile-fail/JointAffineWrongScope.hs
   test/compile-fail/PairedDifferenceBoundary.hs
   test/compile-fail/PairedDifferenceRecordUpdate.hs
+  test/compile-fail/SuccessorSubstitutionConstructors.hs
+  test/compile-fail/SuccessorSubstitutionExtraction.hs
+  test/compile-fail/SuccessorSubstitutionIntermediate.hs
+  test/compile-fail/SuccessorSubstitutionLocalOwner.hs
+  test/compile-fail/SuccessorSubstitutionReportUpdate.hs
+  test/compile-fail/SuccessorSubstitutionRoles.hs
+  test/compile-fail/SuccessorSubstitutionSealing.hs
+  test/compile-fail/SuccessorSubstitutionSpace.hs
+  test/compile-fail/SuccessorSubstitutionWrongScope.hs
+  test/JointAffinePrivate.inc
   test/PairedDifferencePrivate.hs
+  test/SuccessorSubstitutionClient.hs
 
 data-files:
   test/golden/bivariate-accounting.txt

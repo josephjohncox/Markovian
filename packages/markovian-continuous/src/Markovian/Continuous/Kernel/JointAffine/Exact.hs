@@ -1,4 +1,8 @@
+{-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE RoleAnnotations #-}
+
+-- The frozen private witness declarations use data with strict captured operands.
+{- HLINT ignore "Use newtype instead of data" -}
 
 {- | Bounded exact kernels from one rational real input to a joint reward and
 successor law.
@@ -14,10 +18,10 @@ that product.  The implementation relies only on these closure steps and does
 not claim measurability for arbitrary Haskell functions.
 
 Owner numbers are names in one kernel scope.  The nominal @owner@ parameter and
-absence of a cross-kernel composition operation prevent a number from being
+explicit substitution requests prevent a number from being
 used as global sharing evidence.  'alphaRenameJointAffineKernel' performs a
 partial rename without changing that scope.  'reScopeJointAffineKernel' changes
-the scope only when given a complete injective mapping of every retained owner.
+the scope only when given a complete injective mapping of every declared owner, including zero rows.
 The @sourceLabel@, @rewardLabel@, and @successorLabel@ parameters are nominal
 coordinate labels, not measurable-space witnesses.  Materialization always
 returns @ExactJointLaw RealBorel RealBorel@.
@@ -43,10 +47,44 @@ module Markovian.Continuous.Kernel.JointAffine.Exact (
     ExactJointAffineOperation (..),
     ExactJointAffineError (..),
     ExactJointAffineReport (..),
+    ExactSuccessorOwnerRequest,
+    sharedSuccessorOwners,
+    freshSuccessorOwners,
+    ExactSuccessorSubstitutionLimits,
+    exactSuccessorSubstitutionLimits,
+    ExactSuccessorSubstitution,
+    substituteLeftSuccessor,
+    successorSubstitutionReport,
+    materializeSuccessorSubstitution,
+    successorSubstitutionSupportExtrema,
+    SuccessorSubstitutionParticipant (..),
+    ExactSuccessorSubstitutionError (..),
+    ExactSuccessorSubstitutionMode (..),
+    ExactSuccessorSubstitutionReport,
+    substitutionMode,
+    substitutionLeftDeclaredOwners,
+    substitutionRightDeclaredOwners,
+    substitutionMappingEntries,
+    substitutionRawEntries,
+    substitutionOwnerReservationSlots,
+    substitutionReservedNames,
+    substitutionSharedOwners,
+    substitutionFreshOwners,
+    substitutionDeclaredResultOwners,
+    substitutionRetainedResultOwners,
+    substitutionZeroFilteredResultOwners,
+    substitutionOutputs,
+    substitutionCoefficientSlots,
+    substitutionPreflightWork,
+    substitutionCoefficientMultiplications,
+    substitutionCoefficientAdditions,
+    substitutionArithmeticWork,
+    substitutionWork,
+    substitutionMaximumRationalBits,
 ) where
 
 import Control.Monad (foldM, unless, when)
-import Data.List (sortOn)
+import Data.List (find, sortOn)
 import Data.Ratio (denominator, numerator)
 import Markovian.Continuous.Internal
 import Numeric.Natural (Natural)
@@ -135,7 +173,7 @@ nominal kernel scope.
 data OwnerRow = OwnerRow !Natural !RationalInterval !Rational !Rational
 
 {- | Opaque exact joint affine kernel.  All parameters are nominal labels, so
-input, reward, successor, and owner roles cannot be changed with 'coerce'.
+input, reward, successor, and owner roles cannot be changed with @coerce@.
 Only the owner parameter scopes run-time owner identity.  The three coordinate
 labels do not stand for measurable spaces; the represented domain and both
 outputs are always 'RealBorel'.
@@ -144,7 +182,8 @@ data ExactJointAffineKernel owner sourceLabel rewardLabel successorLabel
     = UnsafeExactJointAffineKernel
         !(ExactAffineInputCoordinate sourceLabel rewardLabel)
         !(ExactAffineInputCoordinate sourceLabel successorLabel)
-        ![OwnerRow]
+        ![OwnerRow] -- Complete canonical declarations, including zeros.
+        ![OwnerRow] -- Executable view of those same rows.
         !Natural
         !Natural
         !Natural
@@ -158,8 +197,9 @@ and owner rows @(owner, interval, rewardCoefficient, successorCoefficient)@.
 Failure precedence is invalid limits; bounded raw traversal; owner, output,
 coefficient, and construction-work preflight; duplicate owner declarations;
 then rational and interval validation in input order.  Duplicate detection is
-therefore complete before zero-row filtering.  Canonical retained rows are
-ordered by owner number.
+therefore complete before zero-row filtering. The full canonical declaration
+manifest retains zero rows; its executable view omits them. Both are ordered
+by owner number.
 -}
 exactJointAffineKernel ::
     ExactJointAffineLimits ->
@@ -181,16 +221,15 @@ exactJointAffineKernel limits rewardCoordinate successorCoordinate input = do
     checkDimension limits JointAffineWork (jointLimitWork limits) preflightWork
     when (hasDuplicate [owner | (NoiseOwner owner, _, _, _) <- raw]) (Left JointAffineDuplicateOwner)
     maximumBits <- validateRationals limits rewardCoordinate successorCoordinate raw
-    let retained =
-            sortOn
-                rowOwner
+    let declarations =
+            orderRows
                 [ OwnerRow owner interval rewardValue successorValue
                 | (NoiseOwner owner, interval, rewardValue, successorValue) <- raw
-                , rewardValue /= 0 || successorValue /= 0
                 ]
+        retained = filter executableRow declarations
         retainedCount = naturalLength retained
         report = makeReport JointAffineConstruction rawCount ownerCount retainedCount coefficientCount preflightWork 0 maximumBits
-    pure (UnsafeExactJointAffineKernel rewardCoordinate successorCoordinate retained rawCount ownerCount coefficientCount report)
+    pure (UnsafeExactJointAffineKernel rewardCoordinate successorCoordinate declarations retained rawCount ownerCount coefficientCount report)
 
 {- | Partially rename owners without changing the nominal owner scope.
 
@@ -198,6 +237,8 @@ Precedence is stored-kernel admission; bounded mapping-spine admission; the
 complete conservative rename-work plan; duplicate sources; duplicate targets;
 unknown sources; collisions after partial replacement; then canonical sorting.
 The plan is checked before any semantic scan or derived owner list is made.
+D079 Gate B supersedes retained-only membership and collisions: both now cover
+all declarations, including zeros, and work uses the declared count.
 -}
 alphaRenameJointAffineKernel ::
     ExactJointAffineLimits ->
@@ -210,7 +251,7 @@ alphaRenameJointAffineKernel = renameJointAffineKernel PreserveOwnerScope
 
 Precedence is the same as 'alphaRenameJointAffineKernel', with completeness
 checked after unknown sources and before collisions.  An empty mapping can
-change scope only for a kernel with no retained owners.
+change scope only for a kernel with no declarations.
 -}
 reScopeJointAffineKernel ::
     ExactJointAffineLimits ->
@@ -228,14 +269,14 @@ renameJointAffineKernel ::
     [(NoiseOwner old, NoiseOwner new)] ->
     ExactJointAffineKernel old sourceLabel rewardLabel successorLabel ->
     Either ExactJointAffineError (ExactJointAffineKernel new sourceLabel rewardLabel successorLabel)
-renameJointAffineKernel scopeChange limits inputRenaming kernel@(UnsafeExactJointAffineKernel rewardCoordinate successorCoordinate rows rawCount ownerCount coefficientCount _) = do
+renameJointAffineKernel scopeChange limits inputRenaming kernel@(UnsafeExactJointAffineKernel rewardCoordinate successorCoordinate rows _ rawCount ownerCount coefficientCount _) = do
     validateStored limits kernel
     (mappingCount, renaming) <- boundedRenaming limits inputRenaming
     let retainedCount = jointAffineRetainedOwnerCount (jointAffineKernelReport kernel)
-    renameWork <- renamingPreflight limits scopeChange rawCount retainedCount mappingCount
+    renameWork <- renamingPreflight limits scopeChange rawCount ownerCount mappingCount
     when (hasDuplicateBy renamingSource renaming) (Left JointAffineDuplicateRenamingSource)
     when (hasDuplicateBy renamingTarget renaming) (Left JointAffineNonInjectiveRenaming)
-    unless (all (sourceIsRetained rows) renaming) (Left JointAffineUnknownRenamingSource)
+    unless (all (sourceIsDeclared rows) renaming) (Left JointAffineUnknownRenamingSource)
     when (scopeChange == ChangeOwnerScope && not (all (rowHasSource renaming) rows)) (Left JointAffineIncompleteRenaming)
     let renamedOwners = map (renameOwner renaming . rowOwner) rows
     when (hasDuplicate renamedOwners) (Left JointAffineNonInjectiveRenaming)
@@ -244,7 +285,7 @@ renameJointAffineKernel scopeChange limits inputRenaming kernel@(UnsafeExactJoin
             PreserveOwnerScope -> JointAffineAlphaRenaming
             ChangeOwnerScope -> JointAffineScopeRenaming
         report = makeReport operation rawCount ownerCount retainedCount coefficientCount renameWork 0 (storedMaximumBits kernel)
-    pure (UnsafeExactJointAffineKernel rewardCoordinate successorCoordinate renamed rawCount ownerCount coefficientCount report)
+    pure (UnsafeExactJointAffineKernel rewardCoordinate successorCoordinate renamed (filter executableRow renamed) rawCount ownerCount coefficientCount report)
 
 {- | Materialize at one rational input as the existing real-Borel exact joint
 law.  Nominal coordinate labels never become space parameters.  The report
@@ -260,7 +301,7 @@ materializeJointAffineKernel ::
     ExactJointAffineKernel owner sourceLabel rewardLabel successorLabel ->
     Rational ->
     Either ExactJointAffineError (ExactJointLaw RealBorel RealBorel, ExactJointAffineReport)
-materializeJointAffineKernel limits kernel@(UnsafeExactJointAffineKernel rewardCoordinate successorCoordinate rows rawCount ownerCount coefficientCount _) input = do
+materializeJointAffineKernel limits kernel@(UnsafeExactJointAffineKernel rewardCoordinate successorCoordinate _ rows rawCount ownerCount coefficientCount _) input = do
     validateStored limits kernel
     let retainedCount = naturalLength rows
         arithmeticPlan = 4 + 8 * retainedCount
@@ -292,7 +333,7 @@ jointAffineSupportExtrema ::
     ExactJointAffineKernel owner sourceLabel rewardLabel successorLabel ->
     RationalInterval ->
     Either ExactJointAffineError ((RationalInterval, RationalInterval), ExactJointAffineReport)
-jointAffineSupportExtrema limits kernel@(UnsafeExactJointAffineKernel rewardCoordinate successorCoordinate rows rawCount ownerCount coefficientCount _) inputInterval = do
+jointAffineSupportExtrema limits kernel@(UnsafeExactJointAffineKernel rewardCoordinate successorCoordinate _ rows rawCount ownerCount coefficientCount _) inputInterval = do
     validateStored limits kernel
     let retainedCount = naturalLength rows
         arithmeticPlan = 8 * (retainedCount + 1)
@@ -308,7 +349,7 @@ jointAffineSupportExtrema limits kernel@(UnsafeExactJointAffineKernel rewardCoor
 
 -- | Read the report retained at construction or either renaming operation.
 jointAffineKernelReport :: ExactJointAffineKernel owner source reward successor -> ExactJointAffineReport
-jointAffineKernelReport (UnsafeExactJointAffineKernel _ _ _ _ _ _ report) = report
+jointAffineKernelReport (UnsafeExactJointAffineKernel _ _ _ _ _ _ _ report) = report
 
 -- Internal validation and metering ------------------------------------------------
 
@@ -373,18 +414,18 @@ operationPreflight limits rawCount arithmeticPlan = do
 {- | Reserve conservative work slots before alpha-renaming scans or derived
 lists.  The terms are, in order: stored-kernel preflight, admitted mapping
 spine, source-pair comparisons, target-pair comparisons, source membership in
-the retained table, optional complete-scope coverage, per-row mapping lookup,
+the complete declaration table, optional complete-scope coverage, per-row mapping lookup,
 post-rename collision comparisons, and canonical ordering comparisons.
 -}
 renamingPreflight :: ExactJointAffineLimits -> OwnerScopeChange -> Natural -> Natural -> Natural -> Either ExactJointAffineError Natural
-renamingPreflight limits scopeChange rawCount retainedCount mappingCount = do
+renamingPreflight limits scopeChange rawCount declaredCount mappingCount = do
     let pairComparisons = mappingCount * mappingCount
-        membership = mappingCount * retainedCount
+        membership = mappingCount * declaredCount
         completeness = case scopeChange of
             PreserveOwnerScope -> 0
-            ChangeOwnerScope -> retainedCount * mappingCount
-        rowLookup = retainedCount * mappingCount
-        retainedComparisons = retainedCount * retainedCount
+            ChangeOwnerScope -> declaredCount * mappingCount
+        rowLookup = declaredCount * mappingCount
+        declarationComparisons = declaredCount * declaredCount
         planned =
             basePreflight rawCount
                 + mappingCount
@@ -393,14 +434,14 @@ renamingPreflight limits scopeChange rawCount retainedCount mappingCount = do
                 + membership
                 + completeness
                 + rowLookup
-                + retainedComparisons
-                + retainedComparisons
+                + declarationComparisons
+                + declarationComparisons
     total <- checkedMachineCount JointAffineWork planned
     checkDimension limits JointAffineWork (jointLimitWork limits) total
     pure total
 
 validateStored :: ExactJointAffineLimits -> ExactJointAffineKernel owner source reward successor -> Either ExactJointAffineError ()
-validateStored limits kernel@(UnsafeExactJointAffineKernel _ _ _ rawCount ownerCount coefficientCount _) = do
+validateStored limits kernel@(UnsafeExactJointAffineKernel _ _ _ _ rawCount ownerCount coefficientCount _) = do
     validateJointLimits limits
     checkDimension limits JointAffineRawEntries (jointLimitRawEntries limits) rawCount
     checkDimension limits JointAffineOwners (jointLimitOwners limits) ownerCount
@@ -516,6 +557,18 @@ termBounds limits coefficient (RationalInterval lower upper) meter = do
     (upperContribution, meter2) <- arithmetic limits (*) coefficient upperEndpoint meter1
     pure ((lowerContribution, upperContribution), meter2)
 
+-- Insertion ordering plus the preceding duplicate scan fits n^2 slots.
+orderRows :: [OwnerRow] -> [OwnerRow]
+orderRows = foldr insert []
+  where
+    insert row [] = [row]
+    insert row rows@(other : rest)
+        | rowOwner row <= rowOwner other = row : rows
+        | otherwise = other : insert row rest
+
+executableRow :: OwnerRow -> Bool
+executableRow row = rewardCoefficient row /= 0 || successorCoefficient row /= 0
+
 rowOwner :: OwnerRow -> Natural
 rowOwner (OwnerRow owner _ _ _) = owner
 
@@ -537,8 +590,8 @@ renamingSource (NoiseOwner source, _) = source
 renamingTarget :: (NoiseOwner old, NoiseOwner new) -> Natural
 renamingTarget (_, NoiseOwner target) = target
 
-sourceIsRetained :: [OwnerRow] -> (NoiseOwner old, NoiseOwner new) -> Bool
-sourceIsRetained rows mapping = any ((== renamingSource mapping) . rowOwner) rows
+sourceIsDeclared :: [OwnerRow] -> (NoiseOwner old, NoiseOwner new) -> Bool
+sourceIsDeclared rows mapping = any ((== renamingSource mapping) . rowOwner) rows
 
 rowHasSource :: [(NoiseOwner old, NoiseOwner new)] -> OwnerRow -> Bool
 rowHasSource renaming row = any ((== rowOwner row) . renamingSource) renaming
@@ -557,7 +610,7 @@ hasDuplicate [] = False
 hasDuplicate (value : rest) = value `elem` rest || hasDuplicate rest
 
 storedMaximumBits :: ExactJointAffineKernel owner source reward successor -> Natural
-storedMaximumBits (UnsafeExactJointAffineKernel _ _ _ _ _ _ report) = jointAffineMaximumRationalBits report
+storedMaximumBits (UnsafeExactJointAffineKernel _ _ _ _ _ _ _ report) = jointAffineMaximumRationalBits report
 
 makeReport :: ExactJointAffineOperation -> Natural -> Natural -> Natural -> Natural -> Natural -> Natural -> Natural -> ExactJointAffineReport
 makeReport operation rawCount ownerCount retainedCount coefficientCount preflightWork arithmeticWork maximumBits =
@@ -573,3 +626,458 @@ makeReport operation rawCount ownerCount retainedCount coefficientCount prefligh
         , jointAffineWork = preflightWork + arithmeticWork
         , jointAffineMaximumRationalBits = maximumBits
         }
+
+-- Left-successor substitution ---------------------------------------------------
+
+-- | Untrusted complete routing of right declarations, never reusable evidence.
+data ExactSuccessorOwnerRequest leftOwner rightOwner
+    = SharedSuccessorOwners [(NoiseOwner rightOwner, NoiseOwner leftOwner)]
+    | FreshSuccessorOwners [(NoiseOwner rightOwner, Natural)]
+
+type role ExactSuccessorOwnerRequest nominal nominal
+
+-- | Request exact interval-checked sharing with the anchored left namespace.
+sharedSuccessorOwners :: [(NoiseOwner rightOwner, NoiseOwner leftOwner)] -> ExactSuccessorOwnerRequest leftOwner rightOwner
+sharedSuccessorOwners = SharedSuccessorOwners
+
+-- | Propose numeric targets disjoint from both complete input manifests.
+freshSuccessorOwners :: [(NoiseOwner rightOwner, Natural)] -> ExactSuccessorOwnerRequest leftOwner rightOwner
+freshSuccessorOwners = FreshSuccessorOwners
+
+-- | Combined raw, reservation, output, coefficient, work and bit limits.
+data ExactSuccessorSubstitutionLimits = SuccessorSubstitutionLimits !ExactJointAffineLimits
+
+-- | Construct separately interpreted, operation-wide substitution limits.
+exactSuccessorSubstitutionLimits :: Natural -> Natural -> Natural -> Natural -> Natural -> Natural -> ExactSuccessorSubstitutionLimits
+exactSuccessorSubstitutionLimits raw owners outputs coefficients work bits =
+    SuccessorSubstitutionLimits (exactJointAffineLimits raw owners outputs coefficients work bits)
+
+-- | Input whose complete declaration manifest contains a fresh target.
+data SuccessorSubstitutionParticipant = SuccessorSubstitutionLeft | SuccessorSubstitutionRight
+    deriving stock (Eq, Show)
+
+{- | Atomic admission, mapping, law, or internal accounting failure. Positions
+are one-based; interval mismatch carries the left interval before the right.
+-}
+data ExactSuccessorSubstitutionError
+    = SuccessorSubstitutionAdmission !ExactJointAffineError
+    | SuccessorSubstitutionDuplicateSource !Natural !Natural
+    | SuccessorSubstitutionNonInjectiveTarget !Natural !Natural
+    | SuccessorSubstitutionUnknownSource !Natural
+    | SuccessorSubstitutionIncompleteMapping !Natural
+    | SuccessorSubstitutionUnknownSharedTarget !Natural
+    | SuccessorSubstitutionFreshTargetCollision !Natural !SuccessorSubstitutionParticipant !Natural
+    | SuccessorSubstitutionSharedIntervalMismatch !Natural !RationalInterval !RationalInterval
+    | SuccessorSubstitutionAccountingMismatch !Natural !Natural
+    deriving stock (Eq, Show)
+
+-- | Exactly two complete modes, with no mixed routing.
+data ExactSuccessorSubstitutionMode = SharedRightOwners | FreshRightOwners
+    deriving stock (Eq, Show)
+
+-- | Opaque immutable reserved-semantic-slot accounting, not measured CPU cost.
+data ExactSuccessorSubstitutionReport
+    = SuccessorSubstitutionReport
+        !ExactSuccessorSubstitutionMode
+        !SubstitutionPlan
+        !Natural
+        !Natural
+        !Natural
+        !Natural
+
+-- | Selected routing mode.
+substitutionMode :: ExactSuccessorSubstitutionReport -> ExactSuccessorSubstitutionMode
+substitutionMode (SuccessorSubstitutionReport mode _ _ _ _ _) = mode
+
+reportPlan :: ExactSuccessorSubstitutionReport -> SubstitutionPlan
+reportPlan (SuccessorSubstitutionReport _ plan _ _ _ _) = plan
+
+-- | Full left declarations, including zeros.
+substitutionLeftDeclaredOwners :: ExactSuccessorSubstitutionReport -> Natural
+substitutionLeftDeclaredOwners = planLeft . reportPlan
+
+-- | Full right declarations, including zeros.
+substitutionRightDeclaredOwners :: ExactSuccessorSubstitutionReport -> Natural
+substitutionRightDeclaredOwners = planRight . reportPlan
+
+-- | Admitted request entries.
+substitutionMappingEntries :: ExactSuccessorSubstitutionReport -> Natural
+substitutionMappingEntries = planMapping . reportPlan
+
+-- | Combined input declarations and request entries.
+substitutionRawEntries :: ExactSuccessorSubstitutionReport -> Natural
+substitutionRawEntries = planRaw . reportPlan
+
+-- | Pre-union name reservation upper bound.
+substitutionOwnerReservationSlots :: ExactSuccessorSubstitutionReport -> Natural
+substitutionOwnerReservationSlots = substitutionRawEntries
+
+-- | Actual reserved-name cardinality; aliases are not extra source laws.
+substitutionReservedNames :: ExactSuccessorSubstitutionReport -> Natural
+substitutionReservedNames (SuccessorSubstitutionReport _ _ names _ _ _) = names
+
+-- | Shared right declarations, zero in fresh mode.
+substitutionSharedOwners :: ExactSuccessorSubstitutionReport -> Natural
+substitutionSharedOwners report = if substitutionMode report == SharedRightOwners then substitutionMappingEntries report else 0
+
+-- | Fresh right declarations, zero in shared mode.
+substitutionFreshOwners :: ExactSuccessorSubstitutionReport -> Natural
+substitutionFreshOwners report = if substitutionMode report == FreshRightOwners then substitutionMappingEntries report else 0
+
+-- | Complete result sources, including canceled and zero rows.
+substitutionDeclaredResultOwners :: ExactSuccessorSubstitutionReport -> Natural
+substitutionDeclaredResultOwners (SuccessorSubstitutionReport _ _ _ declared _ _) = declared
+
+-- | Executable result sources with at least one nonzero coefficient.
+substitutionRetainedResultOwners :: ExactSuccessorSubstitutionReport -> Natural
+substitutionRetainedResultOwners (SuccessorSubstitutionReport _ _ _ _ retained _) = retained
+
+-- | Nonexecutable declarations retained privately.
+substitutionZeroFilteredResultOwners :: ExactSuccessorSubstitutionReport -> Natural
+substitutionZeroFilteredResultOwners report = substitutionDeclaredResultOwners report - substitutionRetainedResultOwners report
+
+-- | Fixed result codomain width.
+substitutionOutputs :: ExactSuccessorSubstitutionReport -> Natural
+substitutionOutputs _ = 2
+
+-- | Combined input-plus-result logical coefficient reservation.
+substitutionCoefficientSlots :: ExactSuccessorSubstitutionReport -> Natural
+substitutionCoefficientSlots = planCoefficients . reportPlan
+
+-- | Complete structural reservation, including mode-inapplicable slots.
+substitutionPreflightWork :: ExactSuccessorSubstitutionReport -> Natural
+substitutionPreflightWork = planStructural . reportPlan
+
+-- | Fixed coefficient multiplication count, including zero operands.
+substitutionCoefficientMultiplications :: ExactSuccessorSubstitutionReport -> Natural
+substitutionCoefficientMultiplications = planMultiplications . reportPlan
+
+-- | Fixed coefficient addition count, including zero candidates.
+substitutionCoefficientAdditions :: ExactSuccessorSubstitutionReport -> Natural
+substitutionCoefficientAdditions = planAdditions . reportPlan
+
+-- | Multiplications plus additions.
+substitutionArithmeticWork :: ExactSuccessorSubstitutionReport -> Natural
+substitutionArithmeticWork = planArithmetic . reportPlan
+
+-- | Complete combined structural and arithmetic reservation.
+substitutionWork :: ExactSuccessorSubstitutionReport -> Natural
+substitutionWork = planWork . reportPlan
+
+{- | Historical rational maximum, including discarded inputs and intermediates.
+Both subsequent projections admit and seed their meters with this maximum.
+-}
+substitutionMaximumRationalBits :: ExactSuccessorSubstitutionReport -> Natural
+substitutionMaximumRationalBits (SuccessorSubstitutionReport _ _ _ _ _ bits) = bits
+
+-- No owner parameter, kernel eliminator, or callback is exported. The private
+-- kernel is merely the existing projection representation, built without a
+-- separately budgeted public constructor. Reservation aliases stay separate.
+data SubstitutionOwner
+
+-- | Sealed, non-chainable right-reward/right-successor substitution result.
+data ExactSuccessorSubstitution sourceLabel rewardLabel successorLabel
+    = SealedSuccessorSubstitution
+        !(ExactJointAffineKernel SubstitutionOwner sourceLabel rewardLabel successorLabel)
+        ![Natural]
+        !ExactSuccessorSubstitutionReport
+
+type role ExactSuccessorSubstitution nominal nominal nominal
+
+-- | Read immutable substitution accounting without exposing owner identity.
+successorSubstitutionReport :: ExactSuccessorSubstitution source reward successor -> ExactSuccessorSubstitutionReport
+successorSubstitutionReport (SealedSuccessorSubstitution _ _ report) = report
+
+-- | Separately budgeted real-Borel materialization with historical bit admission.
+materializeSuccessorSubstitution :: ExactJointAffineLimits -> ExactSuccessorSubstitution source reward successor -> Rational -> Either ExactJointAffineError (ExactJointLaw RealBorel RealBorel, ExactJointAffineReport)
+materializeSuccessorSubstitution limits (SealedSuccessorSubstitution kernel _ _) = materializeJointAffineKernel limits kernel
+
+-- | Separately budgeted extrema with historical bit admission, not a bit reset.
+successorSubstitutionSupportExtrema :: ExactJointAffineLimits -> ExactSuccessorSubstitution source reward successor -> RationalInterval -> Either ExactJointAffineError ((RationalInterval, RationalInterval), ExactJointAffineReport)
+successorSubstitutionSupportExtrema limits (SealedSuccessorSubstitution kernel _ _) = jointAffineSupportExtrema limits kernel
+
+data SubstitutionPlan = SubstitutionPlan
+    { planLeft :: !Natural
+    , planRight :: !Natural
+    , planMapping :: !Natural
+    , planRaw :: !Natural
+    , planCoefficients :: !Natural
+    , planStructural :: !Natural
+    , planMultiplications :: !Natural
+    , planAdditions :: !Natural
+    }
+
+planArithmetic :: SubstitutionPlan -> Natural
+planArithmetic plan = planMultiplications plan + planAdditions plan
+
+planWork :: SubstitutionPlan -> Natural
+planWork plan = planStructural plan + planArithmetic plan
+
+substitutionPlan :: Natural -> Natural -> Natural -> SubstitutionPlan
+substitutionPlan left right mappings = SubstitutionPlan left right mappings h (12 + 4 * n) structural (4 + 2 * left) (2 + 2 * n)
+  where
+    n = left + right
+    h = n + mappings
+    structural =
+        basePreflight left
+            + basePreflight right
+            + 8
+            + 5 * n
+            + mappings
+            + 2 * mappings * mappings
+            + 2 * mappings * right
+            + mappings * left
+            + mappings * n
+            + 2 * mappings
+            + n * mappings
+            + 2 * n * n
+            + n
+            + h
+            + 2 * h * h
+
+-- Strict scalar-only traversal: neither a copied mapping nor an inspected
+-- entry exists before the entire combined plan has been admitted.
+countSuccessorMapping :: ExactJointAffineLimits -> Natural -> [value] -> Either ExactJointAffineError Natural
+countSuccessorMapping limits initial = go initial
+  where
+    maximumAllowed = jointLimitRawEntries limits
+    go !count [] = Right (count - initial)
+    go !count (_ : _) | count >= maximumAllowed = Left (JointAffineLimitExceeded JointAffineRawEntries maximumAllowed (maximumAllowed + 1))
+    go !count (_ : rest) = go (count + 1) rest
+
+admitSubstitutionDimension :: ExactJointAffineLimits -> ExactJointAffineLimitDimension -> Natural -> Natural -> Either ExactJointAffineError ()
+admitSubstitutionDimension limits dimension cap actual = do
+    checked <- checkedMachineCount dimension actual
+    checkDimension limits dimension cap checked
+
+substitutionAdmission :: Either ExactJointAffineError value -> Either ExactSuccessorSubstitutionError value
+substitutionAdmission = either (Left . SuccessorSubstitutionAdmission) Right
+
+-- Immutable references to the ACTUAL admitted full tables and coordinate
+-- values, not a count/phantom/cache identity. Execution accepts only witnesses
+-- capturing these operands, never a second pair supplied by its caller.
+data SubstitutionOperand = SubstitutionOperand !Rational !Rational !Rational !Rational ![OwnerRow] !Natural
+
+-- Membership scans resolve actual rows once; shared endpoint equality must
+-- not repeat full-manifest lookups outside its two-per-mapping reservation.
+data ResolvedSuccessorOwner = ResolvedSuccessorOwner !OwnerRow !Natural !(Maybe OwnerRow)
+
+data AdmittedSuccessorOperands
+    = AdmittedSuccessorOperands
+        !ExactJointAffineLimits
+        !SubstitutionPlan
+        !SubstitutionOperand
+        !SubstitutionOperand
+        ![ResolvedSuccessorOwner]
+        !Meter
+
+data VerifiedSharedSuccessorOwners leftOwner rightOwner = VerifiedSharedSuccessorOwners !AdmittedSuccessorOperands
+data VerifiedFreshSuccessorOwners leftOwner rightOwner = VerifiedFreshSuccessorOwners !AdmittedSuccessorOperands
+
+type role VerifiedSharedSuccessorOwners nominal nominal
+type role VerifiedFreshSuccessorOwners nominal nominal
+
+captureOperand :: ExactJointAffineKernel owner source reward successor -> SubstitutionOperand
+captureOperand kernel@(UnsafeExactJointAffineKernel (UnsafeExactAffineInputCoordinate r d) (UnsafeExactAffineInputCoordinate s f) rows _ _ _ _ _) =
+    SubstitutionOperand r d s f rows (storedMaximumBits kernel)
+
+operandRows :: SubstitutionOperand -> [OwnerRow]
+operandRows (SubstitutionOperand _ _ _ _ rows _) = rows
+
+admitOperandRationals :: ExactJointAffineLimits -> SubstitutionOperand -> Meter -> Either ExactJointAffineError Meter
+admitOperandRationals limits (SubstitutionOperand r d s f rows maximumBits) meter = do
+    checkDimension limits JointAffineRationalBits (jointLimitRationalBits limits) maximumBits
+    initial <- foldM (flip (observe limits)) meter{meterBits = max (meterBits meter) maximumBits} [r, d, s, f]
+    foldM rowRationals initial rows
+  where
+    rowRationals current (OwnerRow _ interval reward successor) = do
+        validateInterval limits interval
+        endpoints <- observeInterval limits interval current
+        observe limits reward endpoints >>= observe limits successor
+
+{- | Substitute only the left successor into both right coordinates. The left
+reward is admitted but lost, never accumulated. Failure order is combined
+count-only preflight; duplicate source/target; membership; coverage; target
+validity; left then right rational history and declarations; shared interval
+equality; fixed arithmetic; invariants; then atomic publication.
+-}
+substituteLeftSuccessor ::
+    ExactSuccessorSubstitutionLimits ->
+    ExactJointAffineKernel leftOwner sourceLabel leftRewardLabel intermediateLabel ->
+    ExactJointAffineKernel rightOwner intermediateLabel rightRewardLabel successorLabel ->
+    ExactSuccessorOwnerRequest leftOwner rightOwner ->
+    Either ExactSuccessorSubstitutionError (ExactSuccessorSubstitution sourceLabel rightRewardLabel successorLabel)
+substituteLeftSuccessor (SuccessorSubstitutionLimits limits) left right request = do
+    substitutionAdmission (validateJointLimits limits)
+    let leftCount = jointAffineDeclaredOwnerCount (jointAffineKernelReport left)
+        rightCount = jointAffineDeclaredOwnerCount (jointAffineKernelReport right)
+        inputCount = leftCount + rightCount
+    substitutionAdmission (admitSubstitutionDimension limits JointAffineRawEntries (jointLimitRawEntries limits) inputCount)
+    mappingCount <- substitutionAdmission $ case request of
+        SharedSuccessorOwners mapping -> countSuccessorMapping limits inputCount mapping
+        FreshSuccessorOwners mapping -> countSuccessorMapping limits inputCount mapping
+    let plan = substitutionPlan leftCount rightCount mappingCount
+    substitutionAdmission $ do
+        admitSubstitutionDimension limits JointAffineOwners (jointLimitOwners limits) (planRaw plan)
+        admitSubstitutionDimension limits JointAffineOutputs (jointLimitOutputs limits) 2
+        admitSubstitutionDimension limits JointAffineCoefficients (jointLimitCoefficients limits) (planCoefficients plan)
+        admitSubstitutionDimension limits JointAffineWork (jointLimitWork limits) (planWork plan)
+    -- Derived tables and mapping entries are demanded only after all admission.
+    let capturedLeft = captureOperand left
+        capturedRight = captureOperand right
+        leftRows = operandRows capturedLeft
+        rightRows = operandRows capturedRight
+        (mode, mapping) = case request of
+            SharedSuccessorOwners pairs -> (SharedRightOwners, [(source, target) | (NoiseOwner source, NoiseOwner target) <- pairs])
+            FreshSuccessorOwners pairs -> (FreshRightOwners, [(source, target) | (NoiseOwner source, target) <- pairs])
+    rejectDuplicate fst SuccessorSubstitutionDuplicateSource mapping
+    rejectDuplicate snd SuccessorSubstitutionNonInjectiveTarget mapping
+    sources <- mapM (resolveRightSource rightRows) (numbered mapping)
+    mapM_ (\(position, row) -> unless (any ((== rowOwner row) . resolvedSource) sources) (Left (SuccessorSubstitutionIncompleteMapping position))) (numbered rightRows)
+    resolved <- case mode of
+        SharedRightOwners -> mapM (resolveSharedTarget leftRows) (numbered sources)
+        FreshRightOwners -> do
+            mapM_ (checkFreshTarget leftRows rightRows) (numbered mapping)
+            pure sources
+    meter <- substitutionAdmission (admitOperandRationals limits capturedLeft (Meter 0 0) >>= admitOperandRationals limits capturedRight)
+    let admitted = AdmittedSuccessorOperands limits plan capturedLeft capturedRight resolved meter
+    case mode of
+        SharedRightOwners -> do
+            mapM_ checkSharedInterval (numbered resolved)
+            executeSharedSuccessor (VerifiedSharedSuccessorOwners admitted)
+        FreshRightOwners -> executeFreshSuccessor (VerifiedFreshSuccessorOwners admitted)
+
+numbered :: [value] -> [(Natural, value)]
+numbered = zip [1 ..]
+
+rejectDuplicate :: (Eq key) => (value -> key) -> (Natural -> Natural -> ExactSuccessorSubstitutionError) -> [value] -> Either ExactSuccessorSubstitutionError ()
+rejectDuplicate key failure = go . numbered
+  where
+    go [] = Right ()
+    go ((position, value) : rest) = do
+        mapM_ (\(otherPosition, other) -> when (key value == key other) (Left (failure position otherPosition))) rest
+        go rest
+
+checkFreshTarget :: [OwnerRow] -> [OwnerRow] -> (Natural, (Natural, Natural)) -> Either ExactSuccessorSubstitutionError ()
+checkFreshTarget left right (position, (_, target)) = do
+    check SuccessorSubstitutionLeft left
+    check SuccessorSubstitutionRight right
+  where
+    check participant = mapM_ (\(declaration, row) -> when (rowOwner row == target) (Left (SuccessorSubstitutionFreshTargetCollision position participant declaration))) . numbered
+
+resolvedSource :: ResolvedSuccessorOwner -> Natural
+resolvedSource (ResolvedSuccessorOwner row _ _) = rowOwner row
+
+resolvedTarget :: ResolvedSuccessorOwner -> Natural
+resolvedTarget (ResolvedSuccessorOwner _ target _) = target
+
+resolveRightSource :: [OwnerRow] -> (Natural, (Natural, Natural)) -> Either ExactSuccessorSubstitutionError ResolvedSuccessorOwner
+resolveRightSource rows (position, (source, target)) = case find ((== source) . rowOwner) rows of
+    Just row -> Right (ResolvedSuccessorOwner row target Nothing)
+    Nothing -> Left (SuccessorSubstitutionUnknownSource position)
+
+resolveSharedTarget :: [OwnerRow] -> (Natural, ResolvedSuccessorOwner) -> Either ExactSuccessorSubstitutionError ResolvedSuccessorOwner
+resolveSharedTarget rows (position, ResolvedSuccessorOwner source target _) = case find ((== target) . rowOwner) rows of
+    Just row -> Right (ResolvedSuccessorOwner source target (Just row))
+    Nothing -> Left (SuccessorSubstitutionUnknownSharedTarget position)
+
+checkSharedInterval :: (Natural, ResolvedSuccessorOwner) -> Either ExactSuccessorSubstitutionError ()
+checkSharedInterval (position, ResolvedSuccessorOwner rightRow _ evidence) = case evidence of
+    Nothing -> Left (SuccessorSubstitutionAccountingMismatch 1 0)
+    Just leftRow -> do
+        let leftInterval@(RationalInterval ll lu) = rowInterval leftRow
+            rightInterval@(RationalInterval rl ru) = rowInterval rightRow
+            mismatch = Left (SuccessorSubstitutionSharedIntervalMismatch position leftInterval rightInterval)
+        unless (ll == rl) mismatch
+        unless (lu == ru) mismatch
+
+executeSharedSuccessor :: VerifiedSharedSuccessorOwners left right -> Either ExactSuccessorSubstitutionError (ExactSuccessorSubstitution source reward successor)
+executeSharedSuccessor (VerifiedSharedSuccessorOwners operands) = executeSuccessor SharedRightOwners operands
+
+executeFreshSuccessor :: VerifiedFreshSuccessorOwners left right -> Either ExactSuccessorSubstitutionError (ExactSuccessorSubstitution source reward successor)
+executeFreshSuccessor (VerifiedFreshSuccessorOwners operands) = executeSuccessor FreshRightOwners operands
+
+executeSuccessor :: ExactSuccessorSubstitutionMode -> AdmittedSuccessorOperands -> Either ExactSuccessorSubstitutionError (ExactSuccessorSubstitution source reward successor)
+executeSuccessor mode (AdmittedSuccessorOperands limits plan left right mapping initial) = do
+    let SubstitutionOperand _ _ a b leftRows _ = left
+        SubstitutionOperand c d e f rightRows _ = right
+        checked operation x y = substitutionAdmission . arithmetic limits operation x y
+    (rewardScale, m1) <- checked (*) c a initial
+    (rewardShift, m2) <- checked (*) c b m1
+    (rewardOffset, m3) <- checked (+) rewardShift d m2
+    (successorScale, m4) <- checked (*) e a m3
+    (successorShift, m5) <- checked (*) e b m4
+    (successorOffset, m6) <- checked (+) successorShift f m5
+    (leftCandidates, m7) <- scaleLeftRows limits c e leftRows m6
+    rightCandidates <- mapM translate rightRows
+    -- Stable ordering retains left-before-right within every shared bucket.
+    let candidates = orderRows (leftCandidates ++ rightCandidates)
+    checkCandidateIntervals candidates
+    (declarations, final) <- accumulateCandidates limits candidates m7
+    accounting (planArithmetic plan) (meterArithmetic final)
+    accounting (planWork plan) (planStructural plan + meterArithmetic final)
+    let declared = case mode of
+            SharedRightOwners -> planLeft plan
+            FreshRightOwners -> planLeft plan + planRight plan
+    accounting declared (naturalLength declarations)
+    let retained = filter executableRow declarations
+        reservations = orderedNames (map rowOwner leftRows ++ map rowOwner rightRows ++ if mode == FreshRightOwners then map resolvedTarget mapping else [])
+        retainedCount = naturalLength retained
+        bits = meterBits final
+        report = SuccessorSubstitutionReport mode plan (naturalLength reservations) declared retainedCount bits
+        projectionReport = makeReport JointAffineConstruction declared declared retainedCount (4 + 2 * declared) (basePreflight declared) 0 bits
+        kernel =
+            UnsafeExactJointAffineKernel
+                (UnsafeExactAffineInputCoordinate rewardScale rewardOffset)
+                (UnsafeExactAffineInputCoordinate successorScale successorOffset)
+                declarations
+                retained
+                declared
+                declared
+                (4 + 2 * declared)
+                projectionReport
+    pure (SealedSuccessorSubstitution kernel reservations report)
+  where
+    translate row = case find ((== rowOwner row) . resolvedSource) mapping of
+        Just resolved -> Right (renameRowTo (resolvedTarget resolved) row)
+        Nothing -> Left (SuccessorSubstitutionAccountingMismatch 1 0)
+
+accounting :: Natural -> Natural -> Either ExactSuccessorSubstitutionError ()
+accounting expected actual = unless (expected == actual) (Left (SuccessorSubstitutionAccountingMismatch expected actual))
+
+scaleLeftRows :: ExactJointAffineLimits -> Rational -> Rational -> [OwnerRow] -> Meter -> Either ExactSuccessorSubstitutionError ([OwnerRow], Meter)
+scaleLeftRows limits c e = go []
+  where
+    go acc [] meter = Right (reverse acc, meter)
+    go acc (OwnerRow owner interval _ q : rest) meter = do
+        (r, m1) <- substitutionAdmission (arithmetic limits (*) c q meter)
+        (s, m2) <- substitutionAdmission (arithmetic limits (*) e q m1)
+        go (OwnerRow owner interval r s : acc) rest m2
+
+checkCandidateIntervals :: [OwnerRow] -> Either ExactSuccessorSubstitutionError ()
+checkCandidateIntervals [] = Right ()
+checkCandidateIntervals (row : rest) = do
+    mapM_ (\other -> when (rowOwner row == rowOwner other && rowInterval row /= rowInterval other) (Left (SuccessorSubstitutionAccountingMismatch 1 0))) rest
+    checkCandidateIntervals rest
+
+accumulateCandidates :: ExactJointAffineLimits -> [OwnerRow] -> Meter -> Either ExactSuccessorSubstitutionError ([OwnerRow], Meter)
+accumulateCandidates limits = go []
+  where
+    go acc [] meter = Right (reverse acc, meter)
+    go acc rows@(row : _) meter = do
+        let (bucket, rest) = span ((== rowOwner row) . rowOwner) rows
+        (r, s, final) <- foldM add (0, 0, meter) bucket
+        go (OwnerRow (rowOwner row) (rowInterval row) r s : acc) rest final
+    add (r, s, meter) row = do
+        (nextR, m1) <- substitutionAdmission (arithmetic limits (+) r (rewardCoefficient row) meter)
+        (nextS, m2) <- substitutionAdmission (arithmetic limits (+) s (successorCoefficient row) m1)
+        pure (nextR, nextS, m2)
+
+orderedNames :: [Natural] -> [Natural]
+orderedNames = foldr insert []
+  where
+    insert name [] = [name]
+    insert name names@(other : rest)
+        | name < other = name : names
+        | name == other = names
+        | otherwise = other : insert name rest

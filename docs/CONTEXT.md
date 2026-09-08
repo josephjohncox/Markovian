@@ -24,6 +24,14 @@ The 2026-08-26 CUDA evidence used a final-correction worktree based on `2efb1c6`
 
 Feature commit `d99b2c011100d200934dce9e5993a7d070398b39` passed matching [push](https://github.com/josephjohncox/Markovian/actions/runs/33124880789) and [pull-request](https://github.com/josephjohncox/Markovian/actions/runs/33124883088) workflows. Both runs passed GHC 9.4.8, GHC 9.8.4, lower-bounds, and source-check jobs. PR #1 merged as `1268191a025c22fd9b995a1025d9ca810ff43451`.
 
+## D-079 implementation integration
+
+Parent authorized Gate B implementation in the sole-writer worktree `/home/josephcox/dev/Markovian-d079-contract`, branch `feat/d079-contract-freeze`, after contract review `8f9b416a-ce2d-4033-8d6a-a3350d107111` and freeze `a8fe21e12b2d036e8ec22f10e25c4d07a5374f6f`. That source branch predates D-077/D-078 acceptance. Integration preserves their Accepted statuses in this proposals branch; the source branch's earlier statuses are not current integration policy.
+
+`Kernel/JointAffine/Exact.hs` now implements the frozen complete-declaration representation, declaration-complete Gate A renamers, and sealed left-successor substitution. Shared/fresh requests are revalidated against actual operands, freshness checks both full manifests, left reward is admitted but lost, and both projections preserve complete historical rational bits. The public suite uses independent symbolic/multinomial and witnessed-source corner oracles, exact/one-below and competing-failure fixtures. The boundary script runs a positive installed client, named compile failures, and private source-context probes of actual zero declarations, reservations, captured witnesses, machine counts, and rational order without installing private accessors. Historical retained-only Gate A records remain historical; the explicit Gate B supersession is not retroactive.
+
+The reviewed implementation is committed at `080fe0e209af26bcd11d64befe392510860835f5`. Corrective readiness review `e4bfb40c-1cd5-4389-b986-e2c3a18e8e24` passed after the complete semantic review, both supported-compiler boundary suites, and warning-enabled Haddock checks. Final source-bound evidence is retained in `/tmp/d079-correction-validation-NnuNuzNF`. The next steps are integration review and a separate reviewed parent acceptance-status edit. D-079 remains Proposed and unreleased.
+
 ## Resolved defects
 
 | ID | Resolution |
