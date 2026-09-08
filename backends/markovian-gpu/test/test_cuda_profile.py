@@ -9,6 +9,7 @@ import sys
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 PACKAGE_ROOT = Path(__file__).resolve().parents[1]
 SPEC = importlib.util.spec_from_file_location(
@@ -165,6 +166,7 @@ class CUDAProfileTests(unittest.TestCase):
                             f"cuda-transfer-inclusive sample {sample:02d}: 0.250000000 ms"
                             for sample in range(1, 21)
                         ],
+                        "cuda-transfer-inclusive standard deviation (sample): 0.000000000 ms",
                     ]
                 )
             log = f"{kind}.log"
@@ -206,6 +208,35 @@ class CUDAProfileTests(unittest.TestCase):
     def test_authority_and_artifact_bound_same_session_receipt_pass(self) -> None:
         self.assertRegex(cuda_profile.check_profile(PACKAGE_ROOT), r"^[0-9a-f]{64}$")
         self.assertEqual(self.validate()["result"], "passed")
+
+    def test_benchmark_summary_cannot_collide_with_raw_samples(self) -> None:
+        path = self.root / "benchmark.log"
+        original = path.read_text(encoding="utf-8")
+        self.assertEqual(self.validate()["result"], "passed")
+        path.write_text(
+            original.replace("standard deviation (sample):", "sample standard deviation:"),
+            encoding="utf-8",
+        )
+        value = copy.deepcopy(self.receipt)
+        record = next(r for r in value["records"] if r["kind"] == "benchmark")
+        record["logSha256"] = self.digest("benchmark.log")
+        self.expect_code(value, "R012_RECEIPT_BENCHMARK")
+
+    def test_benchmark_producer_summary_label_is_checked(self) -> None:
+        read_text = cuda_profile.text_file
+
+        def colliding_label(path: Path, code: str, label: str) -> str:
+            text = read_text(path, code, label)
+            if path == PACKAGE_ROOT / "bench/Main.hs":
+                return text.replace("standard deviation (sample):", "sample standard deviation:")
+            return text
+
+        with (
+            mock.patch.object(cuda_profile, "text_file", side_effect=colliding_label),
+            self.assertRaises(cuda_profile.ProfileError) as caught,
+        ):
+            cuda_profile.check_profile(PACKAGE_ROOT)
+        self.assertEqual(caught.exception.code, "P007_PROFILE_CONSUMER")
 
     def test_racecheck_rejects_generic_missing_and_nonzero_summaries(self) -> None:
         path = self.root / "sanitizer-racecheck.log"
