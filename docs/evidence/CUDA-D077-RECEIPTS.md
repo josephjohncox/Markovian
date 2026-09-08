@@ -132,7 +132,18 @@ The implemented correction has profile digest `5fbed61193cf483a2ff5642c7487ad052
 
 The independent observed-summary fixture first reproduced the old `R011_RECEIPT_OUTCOME` failure. After repair, all 19 profile/receipt tests and the warning-error-enabled CUDA-disabled GPU suite passed. The plan test initially rejected the old profile digest, then passed after that digest alone was updated. Capability/release-policy checks, 77 compiled Haskell fences and teaching executions, book/MathJax checks, and all 16 source archives with archive-only teaching/capability checks passed. Logs are `/tmp/d077-racecheck-{red,profile,gpu,capabilities,policy,learning,book,sdist,archive}.log`.
 
-Independent repair review is still pending: reviewer quota and authentication failures produced no verdict. No new hardware run is authorized by these local checks alone. D-077 remains Proposed. Successful command steps do not replace validated, attested and immutably retained same-session evidence. Environment protections and release governance are unchanged.
+Independent review `9a648cbf-dc8e-4430-bd29-c815f625ab29` passed the racecheck-only repair at `15bc22d327ca2865a029906291d7de7e8f079830` with no findings after reviewer quota became available. It inspected source and parent logs, not independent test executions. Earlier quota/authentication failures produced no verdict. The follow-on reporting correction below still requires review. No new hardware run is authorized by these local checks alone. D-077 remains Proposed. Successful command steps do not replace validated, attested and immutably retained same-session evidence. Environment protections and release governance are unchanged.
+
+## Follow-on benchmark label contract — 2026-09-08
+
+A read-only check of the same retained failed payload found a second issue hidden behind R011. The benchmark contains 20 correctly numbered raw sample lines, followed by `cuda-transfer-inclusive sample standard deviation: 0.019122359 ms`. The R012 collector treats every line beginning `cuda-transfer-inclusive sample ` as a raw sample, so that statistic becomes an invalid 21st entry. This diagnostic does not validate or modify the failed receipt.
+
+Before implementation, freeze this additional producer-only correction:
+
+- Rename the printed statistic label from `sample standard deviation` to `standard deviation (sample)`. Retain its sample-statistic meaning, formula, value and units; raw sample labels and ordering remain unchanged.
+- Do not relax the validator, alter its sample-line pattern, discard arbitrary malformed sample lines, or change the required count of 20. The profile digest remains `5fbed61193cf483a2ff5642c7487ad052add4ed52da1a83a110da4711c7480dd`.
+- Add the noncolliding producer label to consumer checks, include the summary statistic in positive receipt fixtures, and retain a rehashed negative fixture with the old colliding label. Run the actual CUDA-disabled benchmark to exercise its shared formatter without claiming GPU evidence.
+- Review the combined repair and pass the gates before a newly bound hardware run. Historical payloads remain untouched.
 
 ## Historical D-074 boundary
 
