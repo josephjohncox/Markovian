@@ -2,7 +2,7 @@
 
 **Decision status:** Proposed
 
-This document defines the repository-side receipt boundary. No successful D-077 hardware receipt is recorded. Neither failed attempt below produced a validated, attested D-077 receipt. No device-correctness or performance claim follows from these attempts.
+This document defines the repository-side receipt boundary. Run `34181389307` produced a validated same-session receipt and 14 cryptographically verified subjects, recorded below. Immutable retention and governance requirements remain open; D-077 is still Proposed. The two earlier failed attempts remain unvalidated and are not combined with the successful run.
 
 ## Profile authority
 
@@ -88,6 +88,36 @@ The validator returns the first applicable class in this total order. A code pre
 | 10 | `R010_RECEIPT_LOG` | A log is missing, changed, oversized, or misnamed. |
 | 11 | `R011_RECEIPT_OUTCOME` | A log lacks a required command, binding, exit, or success marker. |
 | 12 | `R012_RECEIPT_BENCHMARK` | The checksum, warmup, count, sample order, or sample value differs. |
+
+## Verified hardware execution — 2026-09-08
+
+[Run 34181389307](https://github.com/josephjohncox/Markovian/actions/runs/34181389307), attempt 1, completed every job step successfully at source `3e850085fa96c4e48a80270b9e49e9f55fe0f757`. The merged source tree equals reviewed PR8 head `332c879ed21e6f9e520533a4fb2c53c475141b2f`. Independent combined review `129c88fb-e070-4fda-86fd-a6e01c90a5c9` passed with no findings; parent separately verified all ten exact-head hosted checks before merge. The reviewer inspected source and parent logs, not independent command reruns.
+
+The exact-commit receipt validator passed all six records: correctness, memcheck, initcheck, racecheck, synccheck and benchmark. Validation bound the revision, session, profile/PTX, configured and observed UUIDs, executable/command/log digests, successful outcomes, exact checksum `49439/128`, and 20 ordered finite nonnegative raw samples. The session is `github-34181389307-1-3e850085fa96c4e48a80270b9e49e9f55fe0f757`; the device is `GPU-ac353d74-ffaf-96d2-7849-b8d03d5cd1a7`.
+
+| Item | SHA-256 |
+| --- | --- |
+| Profile | `5fbed61193cf483a2ff5642c7487ad052add4ed52da1a83a110da4711c7480dd` |
+| PTX | `a01d2c898a78dc4f603a8919c9f84019b79066201bc12430fedc725ac97f6239` |
+| Receipt | `d3359765706ef46de3a410d2d2fe57918abf42738ce8667e32dd48b54fd27ce2` |
+| Test executable | `3fcbcefdb993e9a90a1e7b5ddbe72c33fd3fa47758d07b40fbf3148c95145de5` |
+| Benchmark executable | `ff67a719b38b548d3642a42f394a71326cc594a7168431afdca18a78d0a5388a` |
+| Downloaded artifact ZIP | `f40802a47f9074b7ce13559a6c3d1a079b242bec3369f002f05d13fa331996b0` |
+| Retained selected Sigstore bundle JSON | `2a0cb134bb581786329ea39055e29d1f4645b60d3e2b6364ce0b045b876e0868` |
+
+The artifact is `cuda-hardware-3e850085fa96c4e48a80270b9e49e9f55fe0f757-1`, ID `10039045151`. Its downloaded ZIP digest matches GitHub's artifact metadata. The selected attestation bundle covers exactly the 14 downloaded subject names and SHA-256 values, with no missing or additional subjects.
+
+**Cryptographic verification:** Parent ran Cosign 2.4.3 `verify-blob-attestation` separately for all 14 actual downloaded files, using `--new-bundle-format`, `--type slsaprovenance1`, default claims/certificate/transparency checks, and a clean environment. Every call returned `Verified OK`. No insecure flags, custom trust roots or downloaded-binary execution were used. The exact certificate identity was `https://github.com/josephjohncox/Markovian/.github/workflows/cuda-hardware.yml@refs/heads/main`; the issuer was `https://token.actions.githubusercontent.com`.
+
+The signed statement was also checked for the exact repository, workflow path/ref, source Git commit, builder identity, self-hosted runner class, dispatch event and invocation `https://github.com/josephjohncox/Markovian/actions/runs/34181389307/attempts/1`. API retrieval or unsigned metadata selection alone was not treated as verification. The verification tool's binary SHA-256 is `fd266577e69532f9a5b0cba85147958ce0ae97e285ceb33b81f489c3c7ee2a9b`.
+
+**Materialization boundary:** The raw extraction gave both executable files mode `0600`, so the unchanged validator rejected it with `R009_RECEIPT_ARTIFACT`. After all 14 subjects passed cryptographic verification, parent made a separate byte-identical copy and restored only owner execute permission on those two files (`0600` to `0700`). The exact committed validator then passed with explicit revision/session/UUID arguments. The ZIP and raw extraction were not modified, no validator check was bypassed, and no downloaded executable was run.
+
+**Retained audit:** `/home/josephcox/.local/share/markovian/evidence/d077-34181389307/audit-txi4c5bv` contains the raw ZIP/payload, separate verification copy, exact-commit validator, API metadata, selected bundle/statement, all 14 verification commands/results/logs, materialization record, and checksum manifests. `AUDIT-SHA256SUMS` binds the local audit files; this is not a claim that local storage is immutable.
+
+Runner 27 processed this one job, removed its registration and exited with listener code 0. A fresh runners API query returned zero runners. The pinned, update-disabled runner archive was version 2.337.0 with SHA-256 `9b1dc70626422526e3c94767cf024896beb15da5342a3f4819bf2feac13e0393`.
+
+**Remaining limits:** The GitHub artifact expires on `2026-12-07T02:49:34Z`; expiring artifacts and local copies do not satisfy immutable retention. The named environment has no required-reviewer rules or deployment-branch policy, as independently rechecked without modification. This run does not accept D-077, publish a release, establish general GPU correctness, or justify a speedup claim. Those governance and claim boundaries remain unchanged.
 
 ## Failed protected attempt and parser repair — 2026-09-08
 
