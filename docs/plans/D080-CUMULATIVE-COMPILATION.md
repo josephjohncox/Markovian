@@ -427,7 +427,9 @@ Controls required: positive successful compile and run; negative each reservatio
 
 These events establish production sequencing and selected **logical constructor-entry** coverage. They are not physical allocator instrumentation, byte counts, or proof of zero Haskell allocations during preflight. Compiler optimization/laziness changes real heap behavior; no such measurement is asserted. Adding this private probe is a later implementation task and must be independently reviewed.
 
-## 10. Review disposition and remaining gates
+## 10. Historical documentation-stage disposition
+
+This section preserves the record from before independent freeze review. Its pending-review statements are historical; the status header records the later contract-only PASS. This clarification changes no declaration, equation, failure order or evidence requirement.
 
 Resolved in the prospective design: test-only report agreement and total target failure path; caller bit limit; Projection and stored-field order; exact dimension-first saturation; cumulative owner/cursor/path list recurrence; root/builder/metadata/zero coverage; complete report equations; private instrumented build mechanism. These are source-backed **design arguments**, not implementation evidence.
 
