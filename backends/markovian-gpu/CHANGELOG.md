@@ -2,7 +2,8 @@
 
 ## Unreleased
 
-- Add the proposed D-077 canonical CUDA profile and typed same-session receipt validation. Retain profile, PTX, executable, command, outcome, native observation, sanitizer, and ordered benchmark evidence. D-077 remains Proposed, and no protected run is recorded.
+- Add the proposed D-077 canonical CUDA profile and typed same-session receipt validation. Retain profile, PTX, executable, command, outcome, native observation, sanitizer, and ordered benchmark evidence. D-077 remains Proposed; no successful hardware receipt is recorded.
+- Fix sanitizer-version collection after protected run 34172607126 stopped before hardware tests. Use the same anchored Version-line parser for collection and receipt validation; reject partial or ambiguous observations. Add real-banner and malformed-input regression tests without changing the profile or public interfaces.
 
 ## 2026.9.3.0 — 2026-09-03
 

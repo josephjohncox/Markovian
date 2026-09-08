@@ -33,7 +33,7 @@ class CUDAProfileTests(unittest.TestCase):
         self.uuid = "GPU-ac353d74-ffaf-96d2-7849-b8d03d5cd1a7"
         self.driver = "580.173.02"
         self.toolkit = "13.0"
-        self.sanitizer = "2026.1.0"
+        self.sanitizer = "2025.3.1.0"
         self.driver_api = 13000
         (self.root / "profile.json").write_bytes(self.profile_path.read_bytes())
         (self.root / "markovian_dense.ptx").write_bytes(
@@ -108,7 +108,10 @@ class CUDAProfileTests(unittest.TestCase):
             "Cuda compilation tools, release 13.0, V13.0.88\n", encoding="utf-8"
         )
         (self.root / "sanitizer-version.log").write_text(
-            f"Compute Sanitizer version {self.sanitizer}\n", encoding="utf-8"
+            "NVIDIA (R) Compute Sanitizer\n"
+            "Copyright (c) 2020-2025 NVIDIA Corporation\n"
+            f"Version {self.sanitizer} (build 36400806) (public-release)\n",
+            encoding="utf-8",
         )
 
     def common_markers(self) -> list[str]:
@@ -190,6 +193,58 @@ class CUDAProfileTests(unittest.TestCase):
     def test_authority_and_artifact_bound_same_session_receipt_pass(self) -> None:
         self.assertRegex(cuda_profile.check_profile(PACKAGE_ROOT), r"^[0-9a-f]{64}$")
         self.assertEqual(self.validate()["result"], "passed")
+
+    def test_sanitizer_version_uses_the_real_version_line(self) -> None:
+        text = (self.root / "sanitizer-version.log").read_text(encoding="utf-8")
+        self.assertEqual(cuda_profile.parse_sanitizer_version(text), "2025.3.1.0")
+        self.assertEqual(
+            cuda_profile.parse_sanitizer_version(text.replace("\n", "\r\n")),
+            "2025.3.1.0",
+        )
+        self.assertEqual(
+            cuda_profile.parse_sanitizer_version("Compute Sanitizer\nVersion 13.0"),
+            "13.0",
+        )
+
+    def test_sanitizer_version_rejects_missing_malformed_or_ambiguous_lines(self) -> None:
+        banner = "NVIDIA (R) Compute Sanitizer\nCopyright (c) 2020-2025 NVIDIA\n"
+        cases = [
+            banner,
+            "Version 2025.3.1.0\n",  # No tool identity.
+            banner + "Compute Sanitizer version 2025.3.1.0\n",
+            banner + "prefix Version 2025.3.1.0\n",
+            banner + "Version 2025..3\n",
+            banner + "Version 2025.3.1.0-dev\n",
+            banner + "Version 2025.3.1.0\nVersion 2025.3.1.0\n",
+            banner + "Version 2025.3.1.0\nVersion 2026.1.0\n",
+            banner + "Version 2025.3.1.0\nVersion invalid\n",
+        ]
+        for text in cases:
+            with self.subTest(text=text):
+                self.assertIsNone(cuda_profile.parse_sanitizer_version(text))
+
+    def test_receipt_sanitizer_version_requires_the_complete_token(self) -> None:
+        for version in ["2025.3", "2025.3.1", "3.1.0", "2026.1.0"]:
+            with self.subTest(version=version):
+                value = copy.deepcopy(self.receipt)
+                value["observations"]["sanitizerVersion"] = version
+                self.expect_code(value, "R007_RECEIPT_OBSERVATION")
+
+    def test_receipt_rejects_ambiguous_or_missing_sanitizer_version(self) -> None:
+        path = self.root / "sanitizer-version.log"
+        original = path.read_text(encoding="utf-8")
+        for text in [
+            original + "Version 2025.3.1.0\n",
+            original + "Version invalid\n",
+            original.replace("Version 2025.3.1.0", "unanchored 2025.3.1.0"),
+        ]:
+            with self.subTest(text=text):
+                path.write_text(text, encoding="utf-8")
+                value = copy.deepcopy(self.receipt)
+                value["observations"]["sanitizerLogSha256"] = self.digest(
+                    "sanitizer-version.log"
+                )
+                self.expect_code(value, "R007_RECEIPT_OBSERVATION")
 
     def test_every_authoritative_field_class_rejects_mutation(self) -> None:
         mutations = [

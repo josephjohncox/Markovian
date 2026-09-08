@@ -103,13 +103,15 @@ jobs:
           "${sanitizer}" --version 2>&1 \
             | tee cuda-evidence/sanitizer-version.log
           sanitizer_version="$(python3 - <<'PY'
-          import re
+          import sys
           from pathlib import Path
+          sys.path.insert(0, "backends/markovian-gpu/scripts")
+          from cuda_profile import parse_sanitizer_version
           text = Path("cuda-evidence/sanitizer-version.log").read_text()
-          match = re.search(r"Compute Sanitizer[^0-9]*([0-9]+(?:\.[0-9]+)+)", text)
-          if match is None:
-              raise SystemExit("Compute Sanitizer output has no version")
-          print(match.group(1))
+          version = parse_sanitizer_version(text)
+          if version is None:
+              raise SystemExit("Expected one Compute Sanitizer Version line")
+          print(version)
           PY
           )"
 
