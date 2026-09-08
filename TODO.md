@@ -253,8 +253,8 @@ The user authorized this program after [the 2026-09-05 review](docs/evidence/LEA
 
 This roadmap schedules governance review before acceptance. D-077 through D-085 remain `Proposed`. New implementation work is `BLOCKED` until the applicable decision freezes exact exported signatures, failure precedence, package topology, ownership, limits, and evidence. Existing proposal-stage implementation evidence remains unaccepted until it is reviewed against that frozen contract.
 
-- [ ] **R0 (`NEXT`) Review the 2026-09-08 deployment-scoped evidence amendment.** Check active policy projections and historical boundaries before D-077 acceptance review.
-- [ ] **R1 (`READY` after R0) Review D-077 GPU profile and evidence truth.** The bounded repair selected one profile authority and same-session receipt format. It separates exact dyadic, CPU operation-order, and CUDA FMA fixtures. D-074 assertions without complete receipts are historical only. Review tested `3e850085fa96c4e48a80270b9e49e9f55fe0f757` and any explicit docs-only delta separately. Permanent retention is no longer required. GPU deployment or promotion still requires complete raw evidence and signature verification bound to its deployed revision.
+- [x] **R0 (`DONE`) Review the 2026-09-08 deployment-scoped evidence amendment.** Policy frozen at `a3ac9db635574d1d97ae74b18f816cb74e06f574`; independent review and parent checks are recorded below.
+- [ ] **R1 (`NEXT`) Review D-077 GPU profile and evidence truth.** The bounded repair selected one profile authority and same-session receipt format. It separates exact dyadic, CPU operation-order, and CUDA FMA fixtures. D-074 assertions without complete receipts are historical only. Review tested `3e850085fa96c4e48a80270b9e49e9f55fe0f757` and any explicit docs-only delta separately. Permanent retention is no longer required. GPU deployment or promotion still requires complete raw evidence and signature verification bound to its deployed revision.
 - [ ] **R2 (`READY`) Review D-078 strict-discount affine feedback.** The decision now freezes exact signatures, root package placement, nominal ownership, the total failure order, opaque `A` and `K` coefficients, four literal equations, normalized finite event input, and cumulative accounting. Review the proposal-stage implementation and fixed evidence against that contract. Keep universal trace and cyclic open adapters excluded; D-078 remains `Proposed`.
 - [ ] **R3 (`READY`) Review D-079 exact joint affine kernels.** Gate A implements one owner table, duplicate-before-filter validation, same-scope partial renaming, complete-map scope transitions, real-Borel materialization, signed support extrema, complete renaming preflight, frozen failure precedence, and bounded reports. Cross-kernel composition and explicit fresh-owner composition evidence remain unimplemented. Keep callbacks, RCP, point conditioning, and multi-step control excluded; D-079 remains `Proposed`.
 - [ ] **R4 (`READY`) Review D-080 bounded first-order quotation.** Freeze hidden nominal paths, callback-free call-by-value `let`, saturating preflight, and independent exact primal and JVP recursion. Keep arbitrary-Haskell autodiff excluded.
@@ -266,7 +266,7 @@ This roadmap schedules governance review before acceptance. D-077 through D-085 
 
 For every roadmap item, one cumulative bounded ledger covers the complete operation. Preflight precedes dense allocation. Exact and one-below tests are mandatory. Proof records and empirical receipts remain separate. Evidence for `v2026.9.3.0` does not validate post-release work. No roadmap item authorizes publication or a workflow launch.
 
-Post-release roadmap status: `NEXT` is policy review, then D-077 governance review. New device features remain `BLOCKED` while D-077 is `Proposed`. The evidence-truth repair and policy amendment do not accept D-077.
+Post-release roadmap status: policy review is complete; `NEXT` is D-077 governance review. New device features remain `BLOCKED` while D-077 is `Proposed`. The evidence-truth repair and policy amendment do not accept D-077.
 
 ### All-nine execution checklist
 
@@ -290,11 +290,11 @@ Preflight must precede dense allocation. Keep proof results separate from execut
 
 #### R0 — Policy review
 
-- [ ] Review [section 8.2](docs/WORKFLOWS.md#82-deployment-scoped-gpu-evidence-amendment--2026-09-08) and its active projections.
-- [ ] Check full deployment-time evidence, signatures, issuer/source/run/transparency checks, finite retention, compact records, and deployed-revision binding.
-- [ ] Confirm historical receipts, failed attempts, released assets, tensor immutability, and action pins remain truthful and unchanged in meaning.
+- [x] Review [section 8.2](docs/WORKFLOWS.md#82-deployment-scoped-gpu-evidence-amendment--2026-09-08) and its active projections.
+- [x] Check full deployment-time evidence, signatures, issuer/source/run/transparency checks, finite retention, compact records, and deployed-revision binding.
+- [x] Confirm historical receipts, failed attempts, released assets, tensor immutability, and action pins remain truthful and unchanged in meaning.
 - [x] Run capability release verification, release-policy, book, and diff checks. Record failures without weakening checks.
-- [ ] Obtain fresh independent policy review. Record the verdict before D-077 acceptance review.
+- [x] Obtain fresh independent policy review. Review `ed4a64ae-6c19-4b53-9185-096ad6c927ad` passed with no findings; this was source/log inspection, not independent command execution.
 
 Local documentation validation on 2026-09-08 used the uncommitted seven-file delta from `80949faed2da16d603d7eebd0586ea9d94b325f9`.
 Changed paths: `TODO.md`, `RELEASE-CHECKLIST.md`, `docs/WORKFLOWS.md`, `docs/DECISIONS.md`, `docs/CONTEXT.md`, `docs/evidence/CUDA-D077-RECEIPTS.md`, and `backends/markovian-gpu/CHANGELOG.md`.
@@ -305,7 +305,7 @@ All commands ran from `/home/josephcox/dev/Markovian-proposals` and returned exi
 - `bash scripts/check-book`: 77 static fences, 52 linked book files, and 422 display-math blocks checked. Log: `/tmp/deployment-policy-book.log`.
 - `git diff --check`: passed. Log: `/tmp/deployment-policy-diff.log`.
 
-These checks do not rerun Haskell teaching programs, hardware tests, or attestation verification. Independent review remains open.
+These checks do not rerun Haskell teaching programs, hardware tests, or attestation verification. Parent separately reran capability, release-policy and book gates, generated all 16 source archives, and verified that all seven changed files match their archive bytes. Logs: `/tmp/proposals-parent-policy-{capabilities,policy,book,sdist}.log`. Parent also verified the seven-Markdown-file scope, unchanged Haskell signature fences, and unchanged pre-D-077 decision text before committing `a3ac9db635574d1d97ae74b18f816cb74e06f574`. Independent policy review is complete; no proposal status is accepted by this record.
 
 #### R1 — D-077 profile and evidence governance
 
