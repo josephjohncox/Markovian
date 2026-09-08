@@ -78,8 +78,9 @@ This is a sufficient congruence for **one fixed policy** and the declared
 reward/observation/stop traces and finite-horizon returns. Actions and policy
 alternatives are not preserved observations. No automatic partition discovery,
 optimal-policy preservation, general MDP/POMDP abstraction, or performance claim
-follows. EL-05 and D-077–D-085 remain Proposed; this is unreleased implementation
-evidence, not release or decision acceptance.
+follows. EL-05 and D-079–D-085 remain Proposed; this is unreleased implementation
+evidence, not release or decision acceptance. The separate bounded D-077/D-078
+acceptance does not accept aggregation or EL-04's JVP contract.
 
 ## Run and inspect
 

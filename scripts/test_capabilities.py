@@ -3,6 +3,7 @@
 
 import copy
 import json
+import re
 import shutil
 import tempfile
 import unittest
@@ -44,10 +45,23 @@ class CapabilityTests(unittest.TestCase):
     def test_current_records_and_generated_presentation(self):
         self.assertEqual(cap.check(cap.ROOT), 9)
 
-    def test_proposed_implementation_is_not_unimplemented(self):
+    def test_cuda_receipt_matches_accepted_decision(self):
+        decisions = (cap.ROOT / "docs/DECISIONS.md").read_text()
+        receipt = (cap.ROOT / "docs/evidence/CUDA-D077-RECEIPTS.md").read_text()
+        status = re.search(r"(?ms)^### D-077:.*?^\*\*Status:\*\* ([^\n]+)$", decisions)
+        self.assertIsNotNone(status)
+        self.assertEqual(status[1], "Accepted")
+        self.assertEqual(re.findall(r"(?m)^\*\*Decision status:\*\* ([^\n]+)$", receipt),
+                         [status[1]])
+
+    def test_accepted_affine_feedback_remains_unreleased(self):
         records = cap.validate(cap.ROOT, self.document, self.current, self.released)
+        self.assertEqual(records[5]["decision"], "D-078")
         self.assertEqual(records[5]["availability"], "unreleased")
-        self.assertEqual(records[5]["decisionStatus"], "Proposed")
+        self.assertEqual(records[5]["decisionStatus"], "Accepted")
+        self.assertEqual(records[5]["evidenceScope"], "implementation-fixtures")
+        self.rejected(self.changed(5, availability="released", evidenceScope="bounded-release"),
+                      "not in immutable released membership")
 
     def test_paired_proposal_implementation_transition(self):
         record = cap.validate(cap.ROOT, self.document, self.current, self.released)[6]

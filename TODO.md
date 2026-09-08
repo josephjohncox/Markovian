@@ -247,16 +247,16 @@ S7 status: `DONE` for the bounded scopes defined by D-048 through D-060. The res
 
 - [x] Execute [the durable implementation checklist](docs/plans/EXECUTABLE-LEARNING-TODO.md), covering documentation truth, compiled teaching examples, the law laboratory, paired-difference reports, exact feedback sensitivity, checked state aggregation, and the D-085 resource contract. Completed with independent reviews and a parent audit; see [integration evidence](docs/evidence/EXECUTABLE-LEARNING-INTEGRATION.md).
 
-The user authorized this program after [the 2026-09-05 review](docs/evidence/LEARNING-REVIEW-2026-09-05.md). Follow its checkboxes and execution log. Freeze and review each semantic contract before implementation. D-077 through D-085 remain `Proposed`, and released history stays immutable.
+The user authorized this program after [the 2026-09-05 review](docs/evidence/LEARNING-REVIEW-2026-09-05.md). Follow its checkboxes and execution log. Freeze and review each semantic contract before implementation. The program's historical status records remain unchanged. The separate 2026-09-08 acceptance covers only D-077 and original D-078; D-079 through D-085 and EL-04 remain `Proposed`, and released history stays immutable.
 
 ## Post-release roadmap
 
-This roadmap schedules governance review before acceptance. D-077 through D-085 remain `Proposed`. New implementation work is `BLOCKED` until the applicable decision freezes exact exported signatures, failure precedence, package topology, ownership, limits, and evidence. Existing proposal-stage implementation evidence remains unaccepted until it is reviewed against that frozen contract.
+This roadmap schedules governance review before acceptance. D-077 and original D-078 are `Accepted` for the bounded scopes recorded below; D-079 through D-085 remain `Proposed`. New implementation work is `BLOCKED` until the applicable decision freezes exact exported signatures, failure precedence, package topology, ownership, limits, and evidence. Existing proposal-stage implementation evidence remains unaccepted until it is reviewed against that frozen contract.
 
 - [x] **R0 (`DONE`) Review the 2026-09-08 deployment-scoped evidence amendment.** Policy frozen at `a3ac9db635574d1d97ae74b18f816cb74e06f574`; independent review and parent checks are recorded below.
-- [ ] **R1 (`NEXT`) Review D-077 GPU profile and evidence truth.** The bounded repair selected one profile authority and same-session receipt format. It separates exact dyadic, CPU operation-order, and CUDA FMA fixtures. D-074 assertions without complete receipts are historical only. Review tested `3e850085fa96c4e48a80270b9e49e9f55fe0f757` and any explicit docs-only delta separately. Permanent retention is no longer required. GPU deployment or promotion still requires complete raw evidence and signature verification bound to its deployed revision.
-- [ ] **R2 (`READY`) Review D-078 strict-discount affine feedback.** The decision now freezes exact signatures, root package placement, nominal ownership, the total failure order, opaque `A` and `K` coefficients, four literal equations, normalized finite event input, and cumulative accounting. Review the proposal-stage implementation and fixed evidence against that contract. Keep universal trace and cyclic open adapters excluded; D-078 remains `Proposed`.
-- [ ] **R3 (`READY`) Review D-079 exact joint affine kernels.** Gate A implements one owner table, duplicate-before-filter validation, same-scope partial renaming, complete-map scope transitions, real-Borel materialization, signed support extrema, complete renaming preflight, frozen failure precedence, and bounded reports. Cross-kernel composition and explicit fresh-owner composition evidence remain unimplemented. Keep callbacks, RCP, point conditioning, and multi-step control excluded; D-079 remains `Proposed`.
+- [x] **R1 (`DONE`) Review D-077 GPU profile and evidence truth.** Readiness PASS supports bounded acceptance of the existing profile/receipt and exact-dyadic versus CPU/CUDA repair plus deployment-scoped policy. Hardware evidence binds only `3e850085fa96c4e48a80270b9e49e9f55fe0f757`; the seven-file governance delta to `c86b4e0241debe0a9ea51b6e9f962d89ea8293df` was reviewed separately. No descendant is labelled hardware-tested. D-074 remains historical. Finite retention is allowed; deployment still requires complete evidence/signatures bound to its deployed revision.
+- [x] **R2 (`DONE`) Review D-078 strict-discount affine feedback.** Readiness PASS supports acceptance only of original opaque nominal `A`/`K` coefficients and four Rational equations under the frozen normalized-event, strict-discount and cumulative-accounting contract. It remains unreleased. EL-04's separate implementation PASS does not accept its JVP contract; probability derivatives, universal trace and cyclic open adapters remain excluded.
+- [ ] **R3 (`NEXT`) Review D-079 exact joint affine kernels.** Gate A implements one owner table, duplicate-before-filter validation, same-scope partial renaming, complete-map scope transitions, real-Borel materialization, signed support extrema, complete renaming preflight, frozen failure precedence, and bounded reports. Cross-kernel composition and explicit fresh-owner composition evidence remain unimplemented. Keep callbacks, RCP, point conditioning, and multi-step control excluded; D-079 remains `Proposed`.
 - [ ] **R4 (`READY`) Review D-080 bounded first-order quotation.** The existing declaration and failure schedule is now recorded in D-080, including hidden nominal paths, construction-time scope continuations versus callback-free stored `let`, saturating preflight, and independent exact primal/JVP recursion. Review the separate target account and bounded evidence gaps before any repair. Keep arbitrary-Haskell autodiff excluded.
 - [ ] **R5 (`READY`) Review D-081 immutable host-F64 affine views.** The prerequisite evidence repair now compares the existing transpose fragment directly with `contiguousCopy`-first execution for every closed primitive primal and pullback, checks all logical coordinates by finite differences, and includes rectangular matrix dimension/stride reversal. It does not define a transpose-to-base pullback. Before implementing a wider view, freeze admitted affine maps, ownership, materialization, pullbacks, limits, and failure precedence. Keep general dtype, mutation, broadcast pullback, and persistent devices excluded.
 - [ ] **R6 (`BLOCKED`) Review D-082 CUDA multiply-chain graphs.** Start only after D-077 and D-081 are accepted with complete evidence. Limit the graph to matrix inputs, admitted affine views, multiplication, and declared VJPs. Make no generic lowering or speedup claim.
@@ -266,7 +266,7 @@ This roadmap schedules governance review before acceptance. D-077 through D-085 
 
 For every roadmap item, one cumulative bounded ledger covers the complete operation. Preflight precedes dense allocation. Exact and one-below tests are mandatory. Proof records and empirical receipts remain separate. Evidence for `v2026.9.3.0` does not validate post-release work. No roadmap item authorizes publication or a workflow launch.
 
-Post-release roadmap status: policy review is complete; `NEXT` is D-077 governance review. New device features remain `BLOCKED` while D-077 is `Proposed`. The evidence-truth repair and policy amendment do not accept D-077.
+Post-release roadmap status: R0–R2 review is complete, with parent-authorized bounded D-077/D-078 acceptance recorded in this separate status edit; final edit review and commit remain with the parent. `NEXT` is D-079 review. D-079–D-085 remain Proposed; D-082 remains `BLOCKED` on D-081. No new device feature or external action is authorized.
 
 ### All-nine execution checklist
 
@@ -311,21 +311,37 @@ These checks do not rerun Haskell teaching programs, hardware tests, or attestat
 
 Existing evidence: [D-077 receipt record](docs/evidence/CUDA-D077-RECEIPTS.md) and the current repair boundary in [D-077](docs/DECISIONS.md#d-077-govern-gpu-profiles-and-evidence-truth).
 
-- [ ] Review the existing profile/receipt contract, signatures, failure order, ownership, numeric policies, and deployment-scoped evidence plan.
-- [ ] Review the existing repair against that contract. Implement only separately reviewed gaps, if any.
-- [ ] Check authority drift, dyadic/CPU/CUDA fixtures, bounded preflight, malformed receipts, and the exact tested run's verification records.
-- [ ] Obtain fresh independent D-077 review. Identify tested `3e850085fa96c4e48a80270b9e49e9f55fe0f757` and both endpoints/paths of any reviewed docs-only delta.
-- [ ] Parent records acceptance, if supported, in a separate reviewed status edit. Deployment still needs evidence binding its deployed revision.
+- [x] Review the existing profile/receipt contract, signatures, failure order, ownership, numeric policies, and deployment-scoped evidence plan.
+- [x] Review the existing repair against that contract. No implementation gaps were found in the bounded readiness review.
+- [x] Check authority drift, dyadic/CPU/CUDA fixtures, bounded preflight, malformed receipts, and the exact tested run's verification records.
+- [x] Obtain fresh independent D-077 review. Readiness PASS `a6b05ca2-3b1f-4202-b01c-378a1353957b` (`d077-acceptance-review.md`) inspected tested `3e850085fa96c4e48a80270b9e49e9f55fe0f757` and the seven-Markdown-file delta to `c86b4e0241debe0a9ea51b6e9f962d89ea8293df` listed in the decision and receipt acceptance notes.
+- [ ] Complete final independent review and parent commit of this separate authorized acceptance-status edit. Deployment still needs evidence binding its deployed revision.
+
+**Acceptance evidence — 2026-09-08:** D-077 is Accepted only for its existing bounded repair and deployment-scoped policy. Run `34181389307` / attempt `1`, profile `5fbed61193cf483a2ff5642c7487ad052add4ed52da1a83a110da4711c7480dd`, remains bound to tested `3e850085fa96c4e48a80270b9e49e9f55fe0f757`. The reviewer inspected source/logs, not fresh execution. Parent's 21 profile tests, policy and book checks passed: `/tmp/proposals-parent-c86-{profile,policy,book}.log`. The governance delta manifest/patch are `/tmp/proposals-d077-governance-delta.json` and `.patch`. No hardware rerun, permission change, infrastructure gate, deployment or release is claimed.
 
 #### R2 — D-078 strict-discount affine feedback
 
 Existing evidence: the frozen contract and current implementation boundary in D-078.
 
-- [ ] Review the existing exact signatures, root placement, nominal coefficients, failure table, four equations, and cumulative ledger.
-- [ ] Review the existing implementation against that contract. Repair only reviewed gaps.
-- [ ] Run literal-equation, explicit-horizon finite-oracle, normalization, timing, layout, rational-growth, and exact/one-below tests.
-- [ ] Obtain fresh independent review of the contract, implementation, and current test evidence.
-- [ ] Parent records any acceptance in a separate reviewed status edit. Keep universal trace and cyclic open adapters excluded.
+- [x] Review the existing exact signatures, root placement, nominal coefficients, failure table, four equations, and cumulative ledger.
+- [x] Review the existing implementation against that contract. No implementation gaps were found in the bounded readiness review.
+- [x] Run literal-equation, explicit-horizon finite-oracle, normalization, timing, layout, rational-growth, and exact/one-below tests. Parent's exact-snapshot root suite and feedback boundary passed as recorded below.
+- [x] Obtain fresh independent review. Readiness PASS `172bb833-8189-4b78-acf1-4df2455d3752` (`d078-acceptance-review.md`) reviewed the contract, implementation and supplied evidence; the exact-snapshot integration results below supply its remaining evidence attachment.
+- [ ] Complete final independent review and parent commit of this separate authorized acceptance-status edit. Keep universal trace and cyclic open adapters excluded.
+
+**Acceptance evidence — 2026-09-08:** D-078 is Accepted only for original strict-discount affine coefficients and their four Rational equations, not EL-04's separately reviewed JVP contract. Parent executed `cabal test Markovian-test --project-file=cabal.project.ci -f-cuda --ghc-options=-Werror --test-show-details=direct` and `bash scripts/check-feedback-boundary` at exact `c86b4e0241debe0a9ea51b6e9f962d89ea8293df` under GHC 9.8.4; both exited 0. Logs: `/tmp/proposals-parent-c86-root-test.log` and `/tmp/proposals-parent-c86-feedback-boundary.log`. All Haskell bytes are unchanged through status-edit base `049372690908f179a095bb170ec7e80034b04d2e`. These exact-snapshot results are carried forward, not labelled fresh status-edit or hardware runs. Capability availability remains `unreleased` with `implementation-fixtures`; frozen release membership is unchanged.
+
+**Status-edit validation — 2026-09-08:** Commands below ran in `/home/josephcox/dev/Markovian-proposals` on base `049372690908f179a095bb170ec7e80034b04d2e` plus the uncommitted status/test delta, not a new immutable revision. All exited 0. Logs are under `/tmp/proposals-d077-d078-status/`.
+
+- `python3 scripts/check-capabilities --write` regenerated the book table; `python3 scripts/check-capabilities --verify-release` checked nine records and unchanged immutable membership (`capabilities-write.log`, `capabilities-release.log`).
+- `python3 scripts/test_capabilities.py`: 33 tests, including Accepted + unreleased not implying released membership (`capabilities-tests.log`). `python3 scripts/test_release_tool.py`: 32 tests (`release-tests.log`).
+- `bash scripts/check-release-metadata` and `bash scripts/check-release-policy`: 16-package metadata and frozen release gate/policy passed (`release-metadata.log`, `release-policy.log`). No release-tool implementation changed.
+- `bash scripts/check-book`: 77 static Haskell fences, 52 book files, 422 display-math blocks, pinned mdBook/local MathJax passed (`book.log`). Teaching fingerprint remained valid; no teaching execution or hash refresh was needed or claimed.
+- `cabal sdist all --project-file=cabal.project.ci --output-directory=/tmp/proposals-d077-d078-status/archives` generated 16 local validation archives (`sdist.log`). `python3 /tmp/proposals-d077-d078-status/validate-scope-archives.py` checked bounded paths/statuses, unchanged Haskell declaration fences and c86-to-049 Haskell bytes, an empty index, all 16 archive validators, and byte membership of all 17 changed files (`scope-archives.log`). These are not released assets.
+
+Only current prose/metadata and the targeted capability regression changed. Historical EL/release records and changelogs remain intact; dated notes distinguish their point-in-time statuses. Final independent edit review and parent commit remain unchecked above. No commits, staging, publication, workflow/runner/environment/authentication actions, hardware execution, or cryptographic reruns were performed by this edit.
+
+**Status-header correction — 2026-09-08:** Independent status-edit review `2d1cd7ac-de73-4c56-85e9-cda0be1e04b8` blocked the initial edit because the active D-077 receipt header still said Proposed. Parent added `test_cuda_receipt_matches_accepted_decision`; it failed on that header as expected (`/tmp/proposals-status-header-regression-before.log`), then passed after the header correction. All 34 capability tests, 32 release-tool tests, capability/release metadata/policy/book gates, and 16 archive validators passed. All 17 changed files matched separate corrected-byte archives. Logs and archives: `/tmp/proposals-status-final/`; validator wrapper: `/tmp/proposals-status-final-archives.py`. Original pre-correction records were not overwritten. Fresh correction review and parent commit remain pending.
 
 #### R3 — D-079 joint affine kernels
 
@@ -359,6 +375,8 @@ D-080 freeze validation used `/home/josephcox/dev/Markovian-proposals`, branch `
 
 No Haskell, Python, workflow, package/version, release-history, topology, or teaching-metadata file changed. Both Markdown files already belong to the root source distribution. No tests were added. The independent review, exhaustive quotation coordinate/failure matrix, second supported compiler, and full integration/release gates are not established by these focused commands. R4 review/acceptance boxes remain unchecked; D-077 through D-085 remain `Proposed`.
 
+**Status update — 2026-09-08:** The preceding D-080 freeze validation is a point-in-time record. The separate bounded D-077/D-078 acceptance does not change D-080's Proposed status, separate compile-ledger contract, evidence gaps, or unchecked review/acceptance boxes.
+
 #### R5 — D-081 immutable host-F64 affine views
 
 Existing evidence: [transpose reverse-equivalence repair](docs/evidence/D081-TRANSPOSE-REVERSE-EQUIVALENCE.md), not a wider affine-view implementation.
@@ -371,7 +389,7 @@ Existing evidence: [transpose reverse-equivalence repair](docs/evidence/D081-TRA
 
 #### R6 — D-082 CUDA multiply-chain graphs
 
-**Blocked until separate reviewed acceptance of both D-077 and D-081.**
+**Still blocked on separate reviewed acceptance of D-081. D-077's bounded acceptance is recorded above; it does not accept the graph or supply deployed-revision evidence.**
 
 - [ ] Verify both prerequisite acceptance records. Freeze and review graph signatures, admitted nodes/views, ownership, schedule, cleanup, ledgers, and failure precedence.
 - [ ] Implement only the reviewed closed matrix-input/view/multiply DAG and its declared VJPs.

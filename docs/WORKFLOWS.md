@@ -404,7 +404,7 @@ Do not relabel failed runs or combine them with a successful receipt.
 The recorded environment has no required-reviewer rules or deployment-branch restrictions.
 This amendment changes neither permissions nor environment configuration and adds no infrastructure gate.
 Keep separate review and authorization requirements. Do not infer technical enforcement that the environment does not provide.
-D-077 through D-085 remain `Proposed` until separate reviewed status edits.
+**Acceptance update — 2026-09-08:** The separate parent-authorized status edit accepts only [D-077's bounded repair/policy and D-078's original affine coefficients](DECISIONS.md#d-077-govern-gpu-profiles-and-evidence-truth), following readiness PASS `a6b05ca2-3b1f-4202-b01c-378a1353957b` and `172bb833-8189-4b78-acf1-4df2455d3752`. D-079 through D-085 remain `Proposed`; D-082 remains blocked on D-081. EL-04's separate implementation PASS does not accept its contract. Acceptance changes no release membership or deployment gate. The exact tested revision and seven-file governance delta are recorded in D-077; no descendant is labelled hardware-tested.
 
 Released source, tags, assets, immutable tensor storage, action pins, and digest-based content identity retain their existing requirements.
 Continue the proposals through the [durable stage checklist](../TODO.md#all-nine-execution-checklist).

@@ -159,7 +159,7 @@ The operation-wide meter charges every rational operation. Affine feedback prefl
 
 The raw trace of the two-state stochastic identity has mass two. A unit internal self-loop has no first exit. A half-loop/half-exit is proper but has unbounded duration support and is rejected by the timed API. Strict discount gives that closed unit-reward loop `A=1/(1-gamma)` and `K=0`; it does not create a normalized exit law. These counterexamples prevent a universal stochastic-trace claim.
 
-**Executable evidence:** `test/FeedbackExact.hs`, `test/FeedbackValueExact.hs`, `test/golden/affine-feedback-accounting.txt`, and `scripts/check-feedback-boundary` in the source distribution. The affine fixture includes a fixed accounting oracle, adversarial unmatched-event graph bounds, a separately budgeted multi-state/multi-output unrolling oracle, discarded-Gaussian one-below limits, and combined-invalid failure precedence. The affine-value implementation is evidence for D-078, which remains `Proposed`.
+**Executable evidence:** `test/FeedbackExact.hs`, `test/FeedbackValueExact.hs`, `test/golden/affine-feedback-accounting.txt`, and `scripts/check-feedback-boundary` in the source distribution. The affine fixture includes a fixed accounting oracle, adversarial unmatched-event graph bounds, a separately budgeted multi-state/multi-output unrolling oracle, discarded-Gaussian one-below limits, and combined-invalid failure precedence. D-078 is `Accepted` (2026-09-08) only for the original strict-discount affine coefficients and four literal Rational equations. This remains unreleased implementation-fixture evidence; EL-04's separately reviewed JVP contract and probability derivatives are not accepted by D-078.
 
 ## Tabular one-step targets
 

@@ -4,13 +4,13 @@ Read this file, `TODO.md`, and the relevant architecture and decision sections b
 
 ## Current state
 
-Markovian `2026.9.3.0` is the first coordinated 16-package release. D-053 through D-076 are `Accepted` only for their stated bounded, represented scopes. D-077 through D-085 are post-release `Proposed` decisions; implementation evidence does not accept them or authorize a package edge, workflow launch, or publication. The root remains `base`-only and exact. Numerical, sampling, learning, continuous, reverse, autodiff, tensor, SafeTensors, neural, and CUDA execution remain in optional packages.
+Markovian `2026.9.3.0` is the first coordinated 16-package release. D-053 through D-076 are `Accepted` only for their stated bounded, represented scopes. D-077's bounded evidence repair/policy and D-078's original strict-discount affine coefficients are post-release `Accepted` decisions as of 2026-09-08; they remain unreleased. D-079 through D-085 remain `Proposed`. Acceptance authorizes no package edge, workflow launch, deployment, or publication. The root remains `base`-only and exact. Numerical, sampling, learning, continuous, reverse, autodiff, tensor, SafeTensors, neural, and CUDA execution remain in optional packages.
 
 The release record states that the acceptance candidate passed the compiler, source, documentation, archive, checksum, SPDX, and attestation gates. It also records CUDA compile-only, protected GB10, benchmark, fault, and four-tool sanitizer passes. The repository does not retain enough raw same-session material to reconstruct the protected hardware assertions under D-077.
 
 Release preparation produced 16 source archives, 16 SPDX 2.3 SBOMs, 29 component logs, complete SHA-256 checksums, and a 37-subject SLSA v1 provenance statement. The statement was verified against the repository, signer workflow, and source revision. Preparation remains non-publishing; publication requires a separate human request.
 
-The exact semantic foundation exposes finite sets and objects, law-bearing scalar capabilities, nonnegative rationals, semiring matrices, stochastic and deterministic refinements, exact convex mixtures, payoffs, priors, support-restricted Bayesian inversion, purity-indexed circuits, deterministic compilation, structured cospans, bounded acyclic open denotation, finite games, three accepted checked feedback fragments, and proposed strict-discount affine feedback coefficients. Matrix dagger, Bayesian inversion, payoff pullback, reverse differentiation, feedback, boundary reversal, strategic duality, and disintegration remain distinct.
+The exact semantic foundation exposes finite sets and objects, law-bearing scalar capabilities, nonnegative rationals, semiring matrices, stochastic and deterministic refinements, exact convex mixtures, payoffs, priors, support-restricted Bayesian inversion, purity-indexed circuits, deterministic compilation, structured cospans, bounded acyclic open denotation, finite games, three released accepted checked feedback fragments, and accepted but unreleased strict-discount affine feedback coefficients. Matrix dagger, Bayesian inversion, payoff pullback, reverse differentiation, feedback, boundary reversal, strategic duality, and disintegration remain distinct.
 
 `markovian-reverse` owns bounded pure and effect-capable reverse programs. `markovian-autodiff` differentiates only its closed polynomial and `tanh` language. `markovian-tensor` owns host F64 buffers and primitive VJP tapes. `markovian-tensor-reverse` provides only the bounded host adapter. `markovian-safetensors` implements only the pinned metadata-free F64 profile. `markovian-gpu` admits only positive-size F64 matrix multiplication and its declared matrix VJP under one digest-addressed `sm_121` profile. Admission is not hardware correctness evidence.
 
@@ -149,7 +149,8 @@ Feature commit `d99b2c011100d200934dce9e5993a7d070398b39` passed matching [push]
 - D-060 defines bounded concrete finite optics and an owner-refined finite open-game fragment with exact rational decisions, pure contextual equilibrium enumeration, and best-response-sensitive observational equality.
 - D-064 through D-066 define exact owned mixtures and CE/CCE, joint-outcome finite-horizon stochastic games, correlated-prior Harsanyi checks, bounded strategic-normal conversion, and the checked closed-context open-game bridge.
 - D-072 defines the checked host F64 tensor runtime; D-073 admits only the pinned bounded metadata-free F64 SafeTensors profile while broader compatibility claims remain blocked; D-074 defines the prepared matrix/VJP CUDA fragment, admission, ownership, synchronization, cleanup, and fallback boundary.
-- D-077 through D-085 propose bounded GPU evidence governance, affine feedback, joint affine kernels, first-order quotation, affine tensor views, CUDA multiply chains, CE/CCE witnesses, a reference DQN trainer, and interpreter-relative tabulation. Their exact signatures, failure precedence, ownership, topology, limits, and evidence remain under review.
+- D-077 accepts bounded GPU evidence governance and the existing profile/receipt repair; hardware evidence remains bound only to `3e850085fa96c4e48a80270b9e49e9f55fe0f757`, not current HEAD. D-078 accepts only original strict-discount affine coefficients and four exact equations, not EL-04's JVP contract. Both dated acceptance records are in `docs/DECISIONS.md`.
+- D-079 through D-085 still propose joint affine kernels, first-order quotation, affine tensor views, CUDA multiply chains, CE/CCE witnesses, a reference DQN trainer, and interpreter-relative tabulation. Their signatures, failure precedence, ownership, topology, limits, and evidence remain under review. D-080 retains its separate compile-ledger/evidence gaps; D-082 remains blocked on D-081 acceptance.
 
 ## Executable-learning implementation status
 
@@ -168,9 +169,9 @@ Independent finite-value/trace fixtures and an executed success/witness lesson
 provide unreleased evidence. EL-00 through EL-07 are complete for the bounded local program.
 The [integration record](evidence/EXECUTABLE-LEARNING-INTEGRATION.md) records independent reviews and the parent audit.
 The [durable checklist](plans/EXECUTABLE-LEARNING-TODO.md) retains commands and residual limits.
-The deployment-scoped policy passed independent review and parent validation. The current queue starts with D-077 governance review in the [all-nine checklist](../TODO.md#all-nine-execution-checklist).
+The deployment-scoped policy passed independent review and parent validation. The 2026-09-08 bounded D-077/D-078 acceptance follows separate readiness PASS reviews; the current queue starts with D-079 review in the [all-nine checklist](../TODO.md#all-nine-execution-checklist).
 Apply the [2026-09-08 deployment-scoped evidence amendment](WORKFLOWS.md#82-deployment-scoped-gpu-evidence-amendment--2026-09-08).
-None of this work accepts D-077–D-085 or changes package versions, topology, or immutable released evidence.
+The historical executable-learning program did not itself accept these decisions. The separate D-077/D-078 acceptance changes no package versions, topology, or immutable released evidence. EL-04 remains Proposed despite its independent implementation PASS.
 
 ## Post-release boundaries
 

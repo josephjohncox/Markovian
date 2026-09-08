@@ -4,6 +4,8 @@
 
 Frozen declarations and algorithm passed independent contract review. Implemented with local fixture evidence in `test/FeedbackRewardJVP.hs`; independent implementation review remains required. Not accepted or released. Extends only the exact root's `Markovian.Feedback.Value.Exact`, using `Markovian.Feedback.Internal`. D-078 remains Proposed. No numerical, autodiff, continuous, or new package edge.
 
+**Status update — 2026-09-08:** EL-04 has a separate independent implementation PASS (`d078-acceptance-review.md`, readiness review `172bb833-8189-4b78-acf1-4df2455d3752`); the earlier review requirement above is a point-in-time record. D-078 is now Accepted only for its original strict-discount affine coefficients and four Rational equations. That acceptance does not accept this JVP contract. EL-04 remains Proposed and unreleased, with fixed probabilities and discount; probability/discount-direction derivatives remain outside its API.
+
 ## Parameterized semantics and admitted directions
 
 Reuse the consumer and timing of `closeAffineFeedback`: a normalized channel from the canonical source layout `Left inputs ++ Right loops` into a finite ordered `FeedbackEvent loop output` layout. Each event pays immediately; either its loop value or its exit continuation is discounted once. The strict contraction discount is fixed, `0 <= gamma < 1`. Infinite non-exit paths contribute discounted rewards and zero exit-continuation coefficient.

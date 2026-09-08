@@ -1,8 +1,8 @@
 # D-077 CUDA evidence receipts
 
-**Decision status:** Proposed
+**Decision status:** Accepted
 
-This document defines the repository-side receipt boundary. Run `34181389307` produced a validated same-session receipt and 14 cryptographically verified subjects, recorded below. The [2026-09-08 user amendment](../WORKFLOWS.md#82-deployment-scoped-gpu-evidence-amendment--2026-09-08) replaces permanent retention with deployment-scoped availability and verification. Separate governance review remains open. D-077 is still Proposed. The two earlier failed attempts remain unvalidated and are not combined with the successful run.
+This document defines the repository-side receipt boundary. Run `34181389307` produced a validated same-session receipt and 14 cryptographically verified subjects, recorded below. The [2026-09-08 user amendment](../WORKFLOWS.md#82-deployment-scoped-gpu-evidence-amendment--2026-09-08) replaces permanent retention with deployment-scoped availability and verification. D-077 is Accepted for the bounded repair and policy, not deployment or release; see the dated acceptance note below. The two earlier failed attempts remain unvalidated and are not combined with the successful run.
 
 ## Profile authority
 
@@ -190,3 +190,11 @@ The repository does not retain a complete D-077 receipt set for the D-074 releas
 `docs/evidence/CUDA-TENSOR-2026-09-02.md` retains the available commands and raw benchmark samples. It combines runs and lacks the required executable, log, profile, and session bindings.
 
 The published `v2026.9.3.0` source remains unchanged. `release/published-releases.json` prevents release preparation from rebuilding that version from another revision.
+
+## Bounded acceptance — 2026-09-08
+
+Readiness PASS `a6b05ca2-3b1f-4202-b01c-378a1353957b` (`d077-acceptance-review.md`) supports the separate parent-authorized [D-077 acceptance](../DECISIONS.md#d-077-govern-gpu-profiles-and-evidence-truth): existing profile authority, schemas, failure order, exact-dyadic versus CPU/CUDA comparisons, receipt repair, and deployment-scoped verification policy only. Earlier Proposed statements above are point-in-time records, not current status.
+
+The hardware binding remains source `3e850085fa96c4e48a80270b9e49e9f55fe0f757`, run `34181389307` / attempt `1`, profile `5fbed61193cf483a2ff5642c7487ad052add4ed52da1a83a110da4711c7480dd`. The separately reviewed docs-only delta from that source to `c86b4e0241debe0a9ea51b6e9f962d89ea8293df` contains exactly `RELEASE-CHECKLIST.md`, `TODO.md`, `backends/markovian-gpu/CHANGELOG.md`, `docs/CONTEXT.md`, `docs/DECISIONS.md`, `docs/WORKFLOWS.md`, and this file. Its supplied manifest and patch are `/tmp/proposals-d077-governance-delta.json` and `/tmp/proposals-d077-governance-delta.patch`. Neither the governance endpoint nor status-edit base `049372690908f179a095bb170ec7e80034b04d2e` is hardware-tested by this receipt.
+
+No new hardware or cryptographic execution is claimed by the status edit. Acceptance does not deploy, release, change permissions, invent environment protections, or establish general correctness, portability, or speedup. Finite raw retention is allowed; every actual deployment/promotion still requires complete evidence and signature verification bound to its deployed revision.

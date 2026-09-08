@@ -110,9 +110,9 @@ The old `Markovian.Category.Finite.Exact` module is private regression code. No 
 | `Markovian.Feedback.Channel.Exact` | Proper first-exit coproduct routing with exact solve evidence |
 | `Markovian.Feedback.Delay.Exact` | Explicit seed and bounded one-tick delayed execution |
 | `Markovian.Feedback.Timed.Exact` | Nilpotent reward-, duration-, and output-preserving closure |
-| `Markovian.Feedback.Value.Exact` | Unreleased strict-discount affine `A`/`K` coefficients and `closeAffineFeedbackRewardJVP`: opaque jointly owned base and event-reward derivative, exact layout checks and one cumulative ledger; fixed probabilities/discount only; D-078 and EL-04 Proposed |
+| `Markovian.Feedback.Value.Exact` | Unreleased strict-discount affine `A`/`K` coefficients and `closeAffineFeedbackRewardJVP`: opaque jointly owned base and event-reward derivative, exact layout checks and one cumulative ledger; fixed probabilities/discount only; original D-078 coefficients Accepted, separate EL-04 JVP contract Proposed |
 
-These modules provide no universal trace, instantaneous fixed-point operator, cyclic open-system black-boxing, or stationary-distribution selector. The value module returns no evaluator or normalized output channel. D-078 remains `Proposed`.
+These modules provide no universal trace, instantaneous fixed-point operator, cyclic open-system black-boxing, or stationary-distribution selector. The value module returns no evaluator or normalized output channel. D-078 is `Accepted` only for its original coefficients and four exact equations, not EL-04's JVP contract; both remain unreleased.
 
 ## Open systems
 
