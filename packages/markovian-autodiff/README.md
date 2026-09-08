@@ -28,7 +28,12 @@ Preflight charges each item before it descends and visits children from left to 
 The successful `QuoteReport` contains the timing-free cumulative ledger.
 The execution preflight functions add input and direction traversal to that report.
 `lowerQuote` constructs no target `Program` until this preflight succeeds.
-`compileExactQuote` uses the same limits for the exact compiler and returns both reports.
+`compileExactQuote` continues that syntax ledger with charged numeric metadata planning and traversal, allocation, and runtime reservations before building the target.
+The compiler receives derived structural capacities and the caller's rational-bit allowance.
+The returned quotation report includes those reservations; the target report is the actual compiler report.
+Standalone compilation, syntax preflight, lowering, and direct primal/JVP behavior are unchanged.
+The compiler coupons count cumulative logical reconstruction, including owner-list copies and represented zero coordinates, not bytes, peak residency, or physical allocator events.
+D-080 remains Proposed; implementation and private-probe evidence do not constitute acceptance.
 
 `interpretExactQuote` and `interpretExactQuoteJVP` recurse directly over quotation and source syntax.
 They do not call the reverse compiler or its primitive VJPs.

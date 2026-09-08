@@ -8,6 +8,8 @@ import Markovian.Autodiff
 import Markovian.Backend.Neural.Dense (denseForward, denseInputVJP, denseParameterVJP, mkDenseNetwork)
 import NeuralDifferential qualified
 import Paths_markovian_autodiff (getDataFileName)
+import QuoteCompilationBudgets qualified
+import QuoteCompilationFixture qualified
 import System.Exit (exitFailure)
 
 type BranchParameters =
@@ -129,6 +131,8 @@ main = do
     exactPrimitivePairings
     quotationEvidence
     quotationBudgets
+    QuoteCompilationBudgets.run
+    QuoteCompilationFixture.run
     doubleFiniteDifferences
     storedRecomputedParity
     neuralDenseDifferential
@@ -298,7 +302,7 @@ quotationEvidence = do
     assertEqual "quoted square formal JVP" (scalarValue 6) oracleTangent
 
     (executable, compilationReport) <- expectRight "compile exact quotation" (compileExactQuote quoteLimits StorePullbacks quotedSquare)
-    assertEqual "quotation compile report carries preflight" (quoteReportCounts <$> preflightQuote quoteLimits quotedSquare) (Right (quoteReportCounts (quoteCompilationPreflight compilationReport)))
+    assertEqual "quotation compile report carries cumulative reservation" [4590, 6, 4, 1, 9, 4, 2, 8, 4438, 75, 9120, 0] (quoteReportCounts (quoteCompilationPreflight compilationReport))
     run <- expectRight "run exact quotation" (runExact executable quotedSquareParameters (scalarValue 3))
     assertEqual "quotation direct/lowered primal" oraclePrimal (exactRunOutput run)
     (parameterGradient, inputGradient) <- expectRight "quotation diagonal VJP" (applyExactVJP run (scalarValue 5))
@@ -322,7 +326,9 @@ quotationEvidence = do
     (failingExecutable, _) <-
         expectRight
             "compile unused failing bound"
-            (compileExactQuote activeLimits StorePullbacks failingQuote)
+            -- Syntax-only credit is intentionally insufficient for compilation;
+            -- this execution-failure fixture separately admits compiler coupons.
+            (compileExactQuote (quotationLimits 10000 64 32 8 128 32 64 128 10000 1000 30000 8) StorePullbacks failingQuote)
     case runExact failingExecutable failingParameters (scalarValue 1) of
         Left problem | "RationalMagnitudeLimitExceeded \"multiply\"" `contains` show problem -> pure ()
         other -> failTest ("lowered unused bound did not fail: " ++ showEither other)
@@ -338,8 +344,12 @@ quotationBudgets = do
     let exact = reportLimits report
     exactReport <- expectRight "exact quotation budgets" (preflightQuote exact quotedSquare)
     assertEqual "deterministic exact quotation account" (quoteReportCounts report) (quoteReportCounts exactReport)
-    (_, firstCompilationReport) <- expectRight "exact-budget quotation compile" (compileExactQuote exact StorePullbacks quotedSquare)
-    (_, secondCompilationReport) <- expectRight "repeated exact-budget quotation compile" (compileExactQuote exact StorePullbacks quotedSquare)
+    case compileExactQuote exact StorePullbacks quotedSquare of
+        Left (QuoteCompilePreflightFailure (QuoteTraversalLimitExceeded 10 11)) -> pure ()
+        _ -> failTest "syntax-only compilation budget was admitted"
+    let exactCompilation = quotationLimits 4590 6 4 1 9 4 2 8 4438 75 9120 0
+    (_, firstCompilationReport) <- expectRight "exact-budget quotation compile" (compileExactQuote exactCompilation StorePullbacks quotedSquare)
+    (_, secondCompilationReport) <- expectRight "repeated exact-budget quotation compile" (compileExactQuote exactCompilation StorePullbacks quotedSquare)
     assertEqual "deterministic quotation compilation report" firstCompilationReport secondCompilationReport
     executionReport <- expectRight "complete execution account" (preflightExactQuoteJVPExecution quoteLimits quotedSquare quotedSquareParameters quotedSquareParameters (scalarValue 3) (scalarValue 1))
     _ <- expectRight "exact execution account" (preflightExactQuoteJVPExecution (reportLimits executionReport) quotedSquare quotedSquareParameters quotedSquareParameters (scalarValue 3) (scalarValue 1))

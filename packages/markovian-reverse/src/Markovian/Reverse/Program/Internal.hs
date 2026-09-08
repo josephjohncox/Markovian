@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE GADTs #-}
 {-# LANGUAGE RankNTypes #-}
 
@@ -43,6 +44,28 @@ import Markovian.Reverse (
  )
 import Numeric.Natural (Natural)
 
+#define D080_PREPARE_REVERSE_PROGRAM
+#define D080_PREPARED_PROGRAM
+#define D080_PREPARED_NODE
+#define D080_PREPARED_FORM
+#define D080_REVERSE_TAPE
+#define D080_RUNTIME_PRODUCT
+#ifdef D080_PRIVATE_PROBE
+import D080Probe (probeEvent)
+#undef D080_PREPARE_REVERSE_PROGRAM
+#define D080_PREPARE_REVERSE_PROGRAM probeEvent "prepareReverseProgram" $
+#undef D080_PREPARED_PROGRAM
+#define D080_PREPARED_PROGRAM probeEvent "prepared-program" $
+#undef D080_PREPARED_NODE
+#define D080_PREPARED_NODE probeEvent "prepared-node" $
+#undef D080_PREPARED_FORM
+#define D080_PREPARED_FORM probeEvent "prepared-form" $
+#undef D080_REVERSE_TAPE
+#define D080_REVERSE_TAPE probeEvent "reverse-tape" $
+#undef D080_RUNTIME_PRODUCT
+#define D080_RUNTIME_PRODUCT probeEvent "runtime-product" $
+#endif
+
 -- | Validation, finite layout, and observation policy for a primal value.
 data FinitePrimalSpace error value
     = FinitePrimalSpaceWitness
@@ -58,7 +81,11 @@ finitePrimalSpace ::
     (value -> value -> Bool) ->
     CotangentEqualityMode ->
     FinitePrimalSpace error value
+#ifdef D080_PRIVATE_PROBE
+finitePrimalSpace layout validate equivalent mode = probeEvent "primal-space" (FinitePrimalSpaceWitness layout validate equivalent mode)
+#else
 finitePrimalSpace = FinitePrimalSpaceWitness
+#endif
 
 -- | Read the represented primal layout.
 primalFiniteLayout :: FinitePrimalSpace error value -> FiniteLayout
@@ -500,7 +527,7 @@ prepareReverseProgram ::
     ReversePrimitiveResolver primitive error scalar ->
     ReverseProgram primitive error scalar parameter parameterCotangent input inputCotangent output outputCotangent ->
     Either (ReverseProgramError error) (PreparedReverseProgram primitive error scalar parameter parameterCotangent input inputCotangent output outputCotangent)
-prepareReverseProgram limits resolver program = do
+prepareReverseProgram limits resolver program = D080_PREPARE_REVERSE_PROGRAM do
     (prepared, cursor) <- prepareNode limits resolver [] 1 emptyCursor program
     let report =
             ReverseProgramReport
@@ -519,7 +546,7 @@ prepareReverseProgram limits resolver program = do
                 (cursorPrimalExtent cursor)
                 (cursorCotangentExtent cursor)
                 (cursorUses cursor)
-    Right (PreparedReverseProgram prepared report)
+    Right (D080_PREPARED_PROGRAM PreparedReverseProgram prepared report)
 
 prepareNode ::
     ReverseLimits ->
@@ -546,13 +573,14 @@ prepareNode limits resolver path depth cursor program = do
             withPrimitive <- chargePrimitive limits path name revision policy ownerKeys charged
             checked <- checkNodeSpaces limits path withPrimitive [primalFiniteLayout parameterPrimal, primalFiniteLayout inputPrimal, primalFiniteLayout outputPrimal] [cotangentMetadata (reverseParameterCotangentSpace circuit), cotangentMetadata (reverseInputCotangentSpace circuit), cotangentMetadata (reverseOutputCotangentSpace circuit)]
             Right
-                ( PreparedNode path ownership parameterPrimal (reverseParameterCotangentSpace circuit) inputPrimal (reverseInputCotangentSpace circuit) outputPrimal (reverseOutputCotangentSpace circuit) (PreparedPrimitive definition)
+                ( D080_PREPARED_NODE PreparedNode path ownership parameterPrimal (reverseParameterCotangentSpace circuit) inputPrimal (reverseInputCotangentSpace circuit) outputPrimal (reverseOutputCotangentSpace circuit) (D080_PREPARED_FORM PreparedPrimitive definition)
                 , checked
                 )
         IdentityProgram primal cotangent -> do
             unitCotangent <- mapLeft (ReverseDefinitionFailure path) makeUnitCotangent
             checked <- checkNodeSpaces limits path charged{cursorIdentities = cursorIdentities charged + 1} [unitFiniteLayout, primalFiniteLayout primal] [cotangentMetadata unitCotangent, cotangentMetadata cotangent]
-            Right (PreparedNode path NoParameterOwnership unitPrimalSpace unitCotangent primal cotangent primal cotangent PreparedIdentity, checked)
+            let form = D080_PREPARED_FORM PreparedIdentity
+            Right (D080_PREPARED_NODE PreparedNode path NoParameterOwnership unitPrimalSpace unitCotangent primal cotangent primal cotangent form, checked)
         ComposeProgram first second -> do
             (preparedFirst, afterFirst) <- prepareNode limits resolver (path ++ [CompositionLeft]) (depth + 1) charged first
             (preparedSecond, afterSecond) <- prepareNode limits resolver (path ++ [CompositionRight]) (depth + 1) afterFirst second
@@ -564,7 +592,7 @@ prepareNode limits resolver path depth cursor program = do
             let parameterPrimal = productPrimalSpace (nodeParameterPrimal preparedFirst) (nodeParameterPrimal preparedSecond)
                 next = afterSecond{cursorCompositions = cursorCompositions afterSecond + 1}
             checked <- checkNodeSpaces limits path next [primalFiniteLayout parameterPrimal] [cotangentMetadata parameterCotangent]
-            Right (PreparedNode path ownership parameterPrimal parameterCotangent (nodeInputPrimal preparedFirst) (nodeInputCotangent preparedFirst) (nodeOutputPrimal preparedSecond) (nodeOutputCotangent preparedSecond) (PreparedCompose preparedFirst preparedSecond), checked)
+            Right (D080_PREPARED_NODE PreparedNode path ownership parameterPrimal parameterCotangent (nodeInputPrimal preparedFirst) (nodeInputCotangent preparedFirst) (nodeOutputPrimal preparedSecond) (nodeOutputCotangent preparedSecond) (D080_PREPARED_FORM PreparedCompose preparedFirst preparedSecond), checked)
         TensorProgram left right -> do
             (preparedLeft, afterLeft) <- prepareNode limits resolver (path ++ [TensorLeft]) (depth + 1) charged left
             (preparedRight, afterRight) <- prepareNode limits resolver (path ++ [TensorRight]) (depth + 1) afterLeft right
@@ -578,7 +606,7 @@ prepareNode limits resolver path depth cursor program = do
                 outputPrimal = productPrimalSpace (nodeOutputPrimal preparedLeft) (nodeOutputPrimal preparedRight)
                 next = afterRight{cursorTensors = cursorTensors afterRight + 1}
             checked <- checkNodeSpaces limits path next [primalFiniteLayout parameterPrimal, primalFiniteLayout inputPrimal, primalFiniteLayout outputPrimal] [cotangentMetadata parameterCotangent, cotangentMetadata inputCotangent, cotangentMetadata outputCotangent]
-            Right (PreparedNode path ownership parameterPrimal parameterCotangent inputPrimal inputCotangent outputPrimal outputCotangent (PreparedTensor preparedLeft preparedRight), checked)
+            Right (D080_PREPARED_NODE PreparedNode path ownership parameterPrimal parameterCotangent inputPrimal inputCotangent outputPrimal outputCotangent (D080_PREPARED_FORM PreparedTensor preparedLeft preparedRight), checked)
         PairInputProgram left right -> do
             (preparedLeft, afterLeft) <- prepareNode limits resolver (path ++ [InputPairLeft]) (depth + 1) charged left
             (preparedRight, afterRight) <- prepareNode limits resolver (path ++ [InputPairRight]) (depth + 1) afterLeft right
@@ -592,7 +620,7 @@ prepareNode limits resolver path depth cursor program = do
                 outputPrimal = productPrimalSpace (nodeOutputPrimal preparedLeft) (nodeOutputPrimal preparedRight)
                 next = afterRight{cursorPairs = cursorPairs afterRight + 1}
             checked <- checkNodeSpaces limits path next [primalFiniteLayout parameterPrimal, primalFiniteLayout outputPrimal] [cotangentMetadata parameterCotangent, cotangentMetadata outputCotangent]
-            Right (PreparedNode path ownership parameterPrimal parameterCotangent (nodeInputPrimal preparedLeft) (nodeInputCotangent preparedLeft) outputPrimal outputCotangent (PreparedPairInput preparedLeft preparedRight), checked)
+            Right (D080_PREPARED_NODE PreparedNode path ownership parameterPrimal parameterCotangent (nodeInputPrimal preparedLeft) (nodeInputCotangent preparedLeft) outputPrimal outputCotangent (D080_PREPARED_FORM PreparedPairInput preparedLeft preparedRight), checked)
         ShareParameterProgram left right -> do
             (preparedLeft, afterLeft) <- prepareNode limits resolver (path ++ [ParameterShareLeft]) (depth + 1) charged left
             (preparedRight, afterRight) <- prepareNode limits resolver (path ++ [ParameterShareRight]) (depth + 1) afterLeft right
@@ -606,7 +634,7 @@ prepareNode limits resolver path depth cursor program = do
                 outputPrimal = productPrimalSpace (nodeOutputPrimal preparedLeft) (nodeOutputPrimal preparedRight)
                 next = afterRight{cursorShares = cursorShares afterRight + 1}
             checked <- checkNodeSpaces limits path next [primalFiniteLayout inputPrimal, primalFiniteLayout outputPrimal] [cotangentMetadata inputCotangent, cotangentMetadata outputCotangent]
-            Right (PreparedNode path (nodeOwnership preparedLeft) (nodeParameterPrimal preparedLeft) (nodeParameterCotangent preparedLeft) inputPrimal inputCotangent outputPrimal outputCotangent (PreparedShareParameter preparedLeft preparedRight), checked)
+            Right (D080_PREPARED_NODE PreparedNode path (nodeOwnership preparedLeft) (nodeParameterPrimal preparedLeft) (nodeParameterCotangent preparedLeft) inputPrimal inputCotangent outputPrimal outputCotangent (D080_PREPARED_FORM PreparedShareParameter preparedLeft preparedRight), checked)
 
 chargeNode :: ReverseLimits -> [ReversePathStep] -> Natural -> Cursor -> Either (ReverseProgramError error) Cursor
 chargeNode (ReverseLimits nodeLimit _ depthLimit _ _ _ _ _) path depth cursor
@@ -858,26 +886,29 @@ runNode (PreparedNode path _ parameterSpace _ inputSpace inputCotangentSpace out
             let output = reversePrimalOutput evaluation
             mapLeft (ReversePrimalValidationFailure path OutputPrimalStage) (validatePrimal outputSpace output)
             let tape = case policy of
-                    StoreCapturedPullback -> StoredPrimitiveTape path definition evaluation
-                    RecomputePrimitive -> RecomputedPrimitiveTape path definition parameter input output
+                    StoreCapturedPullback -> D080_REVERSE_TAPE StoredPrimitiveTape path definition evaluation
+                    RecomputePrimitive -> D080_REVERSE_TAPE RecomputedPrimitiveTape path definition parameter input output
             Right (ReverseRunValue output tape)
-        PreparedIdentity -> Right (ReverseRunValue input (IdentityTape path inputCotangentSpace))
+        PreparedIdentity -> Right (ReverseRunValue input (D080_REVERSE_TAPE IdentityTape path inputCotangentSpace))
         PreparedCompose first second -> do
             ReverseRunValue middle firstTape <- runNode first (fst parameter) input
             ReverseRunValue output secondTape <- runNode second (snd parameter) middle
-            Right (ReverseRunValue output (ComposeTape firstTape secondTape))
+            Right (ReverseRunValue output (D080_REVERSE_TAPE ComposeTape firstTape secondTape))
         PreparedTensor left right -> do
             ReverseRunValue leftOutput leftTape <- runNode left (fst parameter) (fst input)
             ReverseRunValue rightOutput rightTape <- runNode right (snd parameter) (snd input)
-            Right (ReverseRunValue (leftOutput, rightOutput) (TensorTape leftTape rightTape))
+            let output = D080_RUNTIME_PRODUCT (leftOutput, rightOutput)
+            Right (ReverseRunValue output (D080_REVERSE_TAPE TensorTape leftTape rightTape))
         PreparedPairInput left right -> do
             ReverseRunValue leftOutput leftTape <- runNode left (fst parameter) input
             ReverseRunValue rightOutput rightTape <- runNode right (snd parameter) input
-            Right (ReverseRunValue (leftOutput, rightOutput) (PairInputTape path (nodeInputCotangent left) leftTape rightTape))
+            let output = D080_RUNTIME_PRODUCT (leftOutput, rightOutput)
+            Right (ReverseRunValue output (D080_REVERSE_TAPE PairInputTape path (nodeInputCotangent left) leftTape rightTape))
         PreparedShareParameter left right -> do
             ReverseRunValue leftOutput leftTape <- runNode left parameter (fst input)
             ReverseRunValue rightOutput rightTape <- runNode right parameter (snd input)
-            Right (ReverseRunValue (leftOutput, rightOutput) (ShareParameterTape path (nodeParameterCotangent left) leftTape rightTape))
+            let output = D080_RUNTIME_PRODUCT (leftOutput, rightOutput)
+            Right (ReverseRunValue output (D080_REVERSE_TAPE ShareParameterTape path (nodeParameterCotangent left) leftTape rightTape))
     mapLeft (ReversePrimalValidationFailure path OutputPrimalStage) (validatePrimal outputSpace (reverseRunOutput run))
     Right run
 

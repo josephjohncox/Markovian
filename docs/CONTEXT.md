@@ -185,6 +185,71 @@ The historical executable-learning program did not itself accept these decisions
 
 S7.1 information, categorical-learning, polarity, and game-semantic foundations are implemented. S7.3 now includes exact payoff pullback, bounded static circuit costs, and exact deterministic rewrite certificates. The neural softmax/cross-entropy fusion has separate checked-`Double` differential evidence and no exact certificate. S7.2's source-bounded inventory slices remain implemented within their stated limits. D-058 extends the small typed parametric reverse interpreter with a finite acyclic syntax over caller-owned primitives, structural ownership, finite primal and cotangent layouts, bounded structural preparation, and opaque stored or recomputed tapes. Recomputation is a distinct typed owner operation. Its pure implementation is extracted to `markovian-reverse` and interprets supplied VJPs; it has no optimizer, tensor runtime, general autodiff, recursion, cycle, or checkpoint-scheduling semantics. Exact laws, structural cycle/depth rejection, deterministic reports, callback failures, repeated tapes, and all-coordinate finite differences under both tape policies pass locally. D-054's accepted exact-availability-to-structural-neural-mask bridge has bounded traversal and nominal-role protection across the explicit bridge package. D-055's Clark--Scarf (1960), Section III, finite lattice specialization preserves the source state and timing, compares three exact equation paths, and reports finite cap widening without an unbounded claim. D-056's Doğru adaptation keeps physical and signed-relaxed actions distinct and compares exact bounded oracles with balanced and physicalized policies. D-057's fixed-batch implementation keeps exact finite-horizon execution visibly separate from stationary newsvendor evidence on explicit finite Cartesian `R1`/`R2` layouts, retains and checks stationary provenance, and reports truncation and widening only as diagnostics. D-059's accepted finite alternating protocol is implemented in the root exact core. Arena construction and equality are bounded; strategy construction uses one conservative operation-wide work account; composition is explicitly partial after hiding. Copycat, representative successful associativity, checked equality, layout, rejection, and compile-fail fixtures pass locally. This is not Hyland--Ong or AJM semantics and supplies no closure, category-law, justification, or innocence result. D-060's separate finite open-game fragment is accepted within its stated finite scope. It checks structural owner-disjoint strategy products, pre-allocation product bounds, canonical continuations, strict performed counts, incumbent-sensitive sequential and tensor composition, bounded pure equilibrium enumeration, and exhaustive best-response-sensitive observational equality. D-064 through D-066 add a separate exact normal-form and one-shot dynamic/incomplete-information layer; they do not make the generic open-game callback mixed. The closed-context bridge requires explicit owner-local replacement evidence and an exact differential check. No equilibrium-existence, unrestricted solving, repeated-game, private-history, or continuous-game claim follows. The bounded S7 roadmap is complete. Arbitrary cyclic graphs, universal feedback, continuous-time open Markov black-boxing, unrestricted MDP black-boxing, general tensor frameworks, generic reverse-program device lowering, general autodiff, general device correctness, and production trainers remain out of scope.
 
+## D-080 cumulative compilation implementation handoff
+
+The implementation-stage repair on `feat/d080-contract-repair`, based on
+`30276390d9fce1433ab7eca543efdda8e3b13a4b`, adds a private numeric planner and
+compiler coupons in `Quote.hs`. One syntax/planner/reservation ledger precedes
+a strict witness, target construction, and unchanged standalone compilation.
+Derived capacities retain caller rational bits. No public exports or package
+edges change. Both historical freezes remain unchanged; D-080 remains Proposed.
+
+### Historical pre-review-repair handoff
+
+The following records the initial implementation, not current source-check or
+mutation coverage. Its formatter/89-hint failures and seven-mutant count were
+superseded by the review repairs below.
+
+`QuoteCompilationBudgets` checks literal product-owner k=1/2/4/128 budgets,
+small quotations, embedded projections, cumulative owner-list association,
+aggregate extents, caller bits and primitive cases. `QuoteCompilationFixture`
+ports the approved associated 79-unit/81-product tree and all 72 direction /
+432 retained-tape seed cases. The current-unit boundary also compiles the real
+local autodiff/reverse sources with CPP-only events and rejects seven mutations.
+The public pure tape is the Identity specialization of `Program/Effect.hs`, so
+actual runtime tape sites there are instrumented separately from preparation.
+An initial probe that instrumented only Internal runtime constructors failed
+its positive tape control and was corrected; that failure is not success evidence.
+
+Independent implementation review, complete frozen-matrix audit and broader
+compiler/archive gates remained parent-owned. Fourmolu then could not parse the
+function-like CPP instrumentation macros, and normal HLint preprocessing reports
+redundant identity wrappers (89 hints). These source-check failures are not
+waived or presented as compiler failures. The normal preprocessed quotation
+contains no probe sink, hook reference or event labels. All 18 local GHC 9.8.4
+`-Werror` suites passed; the final additional shared-owner budget test also
+passed the focused suite. Production-path probes and seven mutation controls
+passed, including an archive-only focused run. Detailed command
+logs, including initial failures and recovery, are in
+`dist-newstyle/d080-implementation-logs/` in the implementation worktree.
+
+### Current review-repaired handoff (D-080 remains Proposed)
+
+Instrumentation now uses object-like CPP prefixes/events whose normal expansion
+is empty. All five production inputs erase hooks normally; exact repository
+Fourmolu and HLint checks are clean. The private production-path boundary retains
+installed-current-unit opacity, isolated package DBs and frozen home-source flags,
+and rejects **ten compiled runtime mutants** plus a separate preprocessing-only
+normal-hook leakage control. The exact intermediate-total, duplicate-error,
+let-order and k=1/2/4/128 policy controls are implemented. Prior review closed
+those source-check/accounting/probe findings; it did not accept D-080.
+
+The remaining source-layout review repair explicitly selects the package's own
+consumer project and matching versioned sibling reverse archive, or proves the
+actual repository package location before selecting repository sources. An
+incidental grandparent project cannot select checkout reverse sources. Missing
+or mismatched intended reverse sources reject without fallback. Earlier extracted
+**repository-shaped** archive passes in `dist-newstyle/d080-review-repairs-logs/`
+remain valid only for that layout, not the existing standalone CI consumer.
+The separate sibling-extraction regression and final-byte validation evidence is
+in `dist-newstyle/d080-layout-repair-logs/`; original failures remain preserved.
+
+Independent review of this layout repair and the full frozen-matrix audit remain
+required. Parent-owned broader gates include oldest dependencies, all-package
+archive/benchmark/consumer checks, all-16-package warning-enabled Haddock/interface
+checks on both compilers, coverage, and the complete CI supporting-tool/boundary
+matrix. Focused local evidence does not discharge these gates or accept D-080.
+
 ## Instructions for future agents
 
 1. Read this file, `TODO.md`, `docs/DECISIONS.md`, and the relevant architecture section.

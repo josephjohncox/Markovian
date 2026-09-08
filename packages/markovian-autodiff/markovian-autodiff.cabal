@@ -36,6 +36,8 @@ extra-source-files:
   test/compile-fail/AutodiffQuoteEffects.hs
   test/compile-fail/AutodiffQuoteRoles.hs
   test/compile-fail/AutodiffTypes.hs
+  test/D080Probe.hs
+  test/QuoteCompilationPrivate.hs
 
 source-repository head
   type:     git
@@ -76,6 +78,8 @@ test-suite markovian-autodiff-test
   other-modules:
     NeuralDifferential
     Paths_markovian_autodiff
+    QuoteCompilationBudgets
+    QuoteCompilationFixture
 
   autogen-modules:  Paths_markovian_autodiff
   hs-source-dirs:   test

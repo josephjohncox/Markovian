@@ -1,14 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-package_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-project_root="$(cd "${package_dir}/../.." && pwd)"
+package_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd -P)"
+project_root="$(cd "${package_dir}/../.." && pwd -P)"
 cd "${package_dir}"
 
-project_args=()
-if [[ -f "${project_root}/cabal.project.ci" ]]; then
-  project_args+=(--project-dir="${project_root}" --project-file=cabal.project.ci)
-fi
 package_name="$(awk 'tolower($1) == "name:" { print $2; exit }' markovian-autodiff.cabal)"
 package_version="$(awk 'tolower($1) == "version:" { print $2; exit }' markovian-autodiff.cabal)"
 autodiff_unit_id="${package_name}-${package_version}-inplace"
@@ -16,6 +12,34 @@ if [[ ! "${autodiff_unit_id}" =~ ^markovian-autodiff-[0-9]+([.][0-9]+){3}-inplac
   printf 'invalid active autodiff package unit ID: %s\n' "${autodiff_unit_id}" >&2
   exit 1
 fi
+
+# A consumer's explicit project takes precedence over incidental ancestor
+# projects. Only the actual repository package may use repository sources.
+if [[ -f "${package_dir}/cabal.project" ]]; then
+  source_layout=standalone-consumer
+  project_args=(--project-dir="${package_dir}" --project-file=cabal.project)
+  reverse_dir="$(dirname "${package_dir}")/markovian-reverse-${package_version}"
+elif [[ "${package_dir}" == "${project_root}/packages/markovian-autodiff" && -f "${project_root}/cabal.project.ci" ]]; then
+  source_layout=repository
+  project_args=(--project-dir="${project_root}" --project-file=cabal.project.ci)
+  reverse_dir="${project_root}/packages/markovian-reverse"
+else
+  echo "Autodiff boundary requires a local consumer cabal.project or the actual repository package layout" >&2
+  exit 1
+fi
+reverse_cabal="${reverse_dir}/markovian-reverse.cabal"
+if [[ ! -f "${reverse_cabal}" || ! -d "${reverse_dir}/src" ]]; then
+  echo "Autodiff boundary missing intended reverse source package: ${reverse_dir}" >&2
+  exit 1
+fi
+if [[ "$(cd "${reverse_dir}" && pwd -P)" != "${reverse_dir}" ||
+      "$(awk 'tolower($1) == "name:" { print $2; exit }' "${reverse_cabal}")" != markovian-reverse ||
+      "$(awk 'tolower($1) == "version:" { print $2; exit }' "${reverse_cabal}")" != "${package_version}" ]]; then
+  echo "Autodiff boundary mismatched intended reverse source package: ${reverse_dir} (expected markovian-reverse ${package_version}, no source redirection)" >&2
+  exit 1
+fi
+printf 'Autodiff boundary source layout: %s\nAutodiff home source: %s/src\nReverse home source: %s/src\n' \
+  "${source_layout}" "${package_dir}" "${reverse_dir}"
 
 tmp_dir="$(mktemp -d)"
 trap 'rm -rf "${tmp_dir}"' EXIT
@@ -82,5 +106,131 @@ check_failure test/compile-fail/AutodiffQuoteRoles.hs \
 check_failure test/compile-fail/AutodiffQuoteEffects.hs \
   badHaskellFunction badEffect \
   "Couldn't match expected type"
+
+# Compile the selected local sources as home modules. Installed autodiff and
+# reverse units are deliberately NOT exposed to the private probe.
+
+# Check every normal preprocessed production input, not only Quote. Empty
+# object-like defaults remove both expression prefixes and statement events;
+# there is no normal identity/no-op implementation of the private hook.
+normal_sources=(
+  "${package_dir}/src/Markovian/Autodiff/Quote.hs"
+  "${package_dir}/src/Markovian/Autodiff/Compile.hs"
+  "${reverse_dir}/src/Markovian/Reverse.hs"
+  "${reverse_dir}/src/Markovian/Reverse/Program/Internal.hs"
+  "${reverse_dir}/src/Markovian/Reverse/Program/Effect.hs")
+check_normal_erasure() {
+  python3 - "$1" "$2" <<'PY'
+from pathlib import Path
+import re
+import sys
+source, normal = (Path(p).read_text() for p in sys.argv[1:])
+for token in ['D080_', 'D080Probe', 'probeEvent', 'unsafePerformIO']:
+    if token in normal:
+        raise SystemExit('normal instrumentation survived: ' + token)
+for event in re.findall(r'probeEvent "([^"]+)"', source):
+    if '"' + event + '"' in normal:
+        raise SystemExit('normal event survived: ' + event)
+PY
+}
+for source in "${normal_sources[@]}"; do
+  normal="${tmp_dir}/$(basename "${source}").normal.hs"
+  cabal exec "${project_args[@]}" -- ghc "${isolated_package_args[@]}" \
+    -E -cpp "${source}" -o "${normal}"
+  check_normal_erasure "${source}" "${normal}"
+done
+# A leaking default must fail the erasure assertion, after successful normal
+# preprocessing. This is a preprocessing control, not a runtime mutant.
+python3 - "${normal_sources[0]}" "${tmp_dir}/leaked-hook.hs" <<'PY'
+from pathlib import Path
+import sys
+source = Path(sys.argv[1]).read_text()
+old = '#define D080_BUILDER_CALL\n'
+assert source.count(old) == 1
+Path(sys.argv[2]).write_text(source.replace(old, '#define D080_BUILDER_CALL probeEvent "builder-call" (pure ())\n'))
+PY
+cabal exec "${project_args[@]}" -- ghc "${isolated_package_args[@]}" \
+  -E -cpp "${tmp_dir}/leaked-hook.hs" -o "${tmp_dir}/leaked-hook.normal.hs"
+if check_normal_erasure "${tmp_dir}/leaked-hook.hs" "${tmp_dir}/leaked-hook.normal.hs" >"${tmp_dir}/erasure-control.log" 2>&1; then
+  echo "Normal hook leak escaped the erasure check" >&2
+  exit 1
+fi
+cat "${tmp_dir}/erasure-control.log"
+echo "PASS: all five normal sources erase instrumentation; normal-hook leak rejected"
+
+private_args=("${isolated_package_args[@]}" -hide-all-packages -package base
+  -i"${package_dir}/src" -i"${reverse_dir}/src" -i"${package_dir}/test"
+  -Wall -Werror -XGHC2021 -O0 -fforce-recomp -fno-cse -fno-full-laziness
+  -cpp -DD080_PRIVATE_PROBE)
+cabal exec "${project_args[@]}" -- ghc "${private_args[@]}" \
+  -outputdir "${tmp_dir}/private" -o "${tmp_dir}/quote-private" \
+  "${package_dir}/test/QuoteCompilationPrivate.hs"
+"${tmp_dir}/quote-private"
+
+# Mutations live only in this isolated directory, never in checkout sources.
+# Every mutant must compile with -Werror and then fail the same production-path
+# probe. A compiler error is not a successful negative control.
+python3 - "${package_dir}" "${tmp_dir}" <<'PY'
+from pathlib import Path
+import sys
+package, temporary = map(Path, sys.argv[1:])
+relative = Path('Markovian/Autodiff/Quote.hs')
+source = (package / 'src' / relative).read_text()
+def mutant(name, old, new, count=1):
+    if source.count(old) != count:
+        raise SystemExit(f'{name}: expected {count} mutation sites, got {source.count(old)}')
+    destination = temporary / ('mutant-' + name) / relative
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    destination.write_text(source.replace(old, new))
+mutant('early-lazy-builder',
+    '    AdmittedQuoteCompilation preflight reservation <- mapLeft QuoteCompilePreflightFailure (preflightQuoteCompilation limits quotation)\n    -- Call-edge events are forced independently of demand for the lazy result.\n    D080_BUILDER_CALL\n    let program = buildQuote quotation\n    D080_COMPILER_CALL',
+    '    D080_BUILDER_CALL\n    let program = buildQuote quotation\n    D080_COMPILER_CALL\n    AdmittedQuoteCompilation preflight reservation <- mapLeft QuoteCompilePreflightFailure (preflightQuoteCompilation limits quotation)')
+mutant('omit-eqp', ' `add` summaryPrimitiveLayoutComparisonSum s', '', 2)
+mutant('reset-ledger', 'reserveQuoteCompilation limits summary plannedLedger',
+    'reserveQuoteCompilation limits summary (plannedLedger `seq` emptyLedger)')
+mutant('bypass-runtime', 'ledger3 <- chargeRuntime limits rc ledger2', 'ledger3 <- pure ledger2')
+mutant('disable-event', 'buildPath path = D080_BUILD_PATH', 'buildPath path =')
+mutant('projection-order',
+    '            (l, ledger1) <- planShape limits left ledger\n            (i, o, ledger2) <- planProjection limits inner ledger1',
+    '            (i, o, ledger1) <- planProjection limits inner ledger\n            (l, ledger2) <- planShape limits left ledger1')
+mutant('truncate-summary',
+    'summaryQuoteEntries = summaryQuoteEntries summary + 1, summaryBuilderReservation',
+    'summaryMetadataTraversalSum = min (allocationLimit limits) (summaryMetadataTraversalSum summary), summaryQuoteEntries = summaryQuoteEntries summary + 1, summaryBuilderReservation')
+mutant('wrong-target-stage',
+    'mapLeft QuoteCompileTargetFailure (compileExactPolynomial',
+    'mapLeft (const (QuoteCompilePreflightFailure (QuoteTraversalLimitExceeded 14 15))) (compileExactPolynomial')
+mutant('wrong-target-error',
+    'mapLeft QuoteCompileTargetFailure (compileExactPolynomial',
+    'mapLeft (\\problem -> QuoteCompileTargetFailure (case compileExactPolynomial (compilerLimits 0 0 0 0 0 0 0 0 0 256) policy program of Left substituted -> substituted; Right _ -> problem)) (compileExactPolynomial')
+mutant('let-order', '''            (i, next1) <- finishSummary limits (identitySummary (summaryInput b)) next
+            D080_LET_IDENTITY_COMPLETE
+            (f, next2) <- finishSummary limits (fanoutSummary i b) next1
+            D080_LET_FANOUT_COMPLETE
+            D080_LET_BODY_START
+            (r, next3) <- planQuoteCompilation limits body next2
+            D080_LET_BODY_COMPLETE''', '''            D080_LET_BODY_START
+            (r, next1) <- planQuoteCompilation limits body next
+            D080_LET_BODY_COMPLETE
+            (i, next2) <- finishSummary limits (identitySummary (summaryInput b)) next1
+            D080_LET_IDENTITY_COMPLETE
+            (f, next3) <- finishSummary limits (fanoutSummary i b) next2
+            D080_LET_FANOUT_COMPLETE''')
+PY
+for mutation in early-lazy-builder omit-eqp reset-ledger bypass-runtime disable-event projection-order truncate-summary wrong-target-stage wrong-target-error let-order; do
+  cabal exec "${project_args[@]}" -- ghc -i"${tmp_dir}/mutant-${mutation}" \
+    "${private_args[@]}" -outputdir "${tmp_dir}/objects-${mutation}" \
+    -o "${tmp_dir}/probe-${mutation}" "${package_dir}/test/QuoteCompilationPrivate.hs" \
+    >"${tmp_dir}/build-${mutation}.log" 2>&1 || {
+      cat "${tmp_dir}/build-${mutation}.log" >&2
+      echo "Mutation did not compile: ${mutation}" >&2
+      exit 1
+    }
+  if "${tmp_dir}/probe-${mutation}" >"${tmp_dir}/run-${mutation}.log" 2>&1; then
+    echo "Mutation escaped the production-path probe: ${mutation}" >&2
+    exit 1
+  fi
+  printf 'PASS: rejected mutation %s: ' "${mutation}"
+  cat "${tmp_dir}/run-${mutation}.log"
+done
 
 echo "PASS: autodiff syntax, values, tapes, shapes, owners, fragments, endpoints, paths, quotations, callbacks, and effects remain protected"

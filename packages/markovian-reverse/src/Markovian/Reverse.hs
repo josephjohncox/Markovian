@@ -1,3 +1,5 @@
+{-# LANGUAGE CPP #-}
+
 {- | A small typed interpreter for parametric reverse circuits.
 
 A 'CotangentSpace' supplies zero, addition, scalar multiplication, and explicit
@@ -55,6 +57,13 @@ module Markovian.Reverse (
 
 import Data.Maybe (isJust)
 import Numeric.Natural (Natural)
+
+#define D080_COTANGENT_SPACE
+#ifdef D080_PRIVATE_PROBE
+import D080Probe (probeEvent)
+#undef D080_COTANGENT_SPACE
+#define D080_COTANGENT_SPACE probeEvent "cotangent-space" $
+#endif
 
 -- | Structural metadata for one finite represented layout.
 data FiniteLayout
@@ -164,7 +173,7 @@ cotangentSpace ::
     CotangentEqualityMode ->
     CotangentSpace error scalar cotangent
 cotangentSpace zero add scale equivalent equalityMode =
-    CotangentSpaceWitness zero add scale (const (Right ())) equivalent equalityMode Nothing Nothing
+    D080_COTANGENT_SPACE CotangentSpaceWitness zero add scale (const (Right ())) equivalent equalityMode Nothing Nothing
 
 {- | Declare a finite cotangent module for prepared reverse programs.
 
@@ -185,7 +194,7 @@ declaredCotangentSpace ::
     Maybe (CotangentSpace error scalar cotangent)
 declaredCotangentSpace "" _ _ _ _ _ _ _ = Nothing
 declaredCotangentSpace owner layout validate zero add scale equivalent equalityMode =
-    Just (CotangentSpaceWitness zero add scale validate equivalent equalityMode (Just layout) (Just owner))
+    Just (D080_COTANGENT_SPACE CotangentSpaceWitness zero add scale validate equivalent equalityMode (Just layout) (Just owner))
 
 -- | Read the additive identity.
 cotangentZero :: CotangentSpace error scalar cotangent -> cotangent

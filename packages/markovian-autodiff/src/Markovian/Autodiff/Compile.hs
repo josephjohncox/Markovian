@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE GADTs #-}
 {-# LANGUAGE RankNTypes #-}
@@ -109,6 +110,31 @@ import Markovian.Reverse.Program (
     tensorProgram,
  )
 import Numeric.Natural (Natural)
+
+#define D080_COMPILE_EXACT
+#define D080_EXACT_EXECUTABLE
+#define D080_LOWER
+#define D080_TARGET_PRIMITIVE
+#define D080_RUNTIME_VALUE
+#define D080_ZERO_VALUE
+#define D080_ZERO_PARAMETER
+#ifdef D080_PRIVATE_PROBE
+import D080Probe (probeEvent)
+#undef D080_COMPILE_EXACT
+#define D080_COMPILE_EXACT probeEvent "compileExactPolynomial" $
+#undef D080_EXACT_EXECUTABLE
+#define D080_EXACT_EXECUTABLE probeEvent "exact-executable" $
+#undef D080_LOWER
+#define D080_LOWER probeEvent "lower" $
+#undef D080_TARGET_PRIMITIVE
+#define D080_TARGET_PRIMITIVE probeEvent "target-primitive" $
+#undef D080_RUNTIME_VALUE
+#define D080_RUNTIME_VALUE probeEvent "runtime-value" $
+#undef D080_ZERO_VALUE
+#define D080_ZERO_VALUE probeEvent "zero-value" $
+#undef D080_ZERO_PARAMETER
+#define D080_ZERO_PARAMETER probeEvent "zero-parameter" $
+#endif
 
 {- | Primitive tape policy. This is whole-primitive storage or recomputation,
 not general checkpoint scheduling.
@@ -253,12 +279,12 @@ renderCompileReport (CompileReport semantics policy forwardWork reverseWork targ
 
 -- | Compile the polynomial fragment with literal 'Rational' arithmetic.
 compileExactPolynomial :: CompilerLimits -> TapePolicy -> Program Rational 'Polynomial parameters input output -> Either CompileError (ExactExecutable parameters input output)
-compileExactPolynomial compiler@(CompilerLimits limits _ rationalBits) policy program = do
+compileExactPolynomial compiler@(CompilerLimits limits _ rationalBits) policy program = D080_COMPILE_EXACT do
     let backend = exactBackend rationalBits
     prepared <- mapTargetError (prepareReverseProgram limits (resolveTargetPrimitive backend policy) (lower backend program))
     (forwardWork, reverseWork) <- preflightSource compiler program
     let report = CompileReport "exact-rational-formal-polynomial" policy forwardWork reverseWork (preparedReverseProgramReport prepared)
-    Right (ExactExecutable (programParameters program) (programInput program) (programOutput program) prepared report)
+    Right (D080_EXACT_EXECUTABLE ExactExecutable (programParameters program) (programInput program) (programOutput program) prepared report)
 
 -- | Compile polynomial syntax with checked finite 'Double' execution.
 compileDoublePolynomial :: CompilerLimits -> TapePolicy -> Program Double 'Polynomial parameters input output -> Either CompileError (DoubleExecutable 'Polynomial parameters input output)
@@ -365,12 +391,12 @@ primitiveArithmetic primitive = case primitive of
     shapeArithmetic (SProduct left right) = shapeArithmetic left + shapeArithmetic right
 
 lower :: Backend scalar -> Program scalar fragment parameters input output -> TargetProgram scalar fragment parameters input output
-lower _ (PrimitiveNode primitive) = primitiveProgram (TargetPrimitive primitive)
-lower backend (IdentityNode shape) = identityProgram (runtimePrimalSpace backend shape) (runtimeValueCotangentSpace backend shape)
-lower backend (ComposeNode left right) = composeProgram (lower backend left) (lower backend right)
-lower backend (ParallelNode left right) = tensorProgram (lower backend left) (lower backend right)
-lower backend (FanoutNode left right) = pairInputProgram (lower backend left) (lower backend right)
-lower backend (ShareParametersNode left right) = shareParameterProgram (lower backend left) (lower backend right)
+lower _ (PrimitiveNode primitive) = D080_LOWER primitiveProgram (D080_TARGET_PRIMITIVE TargetPrimitive primitive)
+lower backend (IdentityNode shape) = D080_LOWER identityProgram (runtimePrimalSpace backend shape) (runtimeValueCotangentSpace backend shape)
+lower backend (ComposeNode left right) = D080_LOWER composeProgram (lower backend left) (lower backend right)
+lower backend (ParallelNode left right) = D080_LOWER tensorProgram (lower backend left) (lower backend right)
+lower backend (FanoutNode left right) = D080_LOWER pairInputProgram (lower backend left) (lower backend right)
+lower backend (ShareParametersNode left right) = D080_LOWER shareParameterProgram (lower backend left) (lower backend right)
 
 -- | One exact run. Its tape is self-contained and endpoint-indexed.
 data ExactRun parameters input output = ExactRun !(SParameters parameters) !(SShape input) !(SShape output) !(ReverseRun AutodiffFailure Rational (RuntimeParameters Rational parameters) (RuntimeParameters Rational parameters) (RuntimeValue Rational input) (RuntimeValue Rational input) (RuntimeValue Rational output) (RuntimeValue Rational output))
@@ -794,10 +820,10 @@ unwrapValue (VectorValue values) = values
 unwrapValue (ProductValue left right) = (unwrapValue left, unwrapValue right)
 
 wrapValue :: SShape shape -> RuntimeValue scalar shape -> Value scalar shape
-wrapValue SUnit () = UnitValue
-wrapValue SScalar value = ScalarValue value
-wrapValue SVector values = VectorValue values
-wrapValue (SProduct left right) (leftValue, rightValue) = ProductValue (wrapValue left leftValue) (wrapValue right rightValue)
+wrapValue SUnit () = D080_RUNTIME_VALUE UnitValue
+wrapValue SScalar value = D080_RUNTIME_VALUE ScalarValue value
+wrapValue SVector values = D080_RUNTIME_VALUE VectorValue values
+wrapValue (SProduct left right) (leftValue, rightValue) = D080_RUNTIME_VALUE ProductValue (wrapValue left leftValue) (wrapValue right rightValue)
 
 unwrapParameters :: ParameterValue scalar parameters -> RuntimeParameters scalar parameters
 unwrapParameters NoParameterValue = ()
@@ -890,10 +916,10 @@ replicateNat :: forall n a. SShape ('Vector n) -> a -> [a]
 replicateNat SVector = replicate (fromInteger (natVal (Proxy @n)))
 
 zeroValue :: Backend scalar -> SShape shape -> Value scalar shape
-zeroValue _ SUnit = UnitValue
-zeroValue backend SScalar = ScalarValue (backendZero backend)
-zeroValue backend shape@SVector = VectorValue (replicateNat shape (backendZero backend))
-zeroValue backend (SProduct left right) = ProductValue (zeroValue backend left) (zeroValue backend right)
+zeroValue _ SUnit = D080_ZERO_VALUE UnitValue
+zeroValue backend SScalar = D080_ZERO_VALUE ScalarValue (backendZero backend)
+zeroValue backend shape@SVector = D080_ZERO_VALUE VectorValue (replicateNat shape (backendZero backend))
+zeroValue backend (SProduct left right) = D080_ZERO_VALUE ProductValue (zeroValue backend left) (zeroValue backend right)
 
 addValue :: Backend scalar -> Value scalar shape -> Value scalar shape -> Either AutodiffFailure (Value scalar shape)
 addValue _ UnitValue UnitValue = Right UnitValue
@@ -910,9 +936,9 @@ scaleValue backend scalar (VectorValue values) = checkedVector backend "cotangen
 scaleValue backend scalar (ProductValue left right) = ProductValue <$> scaleValue backend scalar left <*> scaleValue backend scalar right
 
 zeroParameters :: Backend scalar -> SParameters parameters -> ParameterValue scalar parameters
-zeroParameters _ SNoParameters = NoParameterValue
-zeroParameters backend (SOwner _ shape) = OwnedParameterValue (zeroValue backend shape)
-zeroParameters backend (SParameterProduct left right) = ParameterProductValue (zeroParameters backend left) (zeroParameters backend right)
+zeroParameters _ SNoParameters = D080_ZERO_PARAMETER NoParameterValue
+zeroParameters backend (SOwner _ shape) = D080_ZERO_PARAMETER OwnedParameterValue (zeroValue backend shape)
+zeroParameters backend (SParameterProduct left right) = D080_ZERO_PARAMETER ParameterProductValue (zeroParameters backend left) (zeroParameters backend right)
 
 addParameters :: Backend scalar -> ParameterValue scalar parameters -> ParameterValue scalar parameters -> Either AutodiffFailure (ParameterValue scalar parameters)
 addParameters _ NoParameterValue NoParameterValue = Right NoParameterValue

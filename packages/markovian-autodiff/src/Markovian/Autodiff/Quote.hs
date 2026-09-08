@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE GADTs #-}
 {-# LANGUAGE RankNTypes #-}
@@ -80,6 +81,96 @@ import Markovian.Autodiff.Compile (
 import Markovian.Autodiff.Internal.Shape
 import Markovian.Autodiff.Internal.Syntax
 import Numeric.Natural (Natural)
+
+-- Object-like prefixes disappear completely in normal builds. Defaults precede
+-- private overrides so the unpreprocessed source is also formatter-readable.
+#define D080_BUILDER_CALL
+#define D080_COMPILER_CALL
+#define D080_PLAN_UNIT
+#define D080_PLAN_SCALAR
+#define D080_PLAN_VECTOR
+#define D080_PLAN_PRODUCT
+#define D080_RESERVE_TRAVERSAL
+#define D080_RESERVE_ALLOCATION
+#define D080_RESERVE_RUNTIME
+#define D080_ADMISSION_WITNESS
+#define D080_SYNTAX_START
+#define D080_SYNTAX_SUCCESS
+#define D080_PLANNER_START
+#define D080_PLANNER_SUCCESS
+#define D080_BUILD_QUOTE
+#define D080_GENERATED_PROGRAM
+#define D080_BUILD_PATH
+#define D080_GENERATED_PROJECTION_PRIMITIVE
+#define D080_PATH_PROJECTION
+#define D080_PROJECTION_WITNESS
+#define D080_ENVIRONMENT_WITNESS
+#define D080_SHAPE_WITNESS
+#define D080_LET_BOUND_START
+#define D080_LET_BOUND_COMPLETE
+#define D080_LET_IDENTITY_COMPLETE
+#define D080_LET_FANOUT_COMPLETE
+#define D080_LET_BODY_START
+#define D080_LET_BODY_COMPLETE
+#ifdef D080_PRIVATE_PROBE
+import D080Probe (probeEvent)
+#undef D080_BUILDER_CALL
+#define D080_BUILDER_CALL probeEvent "builder-call" (pure ())
+#undef D080_COMPILER_CALL
+#define D080_COMPILER_CALL probeEvent "compiler-call" (pure ())
+#undef D080_PLAN_UNIT
+#define D080_PLAN_UNIT probeEvent "plan-shape/unit" $
+#undef D080_PLAN_SCALAR
+#define D080_PLAN_SCALAR probeEvent "plan-shape/scalar" $
+#undef D080_PLAN_VECTOR
+#define D080_PLAN_VECTOR probeEvent "plan-shape/vector" $
+#undef D080_PLAN_PRODUCT
+#define D080_PLAN_PRODUCT probeEvent "plan-shape/product" (pure ())
+#undef D080_RESERVE_TRAVERSAL
+#define D080_RESERVE_TRAVERSAL probeEvent "reserve-traversal" (pure ())
+#undef D080_RESERVE_ALLOCATION
+#define D080_RESERVE_ALLOCATION probeEvent "reserve-allocation" (pure ())
+#undef D080_RESERVE_RUNTIME
+#define D080_RESERVE_RUNTIME probeEvent "reserve-runtime" (pure ())
+#undef D080_ADMISSION_WITNESS
+#define D080_ADMISSION_WITNESS probeEvent "admission-witness" $
+#undef D080_SYNTAX_START
+#define D080_SYNTAX_START probeEvent "syntax-start" (pure ())
+#undef D080_SYNTAX_SUCCESS
+#define D080_SYNTAX_SUCCESS probeEvent "syntax-success" (pure ())
+#undef D080_PLANNER_START
+#define D080_PLANNER_START probeEvent "planner-start" (pure ())
+#undef D080_PLANNER_SUCCESS
+#define D080_PLANNER_SUCCESS probeEvent "planner-success" (pure ())
+#undef D080_BUILD_QUOTE
+#define D080_BUILD_QUOTE probeEvent "buildQuote" $
+#undef D080_GENERATED_PROGRAM
+#define D080_GENERATED_PROGRAM probeEvent "generated-program" $
+#undef D080_BUILD_PATH
+#define D080_BUILD_PATH probeEvent "buildPath" $
+#undef D080_GENERATED_PROJECTION_PRIMITIVE
+#define D080_GENERATED_PROJECTION_PRIMITIVE probeEvent "generated-projection-primitive" $
+#undef D080_PATH_PROJECTION
+#define D080_PATH_PROJECTION probeEvent "pathProjection" $
+#undef D080_PROJECTION_WITNESS
+#define D080_PROJECTION_WITNESS probeEvent "projection-witness" $
+#undef D080_ENVIRONMENT_WITNESS
+#define D080_ENVIRONMENT_WITNESS probeEvent "environment-witness" $
+#undef D080_SHAPE_WITNESS
+#define D080_SHAPE_WITNESS probeEvent "shape-witness" $
+#undef D080_LET_BOUND_START
+#define D080_LET_BOUND_START probeEvent "let-bound-start" (pure ())
+#undef D080_LET_BOUND_COMPLETE
+#define D080_LET_BOUND_COMPLETE probeEvent "let-bound-complete" (pure ())
+#undef D080_LET_IDENTITY_COMPLETE
+#define D080_LET_IDENTITY_COMPLETE probeEvent "let-identity-complete" (pure ())
+#undef D080_LET_FANOUT_COMPLETE
+#define D080_LET_FANOUT_COMPLETE probeEvent "let-fanout-complete" (pure ())
+#undef D080_LET_BODY_START
+#define D080_LET_BODY_START probeEvent "let-body-start" (pure ())
+#undef D080_LET_BODY_COMPLETE
+#define D080_LET_BODY_COMPLETE probeEvent "let-body-complete" (pure ())
+#endif
 
 -- | Type-level lexical environments. Constructors are not exported.
 data Environment
@@ -250,11 +341,11 @@ data QuoteReport = QuoteReport
     , quoteTransformedNodes :: !Natural
     -- ^ New program nodes made by lowering.
     , quoteAllocationCount :: !Natural
-    -- ^ Conservative direct-output and target-node allocation units.
+    -- ^ Syntax allocation units, plus logical compiler reconstruction coupons when compiling.
     , quoteRuntimeWork :: !Natural
-    -- ^ Scalar arithmetic for one primal-and-JVP run.
+    -- ^ Syntax arithmetic allowance, plus compiler forward/reverse allowances when compiling.
     , quoteTraversalWork :: !Natural
-    -- ^ Syntax, path, and literal coordinates visited in preflight.
+    -- ^ Syntax visits, plus charged metadata planning and reconstruction coupons when compiling.
     , quoteTotalWork :: !Natural
     -- ^ Cumulative traversal, target, transformation, allocation, and runtime work.
     , quoteMaximumRationalBits :: !Natural
@@ -330,15 +421,19 @@ lowerQuote limits quotation = do
     _ <- preflightQuote limits quotation
     pure (buildQuote quotation)
 
-{- | Use the same limit record for quotation and exact target compilation.
-The result carries both deterministic reports.
+{- | Admit syntax, metadata planning, and compiler reservations in one ledger
+before building a target. The compiler receives derived structural capacities
+and the caller's rational-bit allowance. Return the complete quotation account
+and the actual target report; standalone compilation is unchanged.
 -}
 compileExactQuote :: QuotationLimits -> TapePolicy -> Quote Rational 'Polynomial environment parameters output -> Either QuoteCompileError (ExactExecutable parameters (EnvironmentShape environment) output, QuoteCompilationReport)
 compileExactQuote limits policy quotation = do
-    preflight <- mapLeft QuoteCompilePreflightFailure (preflightQuote limits quotation)
+    AdmittedQuoteCompilation preflight reservation <- mapLeft QuoteCompilePreflightFailure (preflightQuoteCompilation limits quotation)
+    -- Call-edge events are forced independently of demand for the lazy result.
+    D080_BUILDER_CALL
     let program = buildQuote quotation
-        compiler = limitsCompiler limits
-    executable <- mapLeft QuoteCompileTargetFailure (compileExactPolynomial compiler policy program)
+    D080_COMPILER_CALL
+    executable <- mapLeft QuoteCompileTargetFailure (compileExactPolynomial (reservationCapacities reservation) policy program)
     pure (executable, QuoteCompilationReport preflight (exactCompileReport executable))
 
 -- | Independent bounded exact primal recursion.
@@ -384,9 +479,432 @@ preflightRuntimeValues limits quotation parameters parameterDirection input inpu
     ledger4 <- maybe (pure ledger3) (\value -> scanRationals limits "input-direction" (valueScalars value) ledger3) inputDirection
     pure (ledgerReport ledger4)
 
-limitsCompiler :: QuotationLimits -> CompilerLimits
-limitsCompiler (QuotationLimitsValue _ _ _ _ targetNodes targetDepth coordinates _ allocation runtime _ bits) =
-    compilerLimits targetNodes allocation targetDepth targetNodes coordinates coordinates allocation targetDepth runtime bits
+-- The compiler-stage inventory is numeric metadata, never a virtual target tree.
+-- These are cumulative logical reconstruction coupons, not heap measurements.
+data ShapeSummary = ShapeSummary
+    { summaryExtent :: !Natural
+    , summaryLayoutNodes :: !Natural
+    , summaryLayoutDepth :: !Natural
+    }
+
+data ParameterSummary = ParameterSummary
+    { summaryParameterLayout :: !ShapeSummary
+    , summaryOwnershipNodes :: !Natural
+    , summaryOwnershipDepth :: !Natural
+    , summaryOwnerLeaves :: !Natural
+    , summaryKeyEnumerationCells :: !Natural
+    }
+
+data TargetSummary = TargetSummary
+    { summaryParameters :: !ParameterSummary
+    , summaryInput :: !ShapeSummary
+    , summaryOutput :: !ShapeSummary
+    , summaryNodes :: !Natural
+    , summaryPrimitives :: !Natural
+    , summaryDepth :: !Natural
+    , summaryMaximumExtent :: !Natural
+    , summaryMaximumStructureNodes :: !Natural
+    , summaryMaximumStructureDepth :: !Natural
+    , summaryForwardWork :: !Natural
+    , summaryReverseWork :: !Natural
+    , summaryMetadataTraversalSum :: !Natural
+    , summaryMetadataAllocationSum :: !Natural
+    , summaryOwnershipTraversalSum :: !Natural
+    , summaryOwnershipAllocationSum :: !Natural
+    , summaryJoinComparisonSum :: !Natural
+    , summaryPrimitiveLayoutComparisonSum :: !Natural
+    , summaryPathCellSum :: !Natural
+    , summaryDepthSum :: !Natural
+    , summaryQuoteEntries :: !Natural
+    , summaryBuilderReservation :: !Natural
+    }
+
+data CompilerReservation = CompilerReservation
+    { reservationTraversal :: !Natural
+    , reservationAllocation :: !Natural
+    , reservationRuntime :: !Natural
+    , reservationCapacities :: !CompilerLimits
+    }
+
+data AdmittedQuoteCompilation = AdmittedQuoteCompilation !QuoteReport !CompilerReservation
+
+unitSummary, scalarSummary :: ShapeSummary
+unitSummary = ShapeSummary 0 1 1
+scalarSummary = ShapeSummary 1 1 1
+
+productSummary :: ShapeSummary -> ShapeSummary -> ShapeSummary
+productSummary (ShapeSummary e l h) (ShapeSummary e' l' h') =
+    ShapeSummary (e + e') (1 + l + l') (1 + max h h')
+
+noParameterSummary :: ParameterSummary
+noParameterSummary = ParameterSummary unitSummary 1 1 0 0
+
+ownerSummary :: ShapeSummary -> ParameterSummary
+ownerSummary shape = ParameterSummary shape 1 1 1 1
+
+parameterProductSummary :: ParameterSummary -> ParameterSummary -> ParameterSummary
+parameterProductSummary left right =
+    ParameterSummary
+        (productSummary (summaryParameterLayout left) (summaryParameterLayout right))
+        (1 + summaryOwnershipNodes left + summaryOwnershipNodes right)
+        (1 + max (summaryOwnershipDepth left) (summaryOwnershipDepth right))
+        (summaryOwnerLeaves left + summaryOwnerLeaves right)
+        (summaryKeyEnumerationCells left + summaryKeyEnumerationCells right + summaryOwnerLeaves left)
+
+checkSummary :: QuotationLimits -> ShapeSummary -> Ledger -> Either QuoteError Ledger
+checkSummary limits shape ledger
+    | extent > fromIntegral (maxBound :: Int) = Left (QuoteMachineExtentExceeded extent)
+    | otherwise = checkCoordinateExtent limits extent ledger
+  where
+    extent = summaryExtent shape
+
+planShape :: QuotationLimits -> SShape shape -> Ledger -> Either QuoteError (ShapeSummary, Ledger)
+planShape limits shape initial = do
+    ledger <- chargeTraversal limits initial
+    (summary, next) <- case shape of
+        SUnit -> D080_PLAN_UNIT pure (unitSummary, ledger)
+        SScalar -> D080_PLAN_SCALAR pure (scalarSummary, ledger)
+        vector@SVector -> D080_PLAN_VECTOR pure (ShapeSummary (vectorExtent vector) 1 1, ledger)
+        SProduct left right -> do
+            D080_PLAN_PRODUCT
+            (l, ledger1) <- planShape limits left ledger
+            (r, ledger2) <- planShape limits right ledger1
+            pure (productSummary l r, ledger2)
+    checkedLedger <- checkSummary limits summary next
+    pure (summary, checkedLedger)
+
+planEnvironment :: QuotationLimits -> QuoteEnvironment environment -> Ledger -> Either QuoteError (ShapeSummary, Ledger)
+planEnvironment limits environment initial = do
+    ledger <- chargeTraversal limits initial
+    case environment of
+        RootEnvironmentWitness shape -> planShape limits shape ledger
+        BindEnvironmentWitness parent bound -> do
+            (p, ledger1) <- planEnvironment limits parent ledger
+            (b, ledger2) <- planShape limits bound ledger1
+            let summary = productSummary p b
+            ledger3 <- checkSummary limits summary ledger2
+            pure (summary, ledger3)
+
+finishSelection :: QuotationLimits -> ShapeSummary -> ShapeSummary -> Ledger -> Either QuoteError (ShapeSummary, ShapeSummary, Ledger)
+finishSelection limits input output ledger = do
+    ledger1 <- checkSummary limits input ledger
+    ledger2 <- checkSummary limits output ledger1
+    pure (input, output, ledger2)
+
+planPath :: QuotationLimits -> Path environment selected -> Ledger -> Either QuoteError (ShapeSummary, ShapeSummary, Ledger)
+planPath limits path initial = do
+    ledger <- chargeTraversal limits initial
+    case path of
+        PathHere shape -> do
+            (s, ledger1) <- planShape limits shape ledger
+            finishSelection limits s s ledger1
+        PathLeft inner bound -> do
+            (i, o, ledger1) <- planPath limits inner ledger
+            (b, ledger2) <- planShape limits bound ledger1
+            finishSelection limits (productSummary i b) o ledger2
+        PathRight environment bound -> do
+            (e, ledger1) <- planEnvironment limits environment ledger
+            (b, ledger2) <- planShape limits bound ledger1
+            finishSelection limits (productSummary e b) b ledger2
+
+planProjection :: QuotationLimits -> Projection input output -> Ledger -> Either QuoteError (ShapeSummary, ShapeSummary, Ledger)
+planProjection limits projection initial = do
+    ledger <- chargeTraversal limits initial
+    case projection of
+        ProjectionHere shape -> do
+            (s, ledger1) <- planShape limits shape ledger
+            finishSelection limits s s ledger1
+        ProjectionLeft inner right -> do
+            (i, o, ledger1) <- planProjection limits inner ledger
+            (r, ledger2) <- planShape limits right ledger1
+            finishSelection limits (productSummary i r) o ledger2
+        ProjectionRight left inner -> do
+            (l, ledger1) <- planShape limits left ledger
+            (i, o, ledger2) <- planProjection limits inner ledger1
+            finishSelection limits (productSummary l i) o ledger2
+
+-- Divide the even factor before multiplying; Natural subtraction at zero is guarded.
+triangular :: Natural -> Natural
+triangular 0 = 0
+triangular k
+    | even k = (k `quot` 2) * (k - 1)
+    | otherwise = k * ((k - 1) `quot` 2)
+
+endpointInventory :: ParameterSummary -> ShapeSummary -> ShapeSummary -> Natural
+endpointInventory p i o = summaryOwnershipNodes p + summaryLayoutNodes (summaryParameterLayout p) + 2 * summaryLayoutNodes i + summaryLayoutNodes o
+
+targetInventory :: TargetSummary -> Natural
+targetInventory s = endpointInventory (summaryParameters s) (summaryInput s) (summaryOutput s)
+
+-- Each named row in contract section 5.1 receives its own full reconstruction
+-- coupon. In particular represented zero coordinates are not atomic layouts.
+leafSummary :: ParameterSummary -> ShapeSummary -> ShapeSummary -> Natural -> Natural -> Natural -> TargetSummary
+leafSummary p i o primitives forward reverseWork =
+    TargetSummary
+        p
+        i
+        o
+        1
+        primitives
+        1
+        extent
+        structures
+        height
+        forward
+        reverseWork
+        mt
+        (mt - 12)
+        (2 * (on + c + k + triangular k))
+        (2 * (on + c + k))
+        0
+        (primitives * lp)
+        0
+        1
+        0
+        0
+  where
+    pl = summaryParameterLayout p
+    lp = summaryLayoutNodes pl
+    on = summaryOwnershipNodes p
+    k = summaryOwnerLeaves p
+    c = summaryKeyEnumerationCells p
+    b = lp + summaryLayoutNodes i + summaryLayoutNodes o
+    u = endpointInventory p i o
+    z = on + b + summaryExtent pl + summaryExtent i + summaryExtent o
+    mt = 7 * u + 2 * b + on + lp + 2 * (on + b) + 24 * (on + b) + 3 * b + 2 * z + 18 + 2 * b + 2 * lp + 42
+    extent = max (summaryExtent pl) (max (summaryExtent i) (summaryExtent o))
+    structures = max on (max lp (max (summaryLayoutNodes i) (summaryLayoutNodes o)))
+    height = max (summaryOwnershipDepth p) (max (summaryLayoutDepth pl) (max (summaryLayoutDepth i) (summaryLayoutDepth o)))
+
+binarySummary :: ParameterSummary -> ShapeSummary -> ShapeSummary -> TargetSummary -> TargetSummary -> TargetSummary
+binarySummary p i o left right =
+    local
+        { summaryNodes = n
+        , summaryPrimitives = summaryPrimitives left + summaryPrimitives right
+        , summaryDepth = 1 + max (summaryDepth left) (summaryDepth right)
+        , summaryMaximumExtent = maximumOf summaryMaximumExtent
+        , summaryMaximumStructureNodes = maximumOf summaryMaximumStructureNodes
+        , summaryMaximumStructureDepth = maximumOf summaryMaximumStructureDepth
+        , summaryMetadataTraversalSum = sumOf summaryMetadataTraversalSum
+        , summaryMetadataAllocationSum = sumOf summaryMetadataAllocationSum
+        , summaryOwnershipTraversalSum = sumOf summaryOwnershipTraversalSum
+        , summaryOwnershipAllocationSum = sumOf summaryOwnershipAllocationSum
+        , summaryJoinComparisonSum = summaryJoinComparisonSum left + summaryJoinComparisonSum right + targetInventory left + targetInventory right
+        , summaryPrimitiveLayoutComparisonSum = summaryPrimitiveLayoutComparisonSum left + summaryPrimitiveLayoutComparisonSum right
+        , summaryPathCellSum = depths - n
+        , summaryDepthSum = depths
+        , summaryQuoteEntries = summaryQuoteEntries left + summaryQuoteEntries right
+        , summaryBuilderReservation = summaryBuilderReservation left + summaryBuilderReservation right
+        }
+  where
+    local = leafSummary p i o 0 (1 + summaryForwardWork left + summaryForwardWork right) (1 + summaryReverseWork left + summaryReverseWork right)
+    n = 1 + summaryNodes left + summaryNodes right
+    depths = 1 + summaryDepthSum left + summaryNodes left + summaryDepthSum right + summaryNodes right
+    sumOf field = field local + field left + field right
+    maximumOf field = max (field local) (max (field left) (field right))
+
+composeSummary, parallelSummary, fanoutSummary, shareSummary :: TargetSummary -> TargetSummary -> TargetSummary
+composeSummary l r = binarySummary (parameterProductSummary (summaryParameters l) (summaryParameters r)) (summaryInput l) (summaryOutput r) l r
+parallelSummary l r = binarySummary (parameterProductSummary (summaryParameters l) (summaryParameters r)) (productSummary (summaryInput l) (summaryInput r)) (productSummary (summaryOutput l) (summaryOutput r)) l r
+fanoutSummary l r = binarySummary (parameterProductSummary (summaryParameters l) (summaryParameters r)) (summaryInput l) (productSummary (summaryOutput l) (summaryOutput r)) l r
+shareSummary l r = binarySummary (summaryParameters l) (productSummary (summaryInput l) (summaryInput r)) (productSummary (summaryOutput l) (summaryOutput r)) l r
+
+finishSummary :: QuotationLimits -> TargetSummary -> Ledger -> Either QuoteError (TargetSummary, Ledger)
+finishSummary limits summary ledger = do
+    ledger1 <- checkSummary limits (summaryParameterLayout (summaryParameters summary)) ledger
+    ledger2 <- checkSummary limits (summaryInput summary) ledger1
+    ledger3 <- checkSummary limits (summaryOutput summary) ledger2
+    pure (summary, ledger3)
+
+primitiveSummary :: ParameterSummary -> ShapeSummary -> ShapeSummary -> Natural -> TargetSummary
+primitiveSummary p i o arithmetic = leafSummary p i o 1 (base + arithmetic) (base + 3 * arithmetic)
+  where
+    base = 1 + summaryExtent (summaryParameterLayout p) + summaryExtent i + summaryExtent o
+
+identitySummary :: ShapeSummary -> TargetSummary
+identitySummary s = leafSummary noParameterSummary s s 0 (1 + summaryExtent s) (1 + summaryExtent s)
+
+planPrimitiveCompilation :: QuotationLimits -> Primitive Rational 'Polynomial parameters input output -> Ledger -> Either QuoteError (TargetSummary, Ledger)
+planPrimitiveCompilation limits primitive initial = do
+    ledger <- chargeTraversal limits initial
+    case primitive of
+        ConstantScalar input _ -> do
+            (i, next) <- planShape limits input ledger
+            finish noParameterSummary i scalarSummary 0 next
+        ConstantVector input output _ -> do
+            (i, next) <- planShape limits input ledger
+            (o, final) <- planShape limits output next
+            finish noParameterSummary i o (summaryExtent o) final
+        Parameter _ input output -> do
+            (i, next) <- planShape limits input ledger
+            (o, final) <- planShape limits output next
+            finish (ownerSummary o) i o (summaryExtent o) final
+        NegateScalar -> finish noParameterSummary scalarSummary scalarSummary 1 ledger
+        AddScalar -> scalarBinary ledger
+        MultiplyScalar -> scalarBinary ledger
+        AddVector shape -> vectorBinary shape False 1 ledger
+        Hadamard shape -> vectorBinary shape False 1 ledger
+        Dot shape -> vectorBinary shape True 2 ledger
+        SumVector shape -> do
+            (s, next) <- planShape limits shape ledger
+            finish noParameterSummary s scalarSummary (summaryExtent s) next
+        First left right -> selection left right True ledger
+        Second left right -> selection left right False ledger
+        ProjectValue projection -> do
+            (i, o, next) <- planProjection limits projection ledger
+            finish noParameterSummary i o 0 next
+  where
+    finish p i o a = finishSummary limits (primitiveSummary p i o a)
+    scalarBinary = finish noParameterSummary (productSummary scalarSummary scalarSummary) scalarSummary 1
+    vectorBinary :: SShape ('Vector n) -> Bool -> Natural -> Ledger -> Either QuoteError (TargetSummary, Ledger)
+    vectorBinary shape scalarOutput factor ledger = do
+        (s, next) <- planShape limits shape ledger
+        finish noParameterSummary (productSummary s s) (if scalarOutput then scalarSummary else s) (factor * summaryExtent s) next
+    selection :: SShape l -> SShape r -> Bool -> Ledger -> Either QuoteError (TargetSummary, Ledger)
+    selection left right selectLeft ledger = do
+        (l, next) <- planShape limits left ledger
+        (r, final) <- planShape limits right next
+        finish noParameterSummary (productSummary l r) (if selectLeft then l else r) 0 final
+
+planProgramCompilation :: QuotationLimits -> Program Rational 'Polynomial parameters input output -> Ledger -> Either QuoteError (TargetSummary, Ledger)
+planProgramCompilation limits program initial = do
+    ledger <- chargeTraversal limits initial
+    case program of
+        PrimitiveNode primitive -> planPrimitiveCompilation limits primitive ledger
+        IdentityNode shape -> do
+            (s, next) <- planShape limits shape ledger
+            finishSummary limits (identitySummary s) next
+        ComposeNode l r -> pair composeSummary l r ledger
+        ParallelNode l r -> pair parallelSummary l r ledger
+        FanoutNode l r -> pair fanoutSummary l r ledger
+        ShareParametersNode l r -> pair shareSummary l r ledger
+  where
+    pair :: (TargetSummary -> TargetSummary -> TargetSummary) -> Program Rational 'Polynomial p x y -> Program Rational 'Polynomial q u v -> Ledger -> Either QuoteError (TargetSummary, Ledger)
+    pair combine l r ledger = do
+        (left, next) <- planProgramCompilation limits l ledger
+        (right, final) <- planProgramCompilation limits r next
+        finishSummary limits (combine left right) final
+
+planQuoteCompilation :: QuotationLimits -> Quote Rational 'Polynomial environment parameters output -> Ledger -> Either QuoteError (TargetSummary, Ledger)
+planQuoteCompilation limits quotation initial = do
+    ledger <- chargeTraversal limits initial
+    (summary, final) <- case quotation of
+        ProgramQuote _ program -> planProgramCompilation limits program ledger
+        ProjectQuote path -> do
+            (i, o, next) <- planPath limits path ledger
+            let s = primitiveSummary noParameterSummary i o 0
+            finishSummary limits s{summaryBuilderReservation = 1 + 2 * summaryLayoutNodes i} next
+        ComposeQuote quoted program -> do
+            (l, next) <- planQuoteCompilation limits quoted ledger
+            (r, end) <- planProgramCompilation limits program next
+            finishSummary limits (composeSummary l r) end
+        FanoutQuote left right -> do
+            (l, next) <- planQuoteCompilation limits left ledger
+            (r, end) <- planQuoteCompilation limits right next
+            finishSummary limits (fanoutSummary l r) end
+        LetQuote _ bound body -> do
+            D080_LET_BOUND_START
+            (b, next) <- planQuoteCompilation limits bound ledger
+            D080_LET_BOUND_COMPLETE
+            (i, next1) <- finishSummary limits (identitySummary (summaryInput b)) next
+            D080_LET_IDENTITY_COMPLETE
+            (f, next2) <- finishSummary limits (fanoutSummary i b) next1
+            D080_LET_FANOUT_COMPLETE
+            D080_LET_BODY_START
+            (r, next3) <- planQuoteCompilation limits body next2
+            D080_LET_BODY_COMPLETE
+            let s = composeSummary f r
+                g = summaryBuilderReservation s + summaryQuoteEntries b + 2 * summaryLayoutNodes (summaryInput b)
+            finishSummary limits s{summaryBuilderReservation = g} next3
+    pure (summary{summaryQuoteEntries = summaryQuoteEntries summary + 1, summaryBuilderReservation = summaryBuilderReservation summary + 1}, final)
+
+-- Final dimension expressions saturate independently at remaining+1. Shared
+-- summaries stay exact: a smaller later allocation/total cap must not truncate them.
+cappedAdd, cappedMultiply :: Natural -> Natural -> Natural -> Natural
+cappedAdd cap a b
+    | a >= cap || b >= cap - a = cap
+    | otherwise = a + b
+cappedMultiply cap a b
+    | a == 0 || b == 0 = 0
+    | a > cap `quot` b = cap
+    | otherwise = min cap (a * b)
+
+compilerTraversalAmount, compilerAllocationAmount :: Natural -> TargetSummary -> Natural
+compilerTraversalAmount cap s =
+    mul 6 n
+        `add` g
+        `add` summaryMetadataTraversalSum s
+        `add` summaryOwnershipTraversalSum s
+        `add` mul (mul 2 p) (add p 1)
+        `add` p
+        `add` summaryPathCellSum s
+        `add` mul 3 (summaryJoinComparisonSum s)
+        `add` mul 4 n
+        `add` summaryPrimitiveLayoutComparisonSum s
+  where
+    add = cappedAdd cap
+    mul = cappedMultiply cap
+    n = summaryNodes s
+    p = summaryPrimitives s
+    g = summaryBuilderReservation s
+compilerAllocationAmount cap s =
+    mul 3 n
+        `add` p
+        `add` 5
+        `add` summaryBuilderReservation s
+        `add` summaryMetadataAllocationSum s
+        `add` summaryOwnershipAllocationSum s
+        `add` mul p (add p 1)
+        `add` p
+        `add` summaryPathCellSum s
+        `add` mul 3 (summaryJoinComparisonSum s)
+        `add` mul 4 n
+        `add` summaryPrimitiveLayoutComparisonSum s
+  where
+    add = cappedAdd cap
+    mul = cappedMultiply cap
+    n = summaryNodes s
+    p = summaryPrimitives s
+
+reserveQuoteCompilation :: QuotationLimits -> TargetSummary -> Ledger -> Either QuoteError AdmittedQuoteCompilation
+reserveQuoteCompilation limits s ledger = do
+    let tc = compilerTraversalAmount (traversalLimit limits - ledgerTraversal ledger + 1) s
+    traversal <- addBounded QuoteTraversalLimitExceeded (traversalLimit limits) (ledgerTraversal ledger) tc
+    ledger1 <- chargeTotal limits tc ledger{ledgerTraversal = traversal}
+    D080_RESERVE_TRAVERSAL
+    let ac = compilerAllocationAmount (allocationLimit limits - ledgerAllocation ledger1 + 1) s
+    ledger2 <- chargeAllocation limits ac ledger1
+    D080_RESERVE_ALLOCATION
+    let rc = cappedAdd (runtimeLimit limits - ledgerRuntimeWork ledger2 + 1) (summaryForwardWork s) (summaryReverseWork s)
+    ledger3 <- chargeRuntime limits rc ledger2
+    D080_RESERVE_RUNTIME
+    let capacities =
+            compilerLimits
+                (summaryNodes s)
+                (summaryPrimitives s)
+                (summaryDepth s)
+                (summaryPrimitives s)
+                (summaryMaximumExtent s)
+                (summaryMaximumExtent s)
+                (summaryMaximumStructureNodes s)
+                (summaryMaximumStructureDepth s)
+                (max (summaryForwardWork s) (summaryReverseWork s))
+                (rationalBitLimit limits)
+        reservation = CompilerReservation tc ac rc capacities
+        report = ledgerReport ledger3
+        admitted = D080_ADMISSION_WITNESS AdmittedQuoteCompilation report reservation
+    -- Force the witness and all strict fields before the successful builder branch.
+    reservationTraversal reservation `seq` reservationAllocation reservation `seq` reservationRuntime reservation `seq` admitted `seq` pure admitted
+
+preflightQuoteCompilation :: QuotationLimits -> Quote Rational 'Polynomial environment parameters output -> Either QuoteError AdmittedQuoteCompilation
+preflightQuoteCompilation limits quotation = do
+    D080_SYNTAX_START
+    (_, syntaxLedger) <- walkQuote limits 1 quotation emptyLedger
+    D080_SYNTAX_SUCCESS
+    D080_PLANNER_START
+    (summary, plannedLedger) <- planQuoteCompilation limits quotation syntaxLedger
+    D080_PLANNER_SUCCESS
+    reserveQuoteCompilation limits summary plannedLedger
 
 rationalBitLimit :: QuotationLimits -> Natural
 rationalBitLimit (QuotationLimitsValue _ _ _ _ _ _ _ _ _ _ _ bits) = bits
@@ -732,27 +1250,27 @@ vectorExtent SVector = fromInteger (natVal (Proxy @n))
 
 -- Build only after successful preflight.
 buildQuote :: Quote scalar fragment environment parameters output -> Program scalar fragment parameters (EnvironmentShape environment) output
-buildQuote quotation = case quotation of
+buildQuote quotation = D080_BUILD_QUOTE case quotation of
     ProgramQuote _ program -> program
     ProjectQuote path -> buildPath path
-    ComposeQuote quoted program -> compose (buildQuote quoted) program
-    FanoutQuote left right -> fanout (buildQuote left) (buildQuote right)
-    LetQuote _ bound body -> compose (fanout (identity (quoteEnvironmentShape bound)) (buildQuote bound)) (buildQuote body)
+    ComposeQuote quoted program -> D080_GENERATED_PROGRAM compose (buildQuote quoted) program
+    FanoutQuote left right -> D080_GENERATED_PROGRAM fanout (buildQuote left) (buildQuote right)
+    LetQuote _ bound body -> D080_GENERATED_PROGRAM compose (D080_GENERATED_PROGRAM fanout (D080_GENERATED_PROGRAM identity (quoteEnvironmentShape bound)) (buildQuote bound)) (buildQuote body)
 
 buildPath :: Path environment selected -> Program scalar fragment 'NoParameters (EnvironmentShape environment) selected
-buildPath = PrimitiveNode . ProjectValue . pathProjection
+buildPath path = D080_BUILD_PATH D080_GENERATED_PROGRAM PrimitiveNode (D080_GENERATED_PROJECTION_PRIMITIVE ProjectValue (pathProjection path))
 
 pathProjection :: Path environment selected -> Projection (EnvironmentShape environment) selected
-pathProjection path = case path of
-    PathHere shape -> ProjectionHere shape
-    PathLeft inner right -> ProjectionLeft (pathProjection inner) right
-    PathRight environment right -> ProjectionRight (environmentShape environment) (ProjectionHere right)
+pathProjection path = D080_PATH_PROJECTION case path of
+    PathHere shape -> D080_PROJECTION_WITNESS ProjectionHere shape
+    PathLeft inner right -> D080_PROJECTION_WITNESS ProjectionLeft (pathProjection inner) right
+    PathRight environment right -> D080_PROJECTION_WITNESS ProjectionRight (environmentShape environment) (D080_PROJECTION_WITNESS ProjectionHere right)
 
 pathEnvironment :: Path environment selected -> QuoteEnvironment environment
 pathEnvironment path = case path of
-    PathHere shape -> RootEnvironmentWitness shape
-    PathLeft inner right -> BindEnvironmentWitness (pathEnvironment inner) right
-    PathRight environment right -> BindEnvironmentWitness environment right
+    PathHere shape -> D080_ENVIRONMENT_WITNESS RootEnvironmentWitness shape
+    PathLeft inner right -> D080_ENVIRONMENT_WITNESS BindEnvironmentWitness (pathEnvironment inner) right
+    PathRight environment right -> D080_ENVIRONMENT_WITNESS BindEnvironmentWitness environment right
 
 pathSelectedShape :: Path environment selected -> SShape selected
 pathSelectedShape path = case path of
@@ -763,7 +1281,7 @@ pathSelectedShape path = case path of
 environmentShape :: QuoteEnvironment environment -> SShape (EnvironmentShape environment)
 environmentShape environment = case environment of
     RootEnvironmentWitness shape -> shape
-    BindEnvironmentWitness parent bound -> SProduct (environmentShape parent) bound
+    BindEnvironmentWitness parent bound -> D080_SHAPE_WITNESS SProduct (environmentShape parent) bound
 
 quoteEnvironment :: Quote scalar fragment environment parameters output -> QuoteEnvironment environment
 quoteEnvironment quotation = case quotation of

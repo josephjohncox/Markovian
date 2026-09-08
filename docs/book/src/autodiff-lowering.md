@@ -80,6 +80,16 @@ A successful `letQuote` lowers as `compose (fanout identity e) body`.
 A compiler-owned projection primitive keeps path projection parameter-free.
 Its VJP inserts zeros outside the selected path.
 
+Quotation compilation now continues the syntax ledger with a numeric metadata planner and compiler-stage traversal, allocation, and runtime reservations.
+A strict private admission witness precedes the target builder and compiler.
+The compiler receives derived capacities and the caller's rational-bit limit, not the largest observed source literal.
+The complete quotation report therefore exceeds the syntax-only report; standalone compilation and direct primal/JVP operations are unchanged.
+These reservations count cumulative logical reconstruction, including copied owner-list prefixes and represented zero coordinates.
+They do not measure heap allocations, bytes, peak residency, or unlimited future executions.
+The original accessor traversals in syntax preflight retain their historical schedule; charged-before-inspection metadata entries are a rule of the new planner.
+Private instrumented production-path tests distinguish metadata witnesses, target construction, and later runtime tapes.
+D-080 remains Proposed pending independent implementation review and the remaining integration gates.
+
 The direct exact primal and JVP interpreters recurse over the quotation and source syntax.
 They check rational size after each operation.
 They do not call the reverse compiler, a reverse tape, or a primitive VJP.
