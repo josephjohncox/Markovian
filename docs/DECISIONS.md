@@ -1101,7 +1101,7 @@ A device-correctness or performance claim requires immutable same-session receip
 
 **Required evidence:** Freeze the profile schema, receipt schema, exported signatures, and failure order before code changes. Add authority-drift checks, exact dyadic matrix and VJP oracles, independent CPU and CUDA refinements, exact and one-below plans, malformed and mismatched receipt fixtures, and digest-bound same-session hardware evidence. Preserve raw samples and all comparison inputs. Record proof obligations separately from measured hardware results.
 
-**Current repair boundary:** The repository now has one canonical profile authority, generated C and Haskell profile artifacts, authority-drift checks, exact dyadic matrix and VJP fixtures, separate CPU and CUDA comparison labels, and a strict same-session receipt validator. The repair changes no exported Haskell signature or public failure precedence. No protected workflow ran for this repair, and no D-077 hardware receipt exists. D-077 remains `Proposed`.
+**Current repair boundary:** The repository now has one canonical profile authority, generated C and Haskell profile artifacts, authority-drift checks, exact dyadic matrix and VJP fixtures, separate CPU and CUDA comparison labels, and a strict same-session receipt validator. The repair changes no exported Haskell signature or public failure precedence. Protected attempt `34172607126` failed on 2026-09-08 during sanitizer-version parsing, before hardware tests or receipt generation. The shared Version-line parser repair and failure record are in `docs/evidence/CUDA-D077-RECEIPTS.md`; no successful D-077 hardware receipt exists. D-077 remains `Proposed`.
 
 ### D-078: Add strict-discount affine feedback value coefficients
 

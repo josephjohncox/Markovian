@@ -1058,6 +1058,8 @@ def check_consumers(root: Path, profile: dict[str, Any]) -> None:
             "cuda-evidence/test-executable",
             "cuda-evidence/benchmark-executable",
             "native-observed-device-uuid",
+            "from cuda_profile import parse_sanitizer_version",
+            "parse_sanitizer_version(text)",
             "actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6",
         ]
         if any(requirement not in hardware for requirement in hardware_requirements):
@@ -1076,6 +1078,21 @@ def check_profile(root: Path) -> str:
                 "P008_PROFILE_GENERATED", f"generated profile artifact is stale: {path}"
             )
     return profile_sha
+
+
+def parse_sanitizer_version(text: str) -> str | None:
+    """Read one complete Version token, not copyright or build numbers."""
+    if "Compute Sanitizer" not in text:
+        return None
+    lines = [
+        line for line in text.splitlines() if re.match(r"^Version(?:[ \t]|$)", line)
+    ]
+    if len(lines) != 1:
+        return None
+    match = re.fullmatch(
+        r"Version[ \t]+([0-9]+(?:\.[0-9]+)+)(?:[ \t]+.*)?", lines[0]
+    )
+    return match.group(1) if match is not None else None
 
 
 def normalized_uuid(value: str, code: str, label: str) -> str:
@@ -1401,12 +1418,12 @@ def validate_receipt(
             "nvcc log does not contain the observed toolkit release",
         )
     if (
-        observations["sanitizerVersion"] not in observation_text["sanitizerLog"]
-        or "Compute Sanitizer" not in observation_text["sanitizerLog"]
+        parse_sanitizer_version(observation_text["sanitizerLog"])
+        != observations["sanitizerVersion"]
     ):
         fail(
             "R007_RECEIPT_OBSERVATION",
-            "sanitizer log does not contain the observed version",
+            "sanitizer log does not contain exactly one observed Version line",
         )
 
     records = receipt["records"]
@@ -1454,7 +1471,7 @@ def validate_receipt(
             fail("R009_RECEIPT_ARTIFACT", f"{field} artifact digest differs")
 
     artifact_digests: dict[str, str] = {}
-    for spec, record in zip(specs, records):
+    for spec, record in zip(specs, records, strict=True):
         name = spec["executable"]
         path = safe_file(
             root,
@@ -1475,7 +1492,7 @@ def validate_receipt(
             fail("R009_RECEIPT_ARTIFACT", f"{name} executable digest differs")
 
     record_texts: dict[str, str] = {}
-    for spec, record in zip(specs, records):
+    for spec, record in zip(specs, records, strict=True):
         expected_log = f"{spec['kind']}.log"
         if record["log"] != expected_log:
             fail("R010_RECEIPT_LOG", f"{spec['kind']} log name differs from profile")
@@ -1502,7 +1519,7 @@ def validate_receipt(
         f"native-observed-device-uuid: {observations['nativeObservedDeviceUuid']}",
         f"native-observed-driver-api-version: {observations['driverApiVersion']}",
     ]
-    for spec, record in zip(specs, records):
+    for spec, record in zip(specs, records, strict=True):
         text = record_texts[spec["kind"]]
         markers = (
             common_markers
