@@ -109,6 +109,27 @@ Independent precommit review `49e6b779-caba-4807-9515-07e94d9f1664` passed the s
 
 Failure evidence is retained privately at `/home/josephcox/.local/share/markovian/evidence/d077-34172607126/failure-audit.DYyL4s3F`, with API records, failed-job and runner-end logs, and `SHA256SUMS`. The failed-job log digest is `4dc279538d9b593e3b8b38d021e5ab8cdbc4d23e3ab41ff4096fb1e0374a3260`. These local copies are not an immutable publication. The named GitHub environment had no required-reviewer or deployment-branch rules; this restoration did not add or imply those protections.
 
+## Racecheck summary repair contract — 2026-09-08
+
+[Run 34175882779](https://github.com/josephjohncox/Markovian/actions/runs/34175882779), attempt 1, selected source `6a6ebfc5744aa10704c9bdbc8967ee05b289422d`. Steps 6–10 completed successfully, but step 11 rejected the candidate receipt with `R011_RECEIPT_OUTCOME`. The profile required `ERROR SUMMARY: 0 errors` for racecheck. The retained tool log instead ended with:
+
+```text
+========= RACECHECK SUMMARY: 0 hazards displayed (0 errors, 0 warnings)
+evidence-record-exit: 0
+```
+
+Attestation and upload were skipped. Runner 26 processed this one job, deregistered and exited. The raw 14-file candidate payload is preserved unchanged at `/home/josephcox/.local/share/markovian/evidence/d077-34175882779/failed-payload-preserved`, with a sibling digest manifest and explicit failed-attempt label. It is not a validated receipt or immutable publication.
+
+The following repair boundary is frozen before implementation:
+
+- Change only racecheck's required success marker to `RACECHECK SUMMARY: 0 hazards displayed (0 errors, 0 warnings)` in the profile authority and its validator specification. Do not accept the generic error summary as an alternative for racecheck.
+- Keep memcheck, initcheck and synccheck on `ERROR SUMMARY: 0 errors`. Keep all commands, exit-code requirements, record/binding checks, failure-class order, schema versions, numeric policies, PTX, public Haskell interfaces, package versions and dependency edges unchanged.
+- Regenerate all three profile-bound outputs with the new profile digest. This is a new profile identity, not a reinterpretation of the failed run's profile.
+- Build sanitizer test output from independently recorded tool-specific summaries, not from the profile's expected marker list. Require regressions for the observed racecheck summary, generic/wrong-tool summaries, missing summaries, and nonzero hazard/error/warning counts. Recompute mutated log digests so these tests reach the outcome check.
+- Obtain independent repair review and pass local/archive/hosted gates before another hardware run. The new run must bind the newly merged source and profile; do not rewrite or relabel either failed payload.
+
+D-077 remains Proposed. Successful command steps do not replace validated, attested and immutably retained same-session evidence. Environment protections and release governance are unchanged.
+
 ## Historical D-074 boundary
 
 The repository does not retain a complete D-077 receipt set for the D-074 release run. The D-074 pass statements remain immutable historical release records. They cannot satisfy D-077.
