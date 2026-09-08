@@ -16,7 +16,7 @@ maintainer:         joseph@codensity.io
 copyright:          2024-2026 Joseph Cox
 build-type:         Simple
 stability:          Experimental
-tested-with:        GHC ==9.4.8 || ==9.8.4
+tested-with:        GHC ==9.14.1
 extra-doc-files:
   CHANGELOG.md
   docs/ARCHITECTURE.md
@@ -241,7 +241,7 @@ library
     Markovian.Category.Matrix.Stochastic.Internal
     Markovian.Feedback.Internal
 
-  build-depends:    base >=4.17.2.1 && <4.20
+  build-depends:    base >=4.22.0.0 && <4.23
   hs-source-dirs:   src
   default-language: GHC2021
 
@@ -249,7 +249,7 @@ executable MixedGamesExample
   import:           warnings
   main-is:          Main.hs
   build-depends:
-    , base       >=4.17.2.1   && <4.20
+    , base       >=4.22.0.0   && <4.23
     , Markovian  ==2026.9.3.0
 
   hs-source-dirs:   examples/games/exact
@@ -259,7 +259,7 @@ executable Sample
   import:           warnings
   main-is:          Main.hs
   build-depends:
-    , base       >=4.17.2.1   && <4.20
+    , base       >=4.22.0.0   && <4.23
     , Markovian  ==2026.9.3.0
 
   hs-source-dirs:   app/Sample
@@ -290,7 +290,7 @@ test-suite Markovian-test
     RootContexts
 
   build-depends:
-    , base       >=4.17.2.1   && <4.20
+    , base       >=4.22.0.0   && <4.23
     , Markovian  ==2026.9.3.0
 
   hs-source-dirs:   test docs/learning

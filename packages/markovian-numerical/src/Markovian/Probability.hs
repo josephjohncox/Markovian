@@ -21,7 +21,6 @@ module Markovian.Probability (
 )
 where
 
-import Data.Foldable (foldl')
 import Data.List.NonEmpty (NonEmpty)
 import Data.List.NonEmpty qualified as NonEmpty
 import Data.Semigroup (Max (..), sconcat)

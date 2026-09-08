@@ -16,7 +16,7 @@ maintainer:         joseph@codensity.io
 copyright:          2024-2026 Joseph Cox
 build-type:         Simple
 stability:          Experimental
-tested-with:        GHC ==9.4.8 || ==9.8.4
+tested-with:        GHC ==9.14.1
 extra-doc-files:
   CHANGELOG.md
   README.md
@@ -53,7 +53,7 @@ library
 
   hs-source-dirs:   src
   build-depends:
-    , base       >=4.17.2.1    && <4.20
+    , base       >=4.22.0.0    && <4.23
     , Markovian  ^>=2026.9.3.0
 
   default-language: GHC2021
@@ -71,7 +71,7 @@ test-suite markovian-exact-benchmarks-test
 
   hs-source-dirs:   test
   build-depends:
-    , base                        >=4.17.2.1    && <4.20
+    , base                        >=4.22.0.0    && <4.23
     , Markovian                   ^>=2026.9.3.0
     , markovian-exact-benchmarks  ==2026.9.3.0
 
@@ -83,7 +83,7 @@ benchmark inventory-control-bench
   main-is:          Main.hs
   hs-source-dirs:   bench/Inventory
   build-depends:
-    , base                        >=4.17.2.1    && <4.20
+    , base                        >=4.22.0.0    && <4.23
     , Markovian                   ^>=2026.9.3.0
     , markovian-exact-benchmarks  ==2026.9.3.0
 
@@ -95,7 +95,7 @@ benchmark clark-scarf-1960-bench
   main-is:          Main.hs
   hs-source-dirs:   bench/ClarkScarf1960
   build-depends:
-    , base                        >=4.17.2.1    && <4.20
+    , base                        >=4.22.0.0    && <4.23
     , Markovian                   ^>=2026.9.3.0
     , markovian-exact-benchmarks  ==2026.9.3.0
 
@@ -107,7 +107,7 @@ benchmark dogru-inventory-bench
   main-is:          Main.hs
   hs-source-dirs:   bench/DogruInventory
   build-depends:
-    , base                        >=4.17.2.1    && <4.20
+    , base                        >=4.22.0.0    && <4.23
     , Markovian                   ^>=2026.9.3.0
     , markovian-exact-benchmarks  ==2026.9.3.0
 
@@ -119,7 +119,7 @@ benchmark fixed-batch-rnq-bench
   main-is:          Main.hs
   hs-source-dirs:   bench/FixedBatchRnQ
   build-depends:
-    , base                        >=4.17.2.1    && <4.20
+    , base                        >=4.22.0.0    && <4.23
     , Markovian                   ^>=2026.9.3.0
     , markovian-exact-benchmarks  ==2026.9.3.0
 
@@ -131,7 +131,7 @@ benchmark feedback-exact-bench
   main-is:          Main.hs
   hs-source-dirs:   bench/FeedbackExact
   build-depends:
-    , base       >=4.17.2.1    && <4.20
+    , base       >=4.22.0.0    && <4.23
     , Markovian  ^>=2026.9.3.0
 
   default-language: GHC2021
@@ -142,7 +142,7 @@ benchmark mixed-games-exact-bench
   main-is:          Main.hs
   hs-source-dirs:   bench/MixedGamesExact
   build-depends:
-    , base       >=4.17.2.1    && <4.20
+    , base       >=4.22.0.0    && <4.23
     , Markovian  ^>=2026.9.3.0
 
   default-language: GHC2021

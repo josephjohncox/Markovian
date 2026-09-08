@@ -18,7 +18,7 @@ maintainer:         joseph@codensity.io
 copyright:          2024-2026 Joseph Cox
 build-type:         Simple
 stability:          Experimental
-tested-with:        GHC ==9.4.8 || ==9.8.4
+tested-with:        GHC ==9.14.1
 extra-doc-files:
   CHANGELOG.md
   README.md
@@ -57,7 +57,7 @@ library
     Markovian.Tensor.Internal.Reverse
 
   hs-source-dirs:   src
-  build-depends:    base >=4.17.2.1 && <4.20
+  build-depends:    base >=4.22.0.0 && <4.23
   default-language: GHC2021
 
 test-suite markovian-tensor-fault-test
@@ -69,7 +69,7 @@ test-suite markovian-tensor-fault-test
     Markovian.Tensor.Internal
     Markovian.Tensor.Shape
 
-  build-depends:    base >=4.17.2.1 && <4.20
+  build-depends:    base >=4.22.0.0 && <4.23
   default-language: GHC2021
 
 test-suite markovian-tensor-test
@@ -83,7 +83,7 @@ test-suite markovian-tensor-test
 
   autogen-modules:  Paths_markovian_tensor
   build-depends:
-    , base              >=4.17.2.1   && <4.20
+    , base              >=4.22.0.0   && <4.23
     , markovian-tensor  ==2026.9.3.0
 
   default-language: GHC2021
@@ -94,7 +94,7 @@ benchmark markovian-tensor-bench
   main-is:          Main.hs
   hs-source-dirs:   bench
   build-depends:
-    , base              >=4.17.2.1   && <4.20
+    , base              >=4.22.0.0   && <4.23
     , markovian-tensor  ==2026.9.3.0
 
   default-language: GHC2021

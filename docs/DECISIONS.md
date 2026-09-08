@@ -12,6 +12,29 @@ Editorial note: terminology-only edits do not alter decision IDs, dates, statuse
 - **Rejected**: the project selected against this design.
 - **Superseded**: a later decision replaces this entry.
 
+## Development toolchain amendment — 2026-09-08
+
+The user-authorized modern-only development policy supersedes the compiler and
+library support requirements in D-023 and D-024 below. Their historical decisions
+and executed evidence remain unchanged. Development and active CI now target
+exact stable GHC 9.14.1 and cabal-install 3.18.1.0, with
+`base >=4.22.0.0 && <4.23` and `bytestring >=0.12.2.0 && <0.13`
+(SafeTensors only). GHC 9.4/9.8 compatibility is no longer required. Lower-bound
+checks remain checks within these modern bounds, not legacy-compiler checks.
+
+`toolchain.env` remains the authority. HLS 2.14.0.0 and the other ancillary tool
+pins are retained. Project-local GHCup selection must not change global defaults.
+The GHC2021 language edition remains unchanged; it is not a compiler support
+promise. Official stable version sources are the GHC 9.14.1 library index and
+Hackage preferred-version metadata for cabal-install and bytestring.
+
+This is an unreleased development migration, not release validation, decision
+acceptance, or publication approval. All 16 package versions remain 2026.9.3.0
+pending separately authorized coordinated versioning. Published tags, archives,
+and historical compiler, CUDA, and release evidence are not modern validation.
+Fresh modern build, test, benchmark, boundary, teaching, documentation, lower-bound,
+and archive-consumer evidence is required; no GPU runtime evidence is implied.
+
 ## Decisions
 
 ### D-001: Use stochastic kernels as the semantic foundation

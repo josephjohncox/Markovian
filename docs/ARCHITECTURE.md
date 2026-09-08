@@ -1108,7 +1108,7 @@ The source-distribution job creates all nine package archives. It validates path
 
 `bash scripts/prepare-release` adds the clean-revision gate, two byte-identical archive runs, a fresh exact consumer, complete exposed-declaration Haddock coverage, complete-bundle SHA-256 checksums, independently validated SPDX 2.3 source SBOMs, and atomic no-replace output staging. The manual workflow validates revision input before privileged jobs and independently in each job. It has no Hackage credential. Its separate attestation job downloads only checked artifacts and attests archives, SBOMs, the manifest, source revision, and checksum file. Preparation has no tag, release, candidate, or publication operation.
 
-The compiler matrix tests GHC 9.4.8 and 9.8.4. Add more compilers only after their package bounds and full checks pass.
+The development compiler matrix targets GHC 9.14.1 with Cabal 3.18.1.0. Active bounds are `base >=4.22.0.0 && <4.23` and, for SafeTensors, `bytestring >=0.12.2.0 && <0.13`. The 2026-09-08 toolchain amendment in `DECISIONS.md` supersedes the old GHC 9.4/9.8 development support policy, not its historical evidence. Lower-bound checks operate within the modern bounds.
 
 Pin GitHub Actions by commit SHA. Pin formatter versions. Change dependency pins in separate maintenance changes.
 

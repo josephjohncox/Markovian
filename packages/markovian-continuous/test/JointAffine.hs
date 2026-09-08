@@ -1,7 +1,7 @@
 module JointAffine (runJointAffineTests) where
 
 import Control.Monad (forM_, unless)
-import Data.List (foldl', permutations)
+import Data.List (permutations)
 import Data.Maybe (fromMaybe)
 import Data.Ratio ((%))
 import Markovian.Continuous.Kernel.JointAffine.Exact

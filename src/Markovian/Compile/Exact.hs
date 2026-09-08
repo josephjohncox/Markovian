@@ -50,7 +50,6 @@ module Markovian.Compile.Exact (
     stepCompiledExactMRP,
 ) where
 
-import Data.Foldable (foldl')
 import Data.List.NonEmpty (NonEmpty (..))
 import Data.List.NonEmpty qualified as NonEmpty
 import Markovian.Action (ActionId)

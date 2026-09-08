@@ -216,6 +216,55 @@ class ReleaseToolTests(unittest.TestCase):
                 gpu, {"markovian-tensor", "markovian-tensor-reverse"}
             )
 
+    def test_dependency_bounds_require_modern_policy_in_every_component(self) -> None:
+        cabal = self.root / "demo.cabal"
+        valid = (
+            "library\n  build-depends: base >=4.22.0.0 && <4.23\n"
+            "test-suite unit\n  build-depends:\n"
+            "    , base >=4.22.0.0 && <4.23\n"
+            "    , bytestring >=0.12.2.0 && <0.13\n"
+            "    , demo ==2026.9.3.0\n"
+        )
+        release_tool.check_dependency_bounds(cabal, valid, self.package)
+        for bound in (
+            ">=4.17.2.1 && <4.20",
+            ">=4.22.0.0 && <5",
+            ">=4.22.0.0 && <4.230",
+            ">=4.22.0.0 && <4.23 || ==4.19.2.0",
+            ">=4.22.0.0",
+            "^>=4.22.0.0",
+        ):
+            with (
+                self.subTest(bound=bound),
+                self.assertRaisesRegex(release_tool.ReleaseError, "base must use"),
+            ):
+                # A valid library must not mask an invalid test component.
+                release_tool.check_dependency_bounds(
+                    cabal,
+                    valid.replace(
+                        ", base >=4.22.0.0 && <4.23", f", base {bound}"
+                    ),
+                    self.package,
+                )
+        for bound in (">=0.11 && <0.13", ">=0.12.2.0 && <1", ">=0.12.2.0"):
+            with (
+                self.subTest(bound=bound),
+                self.assertRaisesRegex(
+                    release_tool.ReleaseError, "bytestring must use"
+                ),
+            ):
+                release_tool.check_dependency_bounds(
+                    cabal,
+                    valid.replace(
+                        "bytestring >=0.12.2.0 && <0.13", f"bytestring {bound}"
+                    ),
+                    self.package,
+                )
+        with self.assertRaisesRegex(release_tool.ReleaseError, "missing modern base"):
+            release_tool.check_dependency_bounds(
+                cabal, "library\n  build-depends: demo ==2026.9.3.0\n", self.package
+            )
+
     def test_archive_project_enables_every_manifested_flag(self) -> None:
         components = [
             release_tool.Component("test", "demo", "unit", ()),

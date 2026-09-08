@@ -21,8 +21,7 @@ jobs:
       fail-fast: false
       matrix:
         ghc:
-          - "9.4.8"
-          - "9.8.4"
+          - "9.14.1"
 
     steps:
       - name: Check out the repository

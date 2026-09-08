@@ -65,7 +65,7 @@ module Markovian.Benchmark.Inventory.Serial.Exact (
 ) where
 
 import Control.Monad (foldM)
-import Data.List (foldl', sort, sortOn)
+import Data.List (sort, sortOn)
 import Data.List.NonEmpty (NonEmpty (..))
 import Data.List.NonEmpty qualified as NonEmpty
 import Markovian.Action (actionId, actionValue)

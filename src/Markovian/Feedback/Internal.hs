@@ -48,7 +48,6 @@ module Markovian.Feedback.Internal (
 ) where
 
 import Data.Bits (shiftR)
-import Data.List (foldl')
 import Data.Ratio (denominator, numerator)
 import Markovian.Algebra.NonNegativeRational (NonNegativeRational, getNonNegativeRational)
 import Markovian.Category.Finite.Set (FiniteSet)

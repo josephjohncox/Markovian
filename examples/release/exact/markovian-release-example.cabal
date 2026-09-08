@@ -7,7 +7,7 @@ executable markovian-release-example
   main-is:          Main.hs
   hs-source-dirs:   app
   build-depends:
-    , base       >=4.17.2.1    && <4.20
+    , base       >=4.22.0.0    && <4.23
     , Markovian  ^>=2026.9.3.0
 
   default-language: GHC2021

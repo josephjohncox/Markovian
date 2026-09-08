@@ -196,7 +196,12 @@ The sample evaluates one exact transition with reward `2`, discount `1/2`, and t
 
 ## Verification
 
-The package tests GHC 9.4.8 and 9.8.4. The required CI checks are:
+Development targets GHC 9.14.1 and Cabal 3.18.1.0, pinned in
+`toolchain.env`, with `base >=4.22.0.0 && <4.23` and
+`bytestring >=0.12.2.0 && <0.13` (SafeTensors only). GHC 9.4/9.8
+compatibility is no longer a development requirement; historical release evidence
+is unchanged. See the 2026-09-08 toolchain amendment in `docs/DECISIONS.md`.
+The required CI checks are:
 
 ```bash
 bash scripts/check-package-manifest

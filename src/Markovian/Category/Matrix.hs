@@ -35,7 +35,6 @@ module Markovian.Category.Matrix (
     traceMatrix,
 ) where
 
-import Data.Foldable (foldl')
 import Data.Maybe (fromMaybe)
 import Markovian.Algebra.Semiring
 import Markovian.Category.Finite.Set

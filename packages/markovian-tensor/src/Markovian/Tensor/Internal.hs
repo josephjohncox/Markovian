@@ -11,7 +11,6 @@ module Markovian.Tensor.Internal where
 import Control.Concurrent.MVar (MVar, modifyMVar, newMVar, withMVar)
 import Control.Exception (AsyncException, Exception, SomeException, displayException, fromException, mask, throwIO, toException, try)
 import Control.Monad (forM, forM_, when, zipWithM)
-import Data.List (foldl')
 import Data.Proxy (Proxy (..))
 import Foreign.ForeignPtr (ForeignPtr, finalizeForeignPtr, mallocForeignPtrArray, withForeignPtr)
 import Foreign.Storable (peekElemOff, pokeElemOff)

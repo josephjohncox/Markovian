@@ -50,7 +50,6 @@ module Markovian.Benchmark.Inventory.ClarkScarf1960.Finite.Exact (
     clarkScarfMDP,
 ) where
 
-import Data.List (foldl')
 import Data.List.NonEmpty (NonEmpty (..))
 import Data.List.NonEmpty qualified as NonEmpty
 import Markovian.Action (actionId, actionValue)

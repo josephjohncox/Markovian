@@ -3,7 +3,7 @@
 module Markovian.Continuous.Internal where
 
 import Control.Monad (unless, when)
-import Data.List (foldl', sortOn)
+import Data.List (sortOn)
 import Data.Ratio (denominator, numerator)
 import Numeric.Natural (Natural)
 

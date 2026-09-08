@@ -80,7 +80,7 @@ module Markovian.Benchmark.Inventory.Distribution.Dogru.Exact (
 
 import Control.Monad (foldM)
 import Data.Bifunctor qualified as Bifunctor
-import Data.List (foldl', sortOn)
+import Data.List (sortOn)
 import Data.List.NonEmpty (NonEmpty (..))
 import Data.List.NonEmpty qualified as NonEmpty
 import Data.Ratio ((%))

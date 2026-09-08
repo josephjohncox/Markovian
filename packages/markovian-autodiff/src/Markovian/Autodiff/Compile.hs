@@ -916,7 +916,7 @@ zeroParameters backend (SParameterProduct left right) = ParameterProductValue (z
 
 addParameters :: Backend scalar -> ParameterValue scalar parameters -> ParameterValue scalar parameters -> Either AutodiffFailure (ParameterValue scalar parameters)
 addParameters _ NoParameterValue NoParameterValue = Right NoParameterValue
-addParameters backend (OwnedParameterValue left) (OwnedParameterValue right) = OwnedParameterValue <$> addValue backend left right
+addParameters backend (OwnedParameterValue left) right = OwnedParameterValue <$> addValue backend left (ownedParameterValue right)
 addParameters backend (ParameterProductValue leftA rightA) (ParameterProductValue leftB rightB) = ParameterProductValue <$> addParameters backend leftA leftB <*> addParameters backend rightA rightB
 
 scaleParameters :: Backend scalar -> scalar -> ParameterValue scalar parameters -> Either AutodiffFailure (ParameterValue scalar parameters)

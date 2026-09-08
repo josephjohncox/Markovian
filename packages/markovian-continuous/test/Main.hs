@@ -1,7 +1,6 @@
 module Main (main) where
 
 import Control.Monad (forM_, replicateM, unless)
-import Data.List (foldl')
 import Data.Ratio ((%))
 import JointAffine (runJointAffineTests)
 import Markovian.Continuous.Condition.Exact

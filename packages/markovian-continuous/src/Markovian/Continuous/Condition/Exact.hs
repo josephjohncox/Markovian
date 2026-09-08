@@ -19,7 +19,6 @@ module Markovian.Continuous.Condition.Exact (
     ExactError (..),
 ) where
 
-import Data.List (foldl')
 import Data.Maybe (catMaybes)
 import Markovian.Continuous.Internal
 import Numeric.Natural (Natural)

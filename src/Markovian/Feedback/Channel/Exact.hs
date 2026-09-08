@@ -34,7 +34,7 @@ module Markovian.Feedback.Channel.Exact (
     feedbackReport,
 ) where
 
-import Data.List (findIndex, foldl', transpose)
+import Data.List (findIndex, transpose)
 import Data.Maybe (listToMaybe)
 import Markovian.Algebra.NonNegativeRational (NonNegativeRational, nonNegativeRational)
 import Markovian.Category.Finite.Set (FiniteSet, finiteSetCardinality, finiteSetValues, sameFiniteLayout)

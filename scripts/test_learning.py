@@ -28,7 +28,7 @@ build-type: Simple
 executable fixture
   main-is: Main.hs
   hs-source-dirs: app
-  build-depends: base
+  build-depends: base >=4.22.0.0 && <4.23
   default-language: Haskell2010
 """)
         self.put("cabal.project.ci", "packages: .\n")
