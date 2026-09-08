@@ -359,7 +359,7 @@ Existing evidence: the frozen Gate A contract and implementation. The [Gate B le
 Existing evidence: the proposal-stage quotation implementation and current evidence boundary in D-080.
 
 - [x] Record the exact existing signature schedule, constructors/eliminators, path roles, call-by-value order, and total failure table in [the D-080 freeze](docs/DECISIONS.md#d-080-existing-api-freeze--declaration-reference). This checks only the documentation action, not contract review or acceptance.
-- [ ] Review the frozen contract, including the existing separate quotation/target accounts and explicit evidence limits.
+- [x] Independently review the completed [prospective cumulative-compilation repair contract](docs/plans/D080-CUMULATIVE-COMPILATION.md), preserving the historical separate-account characterization. Review `eeb4e4ba-4417-442e-b5bd-cb28ca4f4556` passed for the contract only. The approved scalar-product output fixture and full parameter tree have external baseline execution evidence; primitive ownership-layout equality has its own named coupon and exact product-owner budget oracles. Teaching receipts were refreshed through actual execution. Planner/accounting/private-probe specifications are not implemented; baseline fixture evidence is not budget-repair evidence or acceptance.
 - [ ] Review the existing implementation against that schedule. Repair only reviewed gaps.
 - [ ] Run forged/escaped-path compile failures, used/unused lets, shadowing, saturation, preflight, and independent primal/JVP/reverse coordinate comparisons.
 - [ ] Obtain fresh independent contract and implementation review with current test evidence.

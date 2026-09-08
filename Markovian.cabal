@@ -45,6 +45,7 @@ extra-doc-files:
   docs/learning/*.txt
   docs/learning/fences.json
   docs/learning/output-receipt.json
+  docs/plans/D080-CUMULATIVE-COMPILATION.md
   docs/plans/EL-03-PAIRED-DIFFERENCE.md
   docs/plans/EL-04-REWARD-JVP.md
   docs/plans/EL-05-AGGREGATION.md
