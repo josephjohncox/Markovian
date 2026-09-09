@@ -19,8 +19,22 @@ let view = transposeFinite2D base
 
 This fragment runs inside the checked `withTensorSession` in
 [laboratory F](law-laboratory.md#f-logical-coordinates-storage-and-derivatives).
-Its `checked` helper turns a failed `Either` into an IO failure; neither tensor
-nor view escapes the region. The same laboratory shows the complete runnable context.
+Its `checked` helper turns a failed `Either` into an IO failure; the laboratory
+completes tensor and view observations inside the callback. The same laboratory
+shows the complete runnable context.
+
+Region indices and nominal roles reject direct fixed-index escape and coercion,
+not existential tensor packages or captured IO actions. All region-dependent
+reads, refinements, primitives and allocations must execute and complete before
+callback exit. The caller must join or cancel-and-join dependent children on
+success, Left, exceptions and asynchronous interruption; the runner does not
+join them. Return only ordinary copies whose reads completed inside the callback,
+not actions or retained tensors for later observation. Unsupported post-close use
+is not uniformly rejected with `TensorSessionClosed`; observers do not synchronize
+with close. Closing drains the committed registry and attempts finalizers, with
+asynchronous retry under the cleanup protocol, not guaranteed prompt physical
+reclamation. Default GC-pinned retention is not supported post-finalization use;
+no current-default freed-buffer/UAF execution has been established.
 
 Session admission consumes at most the allowed rank plus one singleton nodes.
 It checks rank and each dimension before it evaluates a capped element product,

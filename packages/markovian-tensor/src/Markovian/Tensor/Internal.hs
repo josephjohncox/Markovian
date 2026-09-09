@@ -76,8 +76,9 @@ data TensorSession region = TensorSession !SessionLimits !TensorAllocator !(MVar
 
 type role TensorSession nominal
 
-{- | Exception raised only when an action exception and one or more bounded
-cleanup diagnostics must be preserved together.
+{- | Exception raised only when an action exception and one or more
+cleanup diagnostics must be preserved together. Diagnostics are retained by
+the runtime protocol; their String contents and rendering are not numerically bounded.
 -}
 data TensorSessionException = TensorSessionException !SomeException ![String]
 
@@ -96,9 +97,19 @@ instance Show TensorSessionFailureException where
 
 instance Exception TensorSessionFailureException
 
-{- | Run an action in a fresh managed region. Ordinary tensors cannot escape.
-All committed payloads are finalized exactly once after success, 'Left', or
-an exception. Asynchronous exceptions are rethrown after masked cleanup.
+{- | Run an action in a fresh managed region. Nominal region indices reject
+direct tensor escape at a fixed external region index; they do not confine IO
+closures or existentially packaged tensors. All region-dependent observation,
+refinement, primitives and allocation must execute and complete before the
+callback exits. The caller must join or cancel-and-join dependent children
+before every exit, including Left, exceptions and asynchronous interruption;
+the runner does not join them. Do not later invoke escaped region-dependent
+actions or observe retained tensors. Ordinary copied data whose reads completed
+in the callback may be returned. On success, Left or exception, the runtime
+drains the committed registry and attempts finalization. Asynchronous cleanup
+interruptions are retained and the interrupted callback is retried before
+propagation. Finalization attempts and logical accounting do not guarantee
+prompt physical reclamation or release by a failing callback.
 -}
 withTensorSession :: SessionLimits -> (forall region. TensorSession region -> IO (Either TensorError value)) -> IO (Either TensorError value)
 withTensorSession = withTensorSessionAllocator defaultTensorAllocator
