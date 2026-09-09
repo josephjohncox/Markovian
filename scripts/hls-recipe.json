@@ -1,0 +1,19 @@
+{
+  "hls": "2.14.0.0",
+  "ghc": "9.14.1",
+  "cabal": "3.18.1.0",
+  "source_url": "https://downloads.haskell.org/~hls/haskell-language-server-2.14.0.0/haskell-language-server-2.14.0.0-src.tar.gz",
+  "source_sha256": "ee8e2007d3ff98bcc0d1c5409092d69c3f176b8419b85b31a4dccd22b45914f6",
+  "original_project_sha256": "7ff452b79b0b702529922c4e40aae9c2052c19faf25ccbef854aeaebd5dca4c9",
+  "generated_project_sha256": "dd73c00cc31d0a554b7b16b47190a20b0bce4c87a8c002970c0de069de0b956b",
+  "index_state": "2026-04-16T00:00:00Z",
+  "scripts": {
+    "install-hls-official.py": "62e7c3af2025244ed5aa4739cb3cf062cfa051e200c89d6eb8d152a87459be76",
+    "seal-hls.py": "5d4eab4a67727bbdc6aae1929c652959f1aa52de13a3129e5ca197c1cc9c508f",
+    "guard-hls.py": "4382b530274c4686a6b83cce03399ad18240196a00635e962ab10825bc51f73e",
+    "snapshot-project.py": "a75747339739804b8010ac10401d11a4dafc0d8deb3fc1f3d208252422006da8",
+    "probe-hls-lsp.py": "02be82807f22706f27e140401f5141dd6481c3762ef1e12cc34eef2aa7a01e3d",
+    "hls_selectors.py": "da5b3f6e51c992cc7ba980764468bc5c5255707f0cc6b7dd67b61bb21846c299",
+    "project-hls.py": "1cf692db4ab1309d3e149d8c5b393819bf07f2ea20acf8357853e31b97a4da64"
+  }
+}

@@ -121,12 +121,28 @@ extra-source-files:
   scripts/check-release-metadata
   scripts/check-release-policy
   scripts/check-root-topology
+  scripts/check_haddock_install.py
+  scripts/fixtures/hls-2.14.0.0-project.txt
   scripts/generate-release-sbom
+  scripts/guard-hls.py
+  scripts/hls-recipe.json
+  scripts/hls_selectors.py
+  scripts/install-ancillary-tools
   scripts/install-doc-tools
+  scripts/install-hls-official.py
   scripts/prepare-release
+  scripts/probe-hls-lsp.py
+  scripts/project-hls.py
   scripts/release_tool.py
+  scripts/seal-hls.py
+  scripts/snapshot-project.py
   scripts/test_capabilities.py
+  scripts/test_check_haddock_install.py
+  scripts/test_hls_live_guard.py
+  scripts/test_hls_selectors.py
+  scripts/test_install_ancillary_tools.py
   scripts/test_learning.py
+  scripts/test_project_hls.py
   scripts/test_release_tool.py
   test/compile-fail/ActionRoles.hs
   test/compile-fail/AcyclicProofBoundary.hs

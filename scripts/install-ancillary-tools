@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+project_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd -P)"
+# shellcheck source=../toolchain.env
+source "$project_root/toolchain.env"
+ghcup_bin="${GHCUP_BIN:-$HOME/.ghcup/bin/ghcup}"
+local_bin="${1:?usage: install-ancillary-tools BIN_DIR STORE_DIR}"
+store_dir="${2:?usage: install-ancillary-tools BIN_DIR STORE_DIR}"
+mkdir -p "$local_bin" "$store_dir"
+local_bin="$(cd "$local_bin" && pwd -P)"
+store_dir="$(cd "$store_dir" && pwd -P)"
+
+# These standalone tools exclude the project's base version. Install the exact
+# bootstrap compiler without selecting it globally or changing the caller PATH.
+"$ghcup_bin" install ghc "$MARKOVIAN_TOOL_BOOTSTRAP_GHC_VERSION" --no-set
+for tool in "hlint-$MARKOVIAN_HLINT_VERSION" "cabal-fmt-$MARKOVIAN_CABAL_FMT_VERSION"; do
+  # Separate solver plans are required by the tools' incompatible dependencies.
+  "$ghcup_bin" run --quick \
+    --ghc "$MARKOVIAN_TOOL_BOOTSTRAP_GHC_VERSION" \
+    --cabal "$MARKOVIAN_CABAL_VERSION" -- \
+    cabal --store-dir="$store_dir" install "$tool" \
+      --ignore-project \
+      --installdir="$local_bin" \
+      --install-method=copy \
+      --overwrite-policy=always
+done

@@ -6,6 +6,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE TypeFamilies #-}
+{-# OPTIONS_HADDOCK redact-type-synonyms #-}
 
 {- | Bounded explicit quotation for the closed exact polynomial language.
 
@@ -177,16 +178,28 @@ data Environment
     = RootEnvironmentConstructor Shape
     | BindEnvironmentConstructor Type Environment Shape
 
--- | A top-level quotation environment.
+{- | A top-level quotation environment.
+
+This is a type synonym and must be fully applied. It is injective in its
+shape argument and is distinct from every 'BindEnvironment'. Its private
+representation is omitted from the documentation, not changed into an
+abstract data type or type family.
+-}
 type RootEnvironment shape = 'RootEnvironmentConstructor shape
 
--- | Extend an environment with one lexically scoped binding.
+{- | Extend an environment with one lexically scoped binding.
+
+This is a type synonym and must be fully applied to all three arguments.
+It is injective in scope, parent environment and bound shape; in particular,
+equal runtime shapes do not identify different lexical scopes. Its private
+representation is omitted from the documentation.
+-}
 type BindEnvironment scope environment bound = 'BindEnvironmentConstructor scope environment bound
 
 -- | Runtime shape represented by a lexical environment.
 type family EnvironmentShape (environment :: Environment) :: Shape where
-    EnvironmentShape ('RootEnvironmentConstructor shape) = shape
-    EnvironmentShape ('BindEnvironmentConstructor scope environment bound) = 'Product (EnvironmentShape environment) bound
+    EnvironmentShape (RootEnvironment shape) = shape
+    EnvironmentShape (BindEnvironment scope environment bound) = 'Product (EnvironmentShape environment) bound
 
 -- | Opaque witness for one lexical environment.
 data QuoteEnvironment (environment :: Environment) where

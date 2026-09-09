@@ -23,7 +23,14 @@ exact stable GHC 9.14.1 and cabal-install 3.18.1.0, with
 checks remain checks within these modern bounds, not legacy-compiler checks.
 
 `toolchain.env` remains the authority. HLS 2.14.0.0 and the other ancillary tool
-pins are retained. Project-local GHCup selection must not change global defaults.
+pins are retained. `MARKOVIAN_TOOL_BOOTSTRAP_GHC_VERSION=9.8.4` is a separately
+approved compiler role solely for constructing standalone HLint 3.10 and
+cabal-fmt 0.1.12 with Cabal 3.18.1.0: their latest stable sources exclude the
+project's base version. Bootstrap and source CI use the same isolated installer
+and separate solver plans, without bounds overrides. ShellCheck construction
+remains on the project compiler; compiler-coupled HLS must support GHC 9.14.1.
+This distribution detail is not old-compiler project compatibility or a test
+matrix. Project-local GHCup selection must not change global defaults.
 The GHC2021 language edition remains unchanged; it is not a compiler support
 promise. Official stable version sources are the GHC 9.14.1 library index and
 Hackage preferred-version metadata for cabal-install and bytestring.
@@ -34,6 +41,45 @@ pending separately authorized coordinated versioning. Published tags, archives,
 and historical compiler, CUDA, and release evidence are not modern validation.
 Fresh modern build, test, benchmark, boundary, teaching, documentation, lower-bound,
 and archive-consumer evidence is required; no GPU runtime evidence is implied.
+This current policy also supersedes legacy two-compiler validation obligations
+in D-079/D-080 handoffs and frozen plans, not their mathematical, ownership,
+atomicity, failure-order, ledger, instrumentation or archive-isolation contracts.
+Historical executions and the frozen D-080 section 10 clarification stay intact.
+
+**Tool-only HLS source-build clarification:** The separately approved fallback
+uses the official HLS 2.14.0.0 source release (SHA256
+`ee8e2007d3ff98bcc0d1c5409092d69c3f176b8419b85b31a4dccd22b45914f6`),
+its pinned 2026-04-16 index and exact upstream compiler-conditional dependency
+relaxations, only in an isolated tool build. The generated project must strengthen
+`ghc-check` to `+ghc-check-use-package-abis`; disabling that guard is not a repair.
+No other dependency overrides, upstream source patches, Markovian/global Cabal
+exceptions or extra plugin removals are authorized. Operational project-local
+HLS and the enabled ABI guard must both pass before integration is complete.
+Upstream GHC 9.14 excludes integrated HLint, Fourmolu, Ormolu, stylish-haskell,
+Retrie, Stan and Splice; standalone tools do not restore those plugins.
+
+The implemented launcher is `scripts/project-hls.py`; `scripts/hls-recipe.json`
+binds the official archive, original/generated project and exact helper bytes.
+The raw upstream executable targets do not depend on `ghc-check` (upstream
+removed it from ghcide). The generated positive constraint is retained, but the
+mandatory external `guard-hls.py` supplies the actual full boot-package ABI,
+compiler/backend, plan, executable and linked-library identity comparison before
+LSP. No nonexistent in-process guard is claimed. Bootstrap and `.envrc` must use
+this launcher, not the raw server or generic wrapper. A sealed installation is
+absolute-path-bound and reused explicitly; failed builds and invalid seals are
+not silently repaired or bypassed. Build receipts are construction-only; actual
+project hover, in-memory error detection, recovery and orderly exit require a
+separate source-bound operational receipt. These integration details implement
+the approved isolated recipe, not new mathematical or release acceptance.
+
+**Documentation correction:** Haddock 2.33's `redact-type-synonyms` is supported
+by the GHC 9.14.1 release manual. Together with synonym-equivalent family patterns,
+it faithfully renders the existing private promoted environment representation;
+no TypeData, new public constructors, substitute API or warning suppression is
+needed. A clean Cabal parent log is not proof of warning-free documentation.
+The CI installation gate checks every planned public/private library unit log
+and public interface in fresh directories, with source/manifest/compiler bindings.
+This clarification does not accept D-080 or change its mathematical contract.
 
 ## Decisions
 

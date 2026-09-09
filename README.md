@@ -201,6 +201,51 @@ Development targets GHC 9.14.1 and Cabal 3.18.1.0, pinned in
 `bytestring >=0.12.2.0 && <0.13` (SafeTensors only). GHC 9.4/9.8
 compatibility is no longer a development requirement; historical release evidence
 is unchanged. See the 2026-09-08 toolchain amendment in `docs/DECISIONS.md`.
+Standalone HLint 3.10 and cabal-fmt 0.1.12 are source-built with the separate
+`MARKOVIAN_TOOL_BOOTSTRAP_GHC_VERSION=9.8.4` pin and the same Cabal 3.18.1.0.
+`scripts/install-ancillary-tools BIN_DIR STORE_DIR` is shared by bootstrap and CI;
+it uses isolated stores, separate plans and `--no-set`, without bounds overrides.
+This is not project support for GHC 9.8. HLS remains coupled to GHC 9.14.1;
+ShellCheck builds with the modern compiler. Bootstrap keeps project PATH modern.
+Bootstrap and `.envrc` use `scripts/project-hls.py`, never the generic GHCup
+HLS bindist. `scripts/hls-recipe.json` pins the official HLS 2.14 source archive,
+upstream recipe and exact installer/selector/sealer/launcher/guard/probe bytes. The first explicit bootstrap
+builds only the server/wrapper in a new isolated
+`.direnv/hls-official-2.14.0.0-ghc-9.14.1-<recipe-sha256>` tree using secure Hackage
+metadata. The suffix hashes canonical sorted compact JSON recipe bytes; changing
+the pinned recipe selects a new absent root, never reseals the historical root.
+Only explicit bootstrap/`--install` constructs it; check-only/LSP never installs.
+Only that external tool build uses the upstream dependency relaxations; Markovian
+and global Cabal gain no bounds exception. The original 1,722 source files stay
+unchanged; an additional project file strengthens exactly the upstream ABI flag.
+These raw targets no longer depend on `ghc-check`: the mandatory external guard
+actually compares the full build-time/current boot package DB, exact tools,
+source policy, plan, executables and linked compiler/shared libraries before LSP.
+Construction records every compiler-bin selector and Cabal with exact symlink,
+resolution, content and mode identities. Seal and launch validate that receipt-bound
+mapping before any guarded tool subprocess: missing, redirected, replaced, malformed
+or unexpected selectors and redirected selector directories fail closed, with no
+system-PATH fallback. These are launch-time checks, not protection against hostile
+concurrent filesystem mutation after the checks.
+The local `haskell-language-server` and `haskell-language-server-wrapper` launchers
+both run this guard; use no argument or `--lsp` for the editor, `--check-only` for
+the guard alone. Generic-wrapper CLI options such as `--version` are not supported.
+
+Keep the complete absolute HLS build/store tree: its dynamic libraries are not
+relocatable. Bootstrap explicitly reports reuse of an existing sealed construction,
+not a fresh installation. A failed build or changed tool/library identity fails
+closed; preserve the tree and logs unchanged. A new approved recipe has its own
+construction identity; do not repair/reseal an invalid same-identity build or fall
+back to another HLS/compiler. Preserve the unsuffixed historical installation. The upstream
+GHC 9.14 build excludes integrated HLint, Fourmolu, Ormolu, stylish-haskell,
+Retrie, Stan and Splice; standalone tools do not restore those plugins.
+Guard success is not operational evidence. The final integration report binds a
+separate real project LSP hover/error/recovery/shutdown test to current source;
+independent combined review and decision acceptance remain separate.
+The documentation gate uses `scripts/check_haddock_install.py` to capture fresh,
+source-bound logs for all 16 public libraries and the private library, plus 16
+installed interfaces. A clean parent log or warning-suppressed coverage pass
+alone is not warning-free documentation evidence.
 The required CI checks are:
 
 ```bash
@@ -208,6 +253,9 @@ bash scripts/check-package-manifest
 bash scripts/check-release-metadata
 bash scripts/check-release-policy
 python3 scripts/test_release_tool.py
+python3 scripts/test_check_haddock_install.py
+python3 scripts/test_project_hls.py
+python3 scripts/test_hls_selectors.py
 while IFS=$'\t' read -r package_name package_dir dependency_tier; do
   if [[ -z "$package_name" || "$package_name" == \#* ]]; then
     continue
@@ -242,18 +290,9 @@ cabal bench markovian-tensor-bench --project-file=cabal.project.ci
 cabal bench markovian-gpu-bench --project-file=cabal.project.ci
 bash packages/markovian-tensor/scripts/check-tensor-boundary
 bash backends/markovian-gpu/scripts/check-device-boundary
-# Warning-free evidence: isolated installation, one interface per package.
-rm -rf /tmp/markovian-doc-store /tmp/markovian-doc-build /tmp/markovian-doc-environment
-mapfile -t documentation_packages < <(awk -F '\t' '$1 !~ /^#/ { print $1 }' ci/packages.tsv)
-cabal --store-dir=/tmp/markovian-doc-store install \
-  --lib "${documentation_packages[@]}" \
-  --project-file=cabal.project.ci \
-  --builddir=/tmp/markovian-doc-build \
-  --package-env=/tmp/markovian-doc-environment \
-  --enable-documentation \
-  --overwrite-policy=always 2>&1 | tee haddock-install.log
-! grep -nE '(^|[[:space:]])Warning:' haddock-install.log
-python3 scripts/release_tool.py check-haddock-interfaces /tmp/markovian-doc-store
+# Warning-free evidence: fresh source-bound installation, all 17 unit logs.
+python3 scripts/check_haddock_install.py \
+  --output-parent=/tmp/markovian-doc-evidence
 
 # Coverage evidence only; --no-warnings does not prove warning freedom.
 cabal haddock all \

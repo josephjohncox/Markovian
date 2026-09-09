@@ -223,7 +223,7 @@ passed, including an archive-only focused run. Detailed command
 logs, including initial failures and recovery, are in
 `dist-newstyle/d080-implementation-logs/` in the implementation worktree.
 
-### Current review-repaired handoff (D-080 remains Proposed)
+### Reviewed source handoff (D-080 remains Proposed)
 
 Instrumentation now uses object-like CPP prefixes/events whose normal expansion
 is empty. All five production inputs erase hooks normally; exact repository
@@ -244,11 +244,68 @@ remain valid only for that layout, not the existing standalone CI consumer.
 The separate sibling-extraction regression and final-byte validation evidence is
 in `dist-newstyle/d080-layout-repair-logs/`; original failures remain preserved.
 
-Independent review of this layout repair and the full frozen-matrix audit remain
-required. Parent-owned broader gates include oldest dependencies, all-package
-archive/benchmark/consumer checks, all-16-package warning-enabled Haddock/interface
-checks on both compilers, coverage, and the complete CI supporting-tool/boundary
-matrix. Focused local evidence does not discharge these gates or accept D-080.
+Independent layout/implementation review `6e4750c9` passed for the bounded
+repair, committed at `6c050d4563ef45e7728b5bf9cddd5c7602b3176d`.
+Parent integrated it with the partial modernization into
+`e56981a536e12d01be552a8a94f17ea077b61fbe`. Incoming Haskell bytes match
+that D-080 commit except the modern compiler's typed `ownedParameterValue`
+accessor repair in `addParameters`; its ownership boundary is not waived.
+The merge retained the pre-integration teaching digest as stale, not as a refresh.
+
+The current combined validation campaign starts from e56981a. The approved
+modern-only policy in `DECISIONS.md` supersedes legacy two-compiler obligations:
+all project gates use GHC 9.14.1/Cabal 3.18.1.0 and new-bound prefer-oldest plans.
+Only standalone HLint/cabal-fmt construction uses the separately pinned 9.8.4
+bootstrap compiler, through the same installer in bootstrap and CI, without
+changing global selection. Old source checks, archives and executions above
+remain attributed to their original bytes/toolchains, not combined validation.
+
+Current commands, failures, source inventories and both baseline-relative diffs
+are retained in `/tmp/markovian-modern-combined-e56981a/`. Combined readiness
+requires current all-package tests/benchmarks/boundaries, actual teaching receipt,
+all-16-package warning-enabled installed Haddock package logs/interfaces, coverage,
+fresh archive membership and standalone outside-checkout consumers. The final
+implementation report records executed gates and any remaining gaps; this
+handoff does not predeclare PASS. Actual modern package-log inspection found
+unresolved private Haddock links despite a clean parent installation log.
+The corrective pass in `/tmp/markovian-doc-ci-repair-fpmt26od/` preserves that
+failure evidence. Feedback.Value.Exact now renders its private prose name as
+text. Autodiff.Quote uses Haddock 2.33's supported `redact-type-synonyms` and
+spells the EnvironmentShape equations through the original public aliases.
+Redaction alone still warns on the family equations. The runtime datatype,
+fully saturated aliases, signatures, constructor opacity and nominal roles
+remain unchanged; interface fingerprints change, so reinstallation is required.
+CI now captures a fresh installation and checks all 16 public plus one private
+library unit logs, bound to source archives, manifest, compiler and actual plan,
+and all 16 installed interfaces. Coverage suppression is not this warning gate.
+
+The old installed HLS binary's ABI failure remains retained evidence; it is not
+the new project's launcher. Final integration uses the scratch-proven, byte-pinned
+official source installer/seal/full-ABI guard through `scripts/project-hls.py` in
+bootstrap and `.envrc`. Its complete absolute project-local build/store must be
+preserved; failed construction or runtime identity drift fails closed, without
+resealing, generic-wrapper fallback or global selection changes. The original
+source/recipe proof remains in `/tmp/markovian-hls-official-recipe-b9026de3/`;
+new commands, source/archive bindings and actual disposition are in
+`/tmp/markovian-final-integration-b9026de3/`. Construction, reused construction,
+ABI checking and actual project LSP operation are distinct evidence categories.
+The raw upstream targets omit `ghc-check`, so the mandatory external full boot DB
+and linked-runtime guard is the check actually executed, not an invented
+in-process check. The approved tool-only bounds exception and upstream GHC 9.14
+plugin limitations are recorded in `DECISIONS.md` and README. No standalone
+formatter restores the unavailable integrated plugins. Read the final report
+for completed gates and residual blockers; this prose does not predeclare PASS.
+The subsequent P1 selector review found the historical guard authenticated absolute
+tools but not the PATH selectors used by the Cabal cradle. The focused repair
+captures the complete compiler/Cabal selector mapping during construction, binds it
+to receipt/seal and validates it before guarded subprocesses. Current recipes use
+canonical recipe-digest build roots and explicit installation, preserving the old
+unsuffixed build unchanged. Repair evidence and reused-versus-fresh attribution
+are in `/tmp/markovian-selector-repair/`; launch-time validation does not claim
+protection against concurrent filesystem mutation. No upstream source/dependency
+recipe or mathematical behavior changes are part of this repair.
+Independent combined review remains required. D-077/D-078 stay Accepted;
+D-079/D-080 stay Proposed and unreleased.
 
 ## Instructions for future agents
 

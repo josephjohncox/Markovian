@@ -359,7 +359,7 @@ Existing evidence: the frozen Gate A contract and implementation. The [Gate B le
 Existing evidence: the proposal-stage quotation implementation and current evidence boundary in D-080.
 
 - [x] Record the exact existing signature schedule, constructors/eliminators, path roles, call-by-value order, and total failure table in [the D-080 freeze](docs/DECISIONS.md#d-080-existing-api-freeze--declaration-reference). This checks only the documentation action, not contract review or acceptance.
-- [x] Independently review the completed [prospective cumulative-compilation repair contract](docs/plans/D080-CUMULATIVE-COMPILATION.md), preserving the historical separate-account characterization. Review `eeb4e4ba-4417-442e-b5bd-cb28ca4f4556` passed for the contract only. The approved scalar-product output fixture and full parameter tree have external baseline execution evidence; primitive ownership-layout equality has its own named coupon and exact product-owner budget oracles. Teaching receipts were refreshed through actual execution. That review established specifications only; baseline fixture evidence is not budget-repair evidence or acceptance. The subsequent implementation-stage repair now has numeric planning, cumulative coupons, literal exact/one-below budgets, the full associated differential fixture, and a production-path probe with mutation controls. Independent implementation review and the remaining integration gates are still pending; no acceptance box changes here.
+- [x] Independently review the completed [prospective cumulative-compilation repair contract](docs/plans/D080-CUMULATIVE-COMPILATION.md), preserving the historical separate-account characterization. Review `eeb4e4ba-4417-442e-b5bd-cb28ca4f4556` passed for the contract only. The approved scalar-product output fixture and full parameter tree have external baseline execution evidence; primitive ownership-layout equality has its own named coupon and exact product-owner budget oracles. Teaching receipts were refreshed through actual execution. That review established specifications only; baseline fixture evidence is not budget-repair evidence or acceptance. The subsequent implementation-stage repair now has numeric planning, cumulative coupons, literal exact/one-below budgets, the full associated differential fixture, and a production-path probe with mutation controls. Bounded implementation/layout review `6e4750c9` passed and the repair was committed at `6c050d4563ef45e7728b5bf9cddd5c7602b3176d`, then combined with partial modernization at `e56981a536e12d01be552a8a94f17ea077b61fbe`. Independent combined review and remaining integration gates are pending; no acceptance box changes here.
 - [ ] Review the existing implementation against that schedule. Repair only reviewed gaps.
 - [ ] Run forged/escaped-path compile failures, used/unused lets, shadowing, saturation, preflight, and independent primal/JVP/reverse coordinate comparisons.
 - [ ] Obtain fresh independent contract and implementation review with current test evidence.
@@ -377,6 +377,27 @@ D-080 freeze validation used `/home/josephcox/dev/Markovian-proposals`, branch `
 No Haskell, Python, workflow, package/version, release-history, topology, or teaching-metadata file changed. Both Markdown files already belong to the root source distribution. No tests were added. The independent review, exhaustive quotation coordinate/failure matrix, second supported compiler, and full integration/release gates are not established by these focused commands. R4 review/acceptance boxes remain unchecked; D-077 through D-085 remain `Proposed`.
 
 **Status update — 2026-09-08:** The preceding D-080 freeze validation is a point-in-time record. The separate bounded D-077/D-078 acceptance does not change D-080's Proposed status, separate compile-ledger contract, evidence gaps, or unchecked review/acceptance boxes.
+
+**Combined modernization follow-up:** Current project gates use GHC 9.14.1 and
+Cabal 3.18.1.0, including prefer-oldest within the new library bounds. The
+`DECISIONS.md` amendment supersedes older two-compiler validation obligations,
+not frozen mathematical, ownership, atomicity or cumulative-ledger requirements.
+GHC 9.8.4 is separately pinned only to construct standalone HLint/cabal-fmt;
+this grants no old-compiler project compatibility claim. Current combined
+commands, retained initial failures, diffs and source/archive bindings are in
+`/tmp/markovian-modern-combined-e56981a/`. Read the final implementation report
+for the actual PASS/BLOCKED disposition; old executions above are historical.
+The bounded documentation/CI correction has separate evidence in
+`/tmp/markovian-doc-ci-repair-fpmt26od/`: faithful private-alias rendering and
+fresh 17-component warning-log completeness replace the unsafe parent-only gate.
+The final writer integrates the byte-pinned official-source HLS installer and
+mandatory full-ABI/runtime guard into project-local bootstrap/editor selection.
+The upstream GHC 9.14 integrated-plugin exclusions remain; neither the old failing
+binary nor standalone formatter success is operational HLS evidence. Final
+combined current-byte commands, failures and archive/operation bindings are in
+`/tmp/markovian-final-integration-b9026de3/`; consult its final report for actual
+PASS/BLOCKED readiness. Independent review remains open. This work does not
+change proposal status or constitute full modernization acceptance.
 
 #### R5 — D-081 immutable host-F64 affine views
 

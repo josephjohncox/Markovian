@@ -80,7 +80,7 @@ check_failure() {
 }
 
 check_failure test/compile-fail/SafeTensorOpacity.hs \
-  badLimits badName badFile badSomeTensor 'Illegal term-level use'
+  badLimits badName badFile badSomeTensor 'Data constructor out of scope'
 
 check_failure test/compile-fail/SafeTensorRegionEscape.hs \
   badFileEscape badTensorRegionCoercion badFileRegionCoercion badNameOwner \

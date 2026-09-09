@@ -86,6 +86,23 @@ check_successor_failure() {
       exit 1
     }
   fi
+  if [[ "$name" == SuccessorSubstitutionSealing ]]; then
+    # Check each declaration's own error, not an unrelated failure in the file.
+    python3 - "${log_file}" <<'PY'
+from pathlib import Path
+import re
+import sys
+errors = re.split(r"(?m)^.*SuccessorSubstitutionSealing\.hs:\d+:\d+: error:", Path(sys.argv[1]).read_text())[1:]
+for declaration in ("badSealedReScope", "badSealedChaining"):
+    matches = [error for error in errors if declaration in error]
+    assert len(matches) == 1, (declaration, errors)
+    error = matches[0]
+    assert "Couldn't match" in error, error
+    assert "ExactJointAffineKernel" in error, error
+    assert "ExactSuccessorSubstitution" in error, error
+print("PASS: both sealed-result versus kernel type failures")
+PY
+  fi
   echo "PASS: ${name} named diagnostics"
 }
 check_successor_failure SuccessorSubstitutionConstructors 'Data constructor not in scope' \
