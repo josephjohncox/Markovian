@@ -88,7 +88,7 @@ These reservations count cumulative logical reconstruction, including copied own
 They do not measure heap allocations, bytes, peak residency, or unlimited future executions.
 The original accessor traversals in syntax preflight retain their historical schedule; charged-before-inspection metadata entries are a rule of the new planner.
 Private instrumented production-path tests distinguish metadata witnesses, target construction, and later runtime tapes.
-D-080 remains Proposed pending independent implementation review and the remaining integration gates.
+D-080 is `Accepted` within its bounded, unreleased scope after decision-specific implementation and integration review; see the [separate parent-authorized acceptance record](../../DECISIONS.md#d-080-add-bounded-first-order-quotation-with-callback-free-let). Acceptance does not extend to arbitrary-Haskell/higher-order AD, control flow, effects, sampling, tensors, devices, nested differentiation, vector packing, physical allocation/peak memory, performance or release claims.
 
 The direct exact primal and JVP interpreters recurse over the quotation and source syntax.
 They check rational size after each operation.
@@ -191,7 +191,7 @@ The quotation API is not ordinary Haskell quotation, Template Haskell, a compile
 It has no effects, higher-order values, nested differentiation, or exact transcendental `Double` semantics.
 It does not differentiate sampling.
 It does not claim exact floating algebra or cross-platform transcendental identity.
-The bounded closed-language package has `2026.9.3.0` release evidence. The post-release D-080 quotation work is unreleased and remains `Proposed`; its fixture evidence is not release acceptance. Neither establishes the stronger capabilities excluded above.
+The bounded closed-language package has `2026.9.3.0` release evidence. The post-release D-080 quotation and cumulative-compilation work is Accepted only within its bounded, unreleased scope; its fixture evidence is not release acceptance. Neither establishes the stronger capabilities excluded above.
 
 ## References
 

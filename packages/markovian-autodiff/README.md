@@ -33,7 +33,7 @@ The compiler receives derived structural capacities and the caller's rational-bi
 The returned quotation report includes those reservations; the target report is the actual compiler report.
 Standalone compilation, syntax preflight, lowering, and direct primal/JVP behavior are unchanged.
 The compiler coupons count cumulative logical reconstruction, including owner-list copies and represented zero coordinates, not bytes, peak residency, or physical allocator events.
-D-080 remains Proposed; implementation and private-probe evidence do not constitute acceptance.
+D-080 is `Accepted` within its bounded, unreleased scope through the [separate parent-authorized acceptance record](../../docs/DECISIONS.md#d-080-add-bounded-first-order-quotation-with-callback-free-let), following decision-specific review of implementation and private-probe evidence. Logical reservations are not physical allocation or peak-memory bounds; acceptance adds no arbitrary-Haskell/higher-order AD, control flow, effects, sampling, tensors, devices, nested differentiation, vector packing, performance or release claim.
 
 `interpretExactQuote` and `interpretExactQuoteJVP` recurse directly over quotation and source syntax.
 They do not call the reverse compiler or its primitive VJPs.

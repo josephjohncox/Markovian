@@ -63,6 +63,41 @@ class CapabilityTests(unittest.TestCase):
         self.rejected(self.changed(5, availability="released", evidenceScope="bounded-release"),
                       "not in immutable released membership")
 
+    def test_d079_d080_bounded_acceptance_statuses(self):
+        decisions = (cap.ROOT / "docs/DECISIONS.md").read_text()
+        statuses = dict(re.findall(
+            r"(?ms)^### (D-\d+):.*?^\*\*Status:\*\* ([^\n]+)$", decisions))
+        for number in range(77, 81):
+            self.assertEqual(statuses[f"D-{number:03}"], "Accepted")
+        for number in range(81, 86):
+            self.assertEqual(statuses[f"D-{number:03}"], "Proposed")
+        for decision in ("EL-03", "EL-04", "EL-05"):
+            record = next(r for r in self.document["capabilities"]
+                          if r["decision"] == decision)
+            self.assertEqual(record["decisionStatus"], "Proposed")
+            self.assertEqual(record["availability"], "unreleased")
+
+    def test_d079_d080_acceptance_does_not_create_released_membership(self):
+        for package, module in (
+                ("markovian-continuous", "Markovian.Continuous.Kernel.JointAffine.Exact"),
+                ("markovian-autodiff", "Markovian.Autodiff.Quote")):
+            self.assertIn(module, self.current[package])
+            self.assertNotIn(module, self.released[package])
+
+    def test_d079_d080_current_status_projections(self):
+        projections = {
+            "D-079": ["README.md", "packages/markovian-continuous/README.md",
+                      "docs/book/src/continuous-probability.md"],
+            "D-080": ["packages/markovian-autodiff/README.md",
+                      "docs/book/src/autodiff-lowering.md"],
+        }
+        for decision, paths in projections.items():
+            for path in paths:
+                with self.subTest(decision=decision, path=path):
+                    text = (cap.ROOT / path).read_text()
+                    self.assertIn(f"{decision} is `Accepted` within its bounded, unreleased scope", text)
+                    self.assertNotRegex(text, rf"{decision} remains `?Proposed`?")
+
     def test_paired_proposal_implementation_transition(self):
         record = cap.validate(cap.ROOT, self.document, self.current, self.released)[6]
         self.assertEqual(record["availability"], "unreleased")
