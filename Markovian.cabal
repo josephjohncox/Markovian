@@ -36,6 +36,9 @@ extra-doc-files:
   docs/evidence/CUDA-TENSOR-2026-09-02.md
   docs/evidence/D061-2026-09-02.md
   docs/evidence/D077-WORKTREE-SCOPE.md
+  docs/evidence/D081-MATERIALIZATION/*.json
+  docs/evidence/D081-MATERIALIZATION/*.md
+  docs/evidence/D081-MATERIALIZATION/advisories/*.md
   docs/evidence/D081-TRANSPOSE-REVERSE-EQUIVALENCE.md
   docs/evidence/EXECUTABLE-LEARNING-INTEGRATION.md
   docs/evidence/INTEGRATION-DOCS-REPAIR.md
@@ -47,6 +50,7 @@ extra-doc-files:
   docs/learning/output-receipt.json
   docs/plans/D080-CUMULATIVE-COMPILATION.md
   docs/plans/D081-AFFINE-VIEWS.md
+  docs/plans/D081-MATERIALIZATION-ADDENDUM.md
   docs/plans/EL-03-PAIRED-DIFFERENCE.md
   docs/plans/EL-04-REWARD-JVP.md
   docs/plans/EL-05-AGGREGATION.md

@@ -46,6 +46,8 @@ Open `docs/book/build/index.html` after the build succeeds. Haddock remains the 
 
 The public book is <https://josephjohncox.github.io/Markovian/>. [Pages run 33126170927](https://github.com/josephjohncox/Markovian/actions/runs/33126170927) deployed merge commit `1268191a025c22fd9b995a1025d9ca810ff43451` from `main`.
 
+D-081's [reviewed r4 materialization addendum](docs/plans/D081-MATERIALIZATION-ADDENDUM.md) must be read with its unchanged [canonical31bf plan](docs/plans/D081-AFFINE-VIEWS.md); it supersedes only reviewed resource/producer/failure/fixture seams, not the geometry/API or unaffected requirements. Parent has adopted the r4 contract after DESIGN PASS and documentation PASS; the [freeze record](docs/evidence/D081-MATERIALIZATION/FREEZE-RECORD.md) binds the pre-closeout review/audit. The next gate is separate runtime-continuation authority, not further contract-adoption consideration. Final closeout review and parent byte audit/staging/commit remain; no commit or integration is claimed. D-081 remains Proposed/unaccepted, D-082 blocked, and runtime continuation held; no Affine exposure or implementation-completion claim follows. See the [durable proof and evidence bindings](docs/evidence/D081-MATERIALIZATION/README.md).
+
 ## Present API surfaces
 
 - opaque validated floating probabilities, weights, finite distributions, rewards, discounts, and horizons;

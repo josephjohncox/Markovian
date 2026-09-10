@@ -1,0 +1,3517 @@
+{
+  "status": "CHECKED DESIGN EQUATIONS; NOT IMPLEMENTATION ACCEPTANCE",
+  "source_sum_cases": 2304,
+  "oracle_comparisons": 17280,
+  "review_example_sequential": [
+    [
+      4,
+      3,
+      5
+    ],
+    [
+      5,
+      4,
+      6
+    ],
+    [
+      6,
+      5,
+      7
+    ],
+    [
+      7,
+      6,
+      8
+    ],
+    [
+      8,
+      7,
+      9
+    ],
+    [
+      9,
+      8,
+      10
+    ],
+    [
+      10,
+      9,
+      11
+    ]
+  ],
+  "startup": {
+    "W": 512,
+    "H": 448,
+    "R": 128,
+    "Q": 576,
+    "L": 4672
+  },
+  "prefix": [
+    {
+      "lane": "work",
+      "admitted": 512,
+      "caps": [
+        1610408,
+        197120,
+        27304
+      ],
+      "error": [
+        "work",
+        197120,
+        197121
+      ],
+      "local": [
+        1604160,
+        197120,
+        27200
+      ],
+      "next_uninspected": true
+    },
+    {
+      "lane": "live",
+      "admitted": 511,
+      "caps": [
+        1610408,
+        197888,
+        27199
+      ],
+      "error": [
+        "live",
+        27199,
+        27200
+      ],
+      "local": [
+        1601036,
+        196736,
+        27148
+      ],
+      "next_uninspected": true
+    },
+    {
+      "lane": "cells",
+      "admitted": 512,
+      "caps": [
+        1604160,
+        197888,
+        27304
+      ],
+      "error": [
+        "cells",
+        1604160,
+        1604161
+      ],
+      "local": [
+        1604160,
+        197120,
+        27200
+      ],
+      "next_uninspected": true
+    }
+  ],
+  "fixtures": {
+    "signed-map": {
+      "rows": [
+        {
+          "W": 7796,
+          "H": 980,
+          "R": 235,
+          "Q": 1215,
+          "L": 63583,
+          "e": 6
+        }
+      ],
+      "exact_admission": [
+        68255,
+        8308,
+        1215
+      ],
+      "one_below_and_competition": [
+        {
+          "mask": 1,
+          "caps": [
+            68254,
+            8308,
+            1215
+          ],
+          "outcome": {
+            "stage": "reservation",
+            "operation": 0,
+            "error": [
+              "cells",
+              68254,
+              68255
+            ],
+            "ledger": [
+              4672,
+              512,
+              576
+            ]
+          }
+        },
+        {
+          "mask": 2,
+          "caps": [
+            68255,
+            8307,
+            1215
+          ],
+          "outcome": {
+            "stage": "reservation",
+            "operation": 0,
+            "error": [
+              "work",
+              8307,
+              8308
+            ],
+            "ledger": [
+              4672,
+              512,
+              576
+            ]
+          }
+        },
+        {
+          "mask": 3,
+          "caps": [
+            68254,
+            8307,
+            1215
+          ],
+          "outcome": {
+            "stage": "reservation",
+            "operation": 0,
+            "error": [
+              "cells",
+              68254,
+              68255
+            ],
+            "ledger": [
+              4672,
+              512,
+              576
+            ]
+          }
+        },
+        {
+          "mask": 4,
+          "caps": [
+            68255,
+            8308,
+            1214
+          ],
+          "outcome": {
+            "stage": "reservation",
+            "operation": 0,
+            "error": [
+              "live",
+              1214,
+              1215
+            ],
+            "ledger": [
+              4672,
+              512,
+              576
+            ]
+          }
+        },
+        {
+          "mask": 5,
+          "caps": [
+            68254,
+            8308,
+            1214
+          ],
+          "outcome": {
+            "stage": "reservation",
+            "operation": 0,
+            "error": [
+              "cells",
+              68254,
+              68255
+            ],
+            "ledger": [
+              4672,
+              512,
+              576
+            ]
+          }
+        },
+        {
+          "mask": 6,
+          "caps": [
+            68255,
+            8307,
+            1214
+          ],
+          "outcome": {
+            "stage": "reservation",
+            "operation": 0,
+            "error": [
+              "work",
+              8307,
+              8308
+            ],
+            "ledger": [
+              4672,
+              512,
+              576
+            ]
+          }
+        },
+        {
+          "mask": 7,
+          "caps": [
+            68254,
+            8307,
+            1214
+          ],
+          "outcome": {
+            "stage": "reservation",
+            "operation": 0,
+            "error": [
+              "cells",
+              68254,
+              68255
+            ],
+            "ledger": [
+              4672,
+              512,
+              576
+            ]
+          }
+        }
+      ],
+      "semantic_failure_retains_prior_ledger": false
+    },
+    "overlap-post-admission": {
+      "rows": [
+        {
+          "W": 12266,
+          "H": 1079,
+          "R": 263,
+          "Q": 1342,
+          "L": 99470,
+          "e": 8
+        }
+      ],
+      "exact_admission": [
+        104142,
+        12778,
+        1342
+      ],
+      "one_below_and_competition": [
+        {
+          "mask": 1,
+          "caps": [
+            104141,
+            12778,
+            1342
+          ],
+          "outcome": {
+            "stage": "reservation",
+            "operation": 0,
+            "error": [
+              "cells",
+              104141,
+              104142
+            ],
+            "ledger": [
+              4672,
+              512,
+              576
+            ]
+          }
+        },
+        {
+          "mask": 2,
+          "caps": [
+            104142,
+            12777,
+            1342
+          ],
+          "outcome": {
+            "stage": "reservation",
+            "operation": 0,
+            "error": [
+              "work",
+              12777,
+              12778
+            ],
+            "ledger": [
+              4672,
+              512,
+              576
+            ]
+          }
+        },
+        {
+          "mask": 3,
+          "caps": [
+            104141,
+            12777,
+            1342
+          ],
+          "outcome": {
+            "stage": "reservation",
+            "operation": 0,
+            "error": [
+              "cells",
+              104141,
+              104142
+            ],
+            "ledger": [
+              4672,
+              512,
+              576
+            ]
+          }
+        },
+        {
+          "mask": 4,
+          "caps": [
+            104142,
+            12778,
+            1341
+          ],
+          "outcome": {
+            "stage": "reservation",
+            "operation": 0,
+            "error": [
+              "live",
+              1341,
+              1342
+            ],
+            "ledger": [
+              4672,
+              512,
+              576
+            ]
+          }
+        },
+        {
+          "mask": 5,
+          "caps": [
+            104141,
+            12778,
+            1341
+          ],
+          "outcome": {
+            "stage": "reservation",
+            "operation": 0,
+            "error": [
+              "cells",
+              104141,
+              104142
+            ],
+            "ledger": [
+              4672,
+              512,
+              576
+            ]
+          }
+        },
+        {
+          "mask": 6,
+          "caps": [
+            104142,
+            12777,
+            1341
+          ],
+          "outcome": {
+            "stage": "reservation",
+            "operation": 0,
+            "error": [
+              "work",
+              12777,
+              12778
+            ],
+            "ledger": [
+              4672,
+              512,
+              576
+            ]
+          }
+        },
+        {
+          "mask": 7,
+          "caps": [
+            104141,
+            12777,
+            1341
+          ],
+          "outcome": {
+            "stage": "reservation",
+            "operation": 0,
+            "error": [
+              "cells",
+              104141,
+              104142
+            ],
+            "ledger": [
+              4672,
+              512,
+              576
+            ]
+          }
+        }
+      ],
+      "semantic_failure_retains_prior_ledger": true
+    },
+    "empty-map": {
+      "rows": [
+        {
+          "W": 5456,
+          "H": 980,
+          "R": 235,
+          "Q": 1215,
+          "L": 44863,
+          "e": 6
+        }
+      ],
+      "exact_admission": [
+        49535,
+        5968,
+        1215
+      ],
+      "one_below_and_competition": [
+        {
+          "mask": 1,
+          "caps": [
+            49534,
+            5968,
+            1215
+          ],
+          "outcome": {
+            "stage": "reservation",
+            "operation": 0,
+            "error": [
+              "cells",
+              49534,
+              49535
+            ],
+            "ledger": [
+              4672,
+              512,
+              576
+            ]
+          }
+        },
+        {
+          "mask": 2,
+          "caps": [
+            49535,
+            5967,
+            1215
+          ],
+          "outcome": {
+            "stage": "reservation",
+            "operation": 0,
+            "error": [
+              "work",
+              5967,
+              5968
+            ],
+            "ledger": [
+              4672,
+              512,
+              576
+            ]
+          }
+        },
+        {
+          "mask": 3,
+          "caps": [
+            49534,
+            5967,
+            1215
+          ],
+          "outcome": {
+            "stage": "reservation",
+            "operation": 0,
+            "error": [
+              "cells",
+              49534,
+              49535
+            ],
+            "ledger": [
+              4672,
+              512,
+              576
+            ]
+          }
+        },
+        {
+          "mask": 4,
+          "caps": [
+            49535,
+            5968,
+            1214
+          ],
+          "outcome": {
+            "stage": "reservation",
+            "operation": 0,
+            "error": [
+              "live",
+              1214,
+              1215
+            ],
+            "ledger": [
+              4672,
+              512,
+              576
+            ]
+          }
+        },
+        {
+          "mask": 5,
+          "caps": [
+            49534,
+            5968,
+            1214
+          ],
+          "outcome": {
+            "stage": "reservation",
+            "operation": 0,
+            "error": [
+              "cells",
+              49534,
+              49535
+            ],
+            "ledger": [
+              4672,
+              512,
+              576
+            ]
+          }
+        },
+        {
+          "mask": 6,
+          "caps": [
+            49535,
+            5967,
+            1214
+          ],
+          "outcome": {
+            "stage": "reservation",
+            "operation": 0,
+            "error": [
+              "work",
+              5967,
+              5968
+            ],
+            "ledger": [
+              4672,
+              512,
+              576
+            ]
+          }
+        },
+        {
+          "mask": 7,
+          "caps": [
+            49534,
+            5967,
+            1214
+          ],
+          "outcome": {
+            "stage": "reservation",
+            "operation": 0,
+            "error": [
+              "cells",
+              49534,
+              49535
+            ],
+            "ledger": [
+              4672,
+              512,
+              576
+            ]
+          }
+        }
+      ],
+      "semantic_failure_retains_prior_ledger": false
+    },
+    "scalar-map": {
+      "rows": [
+        {
+          "W": 4078,
+          "H": 841,
+          "R": 195,
+          "Q": 1036,
+          "L": 33660,
+          "e": 3
+        }
+      ],
+      "exact_admission": [
+        38332,
+        4590,
+        1036
+      ],
+      "one_below_and_competition": [
+        {
+          "mask": 1,
+          "caps": [
+            38331,
+            4590,
+            1036
+          ],
+          "outcome": {
+            "stage": "reservation",
+            "operation": 0,
+            "error": [
+              "cells",
+              38331,
+              38332
+            ],
+            "ledger": [
+              4672,
+              512,
+              576
+            ]
+          }
+        },
+        {
+          "mask": 2,
+          "caps": [
+            38332,
+            4589,
+            1036
+          ],
+          "outcome": {
+            "stage": "reservation",
+            "operation": 0,
+            "error": [
+              "work",
+              4589,
+              4590
+            ],
+            "ledger": [
+              4672,
+              512,
+              576
+            ]
+          }
+        },
+        {
+          "mask": 3,
+          "caps": [
+            38331,
+            4589,
+            1036
+          ],
+          "outcome": {
+            "stage": "reservation",
+            "operation": 0,
+            "error": [
+              "cells",
+              38331,
+              38332
+            ],
+            "ledger": [
+              4672,
+              512,
+              576
+            ]
+          }
+        },
+        {
+          "mask": 4,
+          "caps": [
+            38332,
+            4590,
+            1035
+          ],
+          "outcome": {
+            "stage": "reservation",
+            "operation": 0,
+            "error": [
+              "live",
+              1035,
+              1036
+            ],
+            "ledger": [
+              4672,
+              512,
+              576
+            ]
+          }
+        },
+        {
+          "mask": 5,
+          "caps": [
+            38331,
+            4590,
+            1035
+          ],
+          "outcome": {
+            "stage": "reservation",
+            "operation": 0,
+            "error": [
+              "cells",
+              38331,
+              38332
+            ],
+            "ledger": [
+              4672,
+              512,
+              576
+            ]
+          }
+        },
+        {
+          "mask": 6,
+          "caps": [
+            38332,
+            4589,
+            1035
+          ],
+          "outcome": {
+            "stage": "reservation",
+            "operation": 0,
+            "error": [
+              "work",
+              4589,
+              4590
+            ],
+            "ledger": [
+              4672,
+              512,
+              576
+            ]
+          }
+        },
+        {
+          "mask": 7,
+          "caps": [
+            38331,
+            4589,
+            1035
+          ],
+          "outcome": {
+            "stage": "reservation",
+            "operation": 0,
+            "error": [
+              "cells",
+              38331,
+              38332
+            ],
+            "ledger": [
+              4672,
+              512,
+              576
+            ]
+          }
+        }
+      ],
+      "semantic_failure_retains_prior_ledger": false
+    },
+    "singleton-map": {
+      "rows": [
+        {
+          "W": 5760,
+          "H": 980,
+          "R": 235,
+          "Q": 1215,
+          "L": 47295,
+          "e": 6
+        }
+      ],
+      "exact_admission": [
+        51967,
+        6272,
+        1215
+      ],
+      "one_below_and_competition": [
+        {
+          "mask": 1,
+          "caps": [
+            51966,
+            6272,
+            1215
+          ],
+          "outcome": {
+            "stage": "reservation",
+            "operation": 0,
+            "error": [
+              "cells",
+              51966,
+              51967
+            ],
+            "ledger": [
+              4672,
+              512,
+              576
+            ]
+          }
+        },
+        {
+          "mask": 2,
+          "caps": [
+            51967,
+            6271,
+            1215
+          ],
+          "outcome": {
+            "stage": "reservation",
+            "operation": 0,
+            "error": [
+              "work",
+              6271,
+              6272
+            ],
+            "ledger": [
+              4672,
+              512,
+              576
+            ]
+          }
+        },
+        {
+          "mask": 3,
+          "caps": [
+            51966,
+            6271,
+            1215
+          ],
+          "outcome": {
+            "stage": "reservation",
+            "operation": 0,
+            "error": [
+              "cells",
+              51966,
+              51967
+            ],
+            "ledger": [
+              4672,
+              512,
+              576
+            ]
+          }
+        },
+        {
+          "mask": 4,
+          "caps": [
+            51967,
+            6272,
+            1214
+          ],
+          "outcome": {
+            "stage": "reservation",
+            "operation": 0,
+            "error": [
+              "live",
+              1214,
+              1215
+            ],
+            "ledger": [
+              4672,
+              512,
+              576
+            ]
+          }
+        },
+        {
+          "mask": 5,
+          "caps": [
+            51966,
+            6272,
+            1214
+          ],
+          "outcome": {
+            "stage": "reservation",
+            "operation": 0,
+            "error": [
+              "cells",
+              51966,
+              51967
+            ],
+            "ledger": [
+              4672,
+              512,
+              576
+            ]
+          }
+        },
+        {
+          "mask": 6,
+          "caps": [
+            51967,
+            6271,
+            1214
+          ],
+          "outcome": {
+            "stage": "reservation",
+            "operation": 0,
+            "error": [
+              "work",
+              6271,
+              6272
+            ],
+            "ledger": [
+              4672,
+              512,
+              576
+            ]
+          }
+        },
+        {
+          "mask": 7,
+          "caps": [
+            51966,
+            6271,
+            1214
+          ],
+          "outcome": {
+            "stage": "reservation",
+            "operation": 0,
+            "error": [
+              "cells",
+              51966,
+              51967
+            ],
+            "ledger": [
+              4672,
+              512,
+              576
+            ]
+          }
+        }
+      ],
+      "semantic_failure_retains_prior_ledger": false
+    },
+    "permute": {
+      "rows": [
+        {
+          "W": 7796,
+          "H": 980,
+          "R": 235,
+          "Q": 1215,
+          "L": 63583,
+          "e": 6
+        },
+        {
+          "W": 10057,
+          "H": 1159,
+          "R": 283,
+          "Q": 1442,
+          "L": 81898,
+          "e": 8
+        }
+      ],
+      "exact_admission": [
+        150153,
+        18365,
+        1442
+      ],
+      "one_below_and_competition": [
+        {
+          "mask": 1,
+          "caps": [
+            150152,
+            18365,
+            1442
+          ],
+          "outcome": {
+            "stage": "reservation",
+            "operation": 1,
+            "error": [
+              "cells",
+              150152,
+              150153
+            ],
+            "ledger": [
+              68255,
+              8308,
+              1215
+            ]
+          }
+        },
+        {
+          "mask": 2,
+          "caps": [
+            150153,
+            18364,
+            1442
+          ],
+          "outcome": {
+            "stage": "reservation",
+            "operation": 1,
+            "error": [
+              "work",
+              18364,
+              18365
+            ],
+            "ledger": [
+              68255,
+              8308,
+              1215
+            ]
+          }
+        },
+        {
+          "mask": 3,
+          "caps": [
+            150152,
+            18364,
+            1442
+          ],
+          "outcome": {
+            "stage": "reservation",
+            "operation": 1,
+            "error": [
+              "cells",
+              150152,
+              150153
+            ],
+            "ledger": [
+              68255,
+              8308,
+              1215
+            ]
+          }
+        },
+        {
+          "mask": 4,
+          "caps": [
+            150153,
+            18365,
+            1441
+          ],
+          "outcome": {
+            "stage": "reservation",
+            "operation": 1,
+            "error": [
+              "live",
+              1441,
+              1442
+            ],
+            "ledger": [
+              68255,
+              8308,
+              1215
+            ]
+          }
+        },
+        {
+          "mask": 5,
+          "caps": [
+            150152,
+            18365,
+            1441
+          ],
+          "outcome": {
+            "stage": "reservation",
+            "operation": 1,
+            "error": [
+              "cells",
+              150152,
+              150153
+            ],
+            "ledger": [
+              68255,
+              8308,
+              1215
+            ]
+          }
+        },
+        {
+          "mask": 6,
+          "caps": [
+            150153,
+            18364,
+            1441
+          ],
+          "outcome": {
+            "stage": "reservation",
+            "operation": 1,
+            "error": [
+              "work",
+              18364,
+              18365
+            ],
+            "ledger": [
+              68255,
+              8308,
+              1215
+            ]
+          }
+        },
+        {
+          "mask": 7,
+          "caps": [
+            150152,
+            18364,
+            1441
+          ],
+          "outcome": {
+            "stage": "reservation",
+            "operation": 1,
+            "error": [
+              "cells",
+              150152,
+              150153
+            ],
+            "ledger": [
+              68255,
+              8308,
+              1215
+            ]
+          }
+        }
+      ],
+      "semantic_failure_retains_prior_ledger": false
+    },
+    "reverse": {
+      "rows": [
+        {
+          "W": 7796,
+          "H": 980,
+          "R": 235,
+          "Q": 1215,
+          "L": 63583,
+          "e": 6
+        },
+        {
+          "W": 10057,
+          "H": 1159,
+          "R": 283,
+          "Q": 1442,
+          "L": 81898,
+          "e": 6
+        }
+      ],
+      "exact_admission": [
+        150153,
+        18365,
+        1442
+      ],
+      "one_below_and_competition": [
+        {
+          "mask": 1,
+          "caps": [
+            150152,
+            18365,
+            1442
+          ],
+          "outcome": {
+            "stage": "reservation",
+            "operation": 1,
+            "error": [
+              "cells",
+              150152,
+              150153
+            ],
+            "ledger": [
+              68255,
+              8308,
+              1215
+            ]
+          }
+        },
+        {
+          "mask": 2,
+          "caps": [
+            150153,
+            18364,
+            1442
+          ],
+          "outcome": {
+            "stage": "reservation",
+            "operation": 1,
+            "error": [
+              "work",
+              18364,
+              18365
+            ],
+            "ledger": [
+              68255,
+              8308,
+              1215
+            ]
+          }
+        },
+        {
+          "mask": 3,
+          "caps": [
+            150152,
+            18364,
+            1442
+          ],
+          "outcome": {
+            "stage": "reservation",
+            "operation": 1,
+            "error": [
+              "cells",
+              150152,
+              150153
+            ],
+            "ledger": [
+              68255,
+              8308,
+              1215
+            ]
+          }
+        },
+        {
+          "mask": 4,
+          "caps": [
+            150153,
+            18365,
+            1441
+          ],
+          "outcome": {
+            "stage": "reservation",
+            "operation": 1,
+            "error": [
+              "live",
+              1441,
+              1442
+            ],
+            "ledger": [
+              68255,
+              8308,
+              1215
+            ]
+          }
+        },
+        {
+          "mask": 5,
+          "caps": [
+            150152,
+            18365,
+            1441
+          ],
+          "outcome": {
+            "stage": "reservation",
+            "operation": 1,
+            "error": [
+              "cells",
+              150152,
+              150153
+            ],
+            "ledger": [
+              68255,
+              8308,
+              1215
+            ]
+          }
+        },
+        {
+          "mask": 6,
+          "caps": [
+            150153,
+            18364,
+            1441
+          ],
+          "outcome": {
+            "stage": "reservation",
+            "operation": 1,
+            "error": [
+              "work",
+              18364,
+              18365
+            ],
+            "ledger": [
+              68255,
+              8308,
+              1215
+            ]
+          }
+        },
+        {
+          "mask": 7,
+          "caps": [
+            150152,
+            18364,
+            1441
+          ],
+          "outcome": {
+            "stage": "reservation",
+            "operation": 1,
+            "error": [
+              "cells",
+              150152,
+              150153
+            ],
+            "ledger": [
+              68255,
+              8308,
+              1215
+            ]
+          }
+        }
+      ],
+      "semantic_failure_retains_prior_ledger": false
+    },
+    "slice": {
+      "rows": [
+        {
+          "W": 7796,
+          "H": 980,
+          "R": 235,
+          "Q": 1215,
+          "L": 63583,
+          "e": 6
+        },
+        {
+          "W": 10057,
+          "H": 1159,
+          "R": 283,
+          "Q": 1442,
+          "L": 81898,
+          "e": 10
+        }
+      ],
+      "exact_admission": [
+        150153,
+        18365,
+        1442
+      ],
+      "one_below_and_competition": [
+        {
+          "mask": 1,
+          "caps": [
+            150152,
+            18365,
+            1442
+          ],
+          "outcome": {
+            "stage": "reservation",
+            "operation": 1,
+            "error": [
+              "cells",
+              150152,
+              150153
+            ],
+            "ledger": [
+              68255,
+              8308,
+              1215
+            ]
+          }
+        },
+        {
+          "mask": 2,
+          "caps": [
+            150153,
+            18364,
+            1442
+          ],
+          "outcome": {
+            "stage": "reservation",
+            "operation": 1,
+            "error": [
+              "work",
+              18364,
+              18365
+            ],
+            "ledger": [
+              68255,
+              8308,
+              1215
+            ]
+          }
+        },
+        {
+          "mask": 3,
+          "caps": [
+            150152,
+            18364,
+            1442
+          ],
+          "outcome": {
+            "stage": "reservation",
+            "operation": 1,
+            "error": [
+              "cells",
+              150152,
+              150153
+            ],
+            "ledger": [
+              68255,
+              8308,
+              1215
+            ]
+          }
+        },
+        {
+          "mask": 4,
+          "caps": [
+            150153,
+            18365,
+            1441
+          ],
+          "outcome": {
+            "stage": "reservation",
+            "operation": 1,
+            "error": [
+              "live",
+              1441,
+              1442
+            ],
+            "ledger": [
+              68255,
+              8308,
+              1215
+            ]
+          }
+        },
+        {
+          "mask": 5,
+          "caps": [
+            150152,
+            18365,
+            1441
+          ],
+          "outcome": {
+            "stage": "reservation",
+            "operation": 1,
+            "error": [
+              "cells",
+              150152,
+              150153
+            ],
+            "ledger": [
+              68255,
+              8308,
+              1215
+            ]
+          }
+        },
+        {
+          "mask": 6,
+          "caps": [
+            150153,
+            18364,
+            1441
+          ],
+          "outcome": {
+            "stage": "reservation",
+            "operation": 1,
+            "error": [
+              "work",
+              18364,
+              18365
+            ],
+            "ledger": [
+              68255,
+              8308,
+              1215
+            ]
+          }
+        },
+        {
+          "mask": 7,
+          "caps": [
+            150152,
+            18364,
+            1441
+          ],
+          "outcome": {
+            "stage": "reservation",
+            "operation": 1,
+            "error": [
+              "cells",
+              150152,
+              150153
+            ],
+            "ledger": [
+              68255,
+              8308,
+              1215
+            ]
+          }
+        }
+      ],
+      "semantic_failure_retains_prior_ledger": false
+    },
+    "bind": {
+      "rows": [
+        {
+          "W": 5539,
+          "H": 1259,
+          "R": 326,
+          "Q": 1585,
+          "L": 45897,
+          "e": 4
+        }
+      ],
+      "exact_admission": [
+        50569,
+        6051,
+        1585
+      ],
+      "one_below_and_competition": [
+        {
+          "mask": 1,
+          "caps": [
+            50568,
+            6051,
+            1585
+          ],
+          "outcome": {
+            "stage": "reservation",
+            "operation": 0,
+            "error": [
+              "cells",
+              50568,
+              50569
+            ],
+            "ledger": [
+              4672,
+              512,
+              576
+            ]
+          }
+        },
+        {
+          "mask": 2,
+          "caps": [
+            50569,
+            6050,
+            1585
+          ],
+          "outcome": {
+            "stage": "reservation",
+            "operation": 0,
+            "error": [
+              "work",
+              6050,
+              6051
+            ],
+            "ledger": [
+              4672,
+              512,
+              576
+            ]
+          }
+        },
+        {
+          "mask": 3,
+          "caps": [
+            50568,
+            6050,
+            1585
+          ],
+          "outcome": {
+            "stage": "reservation",
+            "operation": 0,
+            "error": [
+              "cells",
+              50568,
+              50569
+            ],
+            "ledger": [
+              4672,
+              512,
+              576
+            ]
+          }
+        },
+        {
+          "mask": 4,
+          "caps": [
+            50569,
+            6051,
+            1584
+          ],
+          "outcome": {
+            "stage": "reservation",
+            "operation": 0,
+            "error": [
+              "live",
+              1584,
+              1585
+            ],
+            "ledger": [
+              4672,
+              512,
+              576
+            ]
+          }
+        },
+        {
+          "mask": 5,
+          "caps": [
+            50568,
+            6051,
+            1584
+          ],
+          "outcome": {
+            "stage": "reservation",
+            "operation": 0,
+            "error": [
+              "cells",
+              50568,
+              50569
+            ],
+            "ledger": [
+              4672,
+              512,
+              576
+            ]
+          }
+        },
+        {
+          "mask": 6,
+          "caps": [
+            50569,
+            6050,
+            1584
+          ],
+          "outcome": {
+            "stage": "reservation",
+            "operation": 0,
+            "error": [
+              "work",
+              6050,
+              6051
+            ],
+            "ledger": [
+              4672,
+              512,
+              576
+            ]
+          }
+        },
+        {
+          "mask": 7,
+          "caps": [
+            50568,
+            6050,
+            1584
+          ],
+          "outcome": {
+            "stage": "reservation",
+            "operation": 0,
+            "error": [
+              "cells",
+              50568,
+              50569
+            ],
+            "ledger": [
+              4672,
+              512,
+              576
+            ]
+          }
+        }
+      ],
+      "semantic_failure_retains_prior_ledger": false
+    },
+    "signed-pull": {
+      "rows": [
+        {
+          "W": 5539,
+          "H": 1259,
+          "R": 326,
+          "Q": 1585,
+          "L": 45897,
+          "e": 4
+        },
+        {
+          "W": 8843,
+          "H": 1752,
+          "R": 377,
+          "Q": 2129,
+          "L": 72873,
+          "e": 6
+        }
+      ],
+      "exact_admission": [
+        123442,
+        14894,
+        2129
+      ],
+      "one_below_and_competition": [
+        {
+          "mask": 1,
+          "caps": [
+            123441,
+            14894,
+            2129
+          ],
+          "outcome": {
+            "stage": "reservation",
+            "operation": 1,
+            "error": [
+              "cells",
+              123441,
+              123442
+            ],
+            "ledger": [
+              50569,
+              6051,
+              1585
+            ]
+          }
+        },
+        {
+          "mask": 2,
+          "caps": [
+            123442,
+            14893,
+            2129
+          ],
+          "outcome": {
+            "stage": "reservation",
+            "operation": 1,
+            "error": [
+              "work",
+              14893,
+              14894
+            ],
+            "ledger": [
+              50569,
+              6051,
+              1585
+            ]
+          }
+        },
+        {
+          "mask": 3,
+          "caps": [
+            123441,
+            14893,
+            2129
+          ],
+          "outcome": {
+            "stage": "reservation",
+            "operation": 1,
+            "error": [
+              "cells",
+              123441,
+              123442
+            ],
+            "ledger": [
+              50569,
+              6051,
+              1585
+            ]
+          }
+        },
+        {
+          "mask": 4,
+          "caps": [
+            123442,
+            14894,
+            2128
+          ],
+          "outcome": {
+            "stage": "reservation",
+            "operation": 1,
+            "error": [
+              "live",
+              2128,
+              2129
+            ],
+            "ledger": [
+              50569,
+              6051,
+              1585
+            ]
+          }
+        },
+        {
+          "mask": 5,
+          "caps": [
+            123441,
+            14894,
+            2128
+          ],
+          "outcome": {
+            "stage": "reservation",
+            "operation": 1,
+            "error": [
+              "cells",
+              123441,
+              123442
+            ],
+            "ledger": [
+              50569,
+              6051,
+              1585
+            ]
+          }
+        },
+        {
+          "mask": 6,
+          "caps": [
+            123442,
+            14893,
+            2128
+          ],
+          "outcome": {
+            "stage": "reservation",
+            "operation": 1,
+            "error": [
+              "work",
+              14893,
+              14894
+            ],
+            "ledger": [
+              50569,
+              6051,
+              1585
+            ]
+          }
+        },
+        {
+          "mask": 7,
+          "caps": [
+            123441,
+            14893,
+            2128
+          ],
+          "outcome": {
+            "stage": "reservation",
+            "operation": 1,
+            "error": [
+              "cells",
+              123441,
+              123442
+            ],
+            "ledger": [
+              50569,
+              6051,
+              1585
+            ]
+          }
+        }
+      ],
+      "semantic_failure_retains_prior_ledger": false
+    },
+    "empty-pull": {
+      "rows": [
+        {
+          "W": 5539,
+          "H": 1259,
+          "R": 326,
+          "Q": 1585,
+          "L": 45897,
+          "e": 4
+        },
+        {
+          "W": 7487,
+          "H": 1752,
+          "R": 377,
+          "Q": 2129,
+          "L": 62025,
+          "e": 6
+        }
+      ],
+      "exact_admission": [
+        112594,
+        13538,
+        2129
+      ],
+      "one_below_and_competition": [
+        {
+          "mask": 1,
+          "caps": [
+            112593,
+            13538,
+            2129
+          ],
+          "outcome": {
+            "stage": "reservation",
+            "operation": 1,
+            "error": [
+              "cells",
+              112593,
+              112594
+            ],
+            "ledger": [
+              50569,
+              6051,
+              1585
+            ]
+          }
+        },
+        {
+          "mask": 2,
+          "caps": [
+            112594,
+            13537,
+            2129
+          ],
+          "outcome": {
+            "stage": "reservation",
+            "operation": 1,
+            "error": [
+              "work",
+              13537,
+              13538
+            ],
+            "ledger": [
+              50569,
+              6051,
+              1585
+            ]
+          }
+        },
+        {
+          "mask": 3,
+          "caps": [
+            112593,
+            13537,
+            2129
+          ],
+          "outcome": {
+            "stage": "reservation",
+            "operation": 1,
+            "error": [
+              "cells",
+              112593,
+              112594
+            ],
+            "ledger": [
+              50569,
+              6051,
+              1585
+            ]
+          }
+        },
+        {
+          "mask": 4,
+          "caps": [
+            112594,
+            13538,
+            2128
+          ],
+          "outcome": {
+            "stage": "reservation",
+            "operation": 1,
+            "error": [
+              "live",
+              2128,
+              2129
+            ],
+            "ledger": [
+              50569,
+              6051,
+              1585
+            ]
+          }
+        },
+        {
+          "mask": 5,
+          "caps": [
+            112593,
+            13538,
+            2128
+          ],
+          "outcome": {
+            "stage": "reservation",
+            "operation": 1,
+            "error": [
+              "cells",
+              112593,
+              112594
+            ],
+            "ledger": [
+              50569,
+              6051,
+              1585
+            ]
+          }
+        },
+        {
+          "mask": 6,
+          "caps": [
+            112594,
+            13537,
+            2128
+          ],
+          "outcome": {
+            "stage": "reservation",
+            "operation": 1,
+            "error": [
+              "work",
+              13537,
+              13538
+            ],
+            "ledger": [
+              50569,
+              6051,
+              1585
+            ]
+          }
+        },
+        {
+          "mask": 7,
+          "caps": [
+            112593,
+            13537,
+            2128
+          ],
+          "outcome": {
+            "stage": "reservation",
+            "operation": 1,
+            "error": [
+              "cells",
+              112593,
+              112594
+            ],
+            "ledger": [
+              50569,
+              6051,
+              1585
+            ]
+          }
+        }
+      ],
+      "semantic_failure_retains_prior_ledger": false
+    },
+    "raw-empty-post-admission": {
+      "rows": [
+        {
+          "W": 6658,
+          "H": 1079,
+          "R": 263,
+          "Q": 1342,
+          "L": 54606,
+          "e": 8
+        }
+      ],
+      "exact_admission": [
+        59278,
+        7170,
+        1342
+      ],
+      "one_below_and_competition": [
+        {
+          "mask": 1,
+          "caps": [
+            59277,
+            7170,
+            1342
+          ],
+          "outcome": {
+            "stage": "reservation",
+            "operation": 0,
+            "error": [
+              "cells",
+              59277,
+              59278
+            ],
+            "ledger": [
+              4672,
+              512,
+              576
+            ]
+          }
+        },
+        {
+          "mask": 2,
+          "caps": [
+            59278,
+            7169,
+            1342
+          ],
+          "outcome": {
+            "stage": "reservation",
+            "operation": 0,
+            "error": [
+              "work",
+              7169,
+              7170
+            ],
+            "ledger": [
+              4672,
+              512,
+              576
+            ]
+          }
+        },
+        {
+          "mask": 3,
+          "caps": [
+            59277,
+            7169,
+            1342
+          ],
+          "outcome": {
+            "stage": "reservation",
+            "operation": 0,
+            "error": [
+              "cells",
+              59277,
+              59278
+            ],
+            "ledger": [
+              4672,
+              512,
+              576
+            ]
+          }
+        },
+        {
+          "mask": 4,
+          "caps": [
+            59278,
+            7170,
+            1341
+          ],
+          "outcome": {
+            "stage": "reservation",
+            "operation": 0,
+            "error": [
+              "live",
+              1341,
+              1342
+            ],
+            "ledger": [
+              4672,
+              512,
+              576
+            ]
+          }
+        },
+        {
+          "mask": 5,
+          "caps": [
+            59277,
+            7170,
+            1341
+          ],
+          "outcome": {
+            "stage": "reservation",
+            "operation": 0,
+            "error": [
+              "cells",
+              59277,
+              59278
+            ],
+            "ledger": [
+              4672,
+              512,
+              576
+            ]
+          }
+        },
+        {
+          "mask": 6,
+          "caps": [
+            59278,
+            7169,
+            1341
+          ],
+          "outcome": {
+            "stage": "reservation",
+            "operation": 0,
+            "error": [
+              "work",
+              7169,
+              7170
+            ],
+            "ledger": [
+              4672,
+              512,
+              576
+            ]
+          }
+        },
+        {
+          "mask": 7,
+          "caps": [
+            59277,
+            7169,
+            1341
+          ],
+          "outcome": {
+            "stage": "reservation",
+            "operation": 0,
+            "error": [
+              "cells",
+              59277,
+              59278
+            ],
+            "ledger": [
+              4672,
+              512,
+              576
+            ]
+          }
+        }
+      ],
+      "semantic_failure_retains_prior_ledger": true
+    },
+    "mixed1024": {
+      "rows": [
+        {
+          "W": 5539,
+          "H": 1259,
+          "R": 326,
+          "Q": 1585,
+          "L": 45897,
+          "e": 4
+        },
+        {
+          "W": 32015,
+          "H": 5840,
+          "R": 4465,
+          "Q": 10305,
+          "L": 266425,
+          "e": 6
+        }
+      ],
+      "exact_admission": [
+        316994,
+        38066,
+        10305
+      ],
+      "one_below_and_competition": [
+        {
+          "mask": 1,
+          "caps": [
+            316993,
+            38066,
+            10305
+          ],
+          "outcome": {
+            "stage": "reservation",
+            "operation": 1,
+            "error": [
+              "cells",
+              316993,
+              316994
+            ],
+            "ledger": [
+              50569,
+              6051,
+              1585
+            ]
+          }
+        },
+        {
+          "mask": 2,
+          "caps": [
+            316994,
+            38065,
+            10305
+          ],
+          "outcome": {
+            "stage": "reservation",
+            "operation": 1,
+            "error": [
+              "work",
+              38065,
+              38066
+            ],
+            "ledger": [
+              50569,
+              6051,
+              1585
+            ]
+          }
+        },
+        {
+          "mask": 3,
+          "caps": [
+            316993,
+            38065,
+            10305
+          ],
+          "outcome": {
+            "stage": "reservation",
+            "operation": 1,
+            "error": [
+              "cells",
+              316993,
+              316994
+            ],
+            "ledger": [
+              50569,
+              6051,
+              1585
+            ]
+          }
+        },
+        {
+          "mask": 4,
+          "caps": [
+            316994,
+            38066,
+            10304
+          ],
+          "outcome": {
+            "stage": "reservation",
+            "operation": 1,
+            "error": [
+              "live",
+              10304,
+              10305
+            ],
+            "ledger": [
+              50569,
+              6051,
+              1585
+            ]
+          }
+        },
+        {
+          "mask": 5,
+          "caps": [
+            316993,
+            38066,
+            10304
+          ],
+          "outcome": {
+            "stage": "reservation",
+            "operation": 1,
+            "error": [
+              "cells",
+              316993,
+              316994
+            ],
+            "ledger": [
+              50569,
+              6051,
+              1585
+            ]
+          }
+        },
+        {
+          "mask": 6,
+          "caps": [
+            316994,
+            38065,
+            10304
+          ],
+          "outcome": {
+            "stage": "reservation",
+            "operation": 1,
+            "error": [
+              "work",
+              38065,
+              38066
+            ],
+            "ledger": [
+              50569,
+              6051,
+              1585
+            ]
+          }
+        },
+        {
+          "mask": 7,
+          "caps": [
+            316993,
+            38065,
+            10304
+          ],
+          "outcome": {
+            "stage": "reservation",
+            "operation": 1,
+            "error": [
+              "cells",
+              316993,
+              316994
+            ],
+            "ledger": [
+              50569,
+              6051,
+              1585
+            ]
+          }
+        }
+      ],
+      "semantic_failure_retains_prior_ledger": false
+    },
+    "batches512-0-512": {
+      "rows": [
+        {
+          "W": 5539,
+          "H": 1259,
+          "R": 326,
+          "Q": 1585,
+          "L": 45897,
+          "e": 4
+        },
+        {
+          "W": 32015,
+          "H": 5840,
+          "R": 4465,
+          "Q": 10305,
+          "L": 266425,
+          "e": 6
+        }
+      ],
+      "exact_admission": [
+        316994,
+        38066,
+        10305
+      ],
+      "one_below_and_competition": [
+        {
+          "mask": 1,
+          "caps": [
+            316993,
+            38066,
+            10305
+          ],
+          "outcome": {
+            "stage": "reservation",
+            "operation": 1,
+            "error": [
+              "cells",
+              316993,
+              316994
+            ],
+            "ledger": [
+              50569,
+              6051,
+              1585
+            ]
+          }
+        },
+        {
+          "mask": 2,
+          "caps": [
+            316994,
+            38065,
+            10305
+          ],
+          "outcome": {
+            "stage": "reservation",
+            "operation": 1,
+            "error": [
+              "work",
+              38065,
+              38066
+            ],
+            "ledger": [
+              50569,
+              6051,
+              1585
+            ]
+          }
+        },
+        {
+          "mask": 3,
+          "caps": [
+            316993,
+            38065,
+            10305
+          ],
+          "outcome": {
+            "stage": "reservation",
+            "operation": 1,
+            "error": [
+              "cells",
+              316993,
+              316994
+            ],
+            "ledger": [
+              50569,
+              6051,
+              1585
+            ]
+          }
+        },
+        {
+          "mask": 4,
+          "caps": [
+            316994,
+            38066,
+            10304
+          ],
+          "outcome": {
+            "stage": "reservation",
+            "operation": 1,
+            "error": [
+              "live",
+              10304,
+              10305
+            ],
+            "ledger": [
+              50569,
+              6051,
+              1585
+            ]
+          }
+        },
+        {
+          "mask": 5,
+          "caps": [
+            316993,
+            38066,
+            10304
+          ],
+          "outcome": {
+            "stage": "reservation",
+            "operation": 1,
+            "error": [
+              "cells",
+              316993,
+              316994
+            ],
+            "ledger": [
+              50569,
+              6051,
+              1585
+            ]
+          }
+        },
+        {
+          "mask": 6,
+          "caps": [
+            316994,
+            38065,
+            10304
+          ],
+          "outcome": {
+            "stage": "reservation",
+            "operation": 1,
+            "error": [
+              "work",
+              38065,
+              38066
+            ],
+            "ledger": [
+              50569,
+              6051,
+              1585
+            ]
+          }
+        },
+        {
+          "mask": 7,
+          "caps": [
+            316993,
+            38065,
+            10304
+          ],
+          "outcome": {
+            "stage": "reservation",
+            "operation": 1,
+            "error": [
+              "cells",
+              316993,
+              316994
+            ],
+            "ledger": [
+              50569,
+              6051,
+              1585
+            ]
+          }
+        }
+      ],
+      "semantic_failure_retains_prior_ledger": false
+    },
+    "rank512-base-scalar-bind": {
+      "rows": [
+        {
+          "W": 440144,
+          "H": 36966,
+          "R": 30966,
+          "Q": 67932,
+          "L": 3589084,
+          "e": 514
+        }
+      ],
+      "exact_admission": [
+        3593756,
+        440656,
+        67932
+      ],
+      "one_below_and_competition": [
+        {
+          "mask": 1,
+          "caps": [
+            3593755,
+            440656,
+            67932
+          ],
+          "outcome": {
+            "stage": "reservation",
+            "operation": 0,
+            "error": [
+              "cells",
+              3593755,
+              3593756
+            ],
+            "ledger": [
+              4672,
+              512,
+              576
+            ]
+          }
+        },
+        {
+          "mask": 2,
+          "caps": [
+            3593756,
+            440655,
+            67932
+          ],
+          "outcome": {
+            "stage": "reservation",
+            "operation": 0,
+            "error": [
+              "work",
+              440655,
+              440656
+            ],
+            "ledger": [
+              4672,
+              512,
+              576
+            ]
+          }
+        },
+        {
+          "mask": 3,
+          "caps": [
+            3593755,
+            440655,
+            67932
+          ],
+          "outcome": {
+            "stage": "reservation",
+            "operation": 0,
+            "error": [
+              "cells",
+              3593755,
+              3593756
+            ],
+            "ledger": [
+              4672,
+              512,
+              576
+            ]
+          }
+        },
+        {
+          "mask": 4,
+          "caps": [
+            3593756,
+            440656,
+            67931
+          ],
+          "outcome": {
+            "stage": "reservation",
+            "operation": 0,
+            "error": [
+              "live",
+              67931,
+              67932
+            ],
+            "ledger": [
+              4672,
+              512,
+              576
+            ]
+          }
+        },
+        {
+          "mask": 5,
+          "caps": [
+            3593755,
+            440656,
+            67931
+          ],
+          "outcome": {
+            "stage": "reservation",
+            "operation": 0,
+            "error": [
+              "cells",
+              3593755,
+              3593756
+            ],
+            "ledger": [
+              4672,
+              512,
+              576
+            ]
+          }
+        },
+        {
+          "mask": 6,
+          "caps": [
+            3593756,
+            440655,
+            67931
+          ],
+          "outcome": {
+            "stage": "reservation",
+            "operation": 0,
+            "error": [
+              "work",
+              440655,
+              440656
+            ],
+            "ledger": [
+              4672,
+              512,
+              576
+            ]
+          }
+        },
+        {
+          "mask": 7,
+          "caps": [
+            3593755,
+            440655,
+            67931
+          ],
+          "outcome": {
+            "stage": "reservation",
+            "operation": 0,
+            "error": [
+              "cells",
+              3593755,
+              3593756
+            ],
+            "ledger": [
+              4672,
+              512,
+              576
+            ]
+          }
+        }
+      ],
+      "semantic_failure_retains_prior_ledger": false
+    },
+    "rank512-base-scalar-pull-peak-before": {
+      "rows": [
+        {
+          "W": 440144,
+          "H": 36966,
+          "R": 30966,
+          "Q": 67932,
+          "L": 3589084,
+          "e": 514
+        },
+        {
+          "W": 407388,
+          "H": 31772,
+          "R": 10525,
+          "Q": 42297,
+          "L": 3301401,
+          "e": 515
+        }
+      ],
+      "exact_admission": [
+        6895157,
+        848044,
+        67932
+      ],
+      "one_below_and_competition": [
+        {
+          "mask": 1,
+          "caps": [
+            6895156,
+            848044,
+            67932
+          ],
+          "outcome": {
+            "stage": "reservation",
+            "operation": 1,
+            "error": [
+              "cells",
+              6895156,
+              6895157
+            ],
+            "ledger": [
+              3593756,
+              440656,
+              67932
+            ]
+          }
+        },
+        {
+          "mask": 2,
+          "caps": [
+            6895157,
+            848043,
+            67932
+          ],
+          "outcome": {
+            "stage": "reservation",
+            "operation": 1,
+            "error": [
+              "work",
+              848043,
+              848044
+            ],
+            "ledger": [
+              3593756,
+              440656,
+              67932
+            ]
+          }
+        },
+        {
+          "mask": 3,
+          "caps": [
+            6895156,
+            848043,
+            67932
+          ],
+          "outcome": {
+            "stage": "reservation",
+            "operation": 1,
+            "error": [
+              "cells",
+              6895156,
+              6895157
+            ],
+            "ledger": [
+              3593756,
+              440656,
+              67932
+            ]
+          }
+        },
+        {
+          "mask": 4,
+          "caps": [
+            6895157,
+            848044,
+            67931
+          ],
+          "outcome": {
+            "stage": "reservation",
+            "operation": 0,
+            "error": [
+              "live",
+              67931,
+              67932
+            ],
+            "ledger": [
+              4672,
+              512,
+              576
+            ]
+          }
+        },
+        {
+          "mask": 5,
+          "caps": [
+            6895156,
+            848044,
+            67931
+          ],
+          "outcome": {
+            "stage": "reservation",
+            "operation": 0,
+            "error": [
+              "live",
+              67931,
+              67932
+            ],
+            "ledger": [
+              4672,
+              512,
+              576
+            ]
+          }
+        },
+        {
+          "mask": 6,
+          "caps": [
+            6895157,
+            848043,
+            67931
+          ],
+          "outcome": {
+            "stage": "reservation",
+            "operation": 0,
+            "error": [
+              "live",
+              67931,
+              67932
+            ],
+            "ledger": [
+              4672,
+              512,
+              576
+            ]
+          }
+        },
+        {
+          "mask": 7,
+          "caps": [
+            6895156,
+            848043,
+            67931
+          ],
+          "outcome": {
+            "stage": "reservation",
+            "operation": 0,
+            "error": [
+              "live",
+              67931,
+              67932
+            ],
+            "ledger": [
+              4672,
+              512,
+              576
+            ]
+          }
+        }
+      ],
+      "semantic_failure_retains_prior_ledger": false
+    },
+    "scalar-base-rank512-seed": {
+      "rows": [
+        {
+          "W": 396624,
+          "H": 33382,
+          "R": 10486,
+          "Q": 43868,
+          "L": 3216860,
+          "e": 514
+        },
+        {
+          "W": 864604,
+          "H": 67612,
+          "R": 37149,
+          "Q": 104761,
+          "L": 7021593,
+          "e": 1027
+        }
+      ],
+      "exact_admission": [
+        10243125,
+        1261740,
+        104761
+      ],
+      "one_below_and_competition": [
+        {
+          "mask": 1,
+          "caps": [
+            10243124,
+            1261740,
+            104761
+          ],
+          "outcome": {
+            "stage": "reservation",
+            "operation": 1,
+            "error": [
+              "cells",
+              10243124,
+              10243125
+            ],
+            "ledger": [
+              3221532,
+              397136,
+              43868
+            ]
+          }
+        },
+        {
+          "mask": 2,
+          "caps": [
+            10243125,
+            1261739,
+            104761
+          ],
+          "outcome": {
+            "stage": "reservation",
+            "operation": 1,
+            "error": [
+              "work",
+              1261739,
+              1261740
+            ],
+            "ledger": [
+              3221532,
+              397136,
+              43868
+            ]
+          }
+        },
+        {
+          "mask": 3,
+          "caps": [
+            10243124,
+            1261739,
+            104761
+          ],
+          "outcome": {
+            "stage": "reservation",
+            "operation": 1,
+            "error": [
+              "cells",
+              10243124,
+              10243125
+            ],
+            "ledger": [
+              3221532,
+              397136,
+              43868
+            ]
+          }
+        },
+        {
+          "mask": 4,
+          "caps": [
+            10243125,
+            1261740,
+            104760
+          ],
+          "outcome": {
+            "stage": "reservation",
+            "operation": 1,
+            "error": [
+              "live",
+              104760,
+              104761
+            ],
+            "ledger": [
+              3221532,
+              397136,
+              43868
+            ]
+          }
+        },
+        {
+          "mask": 5,
+          "caps": [
+            10243124,
+            1261740,
+            104760
+          ],
+          "outcome": {
+            "stage": "reservation",
+            "operation": 1,
+            "error": [
+              "cells",
+              10243124,
+              10243125
+            ],
+            "ledger": [
+              3221532,
+              397136,
+              43868
+            ]
+          }
+        },
+        {
+          "mask": 6,
+          "caps": [
+            10243125,
+            1261739,
+            104760
+          ],
+          "outcome": {
+            "stage": "reservation",
+            "operation": 1,
+            "error": [
+              "work",
+              1261739,
+              1261740
+            ],
+            "ledger": [
+              3221532,
+              397136,
+              43868
+            ]
+          }
+        },
+        {
+          "mask": 7,
+          "caps": [
+            10243124,
+            1261739,
+            104760
+          ],
+          "outcome": {
+            "stage": "reservation",
+            "operation": 1,
+            "error": [
+              "cells",
+              10243124,
+              10243125
+            ],
+            "ledger": [
+              3221532,
+              397136,
+              43868
+            ]
+          }
+        }
+      ],
+      "semantic_failure_retains_prior_ledger": false
+    },
+    "bind-private-failure": {
+      "rows": [
+        {
+          "W": 5539,
+          "H": 1259,
+          "R": 326,
+          "Q": 1585,
+          "L": 45897,
+          "e": 4
+        }
+      ],
+      "exact_admission": [
+        50569,
+        6051,
+        1585
+      ],
+      "one_below_and_competition": [
+        {
+          "mask": 1,
+          "caps": [
+            50568,
+            6051,
+            1585
+          ],
+          "outcome": {
+            "stage": "reservation",
+            "operation": 0,
+            "error": [
+              "cells",
+              50568,
+              50569
+            ],
+            "ledger": [
+              4672,
+              512,
+              576
+            ]
+          }
+        },
+        {
+          "mask": 2,
+          "caps": [
+            50569,
+            6050,
+            1585
+          ],
+          "outcome": {
+            "stage": "reservation",
+            "operation": 0,
+            "error": [
+              "work",
+              6050,
+              6051
+            ],
+            "ledger": [
+              4672,
+              512,
+              576
+            ]
+          }
+        },
+        {
+          "mask": 3,
+          "caps": [
+            50568,
+            6050,
+            1585
+          ],
+          "outcome": {
+            "stage": "reservation",
+            "operation": 0,
+            "error": [
+              "cells",
+              50568,
+              50569
+            ],
+            "ledger": [
+              4672,
+              512,
+              576
+            ]
+          }
+        },
+        {
+          "mask": 4,
+          "caps": [
+            50569,
+            6051,
+            1584
+          ],
+          "outcome": {
+            "stage": "reservation",
+            "operation": 0,
+            "error": [
+              "live",
+              1584,
+              1585
+            ],
+            "ledger": [
+              4672,
+              512,
+              576
+            ]
+          }
+        },
+        {
+          "mask": 5,
+          "caps": [
+            50568,
+            6051,
+            1584
+          ],
+          "outcome": {
+            "stage": "reservation",
+            "operation": 0,
+            "error": [
+              "cells",
+              50568,
+              50569
+            ],
+            "ledger": [
+              4672,
+              512,
+              576
+            ]
+          }
+        },
+        {
+          "mask": 6,
+          "caps": [
+            50569,
+            6050,
+            1584
+          ],
+          "outcome": {
+            "stage": "reservation",
+            "operation": 0,
+            "error": [
+              "work",
+              6050,
+              6051
+            ],
+            "ledger": [
+              4672,
+              512,
+              576
+            ]
+          }
+        },
+        {
+          "mask": 7,
+          "caps": [
+            50568,
+            6050,
+            1584
+          ],
+          "outcome": {
+            "stage": "reservation",
+            "operation": 0,
+            "error": [
+              "cells",
+              50568,
+              50569
+            ],
+            "ledger": [
+              4672,
+              512,
+              576
+            ]
+          }
+        }
+      ],
+      "semantic_failure_retains_prior_ledger": true
+    },
+    "pull-private-failure": {
+      "rows": [
+        {
+          "W": 5539,
+          "H": 1259,
+          "R": 326,
+          "Q": 1585,
+          "L": 45897,
+          "e": 4
+        },
+        {
+          "W": 8843,
+          "H": 1752,
+          "R": 377,
+          "Q": 2129,
+          "L": 72873,
+          "e": 6
+        }
+      ],
+      "exact_admission": [
+        123442,
+        14894,
+        2129
+      ],
+      "one_below_and_competition": [
+        {
+          "mask": 1,
+          "caps": [
+            123441,
+            14894,
+            2129
+          ],
+          "outcome": {
+            "stage": "reservation",
+            "operation": 1,
+            "error": [
+              "cells",
+              123441,
+              123442
+            ],
+            "ledger": [
+              50569,
+              6051,
+              1585
+            ]
+          }
+        },
+        {
+          "mask": 2,
+          "caps": [
+            123442,
+            14893,
+            2129
+          ],
+          "outcome": {
+            "stage": "reservation",
+            "operation": 1,
+            "error": [
+              "work",
+              14893,
+              14894
+            ],
+            "ledger": [
+              50569,
+              6051,
+              1585
+            ]
+          }
+        },
+        {
+          "mask": 3,
+          "caps": [
+            123441,
+            14893,
+            2129
+          ],
+          "outcome": {
+            "stage": "reservation",
+            "operation": 1,
+            "error": [
+              "cells",
+              123441,
+              123442
+            ],
+            "ledger": [
+              50569,
+              6051,
+              1585
+            ]
+          }
+        },
+        {
+          "mask": 4,
+          "caps": [
+            123442,
+            14894,
+            2128
+          ],
+          "outcome": {
+            "stage": "reservation",
+            "operation": 1,
+            "error": [
+              "live",
+              2128,
+              2129
+            ],
+            "ledger": [
+              50569,
+              6051,
+              1585
+            ]
+          }
+        },
+        {
+          "mask": 5,
+          "caps": [
+            123441,
+            14894,
+            2128
+          ],
+          "outcome": {
+            "stage": "reservation",
+            "operation": 1,
+            "error": [
+              "cells",
+              123441,
+              123442
+            ],
+            "ledger": [
+              50569,
+              6051,
+              1585
+            ]
+          }
+        },
+        {
+          "mask": 6,
+          "caps": [
+            123442,
+            14893,
+            2128
+          ],
+          "outcome": {
+            "stage": "reservation",
+            "operation": 1,
+            "error": [
+              "work",
+              14893,
+              14894
+            ],
+            "ledger": [
+              50569,
+              6051,
+              1585
+            ]
+          }
+        },
+        {
+          "mask": 7,
+          "caps": [
+            123441,
+            14893,
+            2128
+          ],
+          "outcome": {
+            "stage": "reservation",
+            "operation": 1,
+            "error": [
+              "cells",
+              123441,
+              123442
+            ],
+            "ledger": [
+              50569,
+              6051,
+              1585
+            ]
+          }
+        }
+      ],
+      "semantic_failure_retains_prior_ledger": true
+    }
+  },
+  "formula_arithmetic": {
+    "map": [
+      12,
+      12
+    ],
+    "transform": [
+      16,
+      17
+    ],
+    "bind": [
+      8,
+      7
+    ],
+    "pull": [
+      14,
+      13
+    ]
+  }
+}

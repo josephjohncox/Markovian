@@ -1,5 +1,7 @@
 # markovian-tensor
 
+D-081 design readers must use the [reviewed r4 materialization addendum](https://github.com/josephjohncox/Markovian/blob/main/docs/plans/D081-MATERIALIZATION-ADDENDUM.md) with the unchanged [canonical31bf plan](https://github.com/josephjohncox/Markovian/blob/main/docs/plans/D081-AFFINE-VIEWS.md). The addendum supersedes only reviewed resource/producer/failure/fixture seams and consolidates five clarifications; geometry/API and unaffected requirements remain. Parent has adopted the r4 contract after DESIGN PASS and documentation PASS, not runtime continuation or implementation acceptance. The [freeze record](https://github.com/josephjohncox/Markovian/blob/main/docs/evidence/D081-MATERIALIZATION/FREEZE-RECORD.md) binds the pre-closeout review/audit. The next gate is separate runtime-continuation authority; final closeout review and parent byte audit/staging/commit remain, with no Git commit or integration claimed. The [proof/provenance bundle](https://github.com/josephjohncox/Markovian/blob/main/docs/evidence/D081-MATERIALIZATION/README.md) is distributed with the root source archive. This package still exposes no Affine module; D-081 remains Proposed and D-082 blocked. The current package description below is not a claim that the held or scratch-r4 runtime is validated.
+
 `markovian-tensor` is a bounded, host-only F64 tensor runtime. It provides
 managed immutable buffers, type-indexed shapes, checked contiguous and
 transpose layouts, deterministic single-threaded CPU primitives, explicit

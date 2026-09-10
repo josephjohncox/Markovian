@@ -18,6 +18,10 @@ Before any edit:
 
 Stop if the worktree contains unexplained changes. Do not overwrite work owned by another writer.
 
+### Current D-081 documentation-only boundary
+
+For D-081, read the [r4 materialization addendum](plans/D081-MATERIALIZATION-ADDENDUM.md) with the unchanged [canonical31bf plan](plans/D081-AFFINE-VIEWS.md) and [evidence/provenance bundle](evidence/D081-MATERIALIZATION/README.md). The addendum supersedes only reviewed resource/producer/failure/fixture seams and consolidates five clarifications. Parent has adopted the r4 contract after DESIGN PASS and documentation PASS, as bound in the [freeze record](evidence/D081-MATERIALIZATION/FREEZE-RECORD.md). The next gate is separate runtime-continuation authority. Final status-closeout review and parent byte audit/staging/commit remain; no Git commit or integration is claimed. D-081 stays Proposed, D-082 blocked, and runtime continuation held. Do not apply scratch-r4 to held implementation, change current coefficients or expose Affine. The general new-feature matrix below does not authorize an unrelated full campaign at this stage. Fresh documentation checks use the authority's unchanged guard/constructor with explicit GHC 9.14.1 / Cabal 3.18.1.0, a new external campaign and no ambient compiler fallback, resealing, installers or old-campaign writes.
+
 ## 2. One-writer policy
 
 One agent owns writes in one branch and worktree at a time.
