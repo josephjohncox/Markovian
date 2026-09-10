@@ -47,6 +47,7 @@ library
   import:           warnings
   exposed-modules:
     Markovian.Tensor
+    Markovian.Tensor.Affine
     Markovian.Tensor.Ownership
     Markovian.Tensor.Primitive
     Markovian.Tensor.Reverse
@@ -66,8 +67,12 @@ test-suite markovian-tensor-fault-test
   main-is:          Main.hs
   hs-source-dirs:   test-fault src
   other-modules:
+    AffineMaterializationTests
+    AffineRuntimeTests
+    LayoutRepresentationTests
     Markovian.Tensor.Internal
     Markovian.Tensor.Shape
+    PublicationTests
 
   build-depends:    base >=4.22.0.0 && <4.23
   default-language: GHC2021
@@ -78,6 +83,7 @@ test-suite markovian-tensor-test
   main-is:          Main.hs
   hs-source-dirs:   test
   other-modules:
+    AffineContractTests
     Paths_markovian_tensor
     TensorLawLaboratory
 
