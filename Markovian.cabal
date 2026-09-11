@@ -52,6 +52,7 @@ extra-doc-files:
   docs/plans/D080-CUMULATIVE-COMPILATION.md
   docs/plans/D081-AFFINE-VIEWS.md
   docs/plans/D081-MATERIALIZATION-ADDENDUM.md
+  docs/plans/D083-CE-CCE-SOLVERS.md
   docs/plans/EL-03-PAIRED-DIFFERENCE.md
   docs/plans/EL-04-REWARD-JVP.md
   docs/plans/EL-05-AGGREGATION.md

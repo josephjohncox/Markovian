@@ -162,6 +162,42 @@ class CapabilityTests(unittest.TestCase):
         self.assertEqual(digest.hexdigest(),
                          "fac53051a4cef18ab8e1b10efa12ea638d04202f74632240350d3fff3f453371")
 
+    def test_d083_frozen_contract_identity_and_placement(self):
+        path = "docs/plans/D083-CE-CCE-SOLVERS.md"
+        text = (cap.ROOT / path).read_text()
+        self.assertEqual(hashlib.sha256((cap.ROOT / path).read_bytes()).hexdigest(),
+                         "cfb9301a0ddd454acb7230225fd8c27458081063fe3dd6dcd4a9610212fa1e28")
+        self.assertIn("## 3. Frozen public surface", text)
+        self.assertIn("Contract freeze is not capability acceptance.", text)
+        self.assertIn("60d23acceaeb731c3de713540ec0d051c0aa67d197f496a96bb91daa0f36ac30", text)
+        self.assertIn("Markovian.Game.Correlated.Exact", self.current["Markovian"])
+
+    def test_d083_contract_freeze_leaves_implementation_acceptance_pending(self):
+        decisions = (cap.ROOT / "docs/DECISIONS.md").read_text()
+        d083 = decisions.split("### D-083:", 1)[1].split("### D-084:", 1)[0]
+        self.assertIn("**Status:** Proposed", d083)
+        self.assertIn("plans/D083-CE-CCE-SOLVERS.md", d083)
+        self.assertIn("Contract freeze is not capability acceptance.", d083)
+        self.assertIn("CorrelationCompletedSearchWithoutWitness", d083)
+        self.assertIn("Arithmetic design review is not executable proof.", d083)
+        todo = (cap.ROOT / "TODO.md").read_text()
+        r7 = todo.split("#### R7 —", 1)[1].split("#### R8 —", 1)[0]
+        self.assertEqual(r7.count("- [x]"), 1)
+        self.assertEqual(r7.count("- [ ]"), 4)
+        self.assertIn("- [x] Complete placement approval and contract freeze", r7)
+        self.assertIn("- [ ] Implement separate bounded exact CE and CCE", r7)
+        self.assertIn("private infeasible traversal, and public budget exhaustion", r7)
+        self.assertIn("- [ ] Obtain fresh independent review", r7)
+        self.assertIn("- [ ] Parent records any acceptance", r7)
+
+    def test_d083_frozen_contract_is_packaged_as_documentation(self):
+        text = (cap.ROOT / "Markovian.cabal").read_text()
+        entry = "  docs/plans/D083-CE-CCE-SOLVERS.md\n"
+        docs = text.split("extra-doc-files:\n", 1)[1].split("extra-source-files:", 1)[0]
+        self.assertEqual(text.count(entry), 1)
+        self.assertEqual(docs.count(entry), 1)
+        self.assertTrue((cap.ROOT / entry.strip()).is_file())
+
     def test_paired_proposal_implementation_transition(self):
         record = cap.validate(cap.ROOT, self.document, self.current, self.released)[6]
         self.assertEqual(record["availability"], "unreleased")
