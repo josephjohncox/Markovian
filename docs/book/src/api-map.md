@@ -184,6 +184,7 @@ These are candidate semantics, not unrestricted solvers. They provide no equilib
 | `markovian-autodiff: Markovian.Autodiff.Compile` | Exact polynomial and checked-Double lowering to opaque reverse tapes |
 | `markovian-tensor: Markovian.Tensor.Shape` | Type-indexed scalar, vector, matrix, and higher-rank shape witnesses |
 | `markovian-tensor: Markovian.Tensor` | Region-scoped host F64 buffers, checked layouts, finite refinement, and deterministic reports |
+| `markovian-tensor: Markovian.Tensor.Affine` | Bounded, unreleased [signed affine views](tensor-runtime.md), materialization, and base-coordinate pullback. D-081 Accepted with the recorded historical index exception. |
 | `markovian-tensor: Markovian.Tensor.Primitive` | Deterministic finite CPU elementwise, reduction, copy, and matrix primitives |
 | `markovian-tensor: Markovian.Tensor.Ownership` | Semantic owner keys separate from physical storage IDs |
 | `markovian-tensor: Markovian.Tensor.Reverse` | Opaque tapes and VJPs for the closed CPU primitive set, backed by a private allocator capability |

@@ -1554,9 +1554,9 @@ All paths in the evidence table are relative to `packages/markovian-autodiff`. Q
 
 ### D-081: Add immutable host-F64 affine views after reverse-equivalence evidence repair
 
-**Status:** Proposed
+**Status:** Accepted
 
-**Current adopted r4 contract:** Read the [reviewed r4 materialization addendum](plans/D081-MATERIALIZATION-ADDENDUM.md) with the byte-preserved [full v3 affine-view contract](plans/D081-AFFINE-VIEWS.md), canonical SHA-256 `31bf4e98df950c0f7cd9d738a36b12ca94b207a8e8167346098c36a11e0f8941`. The original design approval followed prospective-design PASS `5ba479ba-964e-4da4-8f95-51831227309b` and the 63-file audit of source `fba9460a7201b59e292fee957957335cbd5c5d01411778fa0e37b32243658e74`. Parent has adopted the r4 contract after independent DESIGN PASS `8992df58-e052-4b23-9fd9-345febebf9d2`, documentation PASS `7f1a1fa6-ec54-4b26-a642-e33011ab9b74` and the pre-closeout identity audit. The [freeze record](evidence/D081-MATERIALIZATION/FREEZE-RECORD.md) binds that decision and the reviewed 25-file patch; all runtime holds remain. The addendum supersedes only the reviewed resource/producer/failure/fixture seams and consolidates five clarifications; geometry, API/roles, actual-original-base ownership, temporal lifetime A and unaffected requirements remain. Its operative fixtures, not the historical `FIXTURES-FINAL.md`, control. The r4 contract freeze is adopted. The next gate is separate runtime-continuation authority. Final review of this status closeout and parent byte audit, staging and commit remain; no Git commit or integration is claimed. The held implementation delta is not whole-runtime validated; scratch-r4 is not applied. This checkout exposes no Affine module and still has 133 public modules, not the future 134. Model/demand evidence is neither current implementation validation nor physical allocation measurement. D-081 remains Proposed/unaccepted; D-082 remains blocked; D-083 placement and all other statuses remain unchanged.
+**Bounded, unreleased acceptance:** Parent accepts the implemented immutable host-F64 affine-view scope at `cc900878dbf6f7bdc33f95affa9c15d2ea6f97ad`. The [acceptance and evidence record](evidence/D081-AFFINE-IMPLEMENTATION.md) defines its scope, exclusions, successor proof applicability, and accepted historical index-preservation exception. Historical strict preservation remains failed. The [canonical plan](plans/D081-AFFINE-VIEWS.md) and [materialization addendum](plans/D081-MATERIALIZATION-ADDENDUM.md) retain their frozen contracts. This decision does not accept D-082 through D-085, the separate EL frontiers, or a release.
 
 #### Historical original proposal and transpose-only prerequisite evidence
 
@@ -1577,6 +1577,8 @@ View creation allocates no payload. Materialization and each primitive preflight
 ### D-082: Add bounded CUDA multiply-chain graphs
 
 **Status:** Proposed
+
+**Current prerequisites:** D-077 and [D-081](evidence/D081-AFFINE-IMPLEMENTATION.md) acceptance prerequisites are satisfied. D-082 remains unimplemented. Graph contract freeze, implementation, independent review, and explicit hardware authority remain pending.
 
 **Decision:** After D-077 and D-081 are accepted with complete evidence, add only a closed typed DAG of F64 matrix inputs, admitted affine views, and matrix-multiply nodes. Preparation validates dimensions, node order, sharing, view maps, transfer bytes, host and device payloads, scalar work, and forward and VJP launch counts before executor admission or allocation. One prepared graph owns its immutable plan. One scoped executor owns all device resources.
 

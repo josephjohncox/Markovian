@@ -36,6 +36,7 @@ extra-doc-files:
   docs/evidence/CUDA-TENSOR-2026-09-02.md
   docs/evidence/D061-2026-09-02.md
   docs/evidence/D077-WORKTREE-SCOPE.md
+  docs/evidence/D081-AFFINE-IMPLEMENTATION.md
   docs/evidence/D081-MATERIALIZATION/*.json
   docs/evidence/D081-MATERIALIZATION/*.md
   docs/evidence/D081-MATERIALIZATION/advisories/*.md
