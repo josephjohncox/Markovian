@@ -380,17 +380,7 @@ Each policy/point checks ten basis directions plus zero and `(1,-2,3,-4,5,-6,7,-
 
 The unchanged compiler reports `N=163`, `P=69`, `D=17`, `F=768`, `V=932`, identities/compositions/tensors/input-shares/parameter-shares `13/51/0/30/0`, maximum primal/cotangent extent 10, and owner order a/b/c. Stored/recomputed primitive counts are respectively 69/0 and 0/69; all primitive-use policy entries change accordingly. The baseline quotation report is still the **old syntax account**: quote nodes 74, source depth 17, path depth 4, target nodes/depth 163/17, transformed 77, extent 10, allocation 676, runtime 1117, traversal 234, total 2267, source bits 1. These numbers are not the prospective complete compile report.
 
-Preserved external evidence directory: `/home/josephcox/.pi/agent/sessions/--home-josephcox-dev-Markovian--/subagent-artifacts/outputs/8fee213a-cac1-4024-a0be-df7148132d18/d080-fixture-evidence/`. It contains both public clients, build/run logs, independent tree/count oracle script and outputs, executed teaching logs/byte comparisons, gate logs and a SHA256 manifest. Key frozen hashes:
-
-| Artifact | SHA256 |
-| --- | --- |
-| Fixture.hs | `ed05b41344c1184a6daca1c536de12a757d252902e4812c5244ac68ce9f2ef0d` |
-| fixture-build.log | `af9f9b661f2382c1d509c7db052a3d804f55a62fdae3411a5fcf28f64797019b` |
-| fixture-run.log | `bf82168b2a3513efa07c0c53c1b4d18040e135592ed3c27d91ff1469ddf2ce13` |
-| ProductOwner.hs | `95c822857f06029965b0c8b5cccd1af14168b3d566f1ee2611b5fd989437e729` |
-| product-owner-run.log | `2de66d987c254b07c95e8337ff1c5db2614143ecf37b385d01d60d22a45fd860` |
-| oracles.py | `6f92ba358c9fa53800dd33ca31b37402a833e32ce9d8ac4e97628e21b4bf76eb` |
-| oracles.json | `38961a93d6a33ac34b0ba0a26c0ebc3980a520f87696d45b56e9183c0a905b91` |
+The baseline fixture runs described here preceded cumulative compilation. Current regression fixtures live in `packages/markovian-autodiff/test/QuoteCompilationBudgets.hs`.
 
 Neither client implements a planner, instrumentation, new primitive or production budget repair. The product-owner client confirms baseline construction, actual target reports and old syntax counts for k=1,2,4,128; its future exact budgets come only from the independent arithmetic script. This closes expressibility/tree evidence, not any future admission/allocation gate.
 

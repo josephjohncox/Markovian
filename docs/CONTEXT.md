@@ -1,23 +1,10 @@
 # Repository context
 
-## PR #10 review
-
-D-083 is implemented at `fdfc1f8`, with public and private fixtures. It remains
-Proposed pending the accounting and verification work recorded in the
-[review findings](evidence/PR10-REVIEW.md). Statements below about implementation
-or placement being pending describe earlier stages.
-
-The review fixes the stale teaching receipt, missing solver CI/archive checks,
-and the solver's bounded Rational scan. GHC 9.14.1/Cabal 3.18.1.0 remain the
-project toolchain. The review record distinguishes checks run now from earlier
-campaigns whose temporary files are no longer available.
-
-
 Read this file, `TODO.md`, and the relevant architecture and decision sections before a semantic change.
 
 ## Current state
 
-Markovian `2026.9.3.0` is the first coordinated 16-package release. D-053 through D-076 are `Accepted` only for their stated bounded, represented scopes. D-077's bounded evidence repair/policy and D-078's original strict-discount affine coefficients are post-release `Accepted` decisions as of 2026-09-08; they remain unreleased. D-079 Gate A plus frozen Gate B left-successor substitution and D-080 closed quotation plus frozen cumulative compilation are separately `Accepted` within their bounded, unreleased scopes. D-081 is also `Accepted` within its bounded, unreleased scope, with the [recorded historical index exception](evidence/D081-AFFINE-IMPLEMENTATION.md). EL-03/EL-04/EL-05 and D-082 through D-085 remain `Proposed`. Acceptance authorizes no package edge, workflow launch, deployment, or publication. The root remains `base`-only and exact. Numerical, sampling, learning, continuous, reverse, autodiff, tensor, SafeTensors, neural, and CUDA execution remain in optional packages.
+Markovian `2026.9.3.0` is the first coordinated 16-package release. D-053 through D-076 are `Accepted` only for their stated bounded, represented scopes. D-077's bounded evidence repair/policy and D-078's original strict-discount affine coefficients are post-release `Accepted` decisions as of 2026-09-08; they remain unreleased. D-079 Gate A plus frozen Gate B left-successor substitution and D-080 closed quotation plus frozen cumulative compilation are separately `Accepted` within their bounded, unreleased scopes. D-081 is also `Accepted` within its bounded, unreleased scope, as described in the [implementation record](evidence/D081-AFFINE-IMPLEMENTATION.md). EL-03/EL-04/EL-05 and D-082 through D-085 remain `Proposed`. Acceptance authorizes no package edge, workflow launch, deployment, or publication. The root remains `base`-only and exact. Numerical, sampling, learning, continuous, reverse, autodiff, tensor, SafeTensors, neural, and CUDA execution remain in optional packages.
 
 The release record states that the acceptance candidate passed the compiler, source, documentation, archive, checksum, SPDX, and attestation gates. It also records CUDA compile-only, protected GB10, benchmark, fault, and four-tool sanitizer passes. The repository does not retain enough raw same-session material to reconstruct the protected hardware assertions under D-077.
 
@@ -190,9 +177,8 @@ quotient or bounded distinguishing witness preserves joint reward/next-block law
 declared observations and terminal/payoff timing under one cumulative meter.
 Independent finite-value/trace fixtures and an executed success/witness lesson
 provide unreleased evidence. EL-00 through EL-07 are complete for the bounded local program.
-The [integration record](evidence/EXECUTABLE-LEARNING-INTEGRATION.md) records independent reviews and the parent audit.
-The [durable checklist](plans/EXECUTABLE-LEARNING-TODO.md) retains commands and residual limits.
-The deployment-scoped policy passed independent review and parent validation. Separate 2026-09-08 bounded D-077/D-078 and D-079/D-080 acceptance records follow decision-specific readiness PASS reviews and parent authorization. The [current queue](../TODO.md#all-nine-execution-checklist) selects D-083 contract and placement review after bounded D-081 acceptance. Separate 13-file D079/D080 status-delta review `57601418` passed with P2, addressed by the changelog clarifications; final review `11ddbb94` passed and parent committed the acceptance record at `78669c3613302249c499eba99a959f75c4c59edc`.
+The teaching fixtures are checked by `scripts/check-learning --run`. Capability status is recorded in `docs/capabilities/current.json`; remaining work is in `TODO.md`.
+The [current queue](../TODO.md#all-nine-execution-checklist) tracks D-083 verification following implementation of its CE/CCE solvers.
 Apply the [2026-09-08 deployment-scoped evidence amendment](WORKFLOWS.md#82-deployment-scoped-gpu-evidence-amendment--2026-09-08).
 The historical executable-learning program did not itself accept these decisions. The separate D-077/D-078 and D-079/D-080 acceptances change no package versions, topology, or immutable released evidence. EL-03/EL-04/EL-05 remain Proposed despite their implementation evidence.
 
@@ -334,7 +320,7 @@ Parent separately authorizes bounded, unreleased D079/D080 acceptance after thei
 
 ## Current D-081 acceptance
 
-D-081 is `Accepted` within its bounded, unreleased scope at implementation commit `cc900878dbf6f7bdc33f95affa9c15d2ea6f97ad`. The [acceptance record](evidence/D081-AFFINE-IMPLEMENTATION.md) selects the successor proof bridge, runtime gates, reviews, and accepted historical index-preservation exception. Historical strict preservation remains failed. Frozen plans and evidence retain their historical phase labels.
+D-081 is `Accepted` within its bounded, unreleased scope at implementation commit `cc900878dbf6f7bdc33f95affa9c15d2ea6f97ad`. The [acceptance record](evidence/D081-AFFINE-IMPLEMENTATION.md) describes the contracts, runtime checks, lifetime requirements, and exclusions.
 
 The current development surface includes `Markovian.Tensor.Affine`: 134 public modules, with all 16 package versions still `2026.9.3.0`. Lifetime A still requires dependent work and caller joins or cancel-and-joins to complete inside the callback. Logical-resource evidence does not establish physical allocation or prompt reclamation.
 

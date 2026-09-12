@@ -1,31 +1,10 @@
-# D081 section A — fixed and prefix numerical source schedule
+# Prefix resource derivation
 
-## Inherited decisions
-
-- This is read-only DESIGN advice, not numerical policy approval, an implementation change, or a refreeze recommendation.
-- The controlling v2 authority selects **prospective, scan-dependent live admission**. Constant live384 is not the prospective nonzero-prefix requirement.
-- Every next cons **or nil** is charged before inspection, in cells → work → live order. A rejected debit inspects nothing.
-- Newly materialized stock witnesses count even when retained only through caller-owned input roots. Existing referents are excluded; new referencing slots are not.
-- Failed attempts preserve the immutable successful ledger, not the heap’s memoization history.
-- This section supplies fixed/prefix costs once. Geometry, descriptor materialization, payload work, registry construction, and publication remain other lanes’ responsibilities.
-
-**Confidence:** high in source ordering and lifetime distinctions; moderate in the conservative elementary schedule below. The schedule is independently inspectable advice, not an executed allocation measurement.
-
-## Source basis and notation
-
-All source references below use:
-
-- **I:** `/tmp/d081-retention-v2-B0ZMyODc/source-basis/current-Internal.hs`, attributed by the retained campaign to immutable585.
-- **S:** adjacent `current-Shape.hs`. I also read immutable585’s actual `source/packages/markovian-tensor/src/Markovian/Tensor/Shape.hs:23–51`.
-- **P:** `source-basis/frozen31bf-plan.md`, §§6.1 and 8.1.
-- **D:** `prefix-instrumented/Markovian/Tensor/Internal.hs:475–545`.
-- **Authority:** `/tmp/d081-retention-amendment-v2-authority.md`.
-
-The retained `candidate/` correction changes `finiteTensor`, not prefix coefficients. D is an **instrumented admission-order experiment**, not a bounded implementation. Its `getProfile`, markers, mutant strings, and IORef execution are not part of the prospective production schedule.
-
-I performed no commands, mutations, tests, delegation, or fresh provenance verification.
-
----
+This preliminary derivation supplies detailed expansions for the
+[reconciled source proof](../SOURCE-PROOF.md). Use that proof's substitutions
+and the materialization addendum's final coefficients when they differ from
+this document. Line references use the [historical source basis](../README.md#source-basis).
+The units are logical source operations and storage slots.
 
 ## 1. Result supplied to the integrator
 
@@ -894,11 +873,3 @@ Preserve the distinction between:
 - These are logical-machine bounds, not GHC heap, allocation, CPU, or big-number bit-complexity bounds.
 - A replacement implementation that introduces another traversal, eagerly evaluates raw elements, executes arbitrary instance work inside the engine theorem, or retains additional closures needs a corresponding schedule change.
 - The supplied profile is intentionally loose, especially for already-forced map witnesses and body-time prefix scratch. Tightening it requires source-specific lifetime deductions, not marker counts.
-
-## Need from main agent
-
-No new product decision is needed to integrate this section. Numerical selection, replacement-source review, exact fixtures, independent design review, and eventual policy authority remain with the integrator and parent.
-
-## Suggested execution prompt
-
-No worker handoff is warranted from this read-only consultation.

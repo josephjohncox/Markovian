@@ -1,6 +1,11 @@
 # Source → elementary schedules → operative r4 proof
 
-This is an integrator's logical-source proof, not a compiler allocation measurement. Read with OPERATIVE-AMENDMENT.md. The complete original advisory expansions are preserved verbatim in `advisories/d081-{prefix,geometry,runtime}-proof.md`; their source citations and primitive summands are the audit trail, not authority. The substitutions and ownership partition below override their smaller/disagreeing schedules. No new unit convention is selected.
+This derivation uses logical source operations and storage slots. Read it with
+the [materialization addendum](../../plans/D081-MATERIALIZATION-ADDENDUM.md).
+The detailed prefix, geometry, and runtime expansions are in `advisories/`;
+the substitutions and ownership partition below take precedence over their
+preliminary coefficients. The [source basis](README.md#source-basis) identifies
+the historical snapshots used for line references.
 
 ## 1. Units and what was reconciled
 
@@ -156,4 +161,12 @@ H=128 local/staging/prepared/cleanup +(14r+76)+(7b+8)+(7r+8)+4r +(224+5b)+2(224+
 
 Every pre-body exit is bounded by A with its actual admitted e; post-body checked failures are source prefixes of the fully reserved row plus the once-priced diagnostic/finite cleanup. Numeric values retained in errors are assigned to the result/diagnostic identity set, not left in transient lists. For safe public maps, parent strides have admitted rank and bounded completed coefficients; this is why a reverse suffix cannot be an arbitrarily long privately forged list. Private fault checks diagnose representable metadata inconsistencies, not unsafe pointer provenance or arbitrary supplied thunk execution.
 
-No field identity/report equality/demand counter establishes a W/H/R theorem. The theorem comes from the schedules and simultaneous identity inventories above. Python verifies the displayed sums, saturation/order algebra and independent fixtures; native O0/O2 controls verify scratch formula/debit/error/demand behavior. The executed equations-FINAL.py retains1784/390 fixed-subtotal regression assertions from its formula revision; they are not the final complete fixed proof. schedule_checks_final.py independently checks the complete1872/420/113 fixed work/transient/body-survivor inventories, including private-prepare forwarding and optional ownership completion. The operative coefficients do not change because these complete sums fit2048/448/128. Library source confirms the chosen logical scanr/drop expansion, not physical closure layouts. The frozen/current implementation delta remains unvalidated as an implementation; independent design review must scrutinize this candidate before any adoption authority.
+Field identity, report equality, and demand counters do not establish a W/H/R
+bound. The argument depends on the schedules and simultaneous-identity
+inventories above. The complete fixed work/transient/body-survivor sums are
+1872/420/113, including private-prepare forwarding and optional ownership
+completion; they fit the 2048/448/128 coefficients. Earlier 1784/390 subtotals
+omit parts of that schedule. The selected logical `scanr`/`drop` expansion does
+not describe physical closure layouts. Changes to implementation schedules
+require checking the derivation again. Current runnable checks are listed in
+the [implementation record](../D081-AFFINE-IMPLEMENTATION.md).

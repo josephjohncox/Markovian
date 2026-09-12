@@ -1,10 +1,10 @@
 # D083: frozen exact CE and CCE one-witness contract
 
-## 1. Authority and scope
+## 1. Scope and placement
 
 Placement is approved in the existing base-only `Markovian` library. Both public operations belong in `Markovian.Game.Correlated.Exact`.
 
-This contract is frozen after parent design acceptance and independent DESIGN PASS. D083 remains Proposed and unimplemented. Contract freeze is not capability acceptance. Implementation is not authorized by this document and requires separate parent authorization.
+D-083 is implemented but remains Proposed pending the verification requirements in §11. The remaining work is tracked in [TODO.md](../../TODO.md#all-nine-execution-checklist).
 
 Keep the active-set generator, constraint builder, elimination, and account private in that module. No additional internal module is needed for this design. Add no package, dependency edge, general LP interface, matrix callback, or pivot callback.
 
@@ -12,7 +12,7 @@ The solver returns the first checked witness. It does not optimize an objective,
 
 ## 2. Source basis and existing boundaries
 
-The source basis is `/home/josephcox/dev/Markovian` at `7f2d8bdbe699a9b9fad99f22335a9ebc6b13446d`. The stale pre-integration semantic index is not evidence.
+The design source basis is commit `7f2d8bdbe699a9b9fad99f22335a9ebc6b13446d`.
 
 Read and preserve these definitions:
 
@@ -607,11 +607,3 @@ Through the actual private production CE shadow, `B=7` must fail at the Column-L
 Keep work and materialization independently sufficient for preparation and the shadow under each chosen `B`. Derive their reservations from the actual private route and the unchanged block table. Do not borrow a public active-set prefix's charges. Record an independent ordered arithmetic trace and compare it with the source-bound preparation and production-shadow trace. A test of a separately reimplemented shadow alone is insufficient. Add no public injection hook.
 
 This fixture proves a private CE recommendation-prefix boundary and the corresponding CCE mode distinction. It does not prove public first-witness reachability, a seven-bit public elimination history, or a CCE verification-only bit crossing. Retain the public boundary controls described in §11.8.
-
-## 12. Freeze provenance and implementation gate
-
-This freeze adopts `/tmp/d083-contract-i6mo3jv7/CONTRACT.md`, SHA256 `60d23acceaeb731c3de713540ec0d051c0aa67d197f496a96bb91daa0f36ac30`. Parent design acceptance is `/tmp/d083-parent-design-acceptance.md`. Its identity audit is `/tmp/d083-parent-contract-audit-2wn84rxm/result.json`.
-
-The independent DESIGN PASS is `/home/josephcox/.pi/agent/sessions/--home-josephcox-dev-Markovian--/subagent-artifacts/outputs/90faab78-836d-4d11-8d03-1448084fa4b8/d083-contract-revision-review.md`, SHA256 `be991048983e5ee88deb9777f3b0a804883d91765578c7059e2606b81ad2a0e3`. Only freeze and provenance metadata differ from the selected source. The original draft, DESIGN BLOCK, and failed parent audit helpers remain historical inputs, not successful executions.
-
-D083 remains Proposed. The solver is unimplemented and unaccepted. Required solver tests, source-loop and reservation proofs, strictness proofs, and fresh implementation review remain future work. Arithmetic design review is not executable proof. Private fixtures do not establish public reachability. Separate parent authorization must precede implementation. Separate reviewed capability acceptance must follow implementation evidence.

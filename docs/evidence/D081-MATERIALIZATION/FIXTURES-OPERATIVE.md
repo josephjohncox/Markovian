@@ -22,4 +22,4 @@
 | bind-private-failure | 50569 | 6051 | 1585 |
 | pull-private-failure | 123442 | 14894 | 2129 |
 
-All seven nonempty subsets of individually one-below limits are checked in equations-FINAL.json. Within each admission event, failure order is cells, then work, then live; an earlier operation live shortage can precede a later cumulative cells/work shortage. Its operation/stage and unchanged ledger are recorded; a live cutoff need not occur in the last operation. Semantic-failure rows are admission thresholds, not successful ledger commits. See the operative amendment for old-payload and semantic precedence.
+Check all seven nonempty subsets of individually one-below limits against this table. Within each admission event, failure order is cells, then work, then live; an earlier operation live shortage can precede a later cumulative cells/work shortage. Check the failing operation and unchanged ledger; a live cutoff need not occur in the last operation. Semantic-failure rows are admission thresholds, not successful ledger commits. See the operative amendment for old-payload and semantic precedence.

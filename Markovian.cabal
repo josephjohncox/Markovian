@@ -35,16 +35,16 @@ extra-doc-files:
   docs/evidence/CUDA-D077-RECEIPTS.md
   docs/evidence/CUDA-TENSOR-2026-09-02.md
   docs/evidence/D061-2026-09-02.md
-  docs/evidence/D077-WORKTREE-SCOPE.md
   docs/evidence/D081-AFFINE-IMPLEMENTATION.md
-  docs/evidence/D081-MATERIALIZATION/*.json
-  docs/evidence/D081-MATERIALIZATION/*.md
-  docs/evidence/D081-MATERIALIZATION/advisories/*.md
+  docs/evidence/D081-MATERIALIZATION/advisories/d081-geometry-proof.md
+  docs/evidence/D081-MATERIALIZATION/advisories/d081-prefix-proof.md
+  docs/evidence/D081-MATERIALIZATION/advisories/d081-runtime-proof.md
+  docs/evidence/D081-MATERIALIZATION/FAILURE-FIXTURES-FINAL.md
+  docs/evidence/D081-MATERIALIZATION/FIXTURE-INPUTS.md
+  docs/evidence/D081-MATERIALIZATION/FIXTURES-OPERATIVE.md
+  docs/evidence/D081-MATERIALIZATION/README.md
+  docs/evidence/D081-MATERIALIZATION/SOURCE-PROOF.md
   docs/evidence/D081-TRANSPOSE-REVERSE-EQUIVALENCE.md
-  docs/evidence/EXECUTABLE-LEARNING-INTEGRATION.md
-  docs/evidence/INTEGRATION-DOCS-REPAIR.md
-  docs/evidence/LEARNING-REVIEW-2026-09-05.md
-  docs/evidence/PR10-REVIEW.md
   docs/evidence/S6-ACYCLIC-OPEN-2026-08-27.md
   docs/evidence/TENSOR-SAFETENSORS-REPAIR.md
   docs/learning/*.txt
@@ -58,7 +58,6 @@ extra-doc-files:
   docs/plans/EL-04-REWARD-JVP.md
   docs/plans/EL-05-AGGREGATION.md
   docs/plans/EL-06-RESOURCE-ADMISSION.md
-  docs/plans/EXECUTABLE-LEARNING-TODO.md
   docs/WORKFLOWS.md
   MIGRATION.md
   README.md

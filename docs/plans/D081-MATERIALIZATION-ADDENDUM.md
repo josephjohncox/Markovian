@@ -1,29 +1,19 @@
-# D081 materialization addendum — adopted r4 contract
+# D081 materialization addendum
 
-**D-081 remains Proposed and unaccepted; D-082 remains blocked.** Parent has adopted the r4 contract under the [freeze decision](../evidence/D081-MATERIALIZATION/FREEZE-RECORD.md), following [DESIGN PASS 8992df58-e052-4b23-9fd9-345febebf9d2](../evidence/D081-MATERIALIZATION/DESIGN-REVIEW.md), documentation PASS `7f1a1fa6-ec54-4b26-a642-e33011ab9b74` and the pre-closeout parent identity audit. The earlier [preparation authority](../evidence/D081-MATERIALIZATION/AUTHORITY.md) remains quoted history. The next gate is separate runtime-continuation authority; final status-closeout review and parent byte audit/staging/commit remain, with no Git commit or integration claimed. Runtime continuation is held; candidate-r4 is not applied to any implementation checkout.
+D-081 is Accepted within its [unreleased host-F64 scope](../evidence/D081-AFFINE-IMPLEMENTATION.md).
+This addendum replaces the resource, producer, failure, and fixture requirements
+in §§6–9 and 11 of the [affine contract](D081-AFFINE-VIEWS.md) where specified.
+Geometry, public signatures, roles, and other unaffected requirements retain
+their original meaning. Section 8 consolidates the diagnostic, order, header,
+count-helper, and batch clarifications.
 
-## Repository status and precedence override
-
-Read this addendum with the byte-preserved [original D081 contract](D081-AFFINE-VIEWS.md), SHA-256 `31bf4e98df950c0f7cd9d738a36b12ca94b207a8e8167346098c36a11e0f8941`. For the adopted contract, the reviewed §§1–8 reproduced below supersede **only** conflicting resource/producer/failure/fixture seams in original §§6–9 and 11, including the five diagnostic/order/header/count-helper/batch clarifications in §8. Original geometry, public API/roles, unaffected requirements and scope exclusions remain controlling. This is not a new numerical revision or decision acceptance.
-
-The following original amendment is reproduced **byte-for-byte**, including its scratch-stage title, “DESIGN ONLY”, conditional adoption and pending-design-review wording. Those are quoted provenance: the parent contract adoption and completed design/documentation reviews stated above override that stage framing, not the mathematics or remaining runtime hold. All proof arithmetic and advisory appendices are preserved in the [durable evidence bundle](../evidence/D081-MATERIALIZATION/README.md). The reconciled [source proof](../evidence/D081-MATERIALIZATION/SOURCE-PROOF.md) controls advisory summands; advisory coefficients are not alternative normative rows.
-
-Within the reproduced text, `OPERATIVE-AMENDMENT.md` aliases this addendum's preserved original payload. Other bare artifact names, source-relative paths and I/S line citations resolve through the [artifact aliases and exact bindings](../evidence/D081-MATERIALIZATION/README.md#artifact-aliases), not the current package source. The controlling literal table is [FIXTURES-OPERATIVE.md](../evidence/D081-MATERIALIZATION/FIXTURES-OPERATIVE.md), together with [final equations](../evidence/D081-MATERIALIZATION/equations-FINAL.json), [fixture inputs](../evidence/D081-MATERIALIZATION/FIXTURE-INPUTS.md) and [failure fixtures](../evidence/D081-MATERIALIZATION/FAILURE-FIXTURES-FINAL.md). The [parent fixture-selection correction](../evidence/D081-MATERIALIZATION/PARENT-FIXTURE-SELECTION.md) excludes the misleadingly named historical `FIXTURES-FINAL.md`.
-
-Held417337, historically executed a650c2e0 and scratch-r4 `8b0b50628bf10e260f6048e2fe96dcc10359de31c7958591fecfbc6aef98dee5` remain distinct. r2 scalar and v2 producer controls do not validate the whole r4 runtime; logical slots and demand counters are not native allocation measurements. This checkout still has 133 public modules, no Affine exposure, and all 16 versions remain `2026.9.3.0`. Full runtime/installed-unit/fault/acceptance obligations remain pending under separate authority.
-
----
-
-<!-- BEGIN byte-preserved OPERATIVE-AMENDMENT.md; all following bytes are original -->
-# D081 prospective retention/materialization amendment — operative candidate r4
-
-**DESIGN ONLY; Proposed and unaccepted.** This is a complete numerical candidate for independent design review, not authority to edit, refreeze, implement, merge or release. D082 remains blocked. The runtime hold remains. `candidate-r4/` and `candidate-r4.patch` are scratch realizations of the proposed formulas, growing-live debit and previously authorized finite-refinement timing correction. They are not an implementation continuation.
-
-## Precedence and source identity
-
-If separately approved, §§1–5 below replace conflicting resource definitions, fixed costs, header coupons, operation rows and failure envelopes in frozen31bf §§6–8. §§6–8 supplement/replace the affected runtime/producer and fixture obligations in §§9 and11. The accompanying five-clarification consolidation governs its precise diagnostic/order/count-helper/batch seams. All other public declarations, signed affine geometry, ownership, payload/scalar reports, lifetime discipline, registry invariant and scope exclusions remain unchanged. No earlier literal 2432/256/384 or old operation coefficient certifies this candidate. The advisory tables are proof inputs, **not competing operative rows**.
-
-Source shorthand I/S means the immutable585 `Internal.hs`/`Shape.hs` captured in `source-basis/current-Internal.hs` and `current-Shape.hs`. I SHA starts417337, not the historically executed a650c2e0 source. Source line citations in the proof refer to that snapshot, not shifted candidate line numbers. The source tree and frozen plan are preserved. New tests compile derived scratch revisions; they do not establish unchanged-current-runtime or whole-implementation validation.
+The [source proof](../evidence/D081-MATERIALIZATION/SOURCE-PROOF.md) reconciles
+the detailed derivations. Its substitutions take precedence over preliminary
+coefficients. The [operation table](../evidence/D081-MATERIALIZATION/FIXTURES-OPERATIVE.md),
+[fixture inputs](../evidence/D081-MATERIALIZATION/FIXTURE-INPUTS.md), and
+[failure table](../evidence/D081-MATERIALIZATION/FAILURE-FIXTURES-FINAL.md)
+define expected results. See the [source basis](../evidence/D081-MATERIALIZATION/README.md#source-basis)
+for the historical line references used in the derivations.
 
 ## 1. Replacement §6.1: units, roots, completion and cutoffs
 
@@ -217,7 +207,7 @@ All allocating paths, including affine-disabled legacy paths, maintain the fully
 
 ## 7. Replacement §11 fixtures and required controls
 
-`FIXTURES-OPERATIVE.md` and `equations-FINAL.json` are the literal replacement table and complete exact/one-below/competition traces; parameters and source-sum definitions are in `equations-FINAL.py`. Each of19 paths checks its exact admission and all seven nonempty subsets of individually one-below cells/work/live. They include signed/empty/scalar/singleton/raw-empty/overlap maps; all three transforms; bind; signed/empty pullback; mixed1024 and [512,0,512] histories; rank512 base/scalar view; independent rank512 seed; and post-admission descriptor failures.
+`FIXTURES-OPERATIVE.md` gives the literal replacement table, and `FIXTURE-INPUTS.md` supplies its parameters. Each of the 19 paths requires exact admission and all seven nonempty subsets of individually one-below cells/work/live. They include signed/empty/scalar/singleton/raw-empty/overlap maps; all three transforms; bind; signed/empty pullback; mixed1024 and [512,0,512] histories; rank512 base/scalar view; independent rank512 seed; and post-admission descriptor failures.
 
 A semantic failure's exact table is its admission threshold, **not a ledger commit**. Runtime paths start the separate session account at4672/512/576; they do not import pure planning charges. Peaks are maxima. The high-base bind→pullback fixture deliberately has an earlier dominating peak: lowering whole-path live by one rejects that **earlier bind**, potentially before a later cumulative cells/work shortage. Resource precedence is within each admission event, not a global sorting of eventual shortages.
 
@@ -231,9 +221,9 @@ Prefix replacements (starting4672/512/576, rank512 all-one first shape):
 
 All errors are TensorAffineError-wrapped. The next cons/nil is uninspected; the fresh-stock/preforced distinction is supported by retained v2 evidence, while new demand-r2 controls count credited/requested inspections under these numerical coupons. Model counts are not native allocation counts.
 
-`FAILURE-FIXTURES-FINAL.md` and `schedule-checks-FINAL.json` independently calculate24 explicit count/prefix/sentinel cases, including the classic uncredited-T-nil and startup-only scalar boundaries. For every old count/rank/dimension/list fixture retain its input, error spelling and admitted-e index, but replace failure W/H/R/Q/L using §2 and exact prefix policy with `(4672+3124e,512+384e,576+52e)`. At e0 the failure envelope is2048/448/128/576/16960; at e1 it is2432/488/140/628/20084; at e2 it is2816/528/152/680/23208; at e4 it is3584/608/176/784/29456. One less in a prefix cap rejects before that selected inspection; if credits permit, old-element→affine-element→machine and old-rank/dimension→affine priorities are unchanged. The retained b64 T=M div8+1 machine literals remain9223372036854775808 and the effective cap+1 spellings, not old work/cell/live literals. Six-negative-before-minima and individual minimum one-below controls are required.
+`FAILURE-FIXTURES-FINAL.md` specifies 24 count/prefix/sentinel cases, including the uncredited-T-nil and startup-only scalar boundaries. For every old count/rank/dimension/list fixture retain its input, error spelling and admitted-e index, but replace failure W/H/R/Q/L using §2 and exact prefix policy with `(4672+3124e,512+384e,576+52e)`. At e0 the failure envelope is2048/448/128/576/16960; at e1 it is2432/488/140/628/20084; at e2 it is2816/528/152/680/23208; at e4 it is3584/608/176/784/29456. One less in a prefix cap rejects before that selected inspection; if credits permit, old-element→affine-element→machine and old-rank/dimension→affine priorities are unchanged. The retained b64 T=M div8+1 machine literals remain9223372036854775808 and the effective cap+1 spellings, not old work/cell/live literals. Six-negative-before-minima and individual minimum one-below controls are required.
 
-The control/source/proof attribution matrix and status correction are in `EVIDENCE-MATRIX.md` and `STATUS-ANNOTATION.md`. Independent design review is required before any separate adoption/refreeze decision. No evidence here upgrades the preserved current runtime or D081 to accepted.
+These tables define expected outcomes. Current implementation checks and their limits are listed in the [implementation record](../evidence/D081-AFFINE-IMPLEMENTATION.md).
 
 ## 8. Self-contained declaration/error/order consolidation
 
@@ -274,5 +264,5 @@ After full admission demand actual supplied base/stored view/actual seed and com
 
 Before `hostTensorBatchFromLists` IO return, inspect allocated and execute the **existing** arity comparison with exact Left propagation/internal allocation-count error. On success complete the OUTER `zipWith makeDynamic plans payloads` spine through nil. Do **not** force DynamicHostTensor/HostTensor items, layouts or payloads. Keep prepared identified-allocation invariant and admitted counts; no batch-sized deferred debt may remain in an individual selected item.
 
-All this remains after actual put. Session owns disclosed buffers; post-commit exceptions cannot restore old counters, finalize staged pointers again or extend staging rollback coverage. Preserve empty/singleton/large batch order and old reports/IDs. Caller selection/traversal after completed outer collection is external work, but deferred library arity/spine/item production cannot become external by calling it elimination. Status correction: retained v2 guarded O0/O2 eager-item and bounded synchronous post-commit controls were executed. The immutable historical sentence saying otherwise is annotated in STATUS-ANNOTATION.md. This is not a universal asynchronous callback-count or reclamation proof.
+All this remains after actual put. Session owns disclosed buffers; post-commit exceptions cannot restore old counters, finalize staged pointers again or extend staging rollback coverage. Preserve empty/singleton/large batch order and old reports/IDs. Caller selection/traversal after completed outer collection is external work, but deferred library arity/spine/item production cannot become external by calling it elimination. Bounded synchronous post-commit controls do not prove universal asynchronous callback counts or reclamation.
 

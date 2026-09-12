@@ -245,9 +245,12 @@ S7 status: `DONE` for the bounded scopes defined by D-048 through D-060. The res
 
 ## Executable learning and bounded extensions
 
-- [x] Execute [the durable implementation checklist](docs/plans/EXECUTABLE-LEARNING-TODO.md), covering documentation truth, compiled teaching examples, the law laboratory, paired-difference reports, exact feedback sensitivity, checked state aggregation, and the D-085 resource contract. Completed with independent reviews and a parent audit; see [integration evidence](docs/evidence/EXECUTABLE-LEARNING-INTEGRATION.md).
-
-The user authorized this program after [the 2026-09-05 review](docs/evidence/LEARNING-REVIEW-2026-09-05.md). Follow its checkboxes and execution log. Freeze and review each semantic contract before implementation. The program's historical status records remain unchanged. Separate 2026-09-08 records accept D-077/original D-078 and subsequently the bounded, unreleased D-079/D-080 scopes. The [separate D-081 record](docs/evidence/D081-AFFINE-IMPLEMENTATION.md) accepts its bounded, unreleased implementation with the historical index exception. EL-03/EL-04/EL-05 and D-082 through D-085 remain `Proposed`. Released history stays immutable.
+The compiled teaching examples, law laboratory, paired-difference reports,
+exact feedback sensitivity, checked state aggregation, and D-085 resource
+contract are implemented. `scripts/check-learning --run` checks teaching
+examples; package suites cover the library behavior. The capability table in
+`docs/capabilities/current.json` records implementation and decision status.
+Outstanding extensions are listed below.
 
 ## Post-release roadmap
 
@@ -258,7 +261,7 @@ This roadmap schedules governance review before acceptance. D-077 through D-081 
 - [x] **R2 (`DONE`) Review D-078 strict-discount affine feedback.** Readiness PASS supports acceptance only of original opaque nominal `A`/`K` coefficients and four Rational equations under the frozen normalized-event, strict-discount and cumulative-accounting contract. It remains unreleased. EL-04's separate implementation PASS does not accept its JVP contract; probability derivatives, universal trace and cyclic open adapters remain excluded.
 - [x] **R3 (`DONE`) Record bounded, unreleased D-079 acceptance.** Gate A plus the [frozen Gate B contract](docs/plans/D079-LEFT-SUCCESSOR-SUBSTITUTION.md) is accepted by the [separate parent-authorized record](docs/DECISIONS.md#d-079-add-exact-joint-affine-continuous-kernels), following decision-specific PASS `b4c30c96-f3ef-40ba-8ff0-bdf038e9e4df` at reviewed modern `12f3794`. Separate 13-file status-delta review `57601418` passed with P2, addressed by the changelog clarifications. Final status-delta review `11ddbb94` passed and parent committed the record at `78669c3613302249c499eba99a959f75c4c59edc`. No temporal reward accumulation, general composition/category, mixed routing, RCP, device or release claim follows.
 - [x] **R4 (`DONE`) Record bounded, unreleased D-080 acceptance.** The closed exact-polynomial quotation API and [frozen cumulative-compilation repair](docs/plans/D080-CUMULATIVE-COMPILATION.md) are accepted by the [separate parent-authorized record](docs/DECISIONS.md#d-080-add-bounded-first-order-quotation-with-callback-free-let), following decision-specific PASS `98a7de79-1e4f-4539-aa61-80cf332a2ed7` at reviewed modern `12f3794`. Separate 13-file status-delta review `57601418` passed with P2, addressed by the changelog clarifications. Final status-delta review `11ddbb94` passed and parent committed the record at `78669c3613302249c499eba99a959f75c4c59edc`. Keep arbitrary-Haskell/higher-order AD, control flow, devices, physical-allocation and release claims excluded.
-- [x] **R5 (`DONE`) Accept bounded, unreleased D-081 affine views.** The [acceptance record](docs/evidence/D081-AFFINE-IMPLEMENTATION.md) binds the implementation, reviews, exclusions, and accepted historical index exception.
+- [x] **R5 (`DONE`) Accept bounded, unreleased D-081 affine views.** The [implementation record](docs/evidence/D081-AFFINE-IMPLEMENTATION.md) describes its scope, checks, and exclusions.
 - [ ] **R6 (`READY FOR CONTRACT REVIEW`) Review D-082 CUDA multiply-chain graphs.** D-077 and D-081 acceptance prerequisites are satisfied. Graph freeze, implementation, review, and explicit hardware authority remain pending. Limit the graph to matrix inputs, admitted affine views, multiplication, and declared VJPs.
 - [ ] **R7 (`NEXT`) Review D-083 exact CE and CCE one-witness solvers.** The [contract](docs/plans/D083-CE-CCE-SOLVERS.md), implementation, and public/private fixtures are present in the existing base-only library. Complete the remaining accounting and verification evidence before capability acceptance.
 - [ ] **R8 (`READY`) Review D-084 the reference DQN trainer.** Freeze fuel, replay and checkpoint ownership, event timing, resumption, generator handling, and failure atomicity. Keep production, convergence, and distributed claims excluded.
@@ -414,7 +417,7 @@ D-081 is `Accepted` within its bounded, unreleased scope. Use the [acceptance an
 - [x] Freeze and review the canonical contract and materialization addendum.
 - [x] Complete the separately authorized runtime implementation and source-bound gates.
 - [x] Complete independent runtime review and the qualified-readiness follow-up.
-- [x] Record parent acceptance with the explicit historical index-preservation exception.
+- [x] Record acceptance of the implemented host-F64 scope.
 
 Historical strict preservation remains failed. Lifetime A, logical-resource limits, and all scope exclusions remain unchanged.
 
@@ -431,10 +434,10 @@ D-082 remains Proposed and unimplemented. Its prerequisite accepts do not supply
 
 #### R7 — D-083 CE and CCE one-witness solvers
 
-Placement is approved in the existing base-only `Markovian.Game.Correlated.Exact` module. The [frozen contract](docs/plans/D083-CE-CCE-SOLVERS.md) adds no package or edge. D-083 remains Proposed. Commit `fdfc1f8` implements both solvers and their public/private fixtures. The remaining contract verification is tracked in the [PR #10 review](docs/evidence/PR10-REVIEW.md).
+Placement is approved in the existing base-only `Markovian.Game.Correlated.Exact` module. The [frozen contract](docs/plans/D083-CE-CCE-SOLVERS.md) adds no package or edge. D-083 remains Proposed. Commit `fdfc1f8` implements both solvers and their public/private fixtures. The remaining contract verification is listed below.
 
 - [x] Complete placement approval and contract freeze for signatures, streamed active-set order, normalization, reports, cumulative ledgers, and failure precedence.
-- [ ] Complete contract verification of the implemented CE and CCE solvers, including checker instrumentation and source-loop/strictness evidence.
+- [ ] Complete contract verification. Instrument the constructor/checker's ordered Rational intermediates and compare them with the shadow sequence (§11.8). `testCheckerRowSequenceAgreement` currently compares returned row results; it does not capture discarded intermediates. `correlationSolveCheckerCoveredRationalBits` is shadow-derived, without an actual checker measurement. Add the missing redundant-row controls (§11.5), competing-failure observations for successor-reservation exhaustion and candidate rejection before elimination, and source-loop/reservation and strictness evidence.
 - [ ] Test independent witness inequalities and production-builder comparisons, complete tiny vertex fixtures, degeneracy, rank deficiency, inconsistency, private infeasible traversal, and public budget exhaustion. Verify exact/one-below atomic failures, report-length admission, private shadow sequences, source-loop/reservation bounds, and strictness. A completed public search without a witness is an invariant failure, not nonexistence.
 - [ ] Obtain fresh independent review of placement, solver behavior, accounting, and current evidence.
 - [ ] Parent records any acceptance in a separate reviewed status edit. Keep Nash and unrestricted solver claims excluded.

@@ -168,14 +168,8 @@ Record the review findings before publication. A prose review does not replace e
 
 Use direct technical prose. Use one term for one concept. Keep procedures in numbered steps.
 
-Run the repository's prose checker:
-
-```sh
-python3 /home/josephcox/.pi/agent/skills/ste-writing/scripts/ste-lint.py \
-  README.md TODO.md docs/*.md docs/book/src/*.md
-```
-
-The checker is heuristic. Review equations, code, links, and semantic claims manually.
+Review equations, code, links, and semantic claims manually. Run
+`scripts/check-book` for the reproducible documentation checks.
 
 ## Scope of the book
 

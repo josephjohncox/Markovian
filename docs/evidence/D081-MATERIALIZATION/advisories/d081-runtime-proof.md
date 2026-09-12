@@ -1,30 +1,10 @@
-# Section C — runtime and producer-materialization schedule
+# Runtime and producer resource derivation
 
-## Inherited decisions
-
-- This is read-only numerical advice, not coefficient approval, implementation authority, or a refreeze recommendation.
-- The v2 authority replaces constant nonzero-prefix live credit with prospectively charged, scan-dependent credit.
-- Newly produced framework metadata counts even when retained only through caller-held entry arguments.
-- The prospective `finiteTensor` correction completes its existing validation decision before IO return.
-- Prefix costs and coordinate kernels belong to other lanes. They are imported below, not charged again.
-- The committed-registry invariant remains mandatory. Its single-buffer append-and-force allowance is **`24n+24`, exactly once**.
-- Completed producer results are distinct from entirely pending caller-composed producer applications.
-
-**Confidence:** high in the demand, retention, ordering, and publication analysis; moderate in the conservative elementary-machine schedules below. These schedules require integration review, particularly agreement on the expanded library-combinator lowering. They are not GHC allocation counts.
-
-## Source basis and notation
-
-`I` denotes the immutable585 source:
-
-`/tmp/d081-guarded-implementation-uxc2eza6/blocked-handoff/source/packages/markovian-tensor/src/Markovian/Tensor/Internal.hs`
-
-`S` denotes its adjacent `Shape.hs`.
-
-The corresponding v2 `source-basis/current-Internal.hs` and `current-Shape.hs` supplied the remaining numbered source context. The refinement correction is from:
-
-`/tmp/d081-retention-v2-B0ZMyODc/candidate/Markovian/Tensor/Internal.hs:1691–1702`
-
-I read the completion direction first, both authorities, and the complete v2 review. No commands, mutations, executions, or delegation were performed.
+This preliminary derivation supplies detailed expansions for the
+[reconciled source proof](../SOURCE-PROOF.md). Use that proof's substitutions
+and the materialization addendum's final coefficients when they differ from
+this document. Line references use the [historical source basis](../README.md#source-basis).
+The units are logical source operations and storage slots.
 
 Write:
 
@@ -973,11 +953,3 @@ The numerical ceilings here receive **no policy authority** from this advice.
 - Prefix admission frames must remain in `U_A` until their discharge is source-established.
 - These deliberately conservative survivor ceilings are not tight allocation measurements.
 - External callbacks, arbitrary pending pipelines, and repeated asynchronous cleanup remain outside the finite theorem.
-
-## Need from main agent
-
-No new scope or API decision. Numerical integration and independent review remain necessary before any coefficient adoption.
-
-## Suggested execution prompt
-
-No executor handoff is warranted from this read-only advisory.

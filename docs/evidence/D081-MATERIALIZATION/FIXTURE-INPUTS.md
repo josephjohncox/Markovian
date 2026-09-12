@@ -10,7 +10,7 @@ The parameter convention is `(kind,b,s,r,B,V,n)`. Runtime accounts begin at4672/
 * Rank512 base means512 dimensions all1, count1, scalar view[], offset0, strides[]. The pull path has n2. Scalar-base/rank512 seed means base[], view512 dimensions all1,512 zero map strides, offset0, independent seed of that same rank/count, n2.
 * Private bind failure can replace only the capacity field on an otherwise adequately backed five-scalar base with M div8+1. Count/capacity failure is before payload dereference. Private pull failure can replace only the independent three-scalar seed's dimension field with[M+37], retaining valid count/capacity/spine lengths; bounded seed-dimension diagnostic precedes allocation/read. These are admission/error fixtures, not permission for unsafe payload probes.
 
-All seven nonempty subsets of the exact table's cells/work/live values lowered by one are in equations-FINAL.json with first operation/event, diagnostic and unchanged successful ledger. Do not interpret a semantic-failure row as a successful commit:
+For all seven nonempty subsets of cells/work/live limits lowered by one, check the first failing operation, diagnostic, and unchanged successful ledger. Do not interpret a semantic-failure row as a successful commit:
 
 | semantic exit | successful ledger before and after |
 |---|---|

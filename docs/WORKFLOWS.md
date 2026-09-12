@@ -1,6 +1,18 @@
 # Workflows
 
-This document defines the required execution workflow for future agents.
+This document describes contribution and verification practices.
+
+Track library source, executable tests, maintained documentation, and scripts
+that reproduce checks. Keep agent prompts, handoffs, execution journals,
+worktree audits, and temporary command receipts out of the source tree. Put
+review findings in the PR and unresolved work in `TODO.md`. Use `.agent-scratch/`
+for local coordination files; it is ignored by Git.
+
+Preserve mathematical derivations and benchmark evidence when they explain a
+contract or measurement. Give them repository-relative inputs and reproducible
+commands where possible. Keep package documentation entries explicit. Tests
+should verify behavior and structured metadata; do not hash mutable prose or
+require a particular review narrative. Git history retains previous wording.
 
 ## 1. Before editing
 
@@ -20,7 +32,7 @@ Stop if the worktree contains unexplained changes. Do not overwrite work owned b
 
 ### Current D-081 acceptance boundary
 
-D-081 is `Accepted` within its bounded, unreleased scope. Read the [acceptance record](evidence/D081-AFFINE-IMPLEMENTATION.md) for the frozen contracts, successor evidence, exclusions, and accepted historical index exception. Historical strict preservation remains failed. Preserve frozen and historical records without replacing their phase labels.
+D-081 is `Accepted` within its bounded, unreleased scope. Read the [implementation record](evidence/D081-AFFINE-IMPLEMENTATION.md) for contracts, checks, lifetime requirements, and exclusions.
 
 D-082's acceptance prerequisites are satisfied. Its graph freeze, implementation, review, and explicit hardware authority remain pending. D-083 has an implementation and fixtures in the existing exact-game module. Its accounting and verification review remains open. For status-only changes, bind fresh checks and archives to current source. Keep retained runtime evidence separate from new executions. Acceptance authorizes no release, hardware workflow, or external action.
 
@@ -135,9 +147,6 @@ while IFS= read -r file; do
   fi
 done < <(git ls-files --others --exclude-standard -- \
   README.md TODO.md docs CHANGELOG.md Markovian.cabal)
-
-python3 /home/josephcox/.pi/agent/skills/ste-writing/scripts/ste-lint.py \
-  README.md TODO.md docs/*.md docs/book/src/*.md
 ```
 
 `git diff` omits untracked files. The loop prints each untracked durable file as a complete added-file diff.

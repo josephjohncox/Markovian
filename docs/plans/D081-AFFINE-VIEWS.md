@@ -1,24 +1,17 @@
-# D-081 — frozen affine-view design contract
+# D-081 affine-view contract
 
-## Repository freeze status and provenance
+D-081 is Accepted within its [unreleased host-F64 scope](../evidence/D081-AFFINE-IMPLEMENTATION.md).
+The [materialization addendum](D081-MATERIALIZATION-ADDENDUM.md) supersedes the
+resource, producer, failure, and fixture requirements in §§6–9 and 11 where
+specified. Read those documents together; the original resource coefficients
+below are retained to explain the derivation's revisions.
 
-**Parent-approved DESIGN FREEZE; D-081 remains Proposed, unimplemented and unreleased.** Parent approved the exact full v3 contract after independent prospective-design PASS `5ba479ba-964e-4da4-8f95-51831227309b` and an independent audit of all 63 bundle hashes. The physical repository freeze still requires focused validation, independent review and parent byte audit/commit. Runtime implementation requires separate later parent authorization; design approval is not implementation acceptance and does not unblock D-082. D-083 placement remains unanswered; other decision and EL statuses, all 16 versions and released evidence are unchanged.
-
-Normative source: `/tmp/d081-registry-contract-v3/CONTRACT.md`, SHA-256 `fba9460a7201b59e292fee957957335cbd5c5d01411778fa0e37b32243658e74`. Authority: `/tmp/d081-repository-freeze-authority.md`. Independent review: `d081-registry-contract-review.md` under session artifacts `/home/josephcox/.pi/agent/sessions/--home-josephcox-dev-Markovian--/subagent-artifacts/outputs/73aa7579-0e99-48cd-971d-71c687692f40/`. The authority and model/source/typecheck artifacts are retained external provenance, not distributed runtime tests. All relative evidence filenames below refer to the preserved external v3 bundle, not missing repository files. Source line anchors refer to the inspected baseline `78669c3613302249c499eba99a959f75c4c59edc`; current Haddock qualification can shift line numbers without changing executable code.
-
-**Reading the preserved body:** Apart from the title and this stage preface, the reviewed v3 body below is retained verbatim. Its declarations, roles, formulas, diagnostics, admitted domains, ledgers, ownership/publication rules and fixture schedules are the normative frozen requirements for future implementation. Its scratch-stage approval/task descriptions are historical, not current instructions: in particular the opening scratch status, §1's remaining freeze decision, §4's provisional label, §10's future documentation heading, §12's scratch-task authorization boundary, and §§13–14's run/re-review framing describe the completed proposal stage. The design review and parent freeze decision have now occurred; repository review and runtime authorization have not. The selected §10 current public lifetime qualifications are recorded with this documentation freeze; the new Affine module, fully forced registry and all other runtime changes remain future obligations. Model/typecheck/source-investigation PASS is never an implementation, bound, fault-test, archive-consumer or lifetime-enforcement PASS. Historical transpose evidence and the original proposal remain separately preserved in the decision record.
-
----
-
-**Historical v3 scratch-stage status (superseded only as to design review and freeze approval):**
-
-**SCRATCH PROPOSAL FOR RE-REVIEW. Not frozen, implemented, accepted, or released. D-082 remains blocked.**
-
-Controlling R1–R3 amendment: `/tmp/d081-registry-diagnostic-direction.md`, read first in this continuation; full independent review960aa9b5 read next. Earlier controlling direction otherwise remains `/tmp/d081-parent-revision-direction.md`, SHA-256 `7bd59209ae36adbb923edc5b98e0cf38a6f8582b66d711af843a448c0ac4e587`. That parent direction selects the bounded dispositions below; exact declarations, new numbers, algorithms, and failure order still require independent review and a parent freeze decision. Confidence: high in the source distinctions and checked arithmetic; moderate in prospective implementation feasibility. No implementation-cost or runtime PASS is claimed.
-
-Inspected repository: `/home/josephcox/dev/Markovian-proposals`, HEAD `78669c3613302249c499eba99a959f75c4c59edc`, clean before and after this work. D-079/D-080 were accepted separately. A fresh Git comparison of tracked `*.hs,*.hsc,*.lhs,*.h,*.hpp` found no changes from `12f3794942485b5e525def6ee470a4ea22a9f13e`. This broader glob is not a reconstruction of the parent's particular 294-input inventory. Old execution logs remain attributed to their original revision; none is relabelled a new-HEAD execution.
-
-This document is a **full replacement prospective contract**, not an amendment requiring readers to guess which old order or literal applies. Original draft 064ddd34, review 7c6439c1, lifetime investigation 4a169d7f, and their evidence are preserved. The new full proposal/evidence bundle is `/tmp/d081-registry-contract-v3/`, explicitly created only after verifying that path did not exist. Only that bundle and the short native output summary were written. Earlier source/draft/evidence files are unchanged. This full replacement incorporates R1–R3 rather than requiring readers to overlay corrections onto the previous draft.
+The numbered contract describes geometry, signatures, nominal roles, error
+precedence, ownership, and validation requirements. Source line references use
+the design baseline `78669c3613302249c499eba99a959f75c4c59edc`. Temporary model
+and review artifacts cited in the original contract are historical evidence;
+they are not distributed tests. Current checks are listed in the implementation
+record linked above.
 
 ## 1. Exhaustive correction manifest
 
@@ -852,50 +845,3 @@ Fixed fixture rational scope: normalized inputs <=64-bit numerator/denominator, 
 | Documentation/package scope | Exact §10 lifetime qualifications; F3 mutable snapshot only; no versions/dependency graph/released evidence/status/tape expansion. Historical transpose claims remain bounded. |
 
 No source staging helper, runtime implementation, tests, formatting, package build, archive, installation or freeze is authorized by this scratch task. Future commands must use pinned GHC9.14.1/Cabal3.18.1.0 explicitly and isolated scratch outputs; this document does not claim they ran.
-
-## 13. Fresh v3 scratch execution and preservation manifest
-
-All v3 paths are explicitly under `/tmp/d081-registry-contract-v3/`; the directory did not exist and was created with a failing-if-exists guard. The native completion artifact is a **short summary**, not another copy of this full contract. SHA-256 of the completed contract is in the correction manifest/native summary, avoiding a self-referential hash in the contract.
-
-This run first read `/tmp/d081-registry-diagnostic-direction.md`, then the complete independent review960aa9b5, then the earlier controlling direction and full replacement draft. Fresh source reads/searches traced all production registry writes and actual `allocatePayloads`/`allocateStaged`/MVar masking paths. `Internal.numbered.txt` and compiler-local `MVar-source.txt` retain the anchors. Source statements describe unchanged runtime, not prospective implementation.
-
-### Commands and results actually executed
-
-Complete exact command arrays, expected/compiler exit statuses and log names: `commands.jsonl`. Every compiler invocation used the checkout's explicit `/home/josephcox/dev/Markovian-proposals/.direnv/ghcup/bin/ghc-9.14.1`, explicit source/output paths, and isolated `-package-env - -hide-all-packages -package base`. No installed affine package, repository suite, actual legacy allocation sequence, allocator probe, release/archive benchmark, HLS or external action was run.
-
-| Evidence | Command family / output | Result and limit |
-|---|---|---|
-| Toolchain | Versioned GHC/ghc-pkg and Int-width query: `compiler.log`, `base.log`, `machine.log` | GHC9.14.1/base4.22.0.0/Int64. No global selector/install change. |
-| Public declaration syntax/kinds | `-XGHC2021 -Wall -fno-code -fforce-recomp` on copied `D081Declarations.hs`; `declarations.log` | Passed; error-valued declaration-only bodies were not executed. Does not implement new error constructors/registry/API. |
-| Nominal roles | Same plus `-fmax-errors=100 RoleRejections.hs`; `roles.log` | Intended compiler failure; harness confirmed six named coercions. Does not substitute for all eight indexed-parameter/installed-unit opacity tests. |
-| Existing lifetime types | `-fno-code` on copied `PublicLifetimeTypes.hs`; `lifetime-types.log` | IO/existential packages typechecked; no escaped default observation executed. Lifetime A unchanged. |
-| Strictness-sensitive native history | Compile `RegistryHistory.hs` at **-O0 and -O2**, `-fno-cse -fno-full-laziness`, scratch outputs `registry-O0/model`, `registry-O2/model`; build/run logs retained | Both passed with identical logical counts, including n0/1/2/3/1024, batches, no-op history and undefined elements. Uses synthetic lazy append instrumentation, no runtime tensors or physical allocation benchmark. |
-| Exact diagnostic model | `CountDiagnostics.hs` compiled and run with existing ShapeError plus proposed diagnostic declaration types; `diagnostics-build.log`, `diagnostics-run.log` | All exact wrappers/boundaries/late-zero/credit cases and18688 finite ordered-cap comparisons passed. Existing source modules were compiled/linked for types, not used to run tensor allocations or new affine operations. |
-| Independent history/coupon/fault model | `python3 /tmp/d081-registry-contract-v3/models.py`; `history-coupons-fault-model.log` | Memoized lazy evaluator produced mutant523777 copies; event-fed720 full-coupon cases, mixed exact/one-below and symbolic owner faults passed. Fault ownership is a symbolic model, not a production fault test. |
-| Prior F1/F4/numerical fixture regression | Copied `check_models.py` and `check_coupons_v2.py`, run locally; `preserved-fixture-rerun.log` |168 prefix cases and12000 algebraic coupon cases plus fixed reports/raw-empty/independent exact differences passed. The old generic `machine` label and assumed24n are **not** R2/R1 evidence; new native/history/diagnostic models supply those distinctions. |
-| Source/index/evidence guards | `head-before/after.log`, `status-before/after.log`, `staged-after.log`, `source-12f3794-unchanged.log`, `preservation-before/after.json` | HEAD78669c3613302249c499eba99a959f75c4c59edc; proposals clean; no stage; compared Haskell/header source unchanged from12f3794942485b5e525def6ee470a4ea22a9f13e; **105 inherited files** match pre-run hashes. |
-
-No unexpected compiler/model failure occurred in this v3 execution. The six role rejections were intentional. Earlier failed runners/models/logs remain in their original evidence trees, included in the105-file preservation manifest; none is relabelled a v3 success or erased. Source glob guards do not reconstruct the parent's particular294-input inventory or certify unrelated publication actions.
-
-### Key reproducibility hashes
-
-Paths in this table are relative to this explicit v3 directory. `SHA256SUMS` contains the complete final source/log/artifact inventory (excluding its own self-hash and the later native summary).
-
-| File | SHA-256 |
-|---|---|
-| `RegistryHistory.hs` | `7c94ef6553d3241ea8047cdbd1d6118f0e4b34961e21718213257458351a258a` |
-| `CountDiagnostics.hs` | `49bb88d45fd09ca7ca52e1c0045c764b5cb4858b1cff81edbe9c3026e93aefe7` |
-| `models.py` | `8a3b9fcbae749891a9cd65302820aab9a52dc2888658e110b4491a78b000a36f` |
-| `MVar-source.txt` | `2bc668344138af61ceca2399569906b0baf5c26356bd50a924d98c89946e11d6` |
-| `registry-run-O0.log` | `1062224be1ff04c009d0fd38f629b5eeda4bee471e92731a361da765dffb561a` |
-| `registry-run-O2.log` | `f61352ab9579f1fbbb717afab982889fb048a06d317d595cd8c9c7f72ccd64b1` |
-| `diagnostics-run.log` | `86b1d42e0c4e9640b29cf46c803a234b9e8a1319bacb1afa7a60899e9cd4fc30` |
-| `history-coupons-fault-model.log` | `3bdab0bbae344addbdc8584c0f64cac26412af11de0be115d6ec91d71619c425` |
-
-## 14. Re-review gate and remaining decisions
-
-This full replacement incorporates the selected R1 universal private strictness/publication amendment, R2 exact machine/count-cap schedule and R3 four-type correction. No further public semantic/report/counter change was needed or selected. Successful constants remain unchanged because the now-established registry prerequisite and explicit terminal coupon fit them. The previous F1–F4 closures, temporal lifetime A, actual original-base binding, map/seed freedoms and immutable published version/membership distinctions remain in force.
-
-Parent must obtain a focused independent re-review of the **full** v3 contract, then decide freeze or revision. No reviewer approval, implementation acceptance, runtime bound/no-leak proof, physical allocation measurement, release, status change or D-082 authorization follows from the scratch executions. D-081 remains proposed/unfrozen; D-082 remains blocked; D-083 placement still awaits the user's answer outside this task.
-
-Residual implementation risks are explicit: all legacy and new commit paths must actually enforce the spine invariant and the real-put ownership boundary; strictness-sensitive instrumentation must distinguish the no-force mutant without privately traversing setup registry; actual async/cleanup behavior requires the mapped future fault tests; observers retain supported-use temporal discipline, not enforced liveness. The proof/model evidence is sufficient to review this concrete proposal, not to waive those future checks.

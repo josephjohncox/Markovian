@@ -1,6 +1,6 @@
 # markovian-tensor
 
-D-081 is `Accepted` within its bounded, unreleased scope. The [acceptance record](https://github.com/josephjohncox/Markovian/blob/main/docs/evidence/D081-AFFINE-IMPLEMENTATION.md) binds its contracts, source evidence, exclusions, and accepted historical index-preservation exception. The root source archive includes that record. D-082 remains Proposed and unimplemented, with its acceptance prerequisites satisfied.
+D-081 is `Accepted` within its bounded, unreleased scope. The [acceptance record](https://github.com/josephjohncox/Markovian/blob/main/docs/evidence/D081-AFFINE-IMPLEMENTATION.md) describes its contracts, checks, lifetime requirements, and exclusions. The root source archive includes that record. D-082 remains Proposed and unimplemented, with its acceptance prerequisites satisfied.
 
 `Markovian.Tensor.Affine` provides checked signed affine maps, permutation, reversal, bounded slicing, materialization, and base-coordinate pullback. Binding retains the actual original base and owner. Bounds and overlap checks reject invalid maps, including non-singleton zero strides. The API does not admit arbitrary map composition or broadcasting.
 

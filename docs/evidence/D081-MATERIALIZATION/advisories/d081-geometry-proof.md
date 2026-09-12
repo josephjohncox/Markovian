@@ -1,21 +1,10 @@
-# D081 section B — post-header pure geometry proof
+# Geometry resource derivation
 
-## Inherited decisions
-
-- This is read-only numerical advice, not approval of coefficients, implementation, refreeze, or acceptance.
-- The source basis is `/tmp/d081-retention-v2-B0ZMyODc/source-basis/current-Internal.hs` (**I** below), attributed by the retained review to immutable585; `current-Shape.hs` is **S**. I read the controlling completion direction, both authorities, the complete v2 review, the relevant frozen §6/§8 definitions, and the source. No commands, mutations, delegation, or experiments were performed.
-- The inspected `candidate.patch` changes only `finiteTensor` at I:1689–1698. It does not alter this geometry section.
-- Units remain frozen logical primitives and scalar/reference/control slots. These are not GHC allocation, heap, instruction, or timing counts.
-- Prefix work and materialization arrive separately. Newly materialized prefix objects remain accountable through caller-retained roots.
-- This section starts **after successful full reservation**, immediately before the signed/domain checks. Formula evaluation, reservation, prefix scans, and global entry administration belong to section A. Runtime transactions and materialization belong to section C.
-
-## Diagnosis
-
-**The geometry is rank-linear except for permutation checks/lookups and the explicitly repeated address validation. There is no base-rank traversal after admission, no address cache, and no parent-map history retained by a derived map.**
-
-The numerical schedules below expand the source rather than reuse frozen coefficients. They are deliberately conservative logical-machine upper bounds. Their larger call/frame accounting does **not** establish that smaller frozen coefficients are false.
-
-Confidence: **high** in the source paths and iteration bounds; **moderate** in the complete proposed numerical envelope pending independent checking of this elementary schedule.
+This preliminary derivation supplies detailed expansions for the
+[reconciled source proof](../SOURCE-PROOF.md). Use that proof's substitutions
+and the materialization addendum's final coefficients when they differ from
+this document. Line references use the [historical source basis](../README.md#source-basis).
+The units are logical source operations and storage slots.
 
 ### 1. Parameters and interface
 
@@ -946,11 +935,3 @@ Keep the prefix survivor transfer explicit, preserve the full earlier prefix pea
 - The `natVal` reread is of admitted scalar evidence. Production of fresh witness tails/dictionaries must remain in section A’s account.
 - The logical-frame model is not a bound on compiler-dependent closure layouts or physical stack/heap behavior.
 - No source execution, coefficient acceptance, or preservation-hash recomputation was performed.
-
-## Need from main agent
-
-No new product/API arbitration is required by this section. The integrator must align the nine incoming charge/usage slots with section A and independently verify the assembled numerical theorem.
-
-## Suggested execution prompt
-
-**No executor handoff is warranted.** This is read-only proof advice; implementation and policy changes remain unauthorized.

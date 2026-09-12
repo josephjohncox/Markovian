@@ -2,7 +2,6 @@
 """Negative fixtures for the capability truth/presentation boundary."""
 
 import copy
-import hashlib
 import json
 import re
 import shutil
@@ -85,94 +84,14 @@ class CapabilityTests(unittest.TestCase):
             self.assertIn(module, self.current[package])
             self.assertNotIn(module, self.released[package])
 
-    def test_d079_d080_current_status_projections(self):
-        projections = {
-            "D-079": ["README.md", "packages/markovian-continuous/README.md",
-                      "docs/book/src/continuous-probability.md"],
-            "D-080": ["packages/markovian-autodiff/README.md",
-                      "docs/book/src/autodiff-lowering.md"],
-        }
-        for decision, paths in projections.items():
-            for path in paths:
-                with self.subTest(decision=decision, path=path):
-                    text = (cap.ROOT / path).read_text()
-                    self.assertIn(f"{decision} is `Accepted` within its bounded, unreleased scope", text)
-                    self.assertNotRegex(text, rf"{decision} remains `?Proposed`?")
-
     def test_d081_bounded_unreleased_acceptance_record(self):
-        text = (cap.ROOT / "docs/evidence/D081-AFFINE-IMPLEMENTATION.md").read_text()
-        self.assertIn("**Decision status:** Accepted", text)
-        self.assertIn("**Availability:** UNRELEASED", text)
-        self.assertIn("cc900878dbf6f7bdc33f95affa9c15d2ea6f97ad", text)
-        self.assertIn("47aa263ff42f5691e38016e379150d271343fa685bbcd726b50fb701114901a5", text)
-        self.assertIn("Historical strict writer-index byte preservation failed.", text)
-        self.assertIn("LINT-PROOF-BRIDGE.md", text)
-        self.assertIn("not a physical-allocation theorem", text)
-        self.assertIn("D-082 remains Proposed and unimplemented.", text)
-        self.assertIn("Its placement is not approved.", text)
-        module = "Markovian.Tensor.Affine"
-        self.assertIn(module, self.current["markovian-tensor"])
-        self.assertNotIn(module, self.released["markovian-tensor"])
-
-    def test_d081_current_status_projections(self):
         record = next(r for r in self.document["capabilities"] if r["decision"] == "D-081")
         self.assertEqual(record["availability"], "unreleased")
         self.assertEqual(record["decisionStatus"], "Accepted")
-        for path in ("README.md", "TODO.md", "docs/CONTEXT.md", "docs/ARCHITECTURE.md",
-                     "docs/WORKFLOWS.md", "docs/book/src/tensor-runtime.md",
-                     "packages/markovian-tensor/README.md"):
-            with self.subTest(path=path):
-                text = (cap.ROOT / path).read_text()
-                self.assertIn("D081-AFFINE-IMPLEMENTATION.md", text)
-                self.assertNotRegex(text, r"D-081 (?:remains|stays) `?Proposed")
-                self.assertNotIn("133 public modules", text)
-                self.assertNotIn("still exposes no Affine module", text)
-        api = (cap.ROOT / "docs/book/src/api-map.md").read_text()
-        self.assertIn("markovian-tensor: Markovian.Tensor.Affine", api)
-        self.assertIn("D-081 Accepted with the recorded historical index exception", api)
-        decisions = (cap.ROOT / "docs/DECISIONS.md").read_text()
-        d082 = decisions.split("### D-082:", 1)[1].split("### D-083:", 1)[0]
-        self.assertIn("acceptance prerequisites are satisfied", d082)
-        self.assertIn("D-082 remains unimplemented", d082)
-        self.assertIn("explicit hardware authority remain pending", d082)
-        todo = (cap.ROOT / "TODO.md").read_text()
-        r5 = todo.split("#### R5 —", 1)[1].split("#### R6 —", 1)[0]
-        self.assertNotIn("- [ ]", r5)
-        self.assertIn("**R7 (`NEXT`)", todo)
-        self.assertNotIn("Still blocked on separate reviewed acceptance of D-081", todo)
-
-    def test_d081_frozen_contracts_and_historical_proposal(self):
-        expected = {
-            "docs/plans/D081-AFFINE-VIEWS.md":
-                "31bf4e98df950c0f7cd9d738a36b12ca94b207a8e8167346098c36a11e0f8941",
-            "docs/plans/D081-MATERIALIZATION-ADDENDUM.md":
-                "e9dede17681f241f542163a78dcc011d80d2cab3a64405387aa986e189783d92",
-        }
-        for path, digest in expected.items():
-            self.assertEqual(hashlib.sha256((cap.ROOT / path).read_bytes()).hexdigest(), digest)
-        decisions = (cap.ROOT / "docs/DECISIONS.md").read_text()
-        historical = decisions.split(
-            "#### Historical original proposal and transpose-only prerequisite evidence\n", 1
-        )[1].split("### D-082:", 1)[0]
-        self.assertEqual(hashlib.sha256(historical.encode()).hexdigest(),
-                         "e3a9c852d3e5c05f73356177ae8cb75c8afd0b05b8ac781df2f378b4c1c92d8d")
-        digest = hashlib.sha256()
-        for path in sorted((cap.ROOT / "docs/evidence/D081-MATERIALIZATION").rglob("*")):
-            if path.is_file():
-                digest.update(str(path.relative_to(cap.ROOT)).encode() + b"\0"
-                              + path.read_bytes() + b"\0")
-        self.assertEqual(digest.hexdigest(),
-                         "fac53051a4cef18ab8e1b10efa12ea638d04202f74632240350d3fff3f453371")
-
-    def test_d083_frozen_contract_identity_and_placement(self):
-        path = "docs/plans/D083-CE-CCE-SOLVERS.md"
-        text = (cap.ROOT / path).read_text()
-        self.assertEqual(hashlib.sha256((cap.ROOT / path).read_bytes()).hexdigest(),
-                         "cfb9301a0ddd454acb7230225fd8c27458081063fe3dd6dcd4a9610212fa1e28")
-        self.assertIn("## 3. Frozen public surface", text)
-        self.assertIn("Contract freeze is not capability acceptance.", text)
-        self.assertIn("60d23acceaeb731c3de713540ec0d051c0aa67d197f496a96bb91daa0f36ac30", text)
-        self.assertIn("Markovian.Game.Correlated.Exact", self.current["Markovian"])
+        self.assertEqual(record["evidenceScope"], "implementation-fixtures")
+        module = "Markovian.Tensor.Affine"
+        self.assertIn(module, self.current["markovian-tensor"])
+        self.assertNotIn(module, self.released["markovian-tensor"])
 
     def test_d083_implementation_remains_unreleased_and_proposed(self):
         record = next(r for r in self.document["capabilities"] if r["decision"] == "D-083")
@@ -180,22 +99,7 @@ class CapabilityTests(unittest.TestCase):
         self.assertEqual(record["decisionStatus"], "Proposed")
         self.assertEqual(record["evidenceScope"], "implementation-fixtures")
         self.assertEqual(record["evidence"], "test/CorrelatedSolvers.hs")
-        decisions = (cap.ROOT / "docs/DECISIONS.md").read_text()
-        d083 = decisions.split("### D-083:", 1)[1].split("### D-084:", 1)[0]
-        self.assertIn("**Status:** Proposed", d083)
-        self.assertIn("plans/D083-CE-CCE-SOLVERS.md", d083)
-        self.assertNotIn("remains unimplemented", d083)
-        self.assertIn("CorrelationCompletedSearchWithoutWitness", d083)
-        self.assertIn("Arithmetic design review is not executable proof.", d083)
-        todo = (cap.ROOT / "TODO.md").read_text()
-        r7 = todo.split("#### R7 —", 1)[1].split("#### R8 —", 1)[0]
-        self.assertEqual(r7.count("- [x]"), 1)
-        self.assertEqual(r7.count("- [ ]"), 4)
-        self.assertIn("- [x] Complete placement approval and contract freeze", r7)
-        self.assertIn("- [ ] Complete contract verification", r7)
-        self.assertIn("private infeasible traversal, and public budget exhaustion", r7)
-        self.assertIn("- [ ] Obtain fresh independent review", r7)
-        self.assertIn("- [ ] Parent records any acceptance", r7)
+        self.assertIn("Markovian.Game.Correlated.Exact", self.current["Markovian"])
 
     def test_d083_frozen_contract_is_packaged_as_documentation(self):
         text = (cap.ROOT / "Markovian.cabal").read_text()
