@@ -160,6 +160,10 @@ extra-source-files:
   test/compile-fail/AggregationWitnessUpdate.hs
   test/compile-fail/CircuitPurity.hs
   test/compile-fail/CompiledStateRoles.hs
+  test/compile-fail/CorrelatedSolverCoercion.hs
+  test/compile-fail/CorrelatedSolverConstruction.hs
+  test/compile-fail/CorrelatedSolverInterchange.hs
+  test/compile-fail/CorrelatedSolverUpdate.hs
   test/compile-fail/ExactApplicative.hs
   test/compile-fail/ExactDistributionOpacity.hs
   test/compile-fail/ExactKernelArrow.hs
@@ -178,6 +182,7 @@ extra-source-files:
   test/compile-fail/PushoutKind.hs
   test/compile-fail/RefinementRoles.hs
   test/compile-fail/RootMovedModules.hs
+  test/CorrelatedSolverPrivate.hs
   test/FeedbackRewardJVPPrivate.hs
   test/golden/affine-feedback-accounting.txt
   test/golden/feedback-accounting.txt
@@ -263,6 +268,7 @@ library
     Markovian.Category.Finite.Set.Internal
     Markovian.Category.Matrix.Stochastic.Internal
     Markovian.Feedback.Internal
+    Markovian.Game.Correlated.Exact.Internal
 
   build-depends:    base >=4.22.0.0 && <4.23
   hs-source-dirs:   src
@@ -298,6 +304,7 @@ test-suite Markovian-test
     AlgebraicFoundation
     BayesianExact
     CircuitCostRewrite
+    CorrelatedSolvers
     ExactBind
     ExactControl
     FeedbackExact

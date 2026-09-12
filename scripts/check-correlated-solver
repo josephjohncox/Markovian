@@ -1,0 +1,116 @@
+#!/usr/bin/env bash
+# D083 CE/CCE solver controls.
+#
+# Compiles the private solver-core probe without exposing the internal module,
+# mirroring the private reservation probe in scripts/check-feedback-boundary.
+# The probe reaches Markovian.Game.Correlated.Exact.Internal through -isrc, so
+# the module stays in other-modules and unreachable for library clients.
+#
+# Also drives the four frozen contract §11.8 compile-fail controls: solution
+# construction, record update, owner/action coercion, and CE/CCE interchange.
+# They are separate modules because GHC aborts the rename phase at the first
+# out-of-scope error, so a single combined module could not demonstrate each
+# rejected name independently.
+set -euo pipefail
+
+project_args=()
+if [[ -f cabal.project && -f cabal.project.ci ]]; then
+  project_args+=(--project-file=cabal.project.ci)
+fi
+
+tmp_dir="$(mktemp -d)"
+trap 'rm -rf "${tmp_dir}"' EXIT
+
+# One compile-fail control. Requires rejection, then requires each named
+# expected error text to be present in that control's own log.
+compile_failure() {
+  local fixture="$1"
+  local log_file="$2"
+  shift 2
+  if cabal exec "${project_args[@]}" -- ghc \
+    -package-env - -hide-all-packages -package base -isrc -XGHC2021 \
+    -fno-code -fmax-errors=200 -outputdir "${tmp_dir}/cf" \
+    "${fixture}" >"${log_file}" 2>&1; then
+    echo "The solver boundary fixture ${fixture} was accepted." >&2
+    exit 1
+  fi
+  local expected
+  for expected in "$@"; do
+    if ! grep -F "${expected}" "${log_file}" >/dev/null; then
+      cat "${log_file}" >&2
+      echo "The expected ${expected} boundary error was absent from ${fixture}." >&2
+      exit 1
+    fi
+  done
+}
+
+# §11.8 solution construction: hidden positional constructors.
+compile_failure test/compile-fail/CorrelatedSolverConstruction.hs \
+  "${tmp_dir}/construction.log" \
+  badCorrelatedSolutionConstructor \
+  badCoarseSolutionConstructor \
+  badSolveLimitsConstructor \
+  badSolveAccountingConstructor \
+  'Illegal term-level use of the type constructor'
+echo "PASS: D083 solution, limits and accounting constructors are opaque"
+
+# §11.8 record update: accessors are functions, not record selectors. GHC stops
+# at the first out-of-scope record field, so each field gets its own module.
+for field in correlatedSolutionDevice coarseCorrelatedSolutionDevice \
+  correlationSolveCandidates maximumCorrelationSolveCandidates; do
+  case "${field}" in
+    correlatedSolutionDevice) subject='CorrelatedEquilibriumSolution owner action' ;;
+    coarseCorrelatedSolutionDevice) subject='CoarseCorrelatedEquilibriumSolution owner action' ;;
+    correlationSolveCandidates) subject='CorrelationSolveAccounting' ;;
+    maximumCorrelationSolveCandidates) subject='CorrelationSolveLimits' ;;
+    *)
+      echo "unknown solver update field: ${field}" >&2
+      exit 1
+      ;;
+  esac
+  fixture="${tmp_dir}/SolverUpdate_${field}.hs"
+  {
+    printf 'module SolverUpdate_%s where\n' "${field}"
+    printf 'import Markovian.Game.Correlated.Exact\n'
+    printf 'badUpdate :: %s -> %s\n' "${subject}" "${subject}"
+    printf 'badUpdate x = x{%s = undefined}\n' "${field}"
+  } >"${fixture}"
+  compile_failure "${fixture}" "${tmp_dir}/update-${field}.log" \
+    "Not in scope: record field" "${field}"
+done
+echo "PASS: D083 solution and accounting accessors reject record update"
+
+# §11.8 owner/action coercion: nominal roles on both parameters.
+compile_failure test/compile-fail/CorrelatedSolverCoercion.hs \
+  "${tmp_dir}/coercion.log" \
+  badCorrelatedSolutionOwnerCoerce \
+  badCorrelatedSolutionActionCoerce \
+  badCoarseSolutionOwnerCoerce \
+  badCoarseSolutionActionCoerce \
+  badSolveErrorOwnerCoerce \
+  badSolveErrorActionCoerce \
+  "Couldn't match type"
+echo "PASS: D083 solution and error owner/action roles are nominal"
+
+# §11.8 CE/CCE interchange: the two solution types are distinct.
+compile_failure test/compile-fail/CorrelatedSolverInterchange.hs \
+  "${tmp_dir}/interchange.log" \
+  badSolutionInterchange \
+  badCoarseSolutionInterchange \
+  badSolutionInterchangeCoerce \
+  badCoarseAccessorOnCorrelated \
+  badCorrelatedAccessorOnCoarse \
+  badReportInterchange \
+  "Couldn't match type"
+echo "PASS: D083 CE and CCE solutions are not interchangeable"
+
+# Private solver-core probes: production constraint builder rows against an
+# independent labelled evaluator, private linear-system controls including the
+# pivot-swap control, arithmetic-only report-length gates, and the source-bound
+# CE shadow Rational control.
+cabal exec "${project_args[@]}" -- ghc \
+  -package-env - -hide-all-packages -package base -isrc -XGHC2021 \
+  -Wall -Werror -outputdir "${tmp_dir}/private" \
+  test/CorrelatedSolverPrivate.hs -o "${tmp_dir}/correlated-solver-private"
+"${tmp_dir}/correlated-solver-private"
+echo "PASS: D083 private builder, elimination, geometry and shadow controls"
