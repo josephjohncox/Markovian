@@ -2,12 +2,9 @@
 
 {- | Private D083 solver core for exact CE and CCE first-witness search.
 
-This module is deliberately a private @other-modules@ component, like
-"Markovian.Feedback.Internal".  It is not part of the public surface and is not
-client-reachable.  It exists so that the frozen private machinery -- constraint
-builder, tuple traversal, Gauss-Jordan elimination, scalar geometry admission,
-the cumulative ledger, and the arithmetic shadow -- can be exercised directly by
-a standalone private probe without exposing any of it publicly.
+The library keeps this module in @other-modules@. Standalone source probes
+exercise its constraint builder, tuple traversal, Gauss-Jordan elimination,
+geometry admission, cumulative ledger, and verification shadow.
 
 Reservations here are conservative represented-work and logical-field blocks.
 They bound represented work, logical fields, and observed 'Rational' sizes.
@@ -90,6 +87,10 @@ import Markovian.Game.Profile.Finite
 import Numeric.Natural (Natural)
 
 {-# ANN module ("HLint: ignore Use when" :: String) #-}
+
+-- Keep the explicit folds and recursive traversal used by the work schedule.
+{-# ANN module ("HLint: ignore Use sum" :: String) #-}
+{-# ANN module ("HLint: ignore Use foldl" :: String) #-}
 
 -- | Solve-specific caps around the shared 'GameLimits'.
 data CorrelationSolveLimits = CorrelationSolveLimits
@@ -312,7 +313,7 @@ observeRational :: CorrelationSolveLimits -> CorrelationSolvePhase -> Rational -
 observeRational limits phase value = do
     account <- readAccount
     let bits = maximumGameRationalBits (correlationSolveGameLimits' limits)
-        observed = boundedRationalSize (max bits representationCeiling) value
+        observed = boundedRationalSize (min bits representationCeiling) value
     if observed > bits
         then abort (SolveLimitFault phase CorrelationRationalBits bits (bits + 1))
         else
@@ -345,7 +346,7 @@ boundedRationalSize bound value =
     let numeratorBits = boundedIntegerBits bound (abs (numerator value))
      in if numeratorBits > bound
             then numeratorBits
-            else numeratorBits + boundedIntegerBits bound (denominator value)
+            else numeratorBits + boundedIntegerBits (bound - numeratorBits) (denominator value)
 
 boundedIntegerBits :: Natural -> Integer -> Natural
 boundedIntegerBits bound = go 1

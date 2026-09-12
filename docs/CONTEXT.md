@@ -1,5 +1,18 @@
 # Repository context
 
+## PR #10 review
+
+D-083 is implemented at `fdfc1f8`, with public and private fixtures. It remains
+Proposed pending the accounting and verification work recorded in the
+[review findings](evidence/PR10-REVIEW.md). Statements below about implementation
+or placement being pending describe earlier stages.
+
+The review fixes the stale teaching receipt, missing solver CI/archive checks,
+and the solver's bounded Rational scan. GHC 9.14.1/Cabal 3.18.1.0 remain the
+project toolchain. The review record distinguishes checks run now from earlier
+campaigns whose temporary files are no longer available.
+
+
 Read this file, `TODO.md`, and the relevant architecture and decision sections before a semantic change.
 
 ## Current state
@@ -160,7 +173,7 @@ The reviewed implementation is committed at `080fe0e209af26bcd11d64befe392510860
 - D-077 accepts bounded GPU evidence governance and the existing profile/receipt repair; hardware evidence remains bound only to `3e850085fa96c4e48a80270b9e49e9f55fe0f757`, not current HEAD. D-078 accepts only original strict-discount affine coefficients and four exact equations, not EL-04's JVP contract. Both dated acceptance records are in `docs/DECISIONS.md`.
 - D-079 accepts only bounded, unreleased exact compact affine-Uniform joint kernels and frozen left-successor substitution: complete zero-inclusive declarations, actual-operand-checked all-shared/all-fresh injective requests, sealed non-chainable right reward/successor, admitted but unaccumulated left reward, cumulative ledgers and historical-bit projections. No temporal/general composition, category, mixed routing, disintegration, device or performance claim follows.
 - D-080 accepts only bounded, unreleased closed exact-polynomial quotation and frozen cumulative compilation: nominal lexical environments/paths, generative construction tokens, callback-free stored lets, call-by-value unused bounds, independent Rational primal/JVP and distinct owned reverse lowering, numeric planning and logical reservation before strict admission and target construction. Capacity/failure/report contracts are accepted, not arbitrary-Haskell/higher-order AD, control flow, effects, sampling, tensors, devices, nested differentiation, vector packing, physical allocation/peak memory or performance.
-- [D-081](evidence/D081-AFFINE-IMPLEMENTATION.md) accepts only bounded, unreleased host-F64 affine views. D-082 through D-085 still propose CUDA multiply chains, CE/CCE witnesses, a reference DQN trainer, and interpreter-relative tabulation. D-082's acceptance prerequisites are satisfied, but graph freeze, implementation, review, and hardware authority remain pending. D-083 contract and placement review is next.
+- [D-081](evidence/D081-AFFINE-IMPLEMENTATION.md) accepts only bounded, unreleased host-F64 affine views. D-082 through D-085 still propose CUDA multiply chains, CE/CCE witnesses, a reference DQN trainer, and interpreter-relative tabulation. D-082's acceptance prerequisites are satisfied, but graph freeze, implementation, review, and hardware authority remain pending. D-083 has an implementation and fixtures; its accounting and verification review remains open.
 
 ## Executable-learning implementation status
 
@@ -325,7 +338,7 @@ D-081 is `Accepted` within its bounded, unreleased scope at implementation commi
 
 The current development surface includes `Markovian.Tensor.Affine`: 134 public modules, with all 16 package versions still `2026.9.3.0`. Lifetime A still requires dependent work and caller joins or cancel-and-joins to complete inside the callback. Logical-resource evidence does not establish physical allocation or prompt reclamation.
 
-D-082 remains Proposed and unimplemented. Its D-077 and D-081 acceptance prerequisites are satisfied, but graph freeze, implementation, review, and hardware authority remain pending. D-083 contract and placement review is next. This note approves no placement, release, main integration, or external action.
+D-082 remains Proposed and unimplemented. Its D-077 and D-081 acceptance prerequisites are satisfied, but graph freeze, implementation, review, and hardware authority remain pending. D-083 now has an implementation and fixtures; its accounting and verification review remains open.
 
 ## Instructions for future agents
 

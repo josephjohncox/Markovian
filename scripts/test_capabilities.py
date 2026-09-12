@@ -44,7 +44,7 @@ class CapabilityTests(unittest.TestCase):
             cap.validate(cap.ROOT, document, self.current, self.released)
 
     def test_current_records_and_generated_presentation(self):
-        self.assertEqual(cap.check(cap.ROOT), 9)
+        self.assertEqual(cap.check(cap.ROOT), 13)
 
     def test_cuda_receipt_matches_accepted_decision(self):
         decisions = (cap.ROOT / "docs/DECISIONS.md").read_text()
@@ -115,12 +115,14 @@ class CapabilityTests(unittest.TestCase):
         self.assertNotIn(module, self.released["markovian-tensor"])
 
     def test_d081_current_status_projections(self):
+        record = next(r for r in self.document["capabilities"] if r["decision"] == "D-081")
+        self.assertEqual(record["availability"], "unreleased")
+        self.assertEqual(record["decisionStatus"], "Accepted")
         for path in ("README.md", "TODO.md", "docs/CONTEXT.md", "docs/ARCHITECTURE.md",
                      "docs/WORKFLOWS.md", "docs/book/src/tensor-runtime.md",
                      "packages/markovian-tensor/README.md"):
             with self.subTest(path=path):
                 text = (cap.ROOT / path).read_text()
-                self.assertIn("D-081 is `Accepted` within its bounded, unreleased scope", text)
                 self.assertIn("D081-AFFINE-IMPLEMENTATION.md", text)
                 self.assertNotRegex(text, r"D-081 (?:remains|stays) `?Proposed")
                 self.assertNotIn("133 public modules", text)
@@ -172,12 +174,17 @@ class CapabilityTests(unittest.TestCase):
         self.assertIn("60d23acceaeb731c3de713540ec0d051c0aa67d197f496a96bb91daa0f36ac30", text)
         self.assertIn("Markovian.Game.Correlated.Exact", self.current["Markovian"])
 
-    def test_d083_contract_freeze_leaves_implementation_acceptance_pending(self):
+    def test_d083_implementation_remains_unreleased_and_proposed(self):
+        record = next(r for r in self.document["capabilities"] if r["decision"] == "D-083")
+        self.assertEqual(record["availability"], "unreleased")
+        self.assertEqual(record["decisionStatus"], "Proposed")
+        self.assertEqual(record["evidenceScope"], "implementation-fixtures")
+        self.assertEqual(record["evidence"], "test/CorrelatedSolvers.hs")
         decisions = (cap.ROOT / "docs/DECISIONS.md").read_text()
         d083 = decisions.split("### D-083:", 1)[1].split("### D-084:", 1)[0]
         self.assertIn("**Status:** Proposed", d083)
         self.assertIn("plans/D083-CE-CCE-SOLVERS.md", d083)
-        self.assertIn("Contract freeze is not capability acceptance.", d083)
+        self.assertNotIn("remains unimplemented", d083)
         self.assertIn("CorrelationCompletedSearchWithoutWitness", d083)
         self.assertIn("Arithmetic design review is not executable proof.", d083)
         todo = (cap.ROOT / "TODO.md").read_text()
@@ -185,7 +192,7 @@ class CapabilityTests(unittest.TestCase):
         self.assertEqual(r7.count("- [x]"), 1)
         self.assertEqual(r7.count("- [ ]"), 4)
         self.assertIn("- [x] Complete placement approval and contract freeze", r7)
-        self.assertIn("- [ ] Implement separate bounded exact CE and CCE", r7)
+        self.assertIn("- [ ] Complete contract verification", r7)
         self.assertIn("private infeasible traversal, and public budget exhaustion", r7)
         self.assertIn("- [ ] Obtain fresh independent review", r7)
         self.assertIn("- [ ] Parent records any acceptance", r7)
@@ -349,7 +356,7 @@ class CapabilityTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             root = self.fixture(directory)
             self.assertFalse((root / ".git").exists())
-            self.assertEqual(cap.check(root), 9)
+            self.assertEqual(cap.check(root), 13)
 
 
 if __name__ == "__main__":

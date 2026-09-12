@@ -46,7 +46,9 @@ Open `docs/book/build/index.html` after the build succeeds. Haddock remains the 
 
 The public book is <https://josephjohncox.github.io/Markovian/>. [Pages run 33126170927](https://github.com/josephjohncox/Markovian/actions/runs/33126170927) deployed merge commit `1268191a025c22fd9b995a1025d9ca810ff43451` from `main`.
 
-D-081 is `Accepted` within its bounded, unreleased scope. `Markovian.Tensor.Affine` provides checked immutable host-F64 affine views, materialization, and base-coordinate pullback. The [acceptance record](docs/evidence/D081-AFFINE-IMPLEMENTATION.md) binds the frozen contracts, source evidence, exclusions, and accepted historical index-preservation exception. D-082 remains Proposed and unimplemented, with its acceptance prerequisites satisfied. D-083 contract and placement review is next, without placement approval.
+Current development adds exact joint-affine substitution, polynomial quotation with cumulative compilation budgets, and checked host-F64 affine views. D-079 through D-081 are accepted for those scopes and remain unreleased. The [D-081 record](docs/evidence/D081-AFFINE-IMPLEMENTATION.md) documents its validation and limitations.
+
+D-083 adds `solveCorrelatedEquilibrium` and `solveCoarseCorrelatedEquilibrium` in `Markovian.Game.Correlated.Exact`. Each returns the first checked rational witness in a fixed search order or a resource error. The implementation has public and private fixtures; D-083 remains Proposed while the remaining accounting and verification requirements are reviewed. D-082 CUDA multiply-chain graphs are still unimplemented.
 
 ## Present API surfaces
 
@@ -198,56 +200,32 @@ The sample evaluates one exact transition with reward `2`, discount `1/2`, and t
 
 ## Verification
 
-Development targets GHC 9.14.1 and Cabal 3.18.1.0, pinned in
-`toolchain.env`, with `base >=4.22.0.0 && <4.23` and
-`bytestring >=0.12.2.0 && <0.13` (SafeTensors only). GHC 9.4/9.8
-compatibility is no longer a development requirement; historical release evidence
-is unchanged. See the 2026-09-08 toolchain amendment in `docs/DECISIONS.md`.
-Standalone HLint 3.10 and cabal-fmt 0.1.12 are source-built with the separate
-`MARKOVIAN_TOOL_BOOTSTRAP_GHC_VERSION=9.8.4` pin and the same Cabal 3.18.1.0.
-`scripts/install-ancillary-tools BIN_DIR STORE_DIR` is shared by bootstrap and CI;
-it uses isolated stores, separate plans and `--no-set`, without bounds overrides.
-This is not project support for GHC 9.8. HLS remains coupled to GHC 9.14.1;
-ShellCheck builds with the modern compiler. Bootstrap keeps project PATH modern.
-Bootstrap and `.envrc` use `scripts/project-hls.py`, never the generic GHCup
-HLS bindist. `scripts/hls-recipe.json` pins the official HLS 2.14 source archive,
-upstream recipe and exact installer/selector/sealer/launcher/guard/probe bytes. The first explicit bootstrap
-builds only the server/wrapper in a new isolated
-`.direnv/hls-official-2.14.0.0-ghc-9.14.1-<recipe-sha256>` tree using secure Hackage
-metadata. The suffix hashes canonical sorted compact JSON recipe bytes; changing
-the pinned recipe selects a new absent root, never reseals the historical root.
-Only explicit bootstrap/`--install` constructs it; check-only/LSP never installs.
-Only that external tool build uses the upstream dependency relaxations; Markovian
-and global Cabal gain no bounds exception. The original 1,722 source files stay
-unchanged; an additional project file strengthens exactly the upstream ABI flag.
-These raw targets no longer depend on `ghc-check`: the mandatory external guard
-actually compares the full build-time/current boot package DB, exact tools,
-source policy, plan, executables and linked compiler/shared libraries before LSP.
-Construction records every compiler-bin selector and Cabal with exact symlink,
-resolution, content and mode identities. Seal and launch validate that receipt-bound
-mapping before any guarded tool subprocess: missing, redirected, replaced, malformed
-or unexpected selectors and redirected selector directories fail closed, with no
-system-PATH fallback. These are launch-time checks, not protection against hostile
-concurrent filesystem mutation after the checks.
-The local `haskell-language-server` and `haskell-language-server-wrapper` launchers
-both run this guard; use no argument or `--lsp` for the editor, `--check-only` for
-the guard alone. Generic-wrapper CLI options such as `--version` are not supported.
+Development uses GHC 9.14.1 and Cabal 3.18.1.0, pinned in
+`toolchain.env`. Package bounds are `base >=4.22.0.0 && <4.23` and,
+for SafeTensors, `bytestring >=0.12.2.0 && <0.13`. GHC 9.8.4 builds only
+standalone HLint and cabal-fmt through `scripts/install-ancillary-tools`.
+Bootstrap leaves global tool selections unchanged.
 
-Keep the complete absolute HLS build/store tree: its dynamic libraries are not
-relocatable. Bootstrap explicitly reports reuse of an existing sealed construction,
-not a fresh installation. A failed build or changed tool/library identity fails
-closed; preserve the tree and logs unchanged. A new approved recipe has its own
-construction identity; do not repair/reseal an invalid same-identity build or fall
-back to another HLS/compiler. Preserve the unsuffixed historical installation. The upstream
-GHC 9.14 build excludes integrated HLint, Fourmolu, Ormolu, stylish-haskell,
-Retrie, Stan and Splice; standalone tools do not restore those plugins.
-Guard success is not operational evidence. The final integration report binds a
-separate real project LSP hover/error/recovery/shutdown test to current source;
-independent combined review and decision acceptance remain separate.
-The documentation gate uses `scripts/check_haddock_install.py` to capture fresh,
-source-bound logs for all 16 public libraries and the private library, plus 16
-installed interfaces. A clean parent log or warning-suppressed coverage pass
-alone is not warning-free documentation evidence.
+Bootstrap builds HLS 2.14.0.0 from the source and recipe pinned in
+`scripts/hls-recipe.json`. Both project-local HLS launchers use
+`scripts/project-hls.py`, which checks the compiler, Cabal selectors, package
+ABIs and linked libraries before starting LSP. Use no arguments or `--lsp`
+for editors; `--check-only` validates the installation. Generic wrapper options,
+including `--version`, are unsupported.
+
+Keep the complete `.direnv/hls-official-2.14.0.0-ghc-9.14.1-<recipe-sha256>`
+build/store tree at its original absolute path. The dynamic libraries are not
+relocatable. Bootstrap reuses a valid sealed build. A changed recipe requires
+explicit installation in a new directory; an invalid build must be preserved
+for diagnosis. The launcher never installs or falls back to another compiler.
+Upstream HLS on GHC 9.14 omits integrated HLint, Fourmolu, Ormolu,
+stylish-haskell, Retrie, Stan and Splice. See the
+[toolchain decision](docs/DECISIONS.md#development-toolchain-amendment-2026-09-08)
+for the source recipe and verification requirements.
+
+`scripts/check_haddock_install.py` checks fresh warning-enabled installation
+logs for all 16 public libraries and the private library, together with the
+16 installed public interfaces. Haddock coverage is checked separately.
 The required CI checks are:
 
 ```bash

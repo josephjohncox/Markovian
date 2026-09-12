@@ -75,6 +75,9 @@ import Numeric.Natural (Natural)
 
 {-# ANN module ("HLint: ignore Use when" :: String) #-}
 
+-- The solver contract specifies the count fold used by its work schedule.
+{-# ANN module ("HLint: ignore Use sum" :: String) #-}
+
 -- | A complete joint distribution over pure profiles.
 data ExactCorrelationDevice owner action
     = ExactCorrelationDevice
@@ -824,4 +827,3 @@ mapInvariant invariant = case invariant of
     Internal.CorrelationShadowVerificationInvariant -> CorrelationShadowVerificationInvariant
     Internal.CorrelationCheckerDisagreement -> CorrelationCheckerDisagreement
     Internal.CorrelationCompletedSearchWithoutWitness -> CorrelationCompletedSearchWithoutWitness
-

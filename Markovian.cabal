@@ -44,6 +44,7 @@ extra-doc-files:
   docs/evidence/EXECUTABLE-LEARNING-INTEGRATION.md
   docs/evidence/INTEGRATION-DOCS-REPAIR.md
   docs/evidence/LEARNING-REVIEW-2026-09-05.md
+  docs/evidence/PR10-REVIEW.md
   docs/evidence/S6-ACYCLIC-OPEN-2026-08-27.md
   docs/evidence/TENSOR-SAFETENSORS-REPAIR.md
   docs/learning/*.txt
@@ -116,6 +117,7 @@ extra-source-files:
   scripts/check-book-links
   scripts/check-capabilities
   scripts/check-circuit-purity
+  scripts/check-correlated-solver
   scripts/check-feedback-boundary
   scripts/check-game-core-boundary
   scripts/check-haddock-coverage

@@ -22,7 +22,7 @@ Stop if the worktree contains unexplained changes. Do not overwrite work owned b
 
 D-081 is `Accepted` within its bounded, unreleased scope. Read the [acceptance record](evidence/D081-AFFINE-IMPLEMENTATION.md) for the frozen contracts, successor evidence, exclusions, and accepted historical index exception. Historical strict preservation remains failed. Preserve frozen and historical records without replacing their phase labels.
 
-D-082's acceptance prerequisites are satisfied. Its graph freeze, implementation, review, and explicit hardware authority remain pending. D-083 contract and placement review is next, without placement approval. For status-only changes, bind fresh checks and archives to current source. Keep retained runtime evidence separate from new executions. Acceptance authorizes no release, hardware workflow, or external action.
+D-082's acceptance prerequisites are satisfied. Its graph freeze, implementation, review, and explicit hardware authority remain pending. D-083 has an implementation and fixtures in the existing exact-game module. Its accounting and verification review remains open. For status-only changes, bind fresh checks and archives to current source. Keep retained runtime evidence separate from new executions. Acceptance authorizes no release, hardware workflow, or external action.
 
 ## 2. One-writer policy
 

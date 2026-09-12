@@ -124,6 +124,9 @@ jobs:
       - name: Enforce exact mixed-game opacity and semantic boundaries
         run: bash scripts/check-mixed-game-boundary
 
+      - name: Check exact CE and CCE solver boundaries and private fixtures
+        run: bash scripts/check-correlated-solver
+
       - name: Enforce checked-feedback witness and endpoint boundaries
         run: bash scripts/check-feedback-boundary
 
@@ -174,6 +177,13 @@ jobs:
           cabal bench markovian-autodiff-bench --project-file=cabal.project.ci
           cabal bench markovian-tensor-bench --project-file=cabal.project.ci
           cabal bench markovian-gpu-bench --project-file=cabal.project.ci
+
+      - name: Run exact root tests with optimization
+        run: |
+          cabal test Markovian-test \
+            --project-file=cabal.project.ci \
+            --enable-optimization=2 --builddir=dist-solver-o2 \
+            --test-show-details=direct
 
       - name: Build warning-free Haddocks
         run: |
@@ -264,6 +274,7 @@ jobs:
                 bash scripts/check-acyclic-purity
                 bash scripts/check-game-core-boundary
                 bash scripts/check-mixed-game-boundary
+                bash scripts/check-correlated-solver
                 bash scripts/check-feedback-boundary
                 bash scripts/check-aggregation-boundary
                 bash scripts/check-root-topology
@@ -577,6 +588,7 @@ jobs:
             scripts/check-acyclic-purity \
             scripts/check-game-core-boundary \
             scripts/check-mixed-game-boundary \
+            scripts/check-correlated-solver \
             scripts/check-feedback-boundary \
             scripts/check-aggregation-boundary \
             scripts/check-release-archive \

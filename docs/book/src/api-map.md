@@ -151,7 +151,7 @@ These modules do not import arena histories. They provide no generic mixed lifti
 | --- | --- |
 | `Markovian.Game.Profile.Finite` | Checked owner products, pure profiles, exact complete simplexes, and shared game limits |
 | `Markovian.Game.NormalForm.Exact` | Complete rational payoff tables, independent mixed profiles, exact expectation, and mixed-Nash candidate checks |
-| `Markovian.Game.Correlated.Exact` | Joint correlation devices and distinct CE/CCE candidate reports |
+| `Markovian.Game.Correlated.Exact` | Joint correlation devices, CE/CCE candidate reports, and unreleased first-witness solvers |
 | `Markovian.Game.Outcome.Exact` | Complete exact joint outcome laws and reward/successor atoms |
 | `Markovian.Game.Stochastic.Exact` | Finite-horizon public-state Markov evaluation and Markov-perfect candidate checks |
 | `Markovian.Game.Harsanyi.Exact` | Correlated common priors, behavioral Bayes-Nash checks, and bounded strategic-normal conversion |

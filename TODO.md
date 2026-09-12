@@ -260,13 +260,13 @@ This roadmap schedules governance review before acceptance. D-077 through D-081 
 - [x] **R4 (`DONE`) Record bounded, unreleased D-080 acceptance.** The closed exact-polynomial quotation API and [frozen cumulative-compilation repair](docs/plans/D080-CUMULATIVE-COMPILATION.md) are accepted by the [separate parent-authorized record](docs/DECISIONS.md#d-080-add-bounded-first-order-quotation-with-callback-free-let), following decision-specific PASS `98a7de79-1e4f-4539-aa61-80cf332a2ed7` at reviewed modern `12f3794`. Separate 13-file status-delta review `57601418` passed with P2, addressed by the changelog clarifications. Final status-delta review `11ddbb94` passed and parent committed the record at `78669c3613302249c499eba99a959f75c4c59edc`. Keep arbitrary-Haskell/higher-order AD, control flow, devices, physical-allocation and release claims excluded.
 - [x] **R5 (`DONE`) Accept bounded, unreleased D-081 affine views.** The [acceptance record](docs/evidence/D081-AFFINE-IMPLEMENTATION.md) binds the implementation, reviews, exclusions, and accepted historical index exception.
 - [ ] **R6 (`READY FOR CONTRACT REVIEW`) Review D-082 CUDA multiply-chain graphs.** D-077 and D-081 acceptance prerequisites are satisfied. Graph freeze, implementation, review, and explicit hardware authority remain pending. Limit the graph to matrix inputs, admitted affine views, multiplication, and declared VJPs.
-- [ ] **R7 (`NEXT`) Review D-083 exact CE and CCE one-witness solvers.** Placement and the [contract freeze](docs/plans/D083-CE-CCE-SOLVERS.md) are complete in the existing base-only library. Implementation authorization, executable evidence, fresh implementation review, and capability acceptance remain pending.
+- [ ] **R7 (`NEXT`) Review D-083 exact CE and CCE one-witness solvers.** The [contract](docs/plans/D083-CE-CCE-SOLVERS.md), implementation, and public/private fixtures are present in the existing base-only library. Complete the remaining accounting and verification evidence before capability acceptance.
 - [ ] **R8 (`READY`) Review D-084 the reference DQN trainer.** Freeze fuel, replay and checkpoint ownership, event timing, resumption, generator handling, and failure atomicity. Keep production, convergence, and distributed claims excluded.
 - [ ] **R9 (`READY`) Review D-085 interpreter-relative exact tabulation.** Limit tabulation to the named acyclic retained-circuit consumer. Freeze cache identity and compare retained and uncached execution with measured receipts. Make no universal NBE or optimization claim.
 
 For every roadmap item, one cumulative bounded ledger covers the complete operation. Preflight precedes dense allocation. Exact and one-below tests are mandatory. Proof records and empirical receipts remain separate. Evidence for `v2026.9.3.0` does not validate post-release work. No roadmap item authorizes publication or a workflow launch.
 
-Post-release roadmap status: R0–R5 bounded acceptance is complete. The records below retain the decision-specific evidence. D-083 placement and contract freeze are complete; implementation authorization and acceptance remain pending. This queue authorizes no implementation, hardware workflow, release, or external action.
+Post-release roadmap status: R0–R5 bounded acceptance is complete. The records below retain the decision-specific evidence. D-083 has an implementation and executable fixtures; full contract verification and acceptance remain pending. This queue authorizes no implementation, hardware workflow, release, or external action.
 
 ### All-nine execution checklist
 
@@ -431,10 +431,10 @@ D-082 remains Proposed and unimplemented. Its prerequisite accepts do not supply
 
 #### R7 — D-083 CE and CCE one-witness solvers
 
-Placement is approved in the existing base-only `Markovian.Game.Correlated.Exact` module. The [frozen contract](docs/plans/D083-CE-CCE-SOLVERS.md) adds no package or edge. D-083 remains Proposed and unimplemented. Contract freeze is not capability acceptance. Separate parent authorization must precede implementation.
+Placement is approved in the existing base-only `Markovian.Game.Correlated.Exact` module. The [frozen contract](docs/plans/D083-CE-CCE-SOLVERS.md) adds no package or edge. D-083 remains Proposed. Commit `fdfc1f8` implements both solvers and their public/private fixtures. The remaining contract verification is tracked in the [PR #10 review](docs/evidence/PR10-REVIEW.md).
 
 - [x] Complete placement approval and contract freeze for signatures, streamed active-set order, normalization, reports, cumulative ledgers, and failure precedence.
-- [ ] Implement separate bounded exact CE and CCE one-witness solvers under the reviewed contract.
+- [ ] Complete contract verification of the implemented CE and CCE solvers, including checker instrumentation and source-loop/strictness evidence.
 - [ ] Test independent witness inequalities and production-builder comparisons, complete tiny vertex fixtures, degeneracy, rank deficiency, inconsistency, private infeasible traversal, and public budget exhaustion. Verify exact/one-below atomic failures, report-length admission, private shadow sequences, source-loop/reservation bounds, and strictness. A completed public search without a witness is an invariant failure, not nonexistence.
 - [ ] Obtain fresh independent review of placement, solver behavior, accounting, and current evidence.
 - [ ] Parent records any acceptance in a separate reviewed status edit. Keep Nash and unrestricted solver claims excluded.

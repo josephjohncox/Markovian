@@ -1,3 +1,5 @@
+{-# LANGUAGE ImportQualifiedPost #-}
+
 {- | D083 private solver-core probes.
 
 Mirrors @test/FeedbackRewardJVPPrivate.hs@: a standalone base-only executable
@@ -19,12 +21,18 @@ machinery:
 module Main (main) where
 
 import Control.Monad (unless)
+import Data.Maybe (isNothing)
+import Data.Ratio ((%))
 import Markovian.Category.Finite.Object
 import Markovian.Game.Correlated.Exact qualified as Public
 import Markovian.Game.Correlated.Exact.Internal
 import Markovian.Game.NormalForm.Exact
 import Markovian.Game.Profile.Finite
 import Numeric.Natural (Natural)
+
+-- Oracle equations use the same explicit coordinate notation for every column.
+{-# ANN module ("HLint: ignore Avoid lambda using `infix`" :: String) #-}
+{-# ANN module ("HLint: ignore Use head" :: String) #-}
 
 main :: IO ()
 main = do
@@ -36,6 +44,28 @@ main = do
     testTraversalOrder
     testCheckerRowSequenceAgreement
     testCompetingFailures
+    testBoundedRationalObservation
+
+-- Numerator and denominator consume the same bit budget. Rejection stops at
+-- the first bit over that budget, including when the denominator crosses it.
+testBoundedRationalObservation :: IO ()
+testBoundedRationalObservation = do
+    mapM_
+        ( \value ->
+            mapM_
+                ( \cap ->
+                    assert
+                        ("bounded size of " ++ show value ++ " at " ++ show cap)
+                        (boundedRationalSize cap value == min (cap + 1) (rationalSizeBits value))
+                )
+                [0 .. 16]
+        )
+        [0, 1, -1, 3 % 256, -(3 % 256), 256 % 3, 255 % 257]
+    let limits = correlationSolveLimits (gameLimits 64 64 64 4096 ceiling_ 7 ceiling_) ceiling_ ceiling_ ceiling_
+        result = runSolve (observeRational limits CorrelationAdmission (3 % 256)) :: Either (SolveFault String) ((), CorrelationSolveAccounting)
+    assert
+        "an oversized denominator fails admission with cap+1"
+        (result == Left (SolveLimitFault CorrelationAdmission CorrelationRationalBits 7 8))
 
 ceiling_ :: Natural
 ceiling_ = fromIntegral (maxBound :: Int) - 1
@@ -404,7 +434,7 @@ dotTwo coefficients masses = sum (zipWith (*) coefficients masses)
 
 -- | Drive the real elimination and report its pivot count and rows.
 eliminationThread :: Natural -> [[Rational]] -> Solve String ([[Rational]], Natural, [[Rational]])
-eliminationThread variables matrix = eliminationWith tinySolve variables matrix
+eliminationThread = eliminationWith tinySolve
 
 eliminationWith ::
     CorrelationSolveLimits ->
@@ -642,8 +672,8 @@ testTraversalOrder :: IO ()
 testTraversalOrder = do
     assert "the initial tuple is [0..k-1]" (initialTuple 3 == [0, 1, 2])
     -- For k = 0 the empty tuple is emitted exactly once.
-    assert "the empty tuple has no successor" (successorTuple 5 [] == Nothing)
-    assert "the initial empty tuple is empty" (initialTuple 0 == [])
+    assert "the empty tuple has no successor" (isNothing (successorTuple 5 []))
+    assert "the initial empty tuple is empty" (null (initialTuple 0))
     -- Lexicographic order over 3-subsets of 0..7, matching §11.3's family.
     let family = enumerate 8 (initialTuple 3)
     assert "there are 56 three-subsets of eight rows" (length family == 56)
@@ -705,7 +735,7 @@ testCheckerRowSequenceAgreement = do
     assert
         "the CE control exercises positive recommendations too"
         (any (\c -> Public.recommendationStatus c == Public.PositiveRecommendation) ceChecks)
-    assert "the CE control exercises zero-mass entries" (any (== 0) supplied)
+    assert "the CE control exercises zero-mass entries" (0 `elem` supplied)
     -- Ordered, element-by-element agreement including the zero-mass and null rows.
     mapM_
         ( \(index, shadowRow, check) -> do

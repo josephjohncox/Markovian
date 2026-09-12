@@ -146,7 +146,7 @@ testSingleton = do
             -- The empty selected tuple, not an empty owned profile.
             assert
                 "singleton CE empty tuple"
-                (correlationSolveSelectedInequalities (correlatedSolutionAccounting solution) == [])
+                (null (correlationSolveSelectedInequalities (correlatedSolutionAccounting solution)))
             assert
                 "singleton CE has no obedience rows"
                 (correlatedObedienceCount (correlatedSolutionCheck solution) == 0)

@@ -19,31 +19,25 @@ The script selects project-local GHC 9.14.1/Cabal 3.18.1.0 and pinned standalone
 tools without changing global defaults. GHC 9.8.4 is used only to construct
 standalone HLint/cabal-fmt, never to build or test Markovian or run its HLS.
 
-HLS 2.14.0.0 is built from the pinned official source with isolated configuration,
-cache and store, not the generic GHCup bindist. Only this external tool uses the
-approved upstream bounds recipe. The original source is unchanged; the generated
-project strengthens the ABI flag. Because the raw upstream targets omit
-`ghc-check`, both local HLS launcher names run the mandatory external full boot DB
-and compiler/shared-library identity guard before starting LSP. The construction
-receipt also binds every compiler/Cabal PATH selector's exact link, target and
-content/mode identity. Seal and launch reject missing, redirected, replaced or
-unexpected selectors and redirected tool directories before any guarded subprocess;
-there is no system fallback or opportunistic repair. These are launch-time checks,
-not protection against concurrent filesystem mutation after validation. Configure editors
-to use the local launcher with no arguments or `--lsp`; `--check-only` tests the
-guard, not project operation. Generic-wrapper options are not supported.
+HLS 2.14.0.0 is built from the source recipe pinned in
+`scripts/hls-recipe.json`. Configure the editor to use the project-local
+`haskell-language-server` or `haskell-language-server-wrapper` with no arguments
+or `--lsp`. Both launchers check compiler, package ABI, tool-selector and linked
+library identities before starting. `--check-only` runs those checks without
+starting LSP; generic-wrapper options are unsupported.
 
-Keep the entire absolute
-`.direnv/hls-official-2.14.0.0-ghc-9.14.1-<recipe-sha256>` build/store tree.
-The digest covers canonical sorted compact JSON recipe bytes. Changed recipes
-require explicit bootstrap/`--install` construction at a new absent root; check-only
-and LSP never install. Preserve the unsuffixed historical installation unchanged.
-The build is dynamically linked and not relocatable. Existing sealed builds are
-explicitly reused; failed builds or identity drift fail closed. Preserve their
-trees/logs unchanged; never repair/reseal an invalid same-identity build or use an ABI
-fallback. Upstream GHC 9.14 excludes integrated HLint, Fourmolu, Ormolu,
-stylish-haskell, Retrie, Stan and Splice; standalone tools do not restore them.
-See the repository README for the source pins and operational evidence boundary.
+Keep the complete `.direnv/hls-official-2.14.0.0-ghc-9.14.1-<recipe-sha256>`
+build/store tree at its original absolute path. It is dynamically linked and
+cannot be relocated. Bootstrap reuses a valid sealed build. A new recipe needs
+explicit installation in a new directory. If validation fails, preserve the
+build and logs for diagnosis. The launcher will neither repair it nor select a
+fallback compiler.
+
+Upstream HLS on GHC 9.14 omits integrated HLint, Fourmolu, Ormolu,
+stylish-haskell, Retrie, Stan and Splice. Standalone formatters and HLint remain
+available. The [repository README](../../../README.md#verification) and
+[toolchain decision](../../DECISIONS.md#development-toolchain-amendment-2026-09-08)
+record the recipe and validation details.
 
 ## Build and test the packages
 
