@@ -160,6 +160,7 @@ boundary_scripts=(
   scripts/check-acyclic-purity
   scripts/check-game-core-boundary
   scripts/check-mixed-game-boundary
+  scripts/check-correlated-solver
   scripts/check-feedback-boundary
   packages/markovian-reverse/scripts/check-reverse-boundary
   backends/markovian-neural/scripts/check-reverse-program-boundary
@@ -180,23 +181,8 @@ done
 cabal bench all --project-file=cabal.project.ci
 scripts/check-book
 
-documentation_packages=()
-while IFS=$'\t' read -r package_name _package_dir _version _dependency_tier; do
-  if [[ -n "${package_name}" && "${package_name}" != \#* ]]; then
-    documentation_packages+=("${package_name}")
-  fi
-done < release/packages.tsv
-cabal --store-dir="${stage}/worktree-doc-store" install \
-  --lib "${documentation_packages[@]}" \
-  --project-file=cabal.project.ci \
-  --builddir="${stage}/worktree-doc-build" \
-  --package-env="${stage}/worktree-doc-environment" \
-  --enable-documentation \
-  --overwrite-policy=always 2>&1 | tee "${stage}/worktree-haddock-install.log"
-python3 scripts/release_tool.py check-haddock-log \
-  "${stage}/worktree-haddock-install.log"
-python3 scripts/release_tool.py check-haddock-interfaces \
-  "${stage}/worktree-doc-store"
+python3 scripts/check_haddock_install.py \
+  --output-parent="${stage}/worktree-doc-evidence"
 # This warning-suppressed pass is coverage evidence only. The installation
 # above is the warning-enabled documentation gate.
 cabal haddock all -j1 \
@@ -307,26 +293,9 @@ python3 scripts/release_tool.py component-results \
   --receipts "${receipts}" \
   --output "${stage}/component-results.json"
 rm -f "${receipts}"
-archive_packages=()
-while IFS=$'\t' read -r package_name _package_dir _version _dependency_tier; do
-  if [[ -n "${package_name}" && "${package_name}" != \#* ]]; then
-    archive_packages+=("${package_name}")
-  fi
-done < release/packages.tsv
-(
-  cd "${stage}/unpacked"
-  cabal --store-dir="${stage}/archive-doc-store" install \
-    --lib "${archive_packages[@]}" \
-    --project-file=cabal.project \
-    --builddir="${stage}/archive-doc-build" \
-    --package-env="${stage}/archive-doc-environment" \
-    --enable-documentation \
-    --overwrite-policy=always
-) 2>&1 | tee "${stage}/archive-haddock.log"
-python3 scripts/release_tool.py check-haddock-log \
-  "${stage}/archive-haddock.log"
-python3 scripts/release_tool.py check-haddock-interfaces \
-  "${stage}/archive-doc-store"
+python3 scripts/check_haddock_install.py \
+  --output-parent="${stage}/archive-doc-evidence" \
+  --archive-root="${stage}/unpacked"
 (
   cd "${stage}/unpacked"
   cabal haddock all -j1 \
@@ -367,7 +336,7 @@ while IFS=$'\t' read -r package_name _package_dir version _dependency_tier; do
     if [[ -d scripts ]]; then
       while IFS= read -r boundary; do
         case "$(basename "${boundary}")" in
-          check-*boundary|check-*-purity|check-refinement-roles|check-root-topology)
+          check-*boundary|check-*-purity|check-refinement-roles|check-root-topology|check-correlated-solver)
             bash "${boundary}"
             ;;
         esac
@@ -411,17 +380,11 @@ rm -rf \
   "${stage}/archives-b" \
   "${stage}/unpacked" \
   "${stage}/consumer" \
-  "${stage}/archive-doc-store" \
-  "${stage}/archive-doc-build" \
-  "${stage}/archive-doc-environment" \
-  "${stage}/worktree-doc-store" \
-  "${stage}/worktree-doc-build" \
-  "${stage}/worktree-doc-environment"
+  "${stage}/archive-doc-evidence" \
+  "${stage}/worktree-doc-evidence"
 mv "${stage}/archives-a" "${stage}/archives"
 rm -f \
-  "${stage}/archive-haddock.log" \
   "${stage}/archive-haddock-coverage.log" \
-  "${stage}/worktree-haddock-install.log" \
   "${stage}/worktree-haddock-coverage.log"
 (
   cd "${stage}"

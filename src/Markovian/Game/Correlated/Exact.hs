@@ -587,18 +587,17 @@ solveCorrelatedEquilibrium ::
     ExactNormalGame owner action ->
     Either (CorrelationSolveError owner action) (CorrelatedEquilibriumSolution owner action)
 solveCorrelatedEquilibrium (CorrelationSolveLimits limits) game =
-    case Internal.runSolve (searchWitness limits Internal.CorrelatedMode game verify) of
+    case Internal.runSolve (searchWitness limits Internal.CorrelatedMode game runChecker compareReport) of
         Left fault -> Left (mapFault fault)
         Right (Left problem, _) -> Left problem
         Right (Right (device, report), account) ->
             Right (CorrelatedEquilibriumSolution game device report (CorrelationSolveAccounting account))
   where
     embedded = Internal.correlationSolveGameLimits' limits
-    verify shadow device = case checkCorrelatedEquilibrium embedded game device of
+    runChecker device = case checkCorrelatedEquilibrium embedded game device of
         Left problem -> Left (CorrelationSolveCheckerError problem)
-        Right report -> case agreesWithCorrelatedShadow embedded game device shadow report of
-            Just problem -> Left problem
-            Nothing -> Right report
+        Right report -> Right report
+    compareReport shadow device = agreesWithCorrelatedShadow embedded game device shadow
 
 {- | Search for the first deterministically checked CCE witness in exact
 'Rational' arithmetic.  Every CE is a CCE, but the two solution types are
@@ -610,34 +609,40 @@ solveCoarseCorrelatedEquilibrium ::
     ExactNormalGame owner action ->
     Either (CorrelationSolveError owner action) (CoarseCorrelatedEquilibriumSolution owner action)
 solveCoarseCorrelatedEquilibrium (CorrelationSolveLimits limits) game =
-    case Internal.runSolve (searchWitness limits Internal.CoarseMode game verify) of
+    case Internal.runSolve (searchWitness limits Internal.CoarseMode game runChecker compareReport) of
         Left fault -> Left (mapFault fault)
         Right (Left problem, _) -> Left problem
         Right (Right (device, report), account) ->
             Right (CoarseCorrelatedEquilibriumSolution game device report (CorrelationSolveAccounting account))
   where
     embedded = Internal.correlationSolveGameLimits' limits
-    verify shadow device = case checkCoarseCorrelatedEquilibrium embedded game device of
+    runChecker device = case checkCoarseCorrelatedEquilibrium embedded game device of
         Left problem -> Left (CorrelationSolveCheckerError problem)
-        Right report -> case agreesWithCoarseShadow embedded device shadow report of
-            Just problem -> Left problem
-            Nothing -> Right report
+        Right report -> Right report
+    compareReport shadow device = agreesWithCoarseShadow embedded device shadow
 
 {- | The shared phase pipeline: admission, constraints, then streamed
 combination, elimination, inequality checking, verification, and publication.
-The mode supplies its row family and its verification callback.
+The mode supplies its row family, checker, and final report comparison.
 -}
 searchWitness ::
     (Eq owner, Eq action) =>
     Internal.CorrelationSolveLimits ->
     Internal.SolveMode ->
     ExactNormalGame owner action ->
-    ([Internal.ShadowRow owner action] -> ExactCorrelationDevice owner action -> Either (CorrelationSolveError owner action) report) ->
+    (ExactCorrelationDevice owner action -> Either (CorrelationSolveError owner action) report) ->
+    ([Internal.ShadowRow owner action] -> ExactCorrelationDevice owner action -> report -> Maybe (CorrelationSolveError owner action)) ->
     Internal.Solve owner (Either (CorrelationSolveError owner action) (ExactCorrelationDevice owner action, report))
-searchWitness limits mode game verify = do
-    (owners, profiles, locals) <- Internal.admitGame limits game
-    let dimension = 1 + owners + foldl (+) 0 locals + profiles
+searchWitness limits mode game runChecker compareReport = do
+    (owners, profiles, localSum) <- Internal.admitGame limits game
+    let dimension = 1 + owners + localSum + profiles
     Internal.reserveBlock limits Internal.CorrelationConstraints dimension
+    -- This temporary count list belongs to the admitted geometry block.
+    -- Admission itself retains only scalar counts.
+    let locals =
+            [ Internal.naturalCount (Internal.carrierValues choices)
+            | (_, choices) <- ownedProductRows (normalGameProduct game)
+            ]
     (_, rows) <- Internal.admitGeometry limits mode profiles locals
     Internal.observeRational limits Internal.CorrelationConstraints 0
     Internal.observeRational limits Internal.CorrelationConstraints 1
@@ -681,12 +686,16 @@ searchWitness limits mode game verify = do
                             Left problem -> pure (Left (CorrelationSolveDeviceError problem))
                             Right device -> do
                                 Internal.reserveBlock limits Internal.CorrelationVerification dimension
-                                case verify shadow device of
+                                case runChecker device of
                                     Left problem -> pure (Left problem)
-                                    Right report -> do
-                                        Internal.reserveBlock limits Internal.CorrelationPublication dimension
-                                        recordSelected selected
-                                        pure (Right (device, report))
+                                    Right report ->
+                                        report `seq` do
+                                            Internal.reserveBlock limits Internal.CorrelationPublication dimension
+                                            case compareReport shadow device report of
+                                                Just problem -> pure (Left problem)
+                                                Nothing -> do
+                                                    recordSelected selected
+                                                    pure (Right (device, report))
     advance constraints dimension profiles rows selected = do
         Internal.reserveBlock limits Internal.CorrelationCombination dimension
         case Internal.successorTuple rows selected of

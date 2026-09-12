@@ -3,7 +3,8 @@
 
 Cabal's default logs-dir uses unit IDs (unlike the documented $pkgid template).
 The private library is built but intentionally has no public Haddock interface.
-This checkout-only CI gate does not perform release preparation or coverage.
+This gate can validate either the checkout or an already validated unpacked
+release tree. It does not perform release preparation or coverage.
 """
 
 from __future__ import annotations
@@ -45,10 +46,47 @@ def source_inventory(root: Path) -> dict:
     }
 
 
-def expected_libraries(root: Path, packages: list) -> set[tuple[str, str]]:
+def package_roots(root: Path, packages: list, archive_root: Path | None) -> dict:
+    if archive_root is None:
+        return {package.name: root / package.directory for package in packages}
+    require(not archive_root.is_symlink() and archive_root.is_dir(),
+            "invalid unpacked archive root")
+    roots = {
+        package.name: archive_root / package.archive_stem
+        for package in packages
+    }
+    for name, directory in roots.items():
+        require(not directory.is_symlink() and directory.is_dir() and
+                directory.resolve().parent == archive_root,
+                f"invalid unpacked package directory: {name}")
+    return roots
+
+
+def archive_source_inventory(directories: dict, project: Path) -> dict:
+    require(not project.is_symlink() and project.is_file(),
+            f"invalid archive project file: {project}")
+    inventory = {
+        "cabal.project": {"sha256": sha256_file(project),
+                          "mode": project.stat().st_mode & 0o777}
+    }
+    for name, directory in sorted(directories.items()):
+        for path in sorted(directory.rglob("*")):
+            relative = path.relative_to(directory)
+            require(not path.is_symlink(), f"symlink in unpacked package: {path}")
+            if path.is_dir():
+                continue
+            require(path.is_file(), f"non-regular unpacked package entry: {path}")
+            inventory[f"{name}/{relative.as_posix()}"] = {
+                "sha256": sha256_file(path),
+                "mode": path.stat().st_mode & 0o777,
+            }
+    return inventory
+
+
+def expected_libraries(directories: dict, packages: list) -> set[tuple[str, str]]:
     expected = set()
     for package in packages:
-        cabal = root / package.directory / f"{package.name}.cabal"
+        cabal = directories[package.name] / f"{package.name}.cabal"
         headings = re.findall(r"(?m)^library(?:[ \t]+([\w-]+))?[ \t]*$", cabal.read_text())
         require(headings.count("") == 1, f"expected one public library: {cabal}")
         for name in headings:
@@ -64,13 +102,19 @@ def expected_libraries(root: Path, packages: list) -> set[tuple[str, str]]:
 
 def verify_install(root: Path, run: Path, binding: dict) -> dict:
     """Check actual plan, source archives, all unit logs and installed interfaces."""
-    require(source_inventory(root) == binding["sources"], "source snapshot changed")
     manifest = root / "release/packages.tsv"
     require(sha256_file(manifest) == binding["manifest_sha256"], "manifest changed")
     packages = parse_manifest(manifest)
-    expected = expected_libraries(root, packages)
+    archive_root = (Path(binding["archive_root"])
+                    if binding.get("source_kind") == "archive" else None)
+    directories = package_roots(root, packages, archive_root)
+    project = (archive_root / "cabal.project" if archive_root is not None
+               else root / "cabal.project.ci")
+    current_sources = (archive_source_inventory(directories, project)
+                       if archive_root is not None else source_inventory(root))
+    require(current_sources == binding["sources"], "source snapshot changed")
+    expected = expected_libraries(directories, packages)
     versions = {p.name: p.version for p in packages}
-    directories = {p.name: p.directory for p in packages}
     plan_path = run / "build/cache/plan.json"
     plan = json.loads(plan_path.read_text())
     compiler = binding["compiler"]
@@ -119,7 +163,7 @@ def verify_install(root: Path, run: Path, binding: dict) -> dict:
                     require(parts[0] == f"{key[0]}-{versions[key[0]]}" and
                             ".." not in parts and len(parts) > 1,
                             f"invalid archive member: {member.name}")
-                    original = root / directories[key[0]] / Path(*parts[1:])
+                    original = directories[key[0]] / Path(*parts[1:])
                     require(original.is_file() and
                             tar.extractfile(member).read() == original.read_bytes(),
                             f"archive/current source mismatch: {original}")
@@ -168,12 +212,18 @@ def verify_install(root: Path, run: Path, binding: dict) -> dict:
                            for p in sorted(interfaces)]}
 
 
-def capture(root: Path, output_parent: Path, cabal: str, ghc: str) -> Path:
+def capture(root: Path, output_parent: Path, cabal: str, ghc: str,
+            archive_root: Path | None = None) -> Path:
     root = root.resolve()
+    if archive_root is not None:
+        require(not archive_root.is_symlink(), "invalid unpacked archive root")
+        archive_root = archive_root.resolve(strict=True)
+    working_root = archive_root if archive_root is not None else root
     output_parent.mkdir(parents=True, exist_ok=True)
     run = Path(tempfile.mkdtemp(prefix="haddock-install-", dir=output_parent)).resolve()
     print(f"Haddock evidence: {run}", flush=True)
-    require(not run.is_relative_to(root), "evidence must be outside source checkout")
+    require(not run.is_relative_to(root) and not run.is_relative_to(working_root),
+            "evidence must be outside source tree")
     pins = dict(re.findall(r"(?m)^export MARKOVIAN_(GHC|CABAL)_VERSION=(\S+)$",
                            (root / "toolchain.env").read_text()))
     env = dict(os.environ, GHC_ENVIRONMENT="-")
@@ -181,7 +231,7 @@ def capture(root: Path, output_parent: Path, cabal: str, ghc: str) -> Path:
 
     def execute(args: list[str], log_name: str) -> None:
         with (run / log_name).open("x") as log:
-            result = subprocess.run(args, cwd=root, env=env, stdout=log,
+            result = subprocess.run(args, cwd=working_root, env=env, stdout=log,
                                     stderr=subprocess.STDOUT)
         commands.append({"argv": args, "exit": result.returncode})
         (run / "commands.json").write_text(json.dumps(commands, indent=2) + "\n")
@@ -192,21 +242,32 @@ def capture(root: Path, output_parent: Path, cabal: str, ghc: str) -> Path:
     require((run / "ghc-version.log").read_text().strip() == pins["GHC"], "wrong GHC")
     require((run / "cabal-version.log").read_text().strip() == pins["CABAL"], "wrong Cabal")
     config = run / "cabal.config"
-    execute([cabal, f"--config-file={config}", "user-config", "init"], "config-init.log")
-    # Generate, never copy a host config (which may contain repository credentials).
-    with config.open("a") as handle:
-        handle.write(f"\nlogs-dir: {run / 'logs'}\nremote-repo-cache: {run / 'cache'}\n"
-                     "active-repositories: :none\n")
+    # Generate, never copy a host config (which may contain repository
+    # credentials). Omitting repository stanzas is necessary: even an inactive
+    # secure repository can make Cabal bootstrap metadata in an empty cache.
+    config.write_text(
+        f"logs-dir: {run / 'logs'}\nremote-repo-cache: {run / 'cache'}\n"
+        "active-repositories: :none\n"
+        "remote-build-reporting: detailed\n"
+    )
     packages = parse_manifest(root / "release/packages.tsv")
-    expected_libraries(root, packages)
+    directories = package_roots(root, packages, archive_root)
+    project = working_root / ("cabal.project" if archive_root is not None
+                              else "cabal.project.ci")
+    require(not project.is_symlink() and project.is_file(), f"missing project file: {project}")
+    expected_libraries(directories, packages)
+    sources = (archive_source_inventory(directories, project)
+               if archive_root is not None else source_inventory(root))
     binding = {"compiler": "ghc-" + pins["GHC"], "cabal": pins["CABAL"],
                "manifest_sha256": sha256_file(root / "release/packages.tsv"),
-               "sources": source_inventory(root), "config_sha256": sha256_file(config),
+               "sources": sources, "config_sha256": sha256_file(config),
+               "source_kind": "archive" if archive_root is not None else "checkout",
+               "archive_root": str(archive_root) if archive_root is not None else None,
                "started_ns": time.time_ns()}
     (run / "binding.json").write_text(json.dumps(binding, indent=2) + "\n")
     execute([cabal, f"--config-file={config}", f"--store-dir={run / 'store'}",
              "install", "--lib", *[p.name for p in packages],
-             "--project-file=cabal.project.ci", f"--builddir={run / 'build'}",
+             f"--project-file={project}", f"--builddir={run / 'build'}",
              f"--package-env={run / 'environment'}", f"--with-compiler={ghc}",
              "--offline", "--enable-documentation", "--overwrite-policy=always"], "parent.log")
     result = verify_install(root, run, binding)
@@ -219,11 +280,13 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--output-parent", type=Path, required=True)
     parser.add_argument("--root", type=Path, default=Path(__file__).resolve().parents[1])
+    parser.add_argument("--archive-root", type=Path)
     parser.add_argument("--cabal", default="cabal")
     parser.add_argument("--ghc", default="ghc")
     args = parser.parse_args()
     try:
-        capture(args.root, args.output_parent, args.cabal, args.ghc)
+        capture(args.root, args.output_parent, args.cabal, args.ghc,
+                archive_root=args.archive_root)
     except (ReleaseError, OSError, ValueError, KeyError) as error:
         parser.exit(1, f"Haddock installation gate failed: {error}\n")
 

@@ -24,6 +24,7 @@ class InstalledHaddockTests(unittest.TestCase):
         self.run = self.base / "run"
         self.run.mkdir()
         (self.root / "release").mkdir(parents=True)
+        (self.root / "cabal.project.ci").write_text("packages: .\n")
         actual = Path(__file__).resolve().parents[1]
         shutil.copy2(actual / "release/packages.tsv", self.root / "release/packages.tsv")
         self.packages = gate.parse_manifest(self.root / "release/packages.tsv")
@@ -184,6 +185,46 @@ class InstalledHaddockTests(unittest.TestCase):
         with self.assertRaisesRegex(ReleaseError, "archive/current source mismatch"):
             self.verify()
 
+    def test_unpacked_archive_layout_uses_package_sources_only(self):
+        archive_root = self.base / "unpacked"
+        archive_root.mkdir()
+        (archive_root / "cabal.project").write_text("packages: */*.cabal\n")
+        for package in self.packages:
+            shutil.copytree(self.root / package.directory,
+                            archive_root / package.archive_stem)
+        # Combined archive builds write here before the documentation gate. It
+        # is not release source and must not enter the source binding.
+        generated = archive_root / "dist-newstyle/cache/plan.json"
+        generated.parent.mkdir(parents=True)
+        generated.write_text("generated")
+        directories = gate.package_roots(self.root, self.packages, archive_root)
+        sources = gate.archive_source_inventory(
+            directories, archive_root / "cabal.project")
+        self.assertIn("Markovian/Markovian.cabal", sources)
+        self.assertIn("cabal.project", sources)
+        self.assertFalse(any("dist-newstyle" in name for name in sources))
+
+    def test_unpacked_archive_source_mutation_fails_verification(self):
+        archive_root = self.base / "unpacked"
+        archive_root.mkdir()
+        project = archive_root / "cabal.project"
+        project.write_text("packages: */*.cabal\n")
+        for package in self.packages:
+            shutil.copytree(self.root / package.directory,
+                            archive_root / package.archive_stem)
+        directories = gate.package_roots(self.root, self.packages, archive_root)
+        self.binding.update(
+            source_kind="archive",
+            archive_root=str(archive_root),
+            sources=gate.archive_source_inventory(directories, project),
+        )
+        self.verify()
+        (archive_root / "Markovian-2026.9.3.0/Markovian.cabal").write_text(
+            "library\n-- changed\n"
+        )
+        with self.assertRaisesRegex(ReleaseError, "source snapshot changed"):
+            self.verify()
+
     def test_archive_plan_mismatch(self):
         self.plan["install-plan"][0]["pkg-src-sha256"] = "wrong"
         with self.assertRaisesRegex(ReleaseError, "archive/plan hash mismatch"):
@@ -226,9 +267,20 @@ class InstalledHaddockTests(unittest.TestCase):
             text = (run / "cabal.config").read_text()
             self.assertIn(f"logs-dir: {run / 'logs'}", text)
             self.assertIn("active-repositories: :none", text)
+            self.assertIn("remote-build-reporting: detailed", text)
+            self.assertNotRegex(text, r"(?m)^repository[ \t]+")
             self.assertFalse((run / "verified.json").exists())
         for args in calls:
             self.assertFalse(any("--build-log" in arg or "--no-warnings" in arg for arg in args))
+
+    def test_release_preparation_uses_complete_haddock_and_solver_gates(self):
+        prepare = (Path(__file__).resolve().parent / "prepare-release").read_text()
+        self.assertEqual(prepare.count("python3 scripts/check_haddock_install.py"), 2)
+        self.assertIn('--archive-root="${stage}/unpacked"', prepare)
+        self.assertNotIn("worktree-haddock-install.log", prepare)
+        self.assertNotIn("archive-haddock.log", prepare)
+        self.assertIn("scripts/check-correlated-solver", prepare)
+        self.assertIn("check-correlated-solver)", prepare)
 
 
 if __name__ == "__main__":

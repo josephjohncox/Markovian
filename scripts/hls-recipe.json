@@ -10,7 +10,7 @@
   "scripts": {
     "install-hls-official.py": "62e7c3af2025244ed5aa4739cb3cf062cfa051e200c89d6eb8d152a87459be76",
     "seal-hls.py": "5d4eab4a67727bbdc6aae1929c652959f1aa52de13a3129e5ca197c1cc9c508f",
-    "guard-hls.py": "4382b530274c4686a6b83cce03399ad18240196a00635e962ab10825bc51f73e",
+    "guard-hls.py": "41d92d29d83f1d1ccf7ee76de84793ec3b6967d6dc5cf2ccd0aa4a85684306ff",
     "snapshot-project.py": "a75747339739804b8010ac10401d11a4dafc0d8deb3fc1f3d208252422006da8",
     "probe-hls-lsp.py": "02be82807f22706f27e140401f5141dd6481c3762ef1e12cc34eef2aa7a01e3d",
     "hls_selectors.py": "da5b3f6e51c992cc7ba980764468bc5c5255707f0cc6b7dd67b61bb21846c299",

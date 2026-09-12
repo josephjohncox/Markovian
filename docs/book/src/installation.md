@@ -2,7 +2,9 @@
 
 ## Requirements
 
-Use a Unix-like system with GHCup, `cargo`, and `direnv`. The repository pins the Haskell and documentation tool versions in `toolchain.env`.
+The development bootstrap requires Linux with GHCup, `cargo`, and `direnv`.
+Its HLS runtime verification uses `/usr/bin/ldd`. The repository pins the
+Haskell and documentation tool versions in `toolchain.env`.
 
 The default build does not require CUDA.
 

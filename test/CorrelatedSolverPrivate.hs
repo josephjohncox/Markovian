@@ -29,6 +29,7 @@ import Markovian.Game.Correlated.Exact.Internal
 import Markovian.Game.NormalForm.Exact
 import Markovian.Game.Profile.Finite
 import Numeric.Natural (Natural)
+import System.Environment (getArgs)
 
 -- Oracle equations use the same explicit coordinate notation for every column.
 {-# ANN module ("HLint: ignore Avoid lambda using `infix`" :: String) #-}
@@ -36,6 +37,17 @@ import Numeric.Natural (Natural)
 
 main :: IO ()
 main = do
+    arguments <- getArgs
+    case arguments of
+        [] -> runTests
+        ["--admission-reservation"] -> testAdmissionReservation
+        ["--spine-reservation"] -> testSpineReservation
+        ["--publication-reservation"] -> testPublicationReservation
+        ["--reservation-events"] -> testSingletonReservations
+        _ -> ioError (userError "unknown private solver control")
+
+runTests :: IO ()
+runTests = do
     testProductionBuilderRows
     testLinearSystemControls
     testGeometryAdmission
@@ -45,6 +57,98 @@ main = do
     testCheckerRowSequenceAgreement
     testCompetingFailures
     testBoundedRationalObservation
+    testSingletonReservations
+    testAdmissionReservation
+    testSpineReservation
+    testPublicationReservation
+
+-- Independently derive the singleton block schedule for one or three owners.
+-- There are 3r+3 spine inspections, three blocks of dimension 2r+2, and
+-- 3m+9 blocks of dimension 2r+2+m. Every mode selects the empty tuple once.
+singletonReservations :: SolveMode -> Natural -> (Natural, Natural)
+singletonReservations mode owners =
+    let dimension = 2 * owners + 2
+        rows = case mode of
+            CorrelatedMode -> 1
+            CoarseMode -> owners + 1
+        fields d = 1024 * d ^ (6 :: Int)
+        materialization = 3 * fields dimension + (3 * rows + 9) * fields (dimension + rows)
+        work = 16 * (3 * owners + 3) + 65 * materialization
+     in (materialization, work)
+
+singletonOwners :: Natural -> ExactNormalGame String String
+singletonOwners count =
+    let owners = ["P" ++ show index | index <- [1 .. count]]
+     in buildGame
+            [(owner, ["A"]) | owner <- owners]
+            [([(owner, "A") | owner <- owners], [(owner, 0) | owner <- owners])]
+
+publicAccount ::
+    SolveMode ->
+    Public.CorrelationSolveLimits ->
+    ExactNormalGame String String ->
+    Either (Public.CorrelationSolveError String String) Public.CorrelationSolveAccounting
+publicAccount mode limits game = case mode of
+    CorrelatedMode -> Public.correlatedSolutionAccounting <$> Public.solveCorrelatedEquilibrium limits game
+    CoarseMode -> Public.coarseCorrelatedSolutionAccounting <$> Public.solveCoarseCorrelatedEquilibrium limits game
+
+testSingletonReservations :: IO ()
+testSingletonReservations = mapM_ check [(mode, owners) | mode <- [CorrelatedMode, CoarseMode], owners <- [1, 3]]
+  where
+    check (mode, owners) = do
+        let (materialization, work) = singletonReservations mode owners
+            limits = Public.correlationSolveLimits (tinyLimits{maximumGameWork = work}) ceiling_ ceiling_ materialization
+        case publicAccount mode limits (singletonOwners owners) of
+            Left problem -> ioError (userError ("exact singleton reservations: " ++ show problem))
+            Right account ->
+                assert
+                    "singleton reservations equal the independent block schedule"
+                    ( Public.correlationSolveReservedMaterialization account == materialization
+                        && Public.correlationSolveReservedWork account == work
+                        && Public.correlationSolveCandidates account == 1
+                        && null (Public.correlationSolveSelectedInequalities account)
+                    )
+
+-- The script also runs these controls against scratch instrumented source.
+-- Its event checks reject a local result-list cons before zero-materialization
+-- admission, a carrier inspection before zero-work admission, and a report
+-- comparison before publication admission. Inputs use ordinary public builders.
+testAdmissionReservation :: IO ()
+testAdmissionReservation = mapM_ check [CorrelatedMode, CoarseMode]
+  where
+    check mode = do
+        let game = singletonOwners 3
+            limits = Public.correlationSolveLimits tinyLimits ceiling_ ceiling_ 0
+        game `seq`
+            assert
+                "zero materialization rejects admission"
+                (publicAccount mode limits game == Left (Public.CorrelationSolveLimitExceeded Public.CorrelationAdmission Public.CorrelationMaterialization 0 1))
+
+testSpineReservation :: IO ()
+testSpineReservation = mapM_ check [CorrelatedMode, CoarseMode]
+  where
+    check mode = do
+        let game = singletonOwners 3
+            limits = Public.correlationSolveLimits (tinyLimits{maximumGameWork = 0}) ceiling_ ceiling_ ceiling_
+        game `seq`
+            assert
+                "zero work rejects before the first carrier inspection"
+                (publicAccount mode limits game == Left (Public.CorrelationSolveLimitExceeded Public.CorrelationAdmission Public.CorrelationWork 0 1))
+
+testPublicationReservation :: IO ()
+testPublicationReservation = mapM_ check [(mode, owners) | mode <- [CorrelatedMode, CoarseMode], owners <- [1, 3]]
+  where
+    check (mode, owners) = do
+        let game = singletonOwners owners
+            (materialization, work) = singletonReservations mode owners
+            fieldLimits = Public.correlationSolveLimits tinyLimits ceiling_ ceiling_ (materialization - 1)
+            workLimits = Public.correlationSolveLimits (tinyLimits{maximumGameWork = work - 1}) ceiling_ ceiling_ ceiling_
+        assert
+            "one-below publication materialization rejects before comparison"
+            (publicAccount mode fieldLimits game == Left (Public.CorrelationSolveLimitExceeded Public.CorrelationPublication Public.CorrelationMaterialization (materialization - 1) materialization))
+        assert
+            "one-below publication work rejects before comparison"
+            (publicAccount mode workLimits game == Left (Public.CorrelationSolveLimitExceeded Public.CorrelationPublication Public.CorrelationWork (work - 1) work))
 
 -- Numerator and denominator consume the same bit budget. Rejection stops at
 -- the first bit over that budget, including when the denominator crosses it.

@@ -1,3 +1,4 @@
+{-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE RoleAnnotations #-}
 
 {- | Private D083 solver core for exact CE and CCE first-witness search.
@@ -405,7 +406,7 @@ each count increment, followed by the representation ceiling.
 admitGame ::
     CorrelationSolveLimits ->
     ExactNormalGame owner action ->
-    Solve owner (Natural, Natural, [Natural])
+    Solve owner (Natural, Natural, Natural)
 admitGame limits game = do
     let limits' = correlationSolveGameLimits' limits
         product_ = normalGameProduct game
@@ -418,17 +419,7 @@ admitGame limits game = do
             (maximumGameOwners limits')
             (\actual cap -> SolveProductFault (TooManyOwners actual cap))
             CorrelationOwnerLength
-    locals <-
-        traverseSolve
-            ( \(owner, choices) ->
-                countSpine
-                    limits
-                    (carrierValues choices)
-                    (maximumGameLocalChoices limits')
-                    (\actual cap -> SolveProductFault (TooManyLocalChoices owner actual cap))
-                    CorrelationChoiceLength
-            )
-            rows
+    (rowCount, localSum, cardinality) <- countLocals rows 0 0 1
     profileCount <-
         countSpine
             limits
@@ -436,17 +427,16 @@ admitGame limits game = do
             (maximumGameProfiles limits')
             (\actual cap -> SolveProductFault (ProductCardinalityLimitExceeded actual cap))
             CorrelationProfileLength
-    let cardinality = foldl (cappedGameProduct (maximumGameProfiles limits')) 1 locals
-    if cardinality /= profileCount || naturalCount rows /= ownerCount
+    if cardinality /= profileCount || rowCount /= ownerCount
         then abort (SolveInvariantFault CorrelationInputLayoutInvariant)
         else pure ()
-    reserveBlock limits CorrelationAdmission (admissionDimension ownerCount locals profileCount)
+    reserveBlock limits CorrelationAdmission (admissionDimension ownerCount localSum profileCount)
     case validateOwnedProduct limits' product_ of
         Left problem -> abort (SolveProductFault problem)
         Right () -> pure ()
     mapSolve
         ( \(profile, values) -> do
-            reserveBlock limits CorrelationAdmission (admissionDimension ownerCount locals profileCount)
+            reserveBlock limits CorrelationAdmission (admissionDimension ownerCount localSum profileCount)
             if playerValuesCarrier values /= ownedOwners product_
                 then abort (SolveInvariantFault CorrelationInputLayoutInvariant)
                 else pure ()
@@ -457,14 +447,33 @@ admitGame limits game = do
     if naturalCount (normalGamePayoffs game) /= profileCount
         then abort (SolveInvariantFault CorrelationInputLayoutInvariant)
         else pure ()
-    pure (ownerCount, profileCount, locals)
+    pure (ownerCount, profileCount, localSum)
+  where
+    -- Admission spine blocks have no materialization allowance. Keep these
+    -- counts in strict scalar registers, without a result list or a tuple per
+    -- owner. The single terminal tuple returns the three accumulated scalars.
+    countLocals [] !rowCount !localSum !cardinality =
+        pure (rowCount, localSum, cardinality)
+    countLocals ((owner, choices) : remaining) !rowCount !localSum !cardinality = do
+        count <-
+            countSpine
+                limits
+                (carrierValues choices)
+                (maximumGameLocalChoices (correlationSolveGameLimits' limits))
+                (\actual cap -> SolveProductFault (TooManyLocalChoices owner actual cap))
+                CorrelationChoiceLength
+        countLocals
+            remaining
+            (rowCount + 1)
+            (localSum + count)
+            (cappedGameProduct (maximumGameProfiles (correlationSolveGameLimits' limits)) cardinality count)
 
 {- | @d = 1 + r + L + n@, the admission/geometry dimension.  Accumulated in
 scalar registers; no materialized dimension list is used.
 -}
-admissionDimension :: Natural -> [Natural] -> Natural -> Natural
-admissionDimension owners locals profiles =
-    1 + owners + foldl (+) 0 locals + profiles
+admissionDimension :: Natural -> Natural -> Natural -> Natural
+admissionDimension owners localSum profiles =
+    1 + owners + localSum + profiles
 
 {- | Count one carrier spine, reserving @(16,0)@ before each cons or terminating
 nil inspection and checking the configured cap and then the representation
@@ -479,18 +488,18 @@ countSpine ::
     Solve owner Natural
 countSpine limits values cap fault representation = go values 0
   where
-    go [] seen = do
+    go remaining !seen = do
         reserveSpine limits
-        pure seen
-    go (_ : remaining) seen = do
-        reserveSpine limits
-        let next = seen + 1
-        if next > cap
-            then abort (fault next cap)
-            else
-                if next > representationCeiling
-                    then abort (SolveRepresentationFault representation)
-                    else go remaining next
+        case remaining of
+            [] -> pure seen
+            _ : rest ->
+                let next = seen + 1
+                 in if next > cap
+                        then abort (fault next cap)
+                        else
+                            if next > representationCeiling
+                                then abort (SolveRepresentationFault representation)
+                                else go rest next
 
 -- | Which inequality a stored row represents.
 data RowLabel owner action

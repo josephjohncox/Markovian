@@ -37,6 +37,8 @@ def check(root, ghc):
     require(sha(root/'inputs/hls_selectors.py') == receipt['selector_helper_sha256'] == sha(hls_selectors.__file__), 'selector helper identity mismatch')
     selector_count = hls_selectors.validate(root, receipt['selectors_sha256'], tools)
     seal = json.loads((root/'runtime-seal.json').read_text())
+    require(seal.get('seal_script_sha256') == sha(Path(__file__).with_name('seal-hls.py')),
+            'runtime seal producer identity mismatch')
     require(seal['selectors_sha256'] == receipt['selectors_sha256'] and
             seal['inputs']['inputs/tool-selectors.json'] == receipt['selectors_sha256'] and
             seal['selector_count'] == selector_count and

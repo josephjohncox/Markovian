@@ -295,8 +295,23 @@ class ReleaseToolTests(unittest.TestCase):
             encoding="utf-8",
         )
         self.assertEqual("", release_tool.check_haddock_log(log))
+        log.write_text(
+            "\n".join(release_tool.ALLOWED_CABAL_NO_REMOTE_ADVISORY) + "\n",
+            encoding="utf-8",
+        )
+        self.assertEqual("", release_tool.check_haddock_log(log))
 
         log.write_text("Warning: missing link destination\n", encoding="utf-8")
+        with self.assertRaisesRegex(
+            release_tool.ReleaseError, "unexpected build or Haddock"
+        ):
+            release_tool.check_haddock_log(log)
+
+        log.write_text(
+            release_tool.ALLOWED_CABAL_NO_REMOTE_ADVISORY[0]
+            + "\none specified in some other config file.\n",
+            encoding="utf-8",
+        )
         with self.assertRaisesRegex(
             release_tool.ReleaseError, "unexpected build or Haddock"
         ):

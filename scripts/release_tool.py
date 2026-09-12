@@ -30,6 +30,14 @@ ALLOWED_CABAL_NO_INDEX_ADVISORY = (
     "Warning: The package list for 'hackage.haskell.org' does not exist. Run 'cabal",
     "update' to download it.",
 )
+ALLOWED_CABAL_NO_REMOTE_ADVISORY = (
+    "Warning: No remote package servers have been specified. Usually you would have",
+    "one specified in the config file.",
+)
+ALLOWED_CABAL_ADVISORIES = (
+    ALLOWED_CABAL_NO_INDEX_ADVISORY,
+    ALLOWED_CABAL_NO_REMOTE_ADVISORY,
+)
 REQUIRED_FIELDS = (
     "synopsis",
     "description",
@@ -864,12 +872,13 @@ def check_haddock_log(path: Path) -> str:
     unexpected: list[tuple[int, str]] = []
     index = 0
     while index < len(lines):
-        if lines[index] == ALLOWED_CABAL_NO_INDEX_ADVISORY[0]:
-            if (
-                index + 1 < len(lines)
-                and lines[index + 1] == ALLOWED_CABAL_NO_INDEX_ADVISORY[1]
-            ):
-                index += 2
+        advisory = next(
+            (item for item in ALLOWED_CABAL_ADVISORIES if lines[index] == item[0]),
+            None,
+        )
+        if advisory is not None:
+            if tuple(lines[index : index + len(advisory)]) == advisory:
+                index += len(advisory)
                 continue
             unexpected.append((index + 1, lines[index]))
         elif re.search(r"(^|\s)warning:", lines[index], re.IGNORECASE):

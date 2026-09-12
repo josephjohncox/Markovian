@@ -122,6 +122,77 @@ class OfficialHlsTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "script identity"):
                 launcher.recipe()
 
+    def test_guard_binds_seal_producer_before_tool_execution(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+
+            def write(name, value):
+                path = root / name
+                path.parent.mkdir(parents=True, exist_ok=True)
+                path.write_bytes(value if isinstance(value, bytes) else value.encode())
+                return path
+
+            def record(name, value):
+                return write(name, json.dumps(value))
+
+            ghc = write("compiler/ghc-9.14.1", "offline compiler fixture")
+            pkg = write("compiler/ghc-pkg-9.14.1", "offline package tool fixture")
+            tools = {str(path): guard.sha(path) for path in (ghc, pkg)}
+            record("inputs/toolchain.json", tools)
+            installer_path = write("inputs/install-hls-official.py", b"installer fixture")
+            selector_path = write("inputs/hls_selectors.py", (HERE / "hls_selectors.py").read_bytes())
+            selectors = record("inputs/tool-selectors.json", {})
+            archive = write("inputs/hls-src.tar.gz", b"archive fixture")
+            plan = record("inputs/plan.json", {"install-plan": []})
+            source = "source/haskell-language-server-2.14.0.0/"
+            write(source + "cabal.project", ORIGINAL)
+            write(source + "cabal.project.abi", installer.strengthen(ORIGINAL))
+            boot = b"offline boot package database\nabi: fixture\n"
+            write("inputs/boot-package-db.txt", boot)
+            write("evidence/04-boot-package-db.log", boot)
+            record("evidence/04-boot-package-db.result.json",
+                   {"log_sha256": hashlib.sha256(boot).hexdigest()})
+            write("cabal/config", "repository hackage.haskell.org\n"
+                  "  url: https://hackage.haskell.org/\n  secure: True\n"
+                  f"remote-repo-cache: {root}/cabal/packages\n"
+                  f"store-dir: {root}/store\nlogs-dir: {root}/logs\n")
+            server = write("install/haskell-language-server", "offline server fixture")
+            library = write("runtime-library", "offline shared library fixture")
+            receipt = record("build-receipt.json", {
+                "fresh_build_completed": True,
+                "installer_sha256": guard.sha(installer_path),
+                "selector_helper_sha256": guard.sha(selector_path),
+                "selectors_sha256": guard.sha(selectors),
+                "plan_sha256": guard.sha(plan),
+                "outputs": {server.name: guard.sha(server)},
+            })
+            seal = {"status": "SEALED", "original_source_files_verified": 1722,
+                    "build_receipt_sha256": guard.sha(receipt),
+                    "selectors_sha256": guard.sha(selectors), "selector_count": 1,
+                    "inputs": {str(path.relative_to(root)): guard.sha(path)
+                               for path in (root / "inputs").iterdir()},
+                    "runtime_files": {str(library): guard.sha(library)}}
+            # The selector suite checks real selector manifests. This fixture
+            # isolates producer binding while exercising the complete guard.
+            for producer in (guard.sha(HERE / "seal-hls.py"), "0" * 64, None):
+                with self.subTest(producer=producer):
+                    candidate = dict(seal)
+                    if producer is not None:
+                        candidate["seal_script_sha256"] = producer
+                    record("runtime-seal.json", candidate)
+                    with patch.object(guard, "SOURCE_SHA", guard.sha(archive)), \
+                            patch.object(guard.hls_selectors, "validate", return_value=1), \
+                            patch.object(guard.subprocess, "check_output", return_value=boot) as tool:
+                        if producer == guard.sha(HERE / "seal-hls.py"):
+                            actual_server, _, proof = guard.check(root, ghc)
+                            self.assertEqual(actual_server, server)
+                            self.assertEqual(proof["abi_guard"], "PASS")
+                            tool.assert_called_once()
+                        else:
+                            with self.assertRaisesRegex(ValueError, "seal producer identity mismatch"):
+                                guard.check(root, ghc)
+                            tool.assert_not_called()
+
     def test_toolchain_pin_drift_fails_closed(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
