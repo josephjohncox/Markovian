@@ -5,6 +5,7 @@
 
 module Main (main) where
 
+import AffineContractTests (affineContractTests)
 import Control.Monad (forM_, unless, when)
 import Data.Proxy (Proxy (..))
 import GHC.TypeLits (KnownNat)
@@ -34,6 +35,7 @@ main = do
 allTests :: IO ()
 allTests = do
     runTensorLawLaboratory
+    affineContractTests
     shapeAndLayoutTests
     primitiveTests
     reverseTests

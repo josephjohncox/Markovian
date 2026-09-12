@@ -51,7 +51,7 @@ module Markovian.Benchmark.Inventory.Serial.FixedBatch.Newsvendor.Exact (
 ) where
 
 import Control.Monad (replicateM)
-import Data.List (foldl', sort)
+import Data.List (sort)
 import Data.List.NonEmpty (NonEmpty (..))
 import Data.List.NonEmpty qualified as NonEmpty
 import Data.Maybe (isNothing)

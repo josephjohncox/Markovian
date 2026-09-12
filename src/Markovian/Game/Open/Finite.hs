@@ -58,7 +58,7 @@ module Markovian.Game.Open.Finite (
     sameOpenGameLayout,
 ) where
 
-import Data.List (find, foldl')
+import Data.List (find)
 import Markovian.Category.Finite.Set (FiniteSet, finiteSet, finiteSetCardinality, finiteSetValues, sameFiniteSet)
 import Markovian.Category.Finite.Set qualified as FiniteSet
 import Markovian.Game.Optic.Finite

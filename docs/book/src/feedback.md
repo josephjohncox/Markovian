@@ -1,6 +1,6 @@
 # Checked finite feedback
 
-Markovian supports three accepted exact fragments and one proposed strict-discount value fragment. It does not expose a universal stochastic trace.
+Markovian supports four accepted exact fragments; the strict-discount value fragment remains unreleased. It does not expose a universal stochastic trace.
 
 ## Why raw trace is not stochastic feedback
 
@@ -106,7 +106,7 @@ K=\\gamma E_X+\\gamma BQ.
 
 Construction checks these four equations literally over `Rational`. Public code receives only opaque nominal external and internal `AffineFeedbackCoefficients`. It can observe one `A` or `K` coefficient by a typed label. There is no continuation evaluator and no normalized output channel.
 
-A closed unit-reward loop at `gamma=1/2` has `A=2` and `K=0`. A half-exit, half-loop unit-reward channel has `A=4/3` and `K=1/3`. This fragment is implementation evidence for D-078; D-078 remains `Proposed`.
+A closed unit-reward loop at `gamma=1/2` has `A=2` and `K=0`. A half-exit, half-loop unit-reward channel has `A=4/3` and `K=1/3`. D-078 is `Accepted` only for these original coefficients and four literal Rational equations (2026-09-08); it remains unreleased.
 
 ## Bounds and reports
 
@@ -138,14 +138,16 @@ holding probabilities, strict discount, routes and slots fixed. Its opaque resul
 owns base and derivative coefficients together, with one operation-wide ledger
 and eight literal equation families. The [runnable retry lesson](reward-jvp.md)
 separates reward derivative 4/3 from the symbolic probability derivative 8/9 and
-from finite-unrolling derivatives. This remains unreleased EL-04/D-078 Proposed
-implementation evidence, not general autodiff or probability sensitivity.
+from finite-unrolling derivatives. This remains unreleased EL-04 Proposed
+implementation evidence with a separate implementation PASS. D-078's acceptance
+of the original coefficients does not accept this JVP contract, general autodiff,
+or probability sensitivity.
 
 ## Evidence and nonclaims
 
 `test/FeedbackExact.hs` checks equations, normalization, timing, correlations, limits, and rejected cycles. It includes an independent acyclic path enumerator and multi-output absorption. `test/FeedbackValueExact.hs` checks strict-discount hand solutions, infinite and partial exit, literal equations, a nilpotent timed differential, malformed channels, fixed exact and one-below ledgers, adversarial unmatched-event scans, and combined-invalid failure precedence. Its independent two-loop, two-output finite oracle records `N=4`, preflights a fixed 180-operation plan, and checks exact and one-below horizon, work, and rational limits.
 
-The accounting fixtures use separate operation-count and path oracles. They force discarded maxima above retained maxima for Gaussian, delayed, and timed execution. Each accepted D-069 interpreter has exact and one-below work and rational limits. `test/golden/feedback-accounting.txt` fixes the complete first-exit accounting report. The affine proposal adds `test/golden/affine-feedback-accounting.txt`, including fixed work, graph, phase, and rational maxima; its one-below rational fixture fails on a discarded Gaussian difference. The root source archive contains and runs the accepted D-069 evidence in an isolated GHC 9.8.4 project. `scripts/check-feedback-boundary` checks constructor opacity and nominal endpoint roles. D-078 evidence is in this proposal worktree, not the immutable `v2026.9.3.0` release; package versions remain unchanged under the task invariant.
+The accounting fixtures use separate operation-count and path oracles. They force discarded maxima above retained maxima for Gaussian, delayed, and timed execution. Each accepted D-069 interpreter has exact and one-below work and rational limits. `test/golden/feedback-accounting.txt` fixes the complete first-exit accounting report. The accepted but unreleased affine fragment adds `test/golden/affine-feedback-accounting.txt`, including fixed work, graph, phase, and rational maxima; its one-below rational fixture fails on a discarded Gaussian difference. The root source archive contains and runs the accepted D-069 evidence in an isolated GHC 9.8.4 project. `scripts/check-feedback-boundary` checks constructor opacity and nominal endpoint roles. D-078 evidence is in this proposal worktree, not the immutable `v2026.9.3.0` release; package versions remain unchanged under the task invariant.
 
 This subsystem does not establish:
 

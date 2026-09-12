@@ -19,8 +19,22 @@ let view = transposeFinite2D base
 
 This fragment runs inside the checked `withTensorSession` in
 [laboratory F](law-laboratory.md#f-logical-coordinates-storage-and-derivatives).
-Its `checked` helper turns a failed `Either` into an IO failure; neither tensor
-nor view escapes the region. The same laboratory shows the complete runnable context.
+Its `checked` helper turns a failed `Either` into an IO failure; the laboratory
+completes tensor and view observations inside the callback. The same laboratory
+shows the complete runnable context.
+
+Region indices and nominal roles reject direct fixed-index escape and coercion,
+not existential tensor packages or captured IO actions. All region-dependent
+reads, refinements, primitives and allocations must execute and complete before
+callback exit. The caller must join or cancel-and-join dependent children on
+success, Left, exceptions and asynchronous interruption; the runner does not
+join them. Return only ordinary copies whose reads completed inside the callback,
+not actions or retained tensors for later observation. Unsupported post-close use
+is not uniformly rejected with `TensorSessionClosed`; observers do not synchronize
+with close. Closing drains the committed registry and attempts finalizers, with
+asynchronous retry under the cleanup protocol, not guaranteed prompt physical
+reclamation. Default GC-pinned retention is not supported post-finalization use;
+no current-default freed-buffer/UAF execution has been established.
 
 Session admission consumes at most the allowed rank plus one singleton nodes.
 It checks rank and each dimension before it evaluates a capped element product,
@@ -113,7 +127,9 @@ independent directional JVP/VJP pairing also checks pointwise multiplication wit
 `1e-6 * max 1 |x|`, absolute tolerance `2e-10`, and relative tolerance
 `2e-8`.
 
-The D-081 prerequisite repair adds direct-versus-`contiguousCopy`-first tests for every closed primitive primal and pullback on the existing rank-two transpose view. It checks every logical coordinate by finite differences and includes a rectangular `3 x 2` by `2 x 4` matrix case that detects dimension and stride reversal. Multiplication and matrix pullbacks allocate cotangents distinct from operand and seed storage. Addition deliberately retains its accepted immutable seed-sharing behavior. This is evidence for differentiation with respect to logical view coordinates only. It does not define a pullback into the underlying base tensor or implement signed strides, reversal, slicing, overlap, or broadcasting. D-081 remains `Proposed`.
+The D-081 prerequisite repair adds direct-versus-`contiguousCopy`-first tests for every closed primitive primal and pullback on the existing rank-two transpose view. It checks every logical coordinate by finite differences and includes a rectangular `3 x 2` by `2 x 4` matrix case that detects dimension and stride reversal. Multiplication and matrix pullbacks allocate cotangents distinct from operand and seed storage. Addition deliberately retains its accepted immutable seed-sharing behavior. This is evidence for differentiation with respect to logical view coordinates only. It does not define a pullback into the underlying base tensor or implement signed strides, reversal, slicing, overlap, or broadcasting. These prerequisite tests retain that narrower evidence scope.
+
+D-081 is `Accepted` within its bounded, unreleased scope. `Markovian.Tensor.Affine` now provides checked signed affine maps, permutation, reversal, bounded slicing, materialization, and base-coordinate pullback. Binding retains the actual original base and owner. The API rejects out-of-bounds and overlapping maps, including non-singleton zero strides. The [acceptance record](https://github.com/josephjohncox/Markovian/blob/main/docs/evidence/D081-AFFINE-IMPLEMENTATION.md) describes implementation checks and their limits. It preserves lifetime A and excludes broadcasting, arbitrary map composition, general tensor semantics, and device lowering.
 
 These operations are reverse derivatives under a finite coordinate pairing.
 They are not matrix dagger, Bayesian inversion, payoff pullback, feedback,

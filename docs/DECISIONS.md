@@ -12,6 +12,75 @@ Editorial note: terminology-only edits do not alter decision IDs, dates, statuse
 - **Rejected**: the project selected against this design.
 - **Superseded**: a later decision replaces this entry.
 
+## Development toolchain amendment — 2026-09-08
+
+The user-authorized modern-only development policy supersedes the compiler and
+library support requirements in D-023 and D-024 below. Their historical decisions
+and executed evidence remain unchanged. Development and active CI now target
+exact stable GHC 9.14.1 and cabal-install 3.18.1.0, with
+`base >=4.22.0.0 && <4.23` and `bytestring >=0.12.2.0 && <0.13`
+(SafeTensors only). GHC 9.4/9.8 compatibility is no longer required. Lower-bound
+checks remain checks within these modern bounds, not legacy-compiler checks.
+
+`toolchain.env` remains the authority. HLS 2.14.0.0 and the other ancillary tool
+pins are retained. `MARKOVIAN_TOOL_BOOTSTRAP_GHC_VERSION=9.8.4` is a separately
+approved compiler role solely for constructing standalone HLint 3.10 and
+cabal-fmt 0.1.12 with Cabal 3.18.1.0: their latest stable sources exclude the
+project's base version. Bootstrap and source CI use the same isolated installer
+and separate solver plans, without bounds overrides. ShellCheck construction
+remains on the project compiler; compiler-coupled HLS must support GHC 9.14.1.
+This distribution detail is not old-compiler project compatibility or a test
+matrix. Project-local GHCup selection must not change global defaults.
+The GHC2021 language edition remains unchanged; it is not a compiler support
+promise. Official stable version sources are the GHC 9.14.1 library index and
+Hackage preferred-version metadata for cabal-install and bytestring.
+
+This is an unreleased development migration, not release validation, decision
+acceptance, or publication approval. All 16 package versions remain 2026.9.3.0
+pending separately authorized coordinated versioning. Published tags, archives,
+and historical compiler, CUDA, and release evidence are not modern validation.
+Fresh modern build, test, benchmark, boundary, teaching, documentation, lower-bound,
+and archive-consumer evidence is required; no GPU runtime evidence is implied.
+This current policy also supersedes legacy two-compiler validation obligations
+in D-079/D-080 handoffs and frozen plans, not their mathematical, ownership,
+atomicity, failure-order, ledger, instrumentation or archive-isolation contracts.
+Historical executions and the frozen D-080 section 10 clarification stay intact.
+
+**Tool-only HLS source-build clarification:** The separately approved fallback
+uses the official HLS 2.14.0.0 source release (SHA256
+`ee8e2007d3ff98bcc0d1c5409092d69c3f176b8419b85b31a4dccd22b45914f6`),
+its pinned 2026-04-16 index and exact upstream compiler-conditional dependency
+relaxations, only in an isolated tool build. The generated project must strengthen
+`ghc-check` to `+ghc-check-use-package-abis`; disabling that guard is not a repair.
+No other dependency overrides, upstream source patches, Markovian/global Cabal
+exceptions or extra plugin removals are authorized. Operational project-local
+HLS and the enabled ABI guard must both pass before integration is complete.
+Upstream GHC 9.14 excludes integrated HLint, Fourmolu, Ormolu, stylish-haskell,
+Retrie, Stan and Splice; standalone tools do not restore those plugins.
+
+The implemented launcher is `scripts/project-hls.py`; `scripts/hls-recipe.json`
+binds the official archive, original/generated project and exact helper bytes.
+The raw upstream executable targets do not depend on `ghc-check` (upstream
+removed it from ghcide). The generated positive constraint is retained, but the
+mandatory external `guard-hls.py` supplies the actual full boot-package ABI,
+compiler/backend, plan, executable and linked-library identity comparison before
+LSP. No nonexistent in-process guard is claimed. Bootstrap and `.envrc` must use
+this launcher, not the raw server or generic wrapper. A sealed installation is
+absolute-path-bound and reused explicitly; failed builds and invalid seals are
+not silently repaired or bypassed. Build receipts are construction-only; actual
+project hover, in-memory error detection, recovery and orderly exit require a
+separate source-bound operational receipt. These integration details implement
+the approved isolated recipe, not new mathematical or release acceptance.
+
+**Documentation correction:** Haddock 2.33's `redact-type-synonyms` is supported
+by the GHC 9.14.1 release manual. Together with synonym-equivalent family patterns,
+it faithfully renders the existing private promoted environment representation;
+no TypeData, new public constructors, substitute API or warning suppression is
+needed. A clean Cabal parent log is not proof of warning-free documentation.
+The CI installation gate checks every planned public/private library unit log
+and public interface in fresh directories, with source/manifest/compiler bindings.
+This clarification does not accept D-080 or change its mathematical contract.
+
 ## Decisions
 
 ### D-001: Use stochastic kernels as the semantic foundation
@@ -1087,25 +1156,31 @@ The following post-release proposals share one governance gate. Before implement
 
 ### D-077: Govern GPU profiles and evidence truth
 
-**Status:** Proposed
+**Status:** Accepted
 
 **Decision:** Replace distributed GPU-profile facts with one reviewed, digest-addressed profile authority. The authority must name the CUDA ABI, PTX target and digest, kernel ABI, device constraints, numeric policy, admission tests, and receipt schema. Generated headers, workflow inputs, tests, and reports must derive from that authority or verify literal agreement with it.
 
 Give every admitted F64 input word its exact dyadic rational meaning. Define matrix multiplication and matrix VJP first by exact rational evaluation of those dyadic inputs. Treat the CPU and CUDA results as separate floating refinements of that denotation under separately frozen comparison policies. Neither floating path is the truth oracle for the other.
 
-A device-correctness or performance claim requires immutable same-session receipts. One receipt set must bind the source revision, executable and PTX digests, profile digest, device UUID, driver and toolkit versions, command, semantic checksum, raw samples, and session identity. Correctness, sanitizer, and benchmark records used together must come from that bound session. A mutable log, prose summary, successful admission, or later rerun is insufficient.
+A device-correctness or performance claim requires verified same-session receipts under the [2026-09-08 deployment-scoped amendment](WORKFLOWS.md#gpu-deployment-evidence). One receipt set must bind the source revision, executable and PTX digests, profile digest, device UUID, driver and toolkit versions, command, semantic checksum, raw samples, and session identity. Correctness, sanitizer, and benchmark records used together must come from that bound session. An unverified log, prose summary, successful admission, or later rerun is insufficient.
 
-**Rationale:** D-074 admitted a bounded implementation and recorded release evidence, but its prose cannot reconstruct every asserted run from immutable same-session receipts. Exact dyadic denotation separates mathematical reference values from two implementations that can round differently. One profile authority prevents code, generated artifacts, tests, and workflows from assigning different meanings to the same profile name.
+At GPU deployment or promotion, verify the full raw evidence and signatures against the actual deployed revision. Keep issuer, source, workflow/run, subject, and transparency checks unchanged. Finite retention, including the current 90-day period, is allowed. Later expiry does not invalidate past verification. Missing raw evidence cannot support a new verification or promotion. Preserve compact revision, profile, run, digest, verification-result, and expiry records.
 
-**Consequences:** D-074 remains historical and `Accepted` for its recorded release scope. Any D-074 assertion without a reconstructible immutable receipt is qualified as historical narrative and cannot satisfy D-077. No general device, portability, reproducibility, or performance claim follows from one admitted profile. No speedup claim may compare CUDA with the list-based `-O0` CPU reference or with a receipt from another session.
+Governance acceptance may cite tested revision `3e850085fa96c4e48a80270b9e49e9f55fe0f757` plus an explicit reviewed docs-only delta. This does not extend hardware evidence to a descendant revision. The user amendment supersedes the former permanent-retention blocker, not historical receipts or separate acceptance review.
 
-**Required evidence:** Freeze the profile schema, receipt schema, exported signatures, and failure order before code changes. Add authority-drift checks, exact dyadic matrix and VJP oracles, independent CPU and CUDA refinements, exact and one-below plans, malformed and mismatched receipt fixtures, and digest-bound same-session hardware evidence. Preserve raw samples and all comparison inputs. Record proof obligations separately from measured hardware results.
+**Rationale:** D-074 admitted a bounded implementation and recorded release evidence, but its prose cannot reconstruct every asserted run from complete same-session receipts. Exact dyadic denotation separates mathematical reference values from two implementations that can round differently. One profile authority prevents code, generated artifacts, tests, and workflows from assigning different meanings to the same profile name.
 
-**Current repair boundary:** The repository now has one canonical profile authority, generated C and Haskell profile artifacts, authority-drift checks, exact dyadic matrix and VJP fixtures, separate CPU and CUDA comparison labels, and a strict same-session receipt validator. The repair changes no exported Haskell signature or public failure precedence. Protected attempt `34172607126` failed on 2026-09-08 during sanitizer-version parsing, before hardware tests or receipt generation. Attempt `34175882779` then completed its hardware command steps but failed receipt validation: racecheck emits a tool-specific zero-hazard summary, not the generic error summary required by the old profile. The Version-line parser repair, racecheck marker correction and both failure records are in `docs/evidence/CUDA-D077-RECEIPTS.md`; the combined correction passed independent review and run `34181389307` at `3e850085fa96c4e48a80270b9e49e9f55fe0f757` produced a validated same-session receipt with all 14 downloaded subjects cryptographically verified. The evidence document records the exact bindings, transport-mode reconstruction and limits. Immutable retention and governance requirements remain open; the environment still has no required-reviewer or deployment-branch rules. D-077 remains `Proposed`.
+**Consequences:** D-074 remains historical and `Accepted` for its recorded release scope. Any D-074 assertion without a reconstructible complete receipt is qualified as historical narrative and cannot satisfy D-077. No general device, portability, reproducibility, or performance claim follows from one admitted profile. No speedup claim may compare CUDA with the list-based `-O0` CPU reference or with a receipt from another session.
+
+**Required evidence:** Freeze the profile schema, receipt schema, exported signatures, and failure order before code changes. Add authority-drift checks, exact dyadic matrix and VJP oracles, independent CPU and CUDA refinements, exact and one-below plans, malformed and mismatched receipt fixtures, and digest-bound same-session hardware evidence. Keep raw samples and all comparison inputs available for deployment or promotion verification under section 8.2. Record proof obligations separately from measured hardware results.
+
+**Current repair boundary:** The repository now has one canonical profile authority, generated C and Haskell profile artifacts, authority-drift checks, exact dyadic matrix and VJP fixtures, separate CPU and CUDA comparison labels, and a strict same-session receipt validator. The repair changes no exported Haskell signature or public failure precedence. Protected attempt `34172607126` failed on 2026-09-08 during sanitizer-version parsing, before hardware tests or receipt generation. Attempt `34175882779` then completed its hardware command steps but failed receipt validation: racecheck emits a tool-specific zero-hazard summary, not the generic error summary required by the old profile. The Version-line parser repair, racecheck marker correction and both failure records are in `docs/evidence/CUDA-D077-RECEIPTS.md`; the combined correction passed independent review and run `34181389307` at `3e850085fa96c4e48a80270b9e49e9f55fe0f757` produced a validated same-session receipt with all 14 downloaded subjects cryptographically verified. The evidence document records the exact bindings, transport-mode reconstruction and limits. The 2026-09-08 user amendment replaces permanent retention with deployment-scoped evidence availability and verification. The recorded environment still has no required-reviewer or deployment-branch rules. The amendment changes no permissions and adds no infrastructure gate.
+
+**Acceptance — 2026-09-08:** Parent-authorized bounded acceptance follows readiness PASS `a6b05ca2-3b1f-4202-b01c-378a1353957b` (`d077-acceptance-review.md`). It accepts the existing profile-authority/schema/failure-order repair, exact-dyadic denotation with separate CPU/CUDA comparisons, and deployment-scoped verification policy. Hardware evidence remains exclusively run `34181389307`, attempt `1`, at `3e850085fa96c4e48a80270b9e49e9f55fe0f757`, profile `5fbed61193cf483a2ff5642c7487ad052add4ed52da1a83a110da4711c7480dd`. The separately reviewed governance delta ends at `c86b4e0241debe0a9ea51b6e9f962d89ea8293df` and changes exactly seven Markdown files: `RELEASE-CHECKLIST.md`, `TODO.md`, `backends/markovian-gpu/CHANGELOG.md`, `docs/CONTEXT.md`, `docs/DECISIONS.md`, `docs/WORKFLOWS.md`, and `docs/evidence/CUDA-D077-RECEIPTS.md`. Neither that endpoint nor the status-edit base `049372690908f179a095bb170ec7e80034b04d2e` is labelled hardware-tested. The recorded local validation passed 21 profile tests, release-policy checks, and book checks; these were not hardware reruns. This acceptance is not deployment, release, general device correctness, portability, speedup, or acceptance of later device features. Actual deployment or promotion still requires complete raw evidence and signature verification bound to its deployed revision; finite retention is allowed.
 
 ### D-078: Add strict-discount affine feedback value coefficients
 
-**Status:** Proposed
+**Status:** Accepted
 
 **Frozen public contract:** Place the feature in the root, `base`-only `Markovian` package as `Markovian.Feedback.Value.Exact`. It reuses `FeedbackLimits`, `FeedbackAccounting`, opaque nominal `LoopLayout`, timed `FeedbackEvent`, `ExactContractionDiscount`, and the existing normalized `StochasticMatrix`; it adds no package edge. Package versions and sibling bounds remain unchanged under the task invariant. The immutable `2026.9.3.0` release remains recorded separately in `release/published-releases.json` and does not contain this module.
 
@@ -1202,11 +1277,41 @@ Use this finite unrolling oracle with an explicit preflighted horizon `N`. Set `
 
 Use the vector maximum norm and matrix maximum absolute row-sum norm. Let `R=||r_U||`, `E=||C_UY||`, and `d_X=||D_XU||`. The oracle passes only if exact rational subtraction satisfies all four bounds: `||A_U-A_U^(N)|| <= gamma^N R/(1-gamma)`, `||K_U-K_U^(N)|| <= gamma^(N+1) E/(1-gamma)`, `||A_X-A_X^(N)|| <= d_X gamma^(N+1) R/(1-gamma)`, and `||K_X-K_X^(N)|| <= d_X gamma^(N+2) E/(1-gamma)`. It must also pass the four literal equations above. Exact and one-below ledger tests must cover the finite oracle, discarded elimination intermediates, and atomic failure.
 
-**Current implementation boundary:** `Markovian.Feedback.Value.Exact` now implements the frozen contract above with opaque nominal external and internal observations, the existing strict contraction discount witness, a private bounded multi-right-hand-side solver, four literal post-checks, and one cumulative feedback ledger. Row-major channel extraction removes repeated linear `matrixEntry` lookup. The graph preflight includes event-target membership, source-layout, event-reward, channel-cell, reward, and all continuation/exit aggregation visits. Fixed accounting evidence covers independent operation counts, a report golden, unmatched-event graph scans, and discarded Gaussian rational growth. A separately budgeted multi-state, multi-output finite oracle records its explicit horizon and has exact and one-below horizon, work, and rational limits. Combined-invalid fixtures lock the total failure order. It adds no evaluator, output law, `gamma=1`, trace, timed-law extension, or `OpenSystem` adapter. This is implementation evidence only; D-078 remains `Proposed`.
+**Current implementation boundary:** `Markovian.Feedback.Value.Exact` now implements the frozen contract above with opaque nominal external and internal observations, the existing strict contraction discount witness, a private bounded multi-right-hand-side solver, four literal post-checks, and one cumulative feedback ledger. Row-major channel extraction removes repeated linear `matrixEntry` lookup. The graph preflight includes event-target membership, source-layout, event-reward, channel-cell, reward, and all continuation/exit aggregation visits. Fixed accounting evidence covers independent operation counts, a report golden, unmatched-event graph scans, and discarded Gaussian rational growth. A separately budgeted multi-state, multi-output finite oracle records its explicit horizon and has exact and one-below horizon, work, and rational limits. Combined-invalid fixtures lock the total failure order. It adds no evaluator, output law, `gamma=1`, trace, timed-law extension, or `OpenSystem` adapter. The original coefficient contract is accepted as recorded below; the module remains unreleased.
+
+**Acceptance — 2026-09-08:** Parent-authorized bounded acceptance follows readiness PASS `172bb833-8189-4b78-acf1-4df2455d3752` (`d078-acceptance-review.md`). Only the original strict-discount affine `A`/`K` coefficients for normalized finite event channels and the four literal `Rational` equations above are accepted. Parent ran `cabal test Markovian-test --project-file=cabal.project.ci -f-cuda --ghc-options=-Werror --test-show-details=direct` and `bash scripts/check-feedback-boundary` at exact snapshot `c86b4e0241debe0a9ea51b6e9f962d89ea8293df`; both passed under GHC 9.8.4. All Haskell bytes are unchanged through status-edit base `049372690908f179a095bb170ec7e80034b04d2e`; these are carried-forward exact-snapshot results, not fresh executions at the status edit. EL-04's fixed-probability, fixed-discount event-reward JVP has a separate implementation PASS, but its contract is not accepted by D-078. Probability/discount derivatives, universal trace, normalized channel coefficients, and cyclic `OpenSystem` adapters remain excluded. Availability stays `unreleased`, evidence scope stays `implementation-fixtures`, and immutable released membership is unchanged.
 
 ### D-079: Add exact joint affine continuous kernels
 
-**Status:** Proposed
+**Status:** Accepted
+
+**Acceptance — 2026-09-08: bounded, unreleased D079 Gate A plus frozen Gate B left-successor substitution.** Parent explicitly authorized this separate status edit after decision-specific technical readiness PASS `b4c30c96-f3ef-40ba-8ff0-bdf038e9e4df`; that independent audit recommended acceptance but did not exercise acceptance authority. Acceptance covers the opaque nominal exact affine-Uniform joint kernels and the Gate B declaration-complete supersession of retained-only renaming; complete injective all-shared-right or all-fresh-right requests checked against actual zero-inclusive operand manifests; exact shared intervals and both-manifest fresh-name disjointness; sealed non-chainable right-reward/right-successor results; and the frozen cumulative admission, arithmetic, failure-precedence, reporting and conservative-history projection contracts. The left reward is admitted and accounted for but is not retained or accumulated. Acceptance is supported by source `080fe0e209af26bcd11d64befe392510860835f5`, integration `f6fe2d8`, and reviewed modern committed state `12f3794942485b5e525def6ee470a4ea22a9f13e`, with the semantic, corrective, integration, current-unit and archive evidence below. Historical Gate A and freeze records remain unchanged. The [contract](plans/D079-LEFT-SUCCESSOR-SUBSTITUTION.md) links to the original design record and describes the accepted requirements; this decision records acceptance.
+
+**Exclusions:** No mixed routing, owner/kernel export, chaining/general composition algebra, reward-preserving temporal composition, category or bounded-associativity claim; no arbitrary compact laws/measurable callbacks, conditioning/RCP/general disintegration, continuous MDP or multi-step control, discount feature, numerical certificate, performance guarantee, device claim, new package edge, release, deployment or publication authority.
+
+#### D-079/D-080 acceptance evidence and status-edit boundary
+
+D-079 and D-080 were accepted in commit
+`78669c3613302249c499eba99a959f75c4c59edc`, following separate technical and
+status reviews of implementation `12f3794`. D-080's source repair was
+`6c050d4563ef45e7728b5bf9cddd5c7602b3176d`, integrated at
+`e56981a536e12d01be552a8a94f17ea077b61fbe` before that review.
+
+The recorded validation covered package tests, continuous/autodiff boundaries,
+teaching fixtures, lower bounds, benchmarks, archive consumers, and
+warning-enabled installed documentation. It used the modern GHC 9.14.1 and
+Cabal 3.18.1.0 toolchain. The original review and command records remain in Git
+history; temporary agent-session paths are not reproducible evidence for a new
+checkout. Construction of HLS, ABI validation, and an actual LSP run are
+separate checks.
+
+Both capabilities remain unreleased. Acceptance changed no package version,
+released module membership, asset, or dependency edge. It supplies no new CUDA
+hardware evidence; D-077's device results remain bound to their tested revision.
+
+#### D-079 historical proposal and implementation records
+
+The following proposal, Gate A, Gate B freeze and isolated implementation records retain their point-in-time meanings, including their then-Proposed statuses. The bounded acceptance above is current; it does not retroactively change retained-only Gate A behavior.
 
 **Decision:** Add exact joint affine kernels whose outputs are rational affine forms over one bounded opaque owner table. Each owner appears once with its compact rational source law. Each output stores rational coefficients that refer only to that table. Construction must detect duplicate owner declarations before it removes zero coefficients or filters unused entries. A kernel may retain caller owners and introduce fresh local owners, but local owners cannot escape their declared kernel scope or collide during composition.
 
@@ -1224,9 +1329,23 @@ All operations validate configured limits in raw-entry, owner, output, coefficie
 
 **Current Gate A implementation boundary:** `Markovian.Continuous.Kernel.JointAffine.Exact` now provides an opaque nominal kernel with two affine input coordinates and one canonical local owner table, exact materialization to `ExactJointLaw RealBorel RealBorel`, exact support extrema, same-scope partial alpha-renaming, complete-map scope transitions, cumulative bounded preflight, checked rational arithmetic, frozen operation precedence, and deterministic reports. Coordinate phantoms are labels and never become joint-law space parameters. Measurability is discharged syntax by syntax: affine real coordinates are continuous and Borel measurable, compact uniforms are Borel laws, finite products remain standard Borel, and finite affine projections are Borel measurable. Fixtures cover duplicate-before-zero-filter validation, shared and distinct owners, independent multinomial expansion, empty and omitted scope mappings, complete renaming preflight, adversarial failure precedence, reordered rows, negative signed-owner extrema against corner enumeration, exact and one-below limits, machine overflow, opacity, real-Borel output restriction, and nominal coordinate roles. Gate A intentionally has no cross-kernel composition; the composition-collision and explicit fresh-owner evidence required by the full proposal remain future work. The package and repository metadata retain `2026.9.3.0` under the no-version-change task invariant; this worktree is not the immutable published source, and no candidate, tag, publication, or workflow was authorized. This implementation evidence does not accept the decision. D-079 remains `Proposed`.
 
+**Gate B supersession:** The [left-successor substitution contract](plans/D079-LEFT-SUCCESSOR-SUBSTITUTION.md) replaces retained-only Gate A renaming with complete zero-inclusive declarations. Its projections preserve rational history, including discarded left rewards and canceled intermediates. The [contract-freeze and implementation records](https://github.com/josephjohncox/Markovian/blob/35510dba1650295d6ff4ce776087ddc739cc56f5/docs/DECISIONS.md#L1332-L1336) retain their historical Proposed status; the acceptance above is current.
+
 ### D-080: Add bounded first-order quotation with callback-free let
 
-**Status:** Proposed
+**Status:** Accepted
+
+**Acceptance — 2026-09-08: bounded, unreleased D-080 scope.** Parent explicitly authorized this separate status edit after decision-specific technical readiness PASS `98a7de79-1e4f-4539-aa61-80cf332a2ed7`; the independent audit recommended acceptance, while parent supplied acceptance authority. Accept the existing closed first-order exact-polynomial quotation API and the frozen cumulative-compilation repair, reviewed at `12f3794942485b5e525def6ee470a4ea22a9f13e`. This includes opaque nominal lexical environments and paths, construction-time generative scope tokens, callback-free stored lets, left-to-right call-by-value evaluation including unused bounds, independent direct Rational primal/JVP interpreters, and separate owned reverse lowering under both tape policies.
+
+Quotation compilation preserves the syntax admission pass, continues its ledger through charged numeric planning and the frozen logical traversal/allocation/runtime reservations, and constructs a strict private admission witness before target building and compilation. Derived capacities retain caller rational bits; failures preserve the declared precedence and target error; successful reports contain the complete quotation reservation and actual compiler report. Predicted/actual report agreement is test-only, not a production mismatch check.
+
+Acceptance is supported by independent exact-budget, all-coordinate associated-fixture, production-path mutation, opacity, modern-compiler, warning-enabled documentation, and standalone-archive evidence bound to the reviewed source. See the [shared acceptance evidence and status-edit boundary](#d-079d-080-acceptance-evidence-and-status-edit-boundary). Historical freezes and executions retain their original meanings. The [cumulative-compilation contract](plans/D080-CUMULATIVE-COMPILATION.md) links to the original design record and describes the accepted requirements; this decision records acceptance. This is design/current-work acceptance, not release or deployment approval.
+
+**Exclusions:** No arbitrary-Haskell or higher-order AD, closures, runtime callback injection, recursion, loops, branches, effects, sampling, tensors, devices, or nested differentiation; no scalar-to-vector packing/broadcasting, Vector/Product identification, new primitives or generic GPU lowering; no physical allocation counts, zero-allocation preflight, memory-byte/peak-residency bounds, character-cost bounds, or unlimited future-run reservation. No legacy-compiler compatibility, hosted-CI/platform coverage, user-global tooling or HLS acceptance, hardware/device correctness, performance claim, release validation, publication or deployment authority. D079 has its own separate acceptance above; no EL or other proposal is accepted by association.
+
+#### D-080 historical proposal and initial implementation boundary
+
+The original proposal and initial implementation below retain their historical meaning. The accepted cumulative repair supersedes their then-Proposed status and initial compilation account; the original API snapshot is linked below.
 
 **Decision:** Extend only the closed first-order autodiff language with explicit quotation. Quoted variables use hidden scope-indexed nominal paths. Public code cannot construct, inspect, coerce, or reuse a path outside its scope. A callback-free `let` node binds one quoted first-order term in another quoted term. The syntax stores no Haskell function.
 
@@ -1242,9 +1361,128 @@ Provide independent exact primal and JVP interpreters by direct recursion over q
 
 **Current implementation boundary:** `Markovian.Autodiff.Quote` now provides opaque nominal paths with generative lexical scope tokens. Independent equal-shaped scopes cannot exchange paths. `letQuote` stores exact-polynomial body syntax and no callback. One cumulative ledger bounds traversal, syntax depth, paths, coordinates, machine extent, target size, allocation, lowering work, compilation, arithmetic work, and rational size. Preflight charges before descent and allocates no target `Program` on failure. Direct primal and JVP recursion is separate from reverse lowering. Tests cover used and unused bindings, nested scopes, projections, all-coordinate pairing, deterministic reports, exact and one-below limits, failure precedence, and stop-before-descent behavior. Compile-fail fixtures cover hidden constructors, path roles, escaped tokens, and independent same-shape scopes. The proposal-stage API is present while package metadata remains unchanged under the task invariant. The published `v2026.9.3.0` surface stays unchanged. This evidence does not add Haskell quotation, effects, higher-order values, branches, recursion, or nested differentiation. D-080 remains `Proposed`.
 
+#### D-080 API and preserved admission rules
+
+The public declarations and constructor boundaries are documented in
+[`Markovian.Autodiff.Quote`](../packages/markovian-autodiff/src/Markovian/Autodiff/Quote.hs).
+The [historical API snapshot and review record](https://github.com/josephjohncox/Markovian/blob/35510dba1650295d6ff4ce776087ddc739cc56f5/docs/DECISIONS.md#L1368-L1563)
+describe the implementation at `c86b4e0241debe0a9ea51b6e9f962d89ea8293df`.
+The syntax-admission and direct-evaluation rules below remain current;
+quotation compilation follows the accepted [cumulative contract](plans/D080-CUMULATIVE-COMPILATION.md).
+
+#### D-080 failure schedule and cumulative account
+
+The twelve inclusive `quotationLimits` arguments are, in order: traversal, quotation nodes, source depth, path depth, target nodes, target depth, coordinate extent, transformed nodes, allocation units, runtime work, total work, rational bits. Zero is a real limit, not a default or unlimited sentinel.
+
+| Exported constructor declaration (strict fields) | Payload and first-failure rule |
+| --- | --- |
+| `QuoteTraversalLimitExceeded !Natural !Natural` | Active traversal limit, saturated required count. |
+| `QuoteNodeLimitExceeded !Natural !Natural` | Active quotation-node limit, saturated required count. |
+| `QuoteSourceDepthLimitExceeded !Natural !Natural` | Active source-depth limit, actual encountered depth. |
+| `QuotePathDepthLimitExceeded !Natural !Natural` | Active path-depth limit, actual encountered depth. |
+| `QuoteTargetNodeLimitExceeded !Natural !Natural` | Active target-node limit, saturated required count. |
+| `QuoteTargetDepthLimitExceeded !Natural !Natural` | Active target-depth limit, actual completed subtree depth. |
+| `QuoteCoordinateExtentLimitExceeded !Natural !Natural` | Active coordinate limit, actual inspected shape extent. |
+| `QuoteMachineExtentExceeded !Natural` | Actual shape extent exceeding `maxBound :: Int`; precedes the coordinate-limit check on that shape. |
+| `QuoteTransformedNodeLimitExceeded !Natural !Natural` | Active transformed-node limit, saturated required count. |
+| `QuoteAllocationLimitExceeded !Natural !Natural` | Active allocation limit, saturated required count. |
+| `QuoteRuntimeWorkLimitExceeded !Natural !Natural` | Active runtime-work limit, saturated required count. |
+| `QuoteTotalWorkLimitExceeded !Natural !Natural` | Active total-work limit, saturated required count. |
+| `QuoteRationalMagnitudeLimitExceeded !String !Natural !Natural` | Context, zero-based coordinate, active bit limit; not actual bit size. |
+| `QuoteInternalVectorLengthMismatch !String` | Direct arithmetic helper context; defensive internal shape invariant failure. |
+| `QuoteCompilePreflightFailure !QuoteError` | First quotation admission, planning, or reservation failure; target compiler is not called. |
+| `QuoteCompileTargetFailure !CompileError` | Existing opaque target compiler error, unchanged and not converted to a quotation limit error. |
+
+The last two constructors belong to `QuoteCompileError`; the preceding fourteen belong to `QuoteError`. There is no partial successful report or output in a `Left`.
+
+**Total operation precedence.** Each row expands the named phases using the ordered rules below. A first `Left` stops the row; there is no sorting by constructor name, error accumulation, rollback report, or later-child preference.
+
+| Public operation | Ordered phases / success |
+| --- | --- |
+| `preflightQuote` | Start empty ledger; syntax DFS at depth 1; return syntax report. No evaluation or lowering. |
+| `lowerQuote` | Entire `preflightQuote`; then `buildQuote`; return target `Program`. No target compilation or direct value scan. |
+| `compileExactQuote` | Syntax admission, cumulative numeric planning and reservations, strict admission witness, then `buildQuote` and `compileExactPolynomial` with derived limits and the supplied tape policy. Return executable plus both reports; no direct runtime value scan or run. See the cumulative contract §1 for failure wrapping. |
+| `preflightExactQuoteExecution` | Syntax DFS; scan all parameters; scan all input coordinates in the same ledger; return report. No primal arithmetic. |
+| `preflightExactQuoteJVPExecution` | Syntax DFS; all parameters; all parameter directions; all inputs; all input directions, in the same ledger; return report. No primal/JVP arithmetic. |
+| `interpretExactQuote` | Entire `preflightExactQuoteExecution`; then direct primal recursion with the rational-bit limit; return value only. |
+| `interpretExactQuoteJVP` | Entire `preflightExactQuoteJVPExecution`; then direct primal/JVP recursion with the rational-bit limit; return primal and tangent only. |
+
+All input and parameter coordinates are scanned, including ignored values, unused bound parameters, and directions that cannot affect the output. `parameterScalars` flattens owner values and parameter products left to right; `valueScalars` flattens value products left to right and vectors in list order. Unit and no-parameter leaves have zero coordinates. Scan contexts are exactly `parameter`, `parameter-direction`, `input`, `input-direction`; numbering restarts at zero for each scan. Each coordinate first charges traversal (including total work), then checks the maximum bit count of the absolute numerator and positive denominator. Bit count is repeated division by two, with zero having zero bits and denominator one having one bit. Thus a zero bit limit rejects even rational zero in this quotation implementation. Successful scans update the maximum admitted bits, not a sum. Syntax literal contexts are `source/constant-scalar` and `source/constant-vector`.
+
+**Ledger primitives.** All fields start at zero. A failed increment or cumulative addition reports `(limit, limit + 1)`, even when the attempted amount is much larger. Addition tests `amount > limit - min limit current` before adding; it never needs a machine-width sum. Depth and extent checks instead report the actual attempted value and update maxima only on success.
+
+- Traversal charge: check traversal increment, then total work by 1.
+- Quotation-node charge: check quotation-node increment only. Depth, extent, path depth, and rational maxima add no total work themselves.
+- Allocation or runtime or transformed-node charge by `a`: check that dimension, then total work by `a`.
+- Target-node charge by `a`: check target-node dimension; charge allocation by `a` (allocation limit, then total); then charge total by `a` for the target nodes themselves. This nested ordering is observable when limits compete.
+- Shape inspection: compute represented extent (unit 0, scalar 1, vector length, product sum); machine extent before coordinate extent. Parameter-shape inspection skips `NoParameters`, inspects an owner's shape, and visits parameter products left then right. It does not separately check their combined parameter-product extent.
+
+The successful `quoteTotalWork` equals traversal + target nodes + transformed nodes + allocation units + runtime work. Quotation-node count and maxima are separate dimensions, not extra summands. Allocation includes target-node units plus the output/primitive units below; it is not bytes, measured allocations, peak liveness, or a claim of allocation-free Haskell traversal. `quoteRuntimeWork` includes conservative direct JVP work **and** compiler-oriented work, even for a primal-only request. Direct arithmetic does not increment the ledger again. Reports describe bounded admission, not measured performed arithmetic or a proof that every possible intermediate rational fits.
+
+**Ordered syntax DFS.** On every quotation entry: traversal (then total), quotation node, source depth, then the row below. `T(a)`, `A(a)`, `R(a)`, and `X(a)` below denote target, allocation, runtime, and transformed charges with the nested checks just defined. `E(s)` is shape extent. Children use source depth + 1. Target-depth checks occur after the children, not at entry.
+
+| Private source form (not client constructors) | Exact order after quotation entry; returned target depth |
+| --- | --- |
+| `ProgramQuote` | Walk embedded program at source depth + 1. No extra target or transformed node for the wrapper. |
+| `ProjectQuote` | Inspect environment shape; selected shape; `T(1)`; `A(E(selected))`; `R(1 + E(environment) + E(selected))`; `X(1)`; walk path from path depth 1; check target depth 1. |
+| `ComposeQuote` | Inspect following program output; `T(1)`; `A(E(output))`; `R(1)`; `X(1)`; walk quoted child; walk following program; check target depth `1 + max(leftDepth, rightDepth)`. |
+| `FanoutQuote` | Inspect paired output shape; `T(1)`; `A(E(paired output))`; `R(1)`; `X(1)`; walk left quote; walk right quote; check target depth `1 + max(leftDepth, rightDepth)`. |
+| `LetQuote` | Inspect environment `e`; extended product `(e,bound)`; body output `o`; `T(3)`; `A(E(e) + E((e,bound)) + E(o))`; `R(4 + E(e))`; `X(3)`; walk bound; walk body; check target depth `1 + max(1 + max(1, boundDepth), bodyDepth)`. |
+
+Path entry charges traversal (then total), then checks path depth. `PathHere` and `PathRight` stop there. `PathLeft` visits its inner path at depth + 1. Thus path depth counts visited path constructors, not the number of binders represented by a `PathRight` environment witness.
+
+Embedded program entry charges traversal (then total), checks source depth, inspects output shape, charges `T(1)`, then `A(E(output))`. A primitive then uses the inspection schedule below and finishes target depth 1. Identity inspects its shape, charges `R(1 + E(shape))`, and finishes depth 1. Composition, parallel, fanout, and shared-parameter nodes charge `R(1)`, walk left then right at source depth + 1, and finish target depth `1 + max(leftDepth, rightDepth)`. Embedded source nodes add target nodes but not transformed nodes. Shape queries can inspect descendant shape metadata before the charged child walk; charge-before-descent is not a termination guarantee for arbitrary host-language bottoms.
+
+Primitive inspection order is input shape, output shape, parameter shape, `A(2 * E(output))`, direct-JVP runtime charge, compiler-oriented runtime charge, then any literal scan. Output shape was also inspected at program entry. The compiler-oriented charge is `1 + parameterExtent + inputExtent + outputExtent + 3 * arithmetic`; parameter extent sums the represented owner tree. Exact-polynomial primitive charges are:
+
+| Primitive | Direct JVP charge | Arithmetic used in compiler-oriented charge |
+| --- | --- | --- |
+| Scalar constant | 0 | 0 |
+| Vector constant, parameter | 0 | Output extent |
+| Scalar negate, scalar add | 2 | 1 |
+| Scalar multiply | 4 | 1 |
+| Vector add, length `n` | `2*n` | `n` |
+| Hadamard, length `n` | `4*n` | `n` |
+| Dot, length `n` | `1 + 6*n` | `2*n` |
+| Vector sum, length `n` | `2*n` | `n` |
+| First, second, internal value projection | 0 | 0 |
+
+`buildQuote` reuses embedded programs, lowers a path to one internal `ProjectValue` primitive, and uses existing composition and fanout. A let lowers literally to `compose (fanout identity bound) body`, with the environment-shaped identity and parameter tree `ParameterProduct (ParameterProduct NoParameters p) q`. No dead-let elimination occurs. Successful quotation preflight precedes construction of this target and direct output/environment evaluation; failed preflight returns no target, dense output, or tape.
+
+**Target compilation boundary.** The cumulative contract §6 specifies derived compiler capacities; it supersedes the historical `limitsCompiler` mapping. `compileExactPolynomial` first performs the existing reverse preparation (`prepareReverseProgram` over `lower` with `resolveTargetPrimitive`), then `preflightSource`, then constructs its executable/report. Target errors retain the existing opaque `CompileError` and its existing internal precedence; quotation does not reinterpret them. `preflightSource` visits children left to right, checks primitive parameter, input, output and parameter extents before forward then reverse costs; at structural joins it adds/checks forward before reverse cost. No execution, seed validation, or VJP occurs during `compileExactQuote`.
+
+Each public operation starts a fresh quotation ledger. `compileExactQuote` extends its syntax ledger through planning and compiler reservations. The target compiler keeps its own bounded account under the derived capacities; the two reports are not summed.
+
+**Direct evaluation and first arithmetic failure.** `evalQuotePrimal` and `evalQuoteJVP` recurse on quotation and embedded source programs, independently of `compileExactPolynomial`, reverse primitive VJPs, produced tapes, and `Compile.interpretExactPolynomial`. They share shape/syntax representations, not derivative implementations. Composition evaluates the left term before the right; fanout evaluates the complete left branch before the right. A let evaluates the bound once, even if unused, then evaluates the body in `(oldEnvironment, boundValue)`; JVP also extends with `(oldDirection, boundDirection)`. Its nested parameter products split into identity/no-parameters, bound parameters, and body parameters without reassociation. Program parallel splits input and parameters; program fanout splits parameters but shares input; shared-parameter syntax splits input but passes the same parameters to both branches. All evaluate left before right.
+
+A quotation projection validates all current environment bits under `project-input`, then selects the path. JVP additionally validates all environment directions under `project-input-direction` before selection. Program identity validates `identity-input`, then (JVP only) `identity-direction`. Neither simply bypasses validation of discarded coordinates.
+
+At each primitive, primal validation order is `parameter`, `primitive-input`, primitive arithmetic, `primitive-output`. JVP order is `parameter`, `parameter-direction`, `primitive-input`, `primitive-input-direction`, primitive arithmetic, `primitive-output`, `primitive-output-direction`. Each validation flattens all represented coordinates with a fresh zero-based index. Every checked intermediate tests numerator and denominator bits before proceeding. Evaluation checks use the same `QuoteRationalMagnitudeLimitExceeded context coordinate bits` constructor but do not add preflight traversal charges.
+
+| Primitive arithmetic | Ordered checks after input validation |
+| --- | --- |
+| Scalar constant | `constant-scalar` at 0; JVP tangent is zero. |
+| Vector constant | All `constant-vector` coordinates; JVP creates matching zeros. |
+| Parameter | Select owned parameter value (and direction for JVP); output validation still follows. |
+| Scalar negate / add | Primal `negate` / `add` at 0; then JVP `jvp/negate` / `jvp/add` at 0. |
+| Scalar multiply | `multiply`, then JVP `jvp/multiply-left` for `dLeft * right`, `jvp/multiply-right` for `left * dRight`, `jvp/multiply-add` for their sum, all at 0. |
+| Vector add | Primal `vector-add` in coordinate order. JVP first checks all four list lengths, then all primal coordinates, then all `jvp/vector-add` coordinates. |
+| Hadamard | Primal `hadamard` in coordinate order. JVP first checks all four list lengths; at each coordinate: `hadamard`, `jvp/hadamard-left`, `jvp/hadamard-right`, `jvp/hadamard-add`, then next coordinate. |
+| Dot | Check the two list lengths before arithmetic. At each coordinate, check product under `dot/multiply`, then running sum under `dot/add`, starting accumulator zero. JVP completes that primal dot, then a dot with context `jvp/dot-left`, then `jvp/dot-right` (each with `/multiply` then `/add` per coordinate); finally checks `jvp/dot-add` at 0. |
+| Vector sum | Running sum from zero under `sum` in coordinate order; JVP completes primal then runs direction sum under `jvp/sum`. |
+| First / second / internal value projection | Select component or projection (and corresponding direction); input and output validation still surround selection. |
+
+Primal vector zip helpers check/check-advance matched coordinates and return `QuoteInternalVectorLengthMismatch` only when a remaining tail does not match. Dot length mismatch precedes products. JVP vector-add and Hadamard four-list mismatch precedes their arithmetic. Contexts are `vector-add`, `hadamard`, or the active dot context, respectively. Public value construction protects lengths; these failures are defensive, not a newly exposed malformed-vector input API. Empty dots and sums produce zero without loop-body arithmetic, then undergo normal output validation. This ordering preserves discarded-intermediate failures: for example, an unused bound `16 * 16` exceeds eight bits under `multiply` even though both source constants and the returned old environment fit.
+
 ### D-081: Add immutable host-F64 affine views after reverse-equivalence evidence repair
 
-**Status:** Proposed
+**Status:** Accepted
+
+**Bounded, unreleased acceptance:** D-081 accepts the implemented immutable host-F64 affine-view scope at `cc900878dbf6f7bdc33f95affa9c15d2ea6f97ad`. The [implementation record](evidence/D081-AFFINE-IMPLEMENTATION.md) defines its scope, exclusions, lifetime requirements, and checks. The [canonical plan](plans/D081-AFFINE-VIEWS.md) and [materialization addendum](plans/D081-MATERIALIZATION-ADDENDUM.md) retain their frozen contracts. This decision does not accept D-082 through D-085, the separate EL frontiers, or a release.
+
+#### Historical original proposal and transpose-only prerequisite evidence
+
+The original proposal follows; prerequisite execution details remain in the linked evidence record. The v3 plan and r4 addendum above define the accepted design. Existing transpose tests alone do not establish signed-map or base-pullback correctness.
 
 **Decision:** Repair the reverse-equivalence evidence for existing materialized views before admitting a wider view API. This requirement records an evidence gap, not a demonstrated implementation defect. The proposed view is an immutable host-F64 affine coordinate map with an opaque base offset, signed per-axis strides, and a checked finite shape. Every represented coordinate must map within one owned immutable storage object. Non-singleton zero strides and overlapping coordinate maps are rejected, so broadcasting is not represented.
 
@@ -1256,11 +1494,13 @@ View creation allocates no payload. Materialization and each primitive preflight
 
 **Required evidence:** Freeze all view constructors, admitted maps, signatures, and failure precedence. Test scalars, empty dimensions, transpose, reversal, slicing, composed views, negative strides, bounds, overlap, storage sharing, materialization, and region escape. Compare direct and materialized primal and pullback paths for every coordinate. Exact and one-below shape, offset, payload, buffer, and work tests must use one cumulative ledger and prove preflight before allocation.
 
-**Current prerequisite evidence boundary:** The [prerequisite evidence record](evidence/D081-TRANSPOSE-REVERSE-EQUIVALENCE.md) compares the existing zero-copy rank-two transpose view with `contiguousCopy` for every closed primitive tape. Square fixtures compare every primal and pullback coordinate for addition, multiplication, matrix multiplication, `tanh`, and total sum; independent central finite differences check every logical input coordinate. A rectangular `3 x 2` by `2 x 4` matrix fixture separately detects dimension and stride reversal, compares direct and materialize-first primals and pullbacks, and checks every logical operand coordinate by finite differences. Multiplication and matrix pullbacks are checked to allocate cotangents distinct from operand and seed storage; addition retains its accepted immutable seed sharing. These tests differentiate with respect to the view's logical coordinates. They do not define or prove a pullback from view coordinates into the underlying base tensor, add an affine-view operation to a tape, or test any unimplemented signed stride, reversal, slice, offset, overlap, or broadcast rule. The prerequisite evidence gap is repaired for the existing transpose fragment only. D-081 remains `Proposed`; no wider view API is implemented or accepted.
+**Historical prerequisite evidence:** The [transpose/reverse comparison](evidence/D081-TRANSPOSE-REVERSE-EQUIVALENCE.md) established the existing transpose fragment before affine-view implementation. It concerns logical view coordinates, not signed-map geometry or base-coordinate pullbacks. Current affine-view checks are listed in the [implementation record](evidence/D081-AFFINE-IMPLEMENTATION.md#verification).
 
 ### D-082: Add bounded CUDA multiply-chain graphs
 
 **Status:** Proposed
+
+**Current prerequisites:** D-077 and [D-081](evidence/D081-AFFINE-IMPLEMENTATION.md) acceptance prerequisites are satisfied. D-082 remains unimplemented. Graph contract freeze, implementation, independent review, and explicit hardware authority remain pending.
 
 **Decision:** After D-077 and D-081 are accepted with complete evidence, add only a closed typed DAG of F64 matrix inputs, admitted affine views, and matrix-multiply nodes. Preparation validates dimensions, node order, sharing, view maps, transfer bytes, host and device payloads, scalar work, and forward and VJP launch counts before executor admission or allocation. One prepared graph owns its immutable plan. One scoped executor owns all device resources.
 
@@ -1270,7 +1510,7 @@ Define the graph first by D-077's exact dyadic matrix denotation. Compare CPU an
 
 **Consequences:** This proposal does not lower generic `ReverseProgram`, arbitrary tensor graphs, callbacks, stochastic nodes, mutation, new dtypes, user kernels, or unapproved device profiles. It makes no speedup, fusion, optimal-schedule, or general device claim.
 
-**Required evidence:** D-077 and D-081 acceptance are hard prerequisites. Freeze graph signatures, ownership, schedule, cleanup behavior, and failure precedence. Add exact and one-below graph, dimension, transfer, payload, work, launch, and cleanup tests. Compare every forward and VJP coordinate with independent dyadic and CPU references. Protected hardware evidence must use immutable same-session receipts and all applicable sanitizer checks.
+**Required evidence:** D-077 and D-081 acceptance are hard prerequisites. Freeze graph signatures, ownership, schedule, cleanup behavior, and failure precedence. Add exact and one-below graph, dimension, transfer, payload, work, launch, and cleanup tests. Compare every forward and VJP coordinate with independent dyadic and CPU references. Protected hardware evidence must use complete, verified same-session receipts and all applicable sanitizer checks. Apply section 8.2's deployment-scoped retention and deployed-revision binding. Preserve compact verification and expiry records after raw-data expiry.
 
 ### D-083: Add exact bounded CE and CCE one-witness solvers
 
@@ -1278,13 +1518,13 @@ Define the graph first by D-077's exact dyadic matrix denotation. Compare CPU an
 
 **Decision:** Add separate exact solvers that return at most one checked rational CE witness or one checked rational CCE witness for an existing bounded complete normal game. Generate candidate active constraint sets in a frozen deterministic order. Stream one active set and one candidate at a time. Do not allocate the family of active sets, all vertices, or all equilibria.
 
-Solve each candidate system with checked rational elimination. Classify rank deficiency, inconsistency, violated inactive inequalities, and rational-limit exhaustion explicitly. Revalidate a candidate with the existing literal CE or CCE checker before return. Stop at the first valid witness in the declared order. A no-witness result requires completed bounded traversal, not budget exhaustion.
+Solve each candidate system with checked rational elimination. Classify rank deficiency, inconsistency, violated inactive inequalities, and rational-limit exhaustion explicitly. Revalidate a candidate with the existing literal CE or CCE checker before return. Stop at the first valid witness in the declared order. Public budget exhaustion returns a resource error, not nonexistence. A completed public search without a witness returns `CorrelationCompletedSearchWithoutWitness`, an invariant failure. Test infeasibility through private linear systems, not a valid-game no-equilibrium example.
 
 **Rationale:** Finite rational CE and CCE polytopes permit exact feasibility checks. A deterministic active-set search can produce one auditable witness without introducing a floating LP dependency or claiming complete polytope enumeration.
 
-**Consequences:** This proposal is not an unrestricted equilibrium solver. It does not solve Nash, mixed Nash, extensive, stochastic, Bayesian, continuous, or real-coefficient games. It does not enumerate all CE or CCE points, prove a general complexity bound, or add LP/LCP claims. Package placement needs explicit topology approval before implementation.
+**Consequences:** This proposal is not an unrestricted equilibrium solver. It does not solve Nash, mixed Nash, extensive, stochastic, Bayesian, continuous, or real-coefficient games. It does not enumerate all CE or CCE points, prove a general complexity bound, or add LP/LCP claims. Placement is approved in the existing base-only `Markovian.Game.Correlated.Exact` module, with private search machinery and no new package or edge. The [contract](plans/D083-CE-CCE-SOLVERS.md) specifies the solver and its verification requirements. Commit `fdfc1f8` added both solvers and their public/private fixtures. D-083 remains Proposed; the [implementation checklist](../TODO.md#open-work) records the remaining verification work.
 
-**Required evidence:** Freeze solver signatures, active-set order, normalization convention, reports, and failure precedence. Test CE and CCE separately on unique, degenerate, redundant, and rank-deficient fixtures. Check the returned witness with an independent exact inequality evaluator. Compare small games with exhaustive rational or vertex fixtures. One cumulative ledger must cover constraints, streamed active sets, elimination work, candidate checks, and rational size with exact and one-below atomic failures.
+**Required evidence:** Placement, contract freeze, and initial public/private solver fixtures are complete. Checker instrumentation, the remaining failure/degeneracy controls, source-loop/reservation and strictness evidence, and capability acceptance are still pending under the frozen contract. Test CE and CCE separately against independent exact inequality evaluators and complete tiny vertex fixtures. Compare the actual production constraint builders, geometry gates, and private shadow sequences with independent controls. Private fixtures do not establish public first-witness reachability. Test private infeasible traversal and public resource exhaustion separately. Verify the cumulative ledger and exact/one-below atomic failures in every phase. Arithmetic design review is not executable proof.
 
 ### D-084: Add a bounded reference DQN trainer contract
 

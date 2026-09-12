@@ -16,7 +16,7 @@ maintainer:      joseph@codensity.io
 copyright:       2024-2026 Joseph Cox
 build-type:      Simple
 stability:       Experimental
-tested-with:     GHC ==9.4.8 || ==9.8.4
+tested-with:     GHC ==9.14.1
 extra-doc-files:
   CHANGELOG.md
   README.md
@@ -44,7 +44,7 @@ library
 
   hs-source-dirs:   src
   build-depends:
-    , base                 >=4.17.2.1    && <4.20
+    , base                 >=4.22.0.0    && <4.23
     , Markovian            ^>=2026.9.3.0
     , markovian-numerical  ^>=2026.9.3.0
 
@@ -56,7 +56,7 @@ test-suite markovian-sampling-test
   main-is:          Main.hs
   hs-source-dirs:   test
   build-depends:
-    , base                 >=4.17.2.1    && <4.20
+    , base                 >=4.22.0.0    && <4.23
     , markovian-numerical  ^>=2026.9.3.0
     , markovian-sampling   ==2026.9.3.0
 

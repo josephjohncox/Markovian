@@ -16,6 +16,8 @@ import Data.Word (Word64)
 import GHC.Float (castDoubleToWord64, castWord64ToDouble)
 import GHC.TypeLits (KnownNat)
 import Markovian.Tensor
+import Markovian.Tensor.Affine
+import Markovian.Tensor.Ownership
 import Markovian.Tensor.SafeTensors
 import Paths_markovian_safetensors (getDataFileName)
 import System.Exit (exitFailure)
@@ -31,6 +33,7 @@ main = do
     limitConstructorTests
     canonicalAndRoundTrip
     tensorSessionAllocationPlan
+    affineWireRoundTrips
     malformedCorpus
     exactAndOneBelowLimits
     putStrLn "markovian-safetensors: bounded canonical profile tests passed"
@@ -112,6 +115,38 @@ canonicalAndRoundTrip = expectSession "canonical session" $ \session -> do
     decodedAgain <- expectSafeIO "decode re-encoded" (decodeSafeTensors session largeSafeLimits reencoded)
     assertEqual "decode/encode/decode names" (map (safeTensorNameText . fst) decodedEntries) (map (safeTensorNameText . fst) (safeTensorEntries decodedAgain))
     pure (Right ())
+
+affineWireRoundTrips :: IO ()
+affineWireRoundTrips = do
+    policy <- either (failTest . show) pure (affineLimits 8 1024 4096 maxBound maxBound maxBound)
+    budget <- either (failTest . show) pure (affineBudget policy)
+    result <- withTensorSession (tensorSessionLimitsWithAffine sessionLimits policy) $ \session -> do
+        -- Prefix/trailing words are deliberately distinct from every selected word.
+        (base, _) <- expectTensor "affine wire backing" (finiteTensorFromList session (knownShape @'[5]) [11, 22, -0.0, 44, 55])
+        owner <- either (failTest . show) pure (tensorOwner "not-on-wire" (knownShape @'[5]))
+        let owned = ownTensor owner base
+            bindEntry name witness = do
+                (bound, _) <- expectTensor name (bindAffineView session witness owned)
+                key <- requireName name
+                pure (key, someHostTensor (hostTensor (affineViewTensor bound)))
+        signedAction <- either (failTest . show) pure $ withAffineMap budget (knownShape @'[5]) (knownShape @'[3]) 4 [-2] $ \witness _ _ -> bindEntry "signed" witness
+        offsetAction <- either (failTest . show) pure $ withAffineMap budget (knownShape @'[5]) (knownShape @'[2]) 2 [1] $ \witness _ _ -> bindEntry "offset" witness
+        scalarAction <- either (failTest . show) pure $ withAffineMap budget (knownShape @'[5]) SNil 3 [] $ \witness _ _ -> bindEntry "scalar" witness
+        emptyAction <- either (failTest . show) pure $ withAffineMap budget (knownShape @'[5]) (knownShape @'[0]) 0 [0] $ \witness _ _ -> bindEntry "empty" witness
+        entries <- sequence [signedAction, offsetAction, scalarAction, emptyAction]
+        encoded <- expectSafeIO "encode affine views" (encodeSafeTensors largeSafeLimits entries)
+        let expected = wire "{\"empty\":{\"dtype\":\"F64\",\"shape\":[0],\"data_offsets\":[0,0]},\"offset\":{\"dtype\":\"F64\",\"shape\":[2],\"data_offsets\":[0,16]},\"scalar\":{\"dtype\":\"F64\",\"shape\":[],\"data_offsets\":[16,24]},\"signed\":{\"dtype\":\"F64\",\"shape\":[3],\"data_offsets\":[24,48]}}    " (payloadWords (map castDoubleToWord64 [-0.0, 44, 44, 55, -0.0, 11]))
+        assertEqual "affine wire exact dimensions offsets and IEEE payload (0/16/8/24 bytes)" expected encoded
+        decoded <- expectSafeIO "decode affine views" (decodeSafeTensors session largeSafeLimits encoded)
+        let items = safeTensorEntries decoded
+        checkEntry items "empty" [0] []
+        checkEntry items "offset" [2] (map castDoubleToWord64 [-0.0, 44])
+        checkEntry items "scalar" [] [castDoubleToWord64 44]
+        checkEntry items "signed" [3] (map castDoubleToWord64 [55, -0.0, 11])
+        reencoded <- expectSafeIO "reencode affine views" (encodeSafeTensors largeSafeLimits items)
+        assertEqual "affine decode reencoding identity" encoded reencoded
+        pure (Right ())
+    either (failTest . show) pure result
 
 tensorSessionAllocationPlan :: IO ()
 tensorSessionAllocationPlan = do

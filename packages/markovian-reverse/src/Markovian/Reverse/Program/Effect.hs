@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE GADTs #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE TupleSections #-}
@@ -61,6 +62,16 @@ import Markovian.Reverse (
  )
 import Markovian.Reverse.Program.Internal
 import Numeric.Natural (Natural)
+
+#define D080_REVERSE_TAPE
+#define D080_RUNTIME_PRODUCT
+#ifdef D080_PRIVATE_PROBE
+import D080Probe (probeEvent)
+#undef D080_REVERSE_TAPE
+#define D080_REVERSE_TAPE probeEvent "reverse-tape" $
+#undef D080_RUNTIME_PRODUCT
+#define D080_RUNTIME_PRODUCT probeEvent "runtime-product" $
+#endif
 
 -- | A declared cotangent space whose diagonal addition may perform effects.
 data EffectCotangentSpace m error scalar cotangent
@@ -555,11 +566,11 @@ runEffectNode report (EffectNode path parameterPrimal _ inputPrimal inputCotange
                                 EffectReverseRunValue
                                     (effectReversePrimalOutput evaluation)
                                     ( case policy of
-                                        StoreCapturedPullback -> EffectStoredPrimitiveTape path definition evaluation
-                                        RecomputePrimitive -> EffectRecomputedPrimitiveTape path definition parameter input (effectReversePrimalOutput evaluation)
+                                        StoreCapturedPullback -> D080_REVERSE_TAPE EffectStoredPrimitiveTape path definition evaluation
+                                        RecomputePrimitive -> D080_REVERSE_TAPE EffectRecomputedPrimitiveTape path definition parameter input (effectReversePrimalOutput evaluation)
                                     )
                                     charged
-                EffectIdentity -> finishOutput report path outputPrimal (EffectReverseRunValue input (EffectIdentityTape path inputCotangent) report)
+                EffectIdentity -> finishOutput report path outputPrimal (EffectReverseRunValue input (D080_REVERSE_TAPE EffectIdentityTape path inputCotangent) report)
                 EffectCompose first second -> do
                     firstResult <- runEffectNode report first (fst parameter) input
                     case firstResult of
@@ -569,7 +580,7 @@ runEffectNode report (EffectNode path parameterPrimal _ inputPrimal inputCotange
                             pure $ do
                                 EffectReverseRunValue output secondTape finalReport <- secondResult
                                 checkOutput finalReport path outputPrimal output
-                                Right (EffectReverseRunValue output (EffectComposeTape firstTape secondTape) finalReport)
+                                Right (EffectReverseRunValue output (D080_REVERSE_TAPE EffectComposeTape firstTape secondTape) finalReport)
                 EffectTensor left right -> do
                     leftResult <- runEffectNode report left (fst parameter) (fst input)
                     case leftResult of
@@ -578,9 +589,9 @@ runEffectNode report (EffectNode path parameterPrimal _ inputPrimal inputCotange
                             rightResult <- runEffectNode leftReport right (snd parameter) (snd input)
                             pure $ do
                                 EffectReverseRunValue rightOutput rightTape finalReport <- rightResult
-                                let output = (leftOutput, rightOutput)
+                                let output = D080_RUNTIME_PRODUCT (leftOutput, rightOutput)
                                 checkOutput finalReport path outputPrimal output
-                                Right (EffectReverseRunValue output (EffectTensorTape leftTape rightTape) finalReport)
+                                Right (EffectReverseRunValue output (D080_REVERSE_TAPE EffectTensorTape leftTape rightTape) finalReport)
                 EffectPairInput left right -> do
                     leftResult <- runEffectNode report left (fst parameter) input
                     case leftResult of
@@ -589,9 +600,9 @@ runEffectNode report (EffectNode path parameterPrimal _ inputPrimal inputCotange
                             rightResult <- runEffectNode leftReport right (snd parameter) input
                             pure $ do
                                 EffectReverseRunValue rightOutput rightTape finalReport <- rightResult
-                                let output = (leftOutput, rightOutput)
+                                let output = D080_RUNTIME_PRODUCT (leftOutput, rightOutput)
                                 checkOutput finalReport path outputPrimal output
-                                Right (EffectReverseRunValue output (EffectPairInputTape path (nodeEffectInputCotangent left) leftTape rightTape) finalReport)
+                                Right (EffectReverseRunValue output (D080_REVERSE_TAPE EffectPairInputTape path (nodeEffectInputCotangent left) leftTape rightTape) finalReport)
                 EffectShareParameter left right -> do
                     leftResult <- runEffectNode report left parameter (fst input)
                     case leftResult of
@@ -600,9 +611,9 @@ runEffectNode report (EffectNode path parameterPrimal _ inputPrimal inputCotange
                             rightResult <- runEffectNode leftReport right parameter (snd input)
                             pure $ do
                                 EffectReverseRunValue rightOutput rightTape finalReport <- rightResult
-                                let output = (leftOutput, rightOutput)
+                                let output = D080_RUNTIME_PRODUCT (leftOutput, rightOutput)
                                 checkOutput finalReport path outputPrimal output
-                                Right (EffectReverseRunValue output (EffectShareParameterTape path (nodeEffectParameterCotangent left) leftTape rightTape) finalReport)
+                                Right (EffectReverseRunValue output (D080_REVERSE_TAPE EffectShareParameterTape path (nodeEffectParameterCotangent left) leftTape rightTape) finalReport)
 
 finishOutput :: (Applicative m) => EffectReverseExecutionReport -> [ReversePathStep] -> FinitePrimalSpace error output -> EffectReverseRun m error scalar p pc x xc output yc -> m (Either (EffectReverseExecutionError error) (EffectReverseRun m error scalar p pc x xc output yc))
 finishOutput report path space run = pure $ case validatePrimal space (effectReverseRunOutput run) of

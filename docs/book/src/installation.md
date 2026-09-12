@@ -2,7 +2,9 @@
 
 ## Requirements
 
-Use a Unix-like system with GHCup, `cargo`, and `direnv`. The repository pins the Haskell and documentation tool versions in `toolchain.env`.
+The development bootstrap requires Linux with GHCup, `cargo`, and `direnv`.
+Its HLS runtime verification uses `/usr/bin/ldd`. The repository pins the
+Haskell and documentation tool versions in `toolchain.env`.
 
 The default build does not require CUDA.
 
@@ -15,7 +17,28 @@ bash scripts/bootstrap-tools
 direnv allow .
 ```
 
-The script installs the pinned GHC, Cabal, HLS, Fourmolu, HLint, and `cabal-fmt` versions under `.direnv`.
+The script selects project-local GHC 9.14.1/Cabal 3.18.1.0 and pinned standalone
+tools without changing global defaults. GHC 9.8.4 is used only to construct
+standalone HLint/cabal-fmt, never to build or test Markovian or run its HLS.
+
+HLS 2.14.0.0 is built from the source recipe pinned in
+`scripts/hls-recipe.json`. Configure the editor to use the project-local
+`haskell-language-server` or `haskell-language-server-wrapper` with no arguments
+or `--lsp`. Both launchers check compiler, package ABI, tool-selector and linked
+library identities before starting. `--check-only` runs those checks without
+starting LSP; generic-wrapper options are unsupported.
+
+Keep the complete `.direnv/hls-official-2.14.0.0-ghc-9.14.1-<recipe-sha256>`
+build/store tree at its original absolute path. It is dynamically linked and
+cannot be relocated. Bootstrap reuses a valid sealed build. A new recipe needs
+explicit installation in a new directory. If validation fails, preserve the
+build and logs for diagnosis. The launcher will neither repair it nor select a
+fallback compiler.
+
+Upstream HLS on GHC 9.14 omits integrated HLint, Fourmolu, Ormolu,
+stylish-haskell, Retrie, Stan and Splice. Standalone formatters and HLint remain
+available. The [toolchain decision](../../DECISIONS.md#development-toolchain-amendment-2026-09-08)
+records the recipe and validation details.
 
 ## Build and test the packages
 
@@ -46,7 +69,7 @@ The value contains one transition reward and one discounted terminal payoff.
 
 ## Build a checked source archive
 
-Markovian is not published. Use only a checked preparation archive from an immutable revision.
+Use a verified release archive or create a checked preparation archive from an immutable revision.
 
 Validate an archive before extraction:
 
@@ -84,9 +107,10 @@ mdbook serve docs/book --open
 
 ## Build Haddock API documentation
 
-Use the same two-stage gate as CI and release preparation. First, install all 16 libraries with documentation into a fresh isolated Cabal store. Reject every warning and require one `.haddock` interface per manifest package. Then run a separate `cabal haddock all --haddock-options=--no-warnings` pass only to collect declaration coverage with `scripts/check-haddock-coverage`.
-
-The second pass does not prove warning freedom. See [Release preparation](release-preparation.md) for the exact commands. The book explains concepts and workflows. Haddock lists exact types, constructors, and error values.
+Run the [Haddock checks](release-preparation.md#haddock-checks) used by CI and
+release preparation. They verify installed documentation and declaration
+coverage separately. The book explains concepts and workflows; Haddock lists
+exact types, constructors, and error values.
 
 ## Optional CUDA build
 

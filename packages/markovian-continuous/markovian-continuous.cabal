@@ -19,7 +19,7 @@ maintainer:         joseph@codensity.io
 copyright:          2024-2026 Joseph Cox
 build-type:         Simple
 stability:          Experimental
-tested-with:        GHC ==9.4.8 || ==9.8.4
+tested-with:        GHC ==9.14.1
 extra-doc-files:
   CHANGELOG.md
   README.md
@@ -32,7 +32,18 @@ extra-source-files:
   test/compile-fail/JointAffineWrongScope.hs
   test/compile-fail/PairedDifferenceBoundary.hs
   test/compile-fail/PairedDifferenceRecordUpdate.hs
+  test/compile-fail/SuccessorSubstitutionConstructors.hs
+  test/compile-fail/SuccessorSubstitutionExtraction.hs
+  test/compile-fail/SuccessorSubstitutionIntermediate.hs
+  test/compile-fail/SuccessorSubstitutionLocalOwner.hs
+  test/compile-fail/SuccessorSubstitutionReportUpdate.hs
+  test/compile-fail/SuccessorSubstitutionRoles.hs
+  test/compile-fail/SuccessorSubstitutionSealing.hs
+  test/compile-fail/SuccessorSubstitutionSpace.hs
+  test/compile-fail/SuccessorSubstitutionWrongScope.hs
+  test/JointAffinePrivate.inc
   test/PairedDifferencePrivate.hs
+  test/SuccessorSubstitutionClient.hs
 
 data-files:
   test/golden/bivariate-accounting.txt
@@ -67,7 +78,7 @@ library
 
   other-modules:      Markovian.Continuous.Internal
   hs-source-dirs:     src
-  build-depends:      base >=4.17.2.1 && <4.20
+  build-depends:      base >=4.22.0.0 && <4.23
   default-language:   GHC2021
   default-extensions: DerivingStrategies
 
@@ -83,7 +94,7 @@ test-suite markovian-continuous-test
 
   autogen-modules:  Paths_markovian_continuous
   build-depends:
-    , base                  >=4.17.2.1   && <4.20
+    , base                  >=4.22.0.0   && <4.23
     , markovian-continuous  ==2026.9.3.0
 
   default-language: GHC2021
@@ -94,7 +105,7 @@ benchmark markovian-continuous-bench
   main-is:          Main.hs
   hs-source-dirs:   bench
   build-depends:
-    , base                  >=4.17.2.1   && <4.20
+    , base                  >=4.22.0.0   && <4.23
     , markovian-continuous  ==2026.9.3.0
 
   default-language: GHC2021

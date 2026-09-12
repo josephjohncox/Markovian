@@ -33,12 +33,18 @@ export LIBRARY_PATH="$local_lib${LIBRARY_PATH:+:$LIBRARY_PATH}"
 "$ghcup_bin" run \
   --ghc "$MARKOVIAN_GHC_VERSION" \
   --cabal "$MARKOVIAN_CABAL_VERSION" \
-  --hls "$MARKOVIAN_HLS_VERSION" \
   --tool "fourmolu,$MARKOVIAN_FOURMOLU_VERSION" \
   --install \
   --bindir "$toolchain_bin" >/dev/null
 
-export PATH="$toolchain_bin:$local_bin:$PATH"
+export PATH="$local_bin:$toolchain_bin:$PATH"
+
+# HLS is built from the pinned official source, not GHCup's default bindist.
+python3 "$project_root/scripts/project-hls.py" --install \
+  --ghc "$(command -v ghc)" --cabal "$(command -v cabal)"
+for launcher in haskell-language-server haskell-language-server-wrapper; do
+  ln -sfn "$project_root/scripts/project-hls.py" "$local_bin/$launcher"
+done
 
 hlint_ok=false
 if [[ -x "$local_bin/hlint" ]] && "$local_bin/hlint" --version | grep -Fq "v$MARKOVIAN_HLINT_VERSION"; then
@@ -50,20 +56,9 @@ if [[ -x "$local_bin/cabal-fmt" ]] && [[ "$("$local_bin/cabal-fmt" --version)" =
   cabal_fmt_ok=true
 fi
 
-if [[ "$hlint_ok" != true ]]; then
-  cabal install \
-    "hlint-$MARKOVIAN_HLINT_VERSION" \
-    --installdir="$local_bin" \
-    --install-method=copy \
-    --overwrite-policy=always
-fi
-
-if [[ "$cabal_fmt_ok" != true ]]; then
-  cabal install \
-    "cabal-fmt-$MARKOVIAN_CABAL_FMT_VERSION" \
-    --installdir="$local_bin" \
-    --install-method=copy \
-    --overwrite-policy=always
+if [[ "$hlint_ok" != true || "$cabal_fmt_ok" != true ]]; then
+  bash "$project_root/scripts/install-ancillary-tools" \
+    "$local_bin" "$project_root/.direnv/tool-store"
 fi
 
 spdx_version=""
@@ -80,7 +75,8 @@ fi
 
 printf 'GHC:       '; ghc --version
 printf 'Cabal:     '; cabal --version | head -1
-printf 'HLS:       '; haskell-language-server-wrapper --version | head -1
+printf 'HLS:       %s official source; mandatory ABI guard\n' "$MARKOVIAN_HLS_VERSION"
+python3 "$project_root/scripts/project-hls.py" --check-only
 printf 'Fourmolu:  '; fourmolu --version | head -1
 printf 'HLint:     '; hlint --version
 printf 'cabal-fmt: '; cabal-fmt --version

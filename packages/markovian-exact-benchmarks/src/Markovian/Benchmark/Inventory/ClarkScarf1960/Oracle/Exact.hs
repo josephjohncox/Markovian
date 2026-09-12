@@ -27,7 +27,7 @@ module Markovian.Benchmark.Inventory.ClarkScarf1960.Oracle.Exact (
 ) where
 
 import Control.Monad (foldM)
-import Data.List (foldl', sortOn)
+import Data.List (sortOn)
 import Data.List.NonEmpty qualified as NonEmpty
 import Markovian.Benchmark.Inventory.ClarkScarf1960.Finite.Exact
 import Markovian.MDP.Exact (

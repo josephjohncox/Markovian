@@ -3,6 +3,7 @@
 
 import copy
 import json
+import re
 import shutil
 import tempfile
 import unittest
@@ -42,12 +43,71 @@ class CapabilityTests(unittest.TestCase):
             cap.validate(cap.ROOT, document, self.current, self.released)
 
     def test_current_records_and_generated_presentation(self):
-        self.assertEqual(cap.check(cap.ROOT), 9)
+        self.assertEqual(cap.check(cap.ROOT), 13)
 
-    def test_proposed_implementation_is_not_unimplemented(self):
+    def test_cuda_receipt_matches_accepted_decision(self):
+        decisions = (cap.ROOT / "docs/DECISIONS.md").read_text()
+        receipt = (cap.ROOT / "docs/evidence/CUDA-D077-RECEIPTS.md").read_text()
+        status = re.search(r"(?ms)^### D-077:.*?^\*\*Status:\*\* ([^\n]+)$", decisions)
+        assert status is not None
+        self.assertEqual(status[1], "Accepted")
+        self.assertEqual(re.findall(r"(?m)^\*\*Decision status:\*\* ([^\n]+)$", receipt),
+                         [status[1]])
+
+    def test_accepted_affine_feedback_remains_unreleased(self):
         records = cap.validate(cap.ROOT, self.document, self.current, self.released)
+        self.assertEqual(records[5]["decision"], "D-078")
         self.assertEqual(records[5]["availability"], "unreleased")
-        self.assertEqual(records[5]["decisionStatus"], "Proposed")
+        self.assertEqual(records[5]["decisionStatus"], "Accepted")
+        self.assertEqual(records[5]["evidenceScope"], "implementation-fixtures")
+        self.rejected(self.changed(5, availability="released", evidenceScope="bounded-release"),
+                      "not in immutable released membership")
+
+    def test_d079_d080_d081_bounded_acceptance_statuses(self):
+        decisions = (cap.ROOT / "docs/DECISIONS.md").read_text()
+        statuses = dict(re.findall(
+            r"(?ms)^### (D-\d+):.*?^\*\*Status:\*\* ([^\n]+)$", decisions))
+        for number in range(77, 82):
+            self.assertEqual(statuses[f"D-{number:03}"], "Accepted")
+        for number in range(82, 86):
+            self.assertEqual(statuses[f"D-{number:03}"], "Proposed")
+        for decision in ("EL-03", "EL-04", "EL-05"):
+            record = next(r for r in self.document["capabilities"]
+                          if r["decision"] == decision)
+            self.assertEqual(record["decisionStatus"], "Proposed")
+            self.assertEqual(record["availability"], "unreleased")
+
+    def test_d079_d080_acceptance_does_not_create_released_membership(self):
+        for package, module in (
+                ("markovian-continuous", "Markovian.Continuous.Kernel.JointAffine.Exact"),
+                ("markovian-autodiff", "Markovian.Autodiff.Quote")):
+            self.assertIn(module, self.current[package])
+            self.assertNotIn(module, self.released[package])
+
+    def test_d081_bounded_unreleased_acceptance_record(self):
+        record = next(r for r in self.document["capabilities"] if r["decision"] == "D-081")
+        self.assertEqual(record["availability"], "unreleased")
+        self.assertEqual(record["decisionStatus"], "Accepted")
+        self.assertEqual(record["evidenceScope"], "implementation-fixtures")
+        module = "Markovian.Tensor.Affine"
+        self.assertIn(module, self.current["markovian-tensor"])
+        self.assertNotIn(module, self.released["markovian-tensor"])
+
+    def test_d083_implementation_remains_unreleased_and_proposed(self):
+        record = next(r for r in self.document["capabilities"] if r["decision"] == "D-083")
+        self.assertEqual(record["availability"], "unreleased")
+        self.assertEqual(record["decisionStatus"], "Proposed")
+        self.assertEqual(record["evidenceScope"], "implementation-fixtures")
+        self.assertEqual(record["evidence"], "test/CorrelatedSolvers.hs")
+        self.assertIn("Markovian.Game.Correlated.Exact", self.current["Markovian"])
+
+    def test_d083_frozen_contract_is_packaged_as_documentation(self):
+        text = (cap.ROOT / "Markovian.cabal").read_text()
+        entry = "  docs/plans/D083-CE-CCE-SOLVERS.md\n"
+        docs = text.split("extra-doc-files:\n", 1)[1].split("extra-source-files:", 1)[0]
+        self.assertEqual(text.count(entry), 1)
+        self.assertEqual(docs.count(entry), 1)
+        self.assertTrue((cap.ROOT / entry.strip()).is_file())
 
     def test_paired_proposal_implementation_transition(self):
         record = cap.validate(cap.ROOT, self.document, self.current, self.released)[6]
@@ -200,7 +260,7 @@ class CapabilityTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             root = self.fixture(directory)
             self.assertFalse((root / ".git").exists())
-            self.assertEqual(cap.check(root), 9)
+            self.assertEqual(cap.check(root), 13)
 
 
 if __name__ == "__main__":

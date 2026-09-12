@@ -48,7 +48,7 @@ module Markovian.Bayesian.Exact (
 ) where
 
 import Control.Monad (foldM)
-import Data.Foldable (foldl', traverse_)
+import Data.Foldable (traverse_)
 import Data.List.NonEmpty (NonEmpty)
 import Data.List.NonEmpty qualified as NonEmpty
 import Data.Maybe (fromMaybe)

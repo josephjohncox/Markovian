@@ -134,7 +134,7 @@ single atomic rational ledger. For @S=|X|+|U|@, @E=|events|@, and
 This covers event-target validation, source-layout comparison, event rewards,
 row-major channel extraction and observation, reward aggregation, and every
 continuation/exit event-target scan. The event-count limit uses
-'maximumFeedbackTraceOutcomes' from the shared feedback limit record; no trace
+@maximumFeedbackTraceOutcomes@ from the shared feedback limit record; no trace
 or outcome law is constructed.
 -}
 closeAffineFeedback ::

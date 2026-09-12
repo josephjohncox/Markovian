@@ -21,7 +21,6 @@ module Markovian.Category.Matrix.Stochastic (
     discardStochastic,
 ) where
 
-import Data.Foldable (foldl')
 import Markovian.Algebra.NonNegativeRational (NonNegativeRational)
 import Markovian.Algebra.Semiring
 import Markovian.Category.Finite.Set

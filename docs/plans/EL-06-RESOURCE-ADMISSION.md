@@ -48,6 +48,6 @@ Those are separately budgeted **public operations**, not a reset-budget implemen
 
 ## Evidence and future cache gate
 
-`docs/learning/fences.json` registers the full runnable module and `--resource-admission` output. `scripts/check-learning --write` generates stdout/receipt by execution; `--run` checks compilation and freshness. Normal root tests exercise all model boundaries. Existing source CI and `scripts/check-learning-archive` consume the same manifest, compile the archived module and compare archived output. Actual commands/results are recorded in the [execution log](EXECUTABLE-LEARNING-TODO.md).
+`docs/learning/fences.json` registers the full runnable module and `--resource-admission` output. `scripts/check-learning --write` generates stdout/receipt by execution; `--run` checks compilation and freshness. Normal root tests exercise all model boundaries. Existing source CI and `scripts/check-learning-archive` consume the same manifest, compile the archived module and compare archived output.
 
 Freeze D-085's concrete cache and interpreter-evidence signatures only when its consumer can satisfy this source contract. Opaque nominal table ownership, exact layout checks, real callback evidence, deterministic insertion/lookup, trace compression proof, cache capacity and actual time/allocation/hit measurements remain future cache work, not requirements silently satisfied by this accounting experiment.

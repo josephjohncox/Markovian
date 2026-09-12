@@ -1,4 +1,5 @@
 Markovian.Tensor
+Markovian.Tensor.Affine
 Markovian.Tensor.Ownership
 Markovian.Tensor.Primitive
 Markovian.Tensor.Reverse

@@ -41,7 +41,7 @@ D-074 is `Accepted` for the owned dynamic CUDA 13 matrix/VJP fragment. The relea
 
 This review covered packages at `2026.9.3.0` with public sibling dependencies at `^>=2026.9.3.0`. The current bounded proposal work retains those versions and bounds under the task's no-version-change invariant. It is not release source, does not approve a new candidate or any proposed decision, and cannot pass the published-version source boundary from another revision.
 
-The declared `base` bound is `>=4.17.2.1 && <4.20`. The final supported-compiler and lower-bound matrix must confirm it.
+The historical release declared `base >=4.17.2.1 && <4.20`. The 2026-09-08 development toolchain amendment in `docs/DECISIONS.md` now requires `base >=4.22.0.0 && <4.23` and `bytestring >=0.12.2.0 && <0.13` with GHC 9.14.1 and Cabal 3.18.1.0. Fresh modern checks are required; this historical release review does not supply them.
 
 A later incompatible public change must increment the PVP major pair. Any post-release source change must also use a new version before release preparation. `release/published-releases.json` blocks reuse of the published version.
 

@@ -57,7 +57,7 @@ K(x)=a x+b+\sum_i c_iU_i.
 
 Composition checks owner collisions and declared budgets. Alpha-renaming rejects duplicate source mappings, duplicate targets, and collisions with an unmapped owner. Thus, the package does not supply an unrestricted `Category` instance.
 
-### Joint affine Gate A
+### Joint affine kernels and unreleased substitution
 
 `ExactJointAffineKernel` represents two closed coordinates over one real input:
 
@@ -66,15 +66,17 @@ R(x)=a_Rx+b_R+\\sum_i c_iU_i,\\qquad
 S(x)=a_Sx+b_S+\\sum_i d_iU_i.
 \\]
 
-One bounded table stores each local owner, its compact rational interval, and the coefficients `c_i` and `d_i`. Admission counts raw rows before canonicalization and rejects duplicate owners before it removes rows where both coefficients are zero. The owner, input, reward, and successor labels have nominal roles. A partial alpha-renaming has the same owner-scope type. `reScopeJointAffineKernel` changes that type only after a complete injective map names every retained owner. Thus `[]` cannot re-scope a nonempty kernel. Gate A has no cross-kernel composition operation.
+One bounded table stores each local owner, its compact rational interval, and the coefficients `c_i` and `d_i`. Admission counts raw rows before canonicalization and rejects duplicate owners before filtering the executable view. The full private declaration table retains rows where both coefficients are zero. The owner, input, reward, and successor labels have nominal roles. A partial alpha-renaming has the same owner-scope type. D-079 Gate B explicitly supersedes Gate A's retained-only renaming: membership, collisions, complete re-scoping, and work cover every declaration. Thus `[]` can re-scope only a declaration-free kernel. The historical Gate A fragment had no cross-kernel substitution operation.
 
 Materialization at a rational input always returns `ExactJointLaw RealBorel RealBorel`. The input, reward, and successor phantom parameters are coordinate labels rather than measurable-space parameters; they cannot manufacture an `ExactJointLaw` for an arbitrary type. An owner with two nonzero coefficients supplies the same uniform variable to reward and successor. Distinct owners remain independent. Support extrema over a compact input interval select one endpoint for each signed coefficient and use checked rational products and sums.
 
-Construction, same-scope renaming, scope transition, materialization, and support return no semantic result after a limit failure. Renaming preflights mapping traversal, source and target duplicate scans, retained-owner membership, complete-map coverage where required, replacement lookup, post-rename collision checks, and canonical sorting before those scans or derived owner lists. Reports contain deterministic raw-row, owner, output, coefficient, preflight-work, arithmetic-work, and maximum-rational-bit counts. The public module states the total failure precedence for each operation.
+Construction, same-scope renaming, scope transition, materialization, and support return no semantic result after a limit failure. Renaming preflights mapping traversal, source and target duplicate scans, declared-owner membership, complete-map coverage where required, replacement lookup, post-rename collision checks, and canonical sorting before those scans or derived owner lists. Reports contain deterministic raw-row, owner, output, coefficient, preflight-work, arithmetic-work, and maximum-rational-bit counts. The public module states the total failure precedence for each operation.
 
 Measurability is an argued syntax-directed obligation. Each admitted input coordinate is a rational affine map, hence continuous and Borel measurable. Each source is a compact Borel uniform law. Finite products of the represented sources are standard Borel, and both outputs are finite affine projections. This argument covers every syntax constructor in Gate A. It does not establish measurability for an arbitrary Haskell function because no callback constructor exists.
 
-D-079 remains `Proposed`. Gate A adds no control package, regular conditional probability or disintegration, point conditioning, polynomial value function, multi-step control, or numerical certificate.
+The unreleased `substituteLeftSuccessor` substitutes only the left successor into both right coordinates. Its result is the right reward and right successor, not an accumulated reward. Requests completely and injectively map every right declaration either to equal-interval left sources or to fresh numeric names disjoint from both full manifests. A single combined ledger admits the mapping spine without inspecting entries before all derived-table reservations. Private witnesses retain the actual admitted operands. Results retain zero declarations and original-name reservations, but expose no kernel, local owner, or chaining operation. Both projections separately budget work while admitting the complete historical rational maximum, including canceled intermediates and discarded left reward. See the [frozen D-079 contract](../../plans/D079-LEFT-SUCCESSOR-SUBSTITUTION.md) for the exact schedule and the `JointAffine` tests for independent multinomial and witnessed-source corner evidence.
+
+D-079 is `Accepted` within its bounded, unreleased scope; the [separate acceptance record](../../DECISIONS.md#d-079-add-exact-joint-affine-continuous-kernels) preserves the historical freeze and excludes temporal reward accumulation, general composition/category laws, devices and performance claims. This adds no control package, regular conditional probability or disintegration, point conditioning, polynomial value function, multi-step control, or numerical certificate.
 
 ## Finite-observation conditioning
 

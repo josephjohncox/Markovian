@@ -46,7 +46,6 @@ module Markovian.Game.Profile.Finite (
     cappedGamePower,
 ) where
 
-import Data.List (foldl')
 import Data.List.NonEmpty qualified as NonEmpty
 import Data.Ratio (denominator, numerator)
 import Markovian.Category.Finite.Object

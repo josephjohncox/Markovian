@@ -26,3 +26,5 @@ cabal.project.local~
 .codebase-index/
 .direnv/
 docs/book/build/
+# Local agent coordination and execution notes
+.agent-scratch/

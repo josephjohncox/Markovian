@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+**Acceptance update — 2026-09-09:** D-080 is Accepted in its bounded, unreleased closed exact-polynomial quotation and frozen cumulative-compilation scope. This does not accept arbitrary-Haskell differentiation, physical allocation bounds, device lowering, or release approval. The entries below retain their implementation-stage statuses; the current authority and exclusions are recorded in D-080 in `docs/DECISIONS.md`.
+
+### Historical implementation-stage entries
+
 - Add bounded explicit first-order quotation for the exact polynomial language.
 - Add opaque paths with generative lexical scope tokens and callback-free `letQuote` syntax.
 - Add one cumulative preflight ledger for traversal, extent, allocation, lowering, compilation, work, and rational size.

@@ -5,6 +5,7 @@ import AggregationExact (runAggregationLesson, runAggregationTests)
 import AlgebraicFoundation (runAlgebraicFoundationTests)
 import BayesianExact (runBayesianExactTests)
 import CircuitCostRewrite (runCircuitCostRewriteTests)
+import CorrelatedSolvers (runCorrelatedSolverTests)
 import ExactBind (runExactBindTests)
 import ExactControl (runExactControlTests)
 import FeedbackExact (runFeedbackExactTests)
@@ -46,6 +47,7 @@ allTests = do
     runGameCoreTests run
     runFiniteOpenGameTests run
     runMixedBayesianGameTests run
+    runCorrelatedSolverTests run
     runOpenSystemTests run
     runAcyclicOpenSystemTests run
 

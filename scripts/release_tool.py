@@ -30,6 +30,14 @@ ALLOWED_CABAL_NO_INDEX_ADVISORY = (
     "Warning: The package list for 'hackage.haskell.org' does not exist. Run 'cabal",
     "update' to download it.",
 )
+ALLOWED_CABAL_NO_REMOTE_ADVISORY = (
+    "Warning: No remote package servers have been specified. Usually you would have",
+    "one specified in the config file.",
+)
+ALLOWED_CABAL_ADVISORIES = (
+    ALLOWED_CABAL_NO_INDEX_ADVISORY,
+    ALLOWED_CABAL_NO_REMOTE_ADVISORY,
+)
 REQUIRED_FIELDS = (
     "synopsis",
     "description",
@@ -864,12 +872,13 @@ def check_haddock_log(path: Path) -> str:
     unexpected: list[tuple[int, str]] = []
     index = 0
     while index < len(lines):
-        if lines[index] == ALLOWED_CABAL_NO_INDEX_ADVISORY[0]:
-            if (
-                index + 1 < len(lines)
-                and lines[index + 1] == ALLOWED_CABAL_NO_INDEX_ADVISORY[1]
-            ):
-                index += 2
+        advisory = next(
+            (item for item in ALLOWED_CABAL_ADVISORIES if lines[index] == item[0]),
+            None,
+        )
+        if advisory is not None:
+            if tuple(lines[index : index + len(advisory)]) == advisory:
+                index += len(advisory)
                 continue
             unexpected.append((index + 1, lines[index]))
         elif re.search(r"(^|\s)warning:", lines[index], re.IGNORECASE):
@@ -953,8 +962,20 @@ def check_dependency_bounds(cabal_path: Path, text: str, package: Package) -> No
 
     if not dependencies:
         raise ReleaseError(f"{cabal_path}: no component dependencies found")
+    modern_bounds = {
+        "base": r">=\s*4\.22\.0\.0\s*&&\s*<\s*4\.23",
+        "bytestring": r">=\s*0\.12\.2\.0\s*&&\s*<\s*0\.13",
+    }
+    if not any(dependency.split()[0] == "base" for _, dependency in dependencies):
+        raise ReleaseError(f"{cabal_path}: missing modern base bounds")
     for number, dependency in dependencies:
         name = dependency.split()[0]
+        if name in modern_bounds and not re.fullmatch(
+            rf"{name}\s+{modern_bounds[name]}", dependency
+        ):
+            raise ReleaseError(
+                f"{cabal_path}:{number}: {name} must use modern toolchain bounds"
+            )
         internal_sublibrary = name.casefold().startswith(package.name.casefold() + ":")
         if (
             re.search(r"(?:\^>=|==|>=|<=|<|>)", dependency) is None
@@ -1108,10 +1129,8 @@ def check_metadata(
                 f"{cabal_path}: source-repository this must identify "
                 f"v{package.version} and the package subdirectory"
             )
-        if not re.search(r"base\s+>=\s*4\.17\.2\.1\s*&&\s*<\s*4\.20", text):
-            raise ReleaseError(
-                f"{cabal_path}: missing evidence-backed full base bounds"
-            )
+        if cabal_field(text, "tested-with") != "GHC ==9.14.1":
+            raise ReleaseError(f"{cabal_path}: tested-with must be GHC ==9.14.1")
 
         public_sibling_dependencies: set[str] = set()
         for sibling_folded, version in known_versions.items():

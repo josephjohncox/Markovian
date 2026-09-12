@@ -16,7 +16,7 @@ maintainer:         joseph@codensity.io
 copyright:          2024-2026 Joseph Cox
 build-type:         Simple
 stability:          Experimental
-tested-with:        GHC ==9.4.8 || ==9.8.4
+tested-with:        GHC ==9.14.1
 extra-doc-files:
   CHANGELOG.md
   docs/ARCHITECTURE.md
@@ -35,21 +35,26 @@ extra-doc-files:
   docs/evidence/CUDA-D077-RECEIPTS.md
   docs/evidence/CUDA-TENSOR-2026-09-02.md
   docs/evidence/D061-2026-09-02.md
-  docs/evidence/D077-WORKTREE-SCOPE.md
+  docs/evidence/D081-AFFINE-IMPLEMENTATION.md
+  docs/evidence/D081-MATERIALIZATION/FAILURE-FIXTURES-FINAL.md
+  docs/evidence/D081-MATERIALIZATION/FIXTURE-INPUTS.md
+  docs/evidence/D081-MATERIALIZATION/FIXTURES-OPERATIVE.md
+  docs/evidence/D081-MATERIALIZATION/README.md
+  docs/evidence/D081-MATERIALIZATION/SOURCE-PROOF.md
   docs/evidence/D081-TRANSPOSE-REVERSE-EQUIVALENCE.md
-  docs/evidence/EXECUTABLE-LEARNING-INTEGRATION.md
-  docs/evidence/INTEGRATION-DOCS-REPAIR.md
-  docs/evidence/LEARNING-REVIEW-2026-09-05.md
   docs/evidence/S6-ACYCLIC-OPEN-2026-08-27.md
   docs/evidence/TENSOR-SAFETENSORS-REPAIR.md
   docs/learning/*.txt
   docs/learning/fences.json
   docs/learning/output-receipt.json
+  docs/plans/D080-CUMULATIVE-COMPILATION.md
+  docs/plans/D081-AFFINE-VIEWS.md
+  docs/plans/D081-MATERIALIZATION-ADDENDUM.md
+  docs/plans/D083-CE-CCE-SOLVERS.md
   docs/plans/EL-03-PAIRED-DIFFERENCE.md
   docs/plans/EL-04-REWARD-JVP.md
   docs/plans/EL-05-AGGREGATION.md
   docs/plans/EL-06-RESOURCE-ADMISSION.md
-  docs/plans/EXECUTABLE-LEARNING-TODO.md
   docs/WORKFLOWS.md
   MIGRATION.md
   README.md
@@ -72,6 +77,7 @@ extra-source-files:
   cabal.project
   cabal.project.ci
   ci/packages.tsv
+  docs/plans/D079-LEFT-SUCCESSOR-SUBSTITUTION.md
   examples/release/exact/app/Main.hs
   examples/release/exact/markovian-release-example.cabal
   hie.yaml
@@ -107,6 +113,7 @@ extra-source-files:
   scripts/check-book-links
   scripts/check-capabilities
   scripts/check-circuit-purity
+  scripts/check-correlated-solver
   scripts/check-feedback-boundary
   scripts/check-game-core-boundary
   scripts/check-haddock-coverage
@@ -119,12 +126,28 @@ extra-source-files:
   scripts/check-release-metadata
   scripts/check-release-policy
   scripts/check-root-topology
+  scripts/check_haddock_install.py
+  scripts/fixtures/hls-2.14.0.0-project.txt
   scripts/generate-release-sbom
+  scripts/guard-hls.py
+  scripts/hls-recipe.json
+  scripts/hls_selectors.py
+  scripts/install-ancillary-tools
   scripts/install-doc-tools
+  scripts/install-hls-official.py
   scripts/prepare-release
+  scripts/probe-hls-lsp.py
+  scripts/project-hls.py
   scripts/release_tool.py
+  scripts/seal-hls.py
+  scripts/snapshot-project.py
   scripts/test_capabilities.py
+  scripts/test_check_haddock_install.py
+  scripts/test_hls_live_guard.py
+  scripts/test_hls_selectors.py
+  scripts/test_install_ancillary_tools.py
   scripts/test_learning.py
+  scripts/test_project_hls.py
   scripts/test_release_tool.py
   test/compile-fail/ActionRoles.hs
   test/compile-fail/AcyclicProofBoundary.hs
@@ -135,6 +158,10 @@ extra-source-files:
   test/compile-fail/AggregationWitnessUpdate.hs
   test/compile-fail/CircuitPurity.hs
   test/compile-fail/CompiledStateRoles.hs
+  test/compile-fail/CorrelatedSolverCoercion.hs
+  test/compile-fail/CorrelatedSolverConstruction.hs
+  test/compile-fail/CorrelatedSolverInterchange.hs
+  test/compile-fail/CorrelatedSolverUpdate.hs
   test/compile-fail/ExactApplicative.hs
   test/compile-fail/ExactDistributionOpacity.hs
   test/compile-fail/ExactKernelArrow.hs
@@ -153,6 +180,7 @@ extra-source-files:
   test/compile-fail/PushoutKind.hs
   test/compile-fail/RefinementRoles.hs
   test/compile-fail/RootMovedModules.hs
+  test/CorrelatedSolverPrivate.hs
   test/FeedbackRewardJVPPrivate.hs
   test/golden/affine-feedback-accounting.txt
   test/golden/feedback-accounting.txt
@@ -238,8 +266,9 @@ library
     Markovian.Category.Finite.Set.Internal
     Markovian.Category.Matrix.Stochastic.Internal
     Markovian.Feedback.Internal
+    Markovian.Game.Correlated.Exact.Internal
 
-  build-depends:    base >=4.17.2.1 && <4.20
+  build-depends:    base >=4.22.0.0 && <4.23
   hs-source-dirs:   src
   default-language: GHC2021
 
@@ -247,7 +276,7 @@ executable MixedGamesExample
   import:           warnings
   main-is:          Main.hs
   build-depends:
-    , base       >=4.17.2.1   && <4.20
+    , base       >=4.22.0.0   && <4.23
     , Markovian  ==2026.9.3.0
 
   hs-source-dirs:   examples/games/exact
@@ -257,7 +286,7 @@ executable Sample
   import:           warnings
   main-is:          Main.hs
   build-depends:
-    , base       >=4.17.2.1   && <4.20
+    , base       >=4.22.0.0   && <4.23
     , Markovian  ==2026.9.3.0
 
   hs-source-dirs:   app/Sample
@@ -273,6 +302,7 @@ test-suite Markovian-test
     AlgebraicFoundation
     BayesianExact
     CircuitCostRewrite
+    CorrelatedSolvers
     ExactBind
     ExactControl
     FeedbackExact
@@ -288,7 +318,7 @@ test-suite Markovian-test
     RootContexts
 
   build-depends:
-    , base       >=4.17.2.1   && <4.20
+    , base       >=4.22.0.0   && <4.23
     , Markovian  ==2026.9.3.0
 
   hs-source-dirs:   test docs/learning

@@ -110,9 +110,9 @@ The old `Markovian.Category.Finite.Exact` module is private regression code. No 
 | `Markovian.Feedback.Channel.Exact` | Proper first-exit coproduct routing with exact solve evidence |
 | `Markovian.Feedback.Delay.Exact` | Explicit seed and bounded one-tick delayed execution |
 | `Markovian.Feedback.Timed.Exact` | Nilpotent reward-, duration-, and output-preserving closure |
-| `Markovian.Feedback.Value.Exact` | Unreleased strict-discount affine `A`/`K` coefficients and `closeAffineFeedbackRewardJVP`: opaque jointly owned base and event-reward derivative, exact layout checks and one cumulative ledger; fixed probabilities/discount only; D-078 and EL-04 Proposed |
+| `Markovian.Feedback.Value.Exact` | Unreleased strict-discount affine `A`/`K` coefficients and `closeAffineFeedbackRewardJVP`: opaque jointly owned base and event-reward derivative, exact layout checks and one cumulative ledger; fixed probabilities/discount only; original D-078 coefficients Accepted, separate EL-04 JVP contract Proposed |
 
-These modules provide no universal trace, instantaneous fixed-point operator, cyclic open-system black-boxing, or stationary-distribution selector. The value module returns no evaluator or normalized output channel. D-078 remains `Proposed`.
+These modules provide no universal trace, instantaneous fixed-point operator, cyclic open-system black-boxing, or stationary-distribution selector. The value module returns no evaluator or normalized output channel. D-078 is `Accepted` only for its original coefficients and four exact equations, not EL-04's JVP contract; both remain unreleased.
 
 ## Open systems
 
@@ -151,7 +151,7 @@ These modules do not import arena histories. They provide no generic mixed lifti
 | --- | --- |
 | `Markovian.Game.Profile.Finite` | Checked owner products, pure profiles, exact complete simplexes, and shared game limits |
 | `Markovian.Game.NormalForm.Exact` | Complete rational payoff tables, independent mixed profiles, exact expectation, and mixed-Nash candidate checks |
-| `Markovian.Game.Correlated.Exact` | Joint correlation devices and distinct CE/CCE candidate reports |
+| `Markovian.Game.Correlated.Exact` | Joint correlation devices, CE/CCE candidate reports, and unreleased first-witness solvers |
 | `Markovian.Game.Outcome.Exact` | Complete exact joint outcome laws and reward/successor atoms |
 | `Markovian.Game.Stochastic.Exact` | Finite-horizon public-state Markov evaluation and Markov-perfect candidate checks |
 | `Markovian.Game.Harsanyi.Exact` | Correlated common priors, behavioral Bayes-Nash checks, and bounded strategic-normal conversion |
@@ -184,6 +184,7 @@ These are candidate semantics, not unrestricted solvers. They provide no equilib
 | `markovian-autodiff: Markovian.Autodiff.Compile` | Exact polynomial and checked-Double lowering to opaque reverse tapes |
 | `markovian-tensor: Markovian.Tensor.Shape` | Type-indexed scalar, vector, matrix, and higher-rank shape witnesses |
 | `markovian-tensor: Markovian.Tensor` | Region-scoped host F64 buffers, checked layouts, finite refinement, and deterministic reports |
+| `markovian-tensor: Markovian.Tensor.Affine` | Bounded, unreleased [signed affine views](tensor-runtime.md), materialization, and base-coordinate pullback. D-081 Accepted within this unreleased scope. |
 | `markovian-tensor: Markovian.Tensor.Primitive` | Deterministic finite CPU elementwise, reduction, copy, and matrix primitives |
 | `markovian-tensor: Markovian.Tensor.Ownership` | Semantic owner keys separate from physical storage IDs |
 | `markovian-tensor: Markovian.Tensor.Reverse` | Opaque tapes and VJPs for the closed CPU primitive set, backed by a private allocator capability |

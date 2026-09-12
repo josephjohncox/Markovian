@@ -20,7 +20,6 @@ module Markovian.Continuous.Numerical.Quadrature (
 ) where
 
 import Control.Monad (when)
-import Data.List (foldl')
 import Markovian.Continuous.Numerical.Value
 import Numeric.Natural (Natural)
 

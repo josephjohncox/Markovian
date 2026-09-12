@@ -22,7 +22,6 @@ module Markovian.Category.Payoff.Exact (
     pairStatePayoff,
 ) where
 
-import Data.Foldable (foldl')
 import Data.Maybe (fromMaybe)
 import Markovian.Algebra.NonNegativeRational (NonNegativeRational, getNonNegativeRational)
 import Markovian.Category.Finite.Set

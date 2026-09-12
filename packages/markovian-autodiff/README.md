@@ -28,7 +28,12 @@ Preflight charges each item before it descends and visits children from left to 
 The successful `QuoteReport` contains the timing-free cumulative ledger.
 The execution preflight functions add input and direction traversal to that report.
 `lowerQuote` constructs no target `Program` until this preflight succeeds.
-`compileExactQuote` uses the same limits for the exact compiler and returns both reports.
+`compileExactQuote` continues that syntax ledger with charged numeric metadata planning and traversal, allocation, and runtime reservations before building the target.
+The compiler receives derived structural capacities and the caller's rational-bit allowance.
+The returned quotation report includes those reservations; the target report is the actual compiler report.
+Standalone compilation, syntax preflight, lowering, and direct primal/JVP behavior are unchanged.
+The compiler coupons count cumulative logical reconstruction, including owner-list copies and represented zero coordinates, not bytes, peak residency, or physical allocator events.
+D-080 is `Accepted` within its bounded, unreleased scope through the [separate parent-authorized acceptance record](../../docs/DECISIONS.md#d-080-add-bounded-first-order-quotation-with-callback-free-let), following decision-specific review of implementation and private-probe evidence. Logical reservations are not physical allocation or peak-memory bounds; acceptance adds no arbitrary-Haskell/higher-order AD, control flow, effects, sampling, tensors, devices, nested differentiation, vector packing, performance or release claim.
 
 `interpretExactQuote` and `interpretExactQuoteJVP` recurse directly over quotation and source syntax.
 They do not call the reverse compiler or its primitive VJPs.

@@ -60,6 +60,6 @@ At each metered step check work before arithmetic; rational overflow follows tha
 
 ## Required evidence before completion
 
-Executed evidence and remaining integration gates are recorded in [the checklist](EXECUTABLE-LEARNING-TODO.md). The required semantic contract below is unchanged.
+Current capability status is recorded in `docs/capabilities/current.json`. The required semantic contract follows.
 
 Use an independent direct affine uniform moment formula, not production expansion, for every reported identity. Include `(U,U)` (difference variance 0), `(U,1-U)` (covariance -1/12 and difference variance 1/3), independent uniforms (baseline and actual variance 1/6), zero variance, negative scales, independent owners, shared owners, and equivalent reordered construction inputs. Check the sign in all three cases. Fix a full deterministic ledger golden, exact and one-below each applicable limit, discarded rational growth, cancellation saturation, and combined-invalid precedence. Preserve old bivariate goldens. Add source archives, current module snapshots if needed, changelog, capability transition, and a runnable lesson at implementation time; never mutate published history.

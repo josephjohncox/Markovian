@@ -4,13 +4,17 @@
 
 module Main (main) where
 
+import AffineMaterializationTests (affineMaterializationTests)
+import AffineRuntimeTests (affineRuntimeTests)
 import Control.Concurrent.MVar (withMVar)
 import Control.Exception (AsyncException (ThreadKilled), SomeException, displayException, fromException, throw, throwIO, try)
 import Control.Monad (unless)
 import Data.IORef
 import Data.List (isInfixOf)
 import Foreign.ForeignPtr (finalizeForeignPtr, mallocForeignPtrArray)
+import LayoutRepresentationTests (layoutRepresentationTests)
 import Markovian.Tensor.Internal
+import PublicationTests (publicationTests)
 
 limits :: SessionLimits
 limits = tensorSessionLimits 2 8 64 512 4096 16 4096
@@ -31,6 +35,10 @@ main = do
     cleanupFailureDiagnostics
     asynchronousStagingAndCleanup
     closeOnEveryExit
+    layoutRepresentationTests
+    publicationTests
+    affineRuntimeTests
+    affineMaterializationTests
     putStrLn "markovian-tensor: deterministic allocator fault tests passed"
 
 firstAllocationFailure :: IO ()

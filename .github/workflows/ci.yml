@@ -21,8 +21,7 @@ jobs:
       fail-fast: false
       matrix:
         ghc:
-          - "9.4.8"
-          - "9.8.4"
+          - "9.14.1"
 
     steps:
       - name: Check out the repository
@@ -57,6 +56,9 @@ jobs:
           bash scripts/check-release-metadata
           bash scripts/check-release-policy
           python3 scripts/test_release_tool.py
+          python3 scripts/test_check_haddock_install.py
+          python3 scripts/test_project_hls.py
+          python3 scripts/test_hls_selectors.py
           python3 scripts/check-capabilities
           python3 scripts/test_capabilities.py
           python3 scripts/test_learning.py
@@ -122,6 +124,9 @@ jobs:
       - name: Enforce exact mixed-game opacity and semantic boundaries
         run: bash scripts/check-mixed-game-boundary
 
+      - name: Check exact CE and CCE solver boundaries and private fixtures
+        run: bash scripts/check-correlated-solver
+
       - name: Enforce checked-feedback witness and endpoint boundaries
         run: bash scripts/check-feedback-boundary
 
@@ -173,25 +178,20 @@ jobs:
           cabal bench markovian-tensor-bench --project-file=cabal.project.ci
           cabal bench markovian-gpu-bench --project-file=cabal.project.ci
 
+      - name: Run exact root tests with optimization
+        run: |
+          cabal test Markovian-test \
+            --project-file=cabal.project.ci \
+            --enable-optimization=2 --builddir=dist-solver-o2 \
+            --test-show-details=direct
+
       - name: Build warning-free Haddocks
         run: |
           set -euo pipefail
-          documentation_packages=()
-          while IFS=$'\t' read -r package_name _package_dir _dependency_tier; do
-            if [[ -n "${package_name}" && "${package_name}" != \#* ]]; then
-              documentation_packages+=("${package_name}")
-            fi
-          done < ci/packages.tsv
-          cabal --store-dir="${RUNNER_TEMP}/markovian-doc-store" install \
-            --lib "${documentation_packages[@]}" \
-            --project-file=cabal.project.ci \
-            --builddir="${RUNNER_TEMP}/markovian-doc-build" \
-            --package-env="${RUNNER_TEMP}/markovian-doc-environment" \
-            --enable-documentation \
-            --overwrite-policy=always 2>&1 | tee haddock-install.log
-          python3 scripts/release_tool.py check-haddock-log haddock-install.log
-          python3 scripts/release_tool.py check-haddock-interfaces \
-            "${RUNNER_TEMP}/markovian-doc-store"
+          # Fresh config/store/build/logs, source-bound plan, all 17 library
+          # unit logs and 16 interfaces. A clean parent log alone is unsafe.
+          python3 scripts/check_haddock_install.py \
+            --output-parent="${RUNNER_TEMP}/markovian-doc-evidence"
           # This warning-suppressed pass is coverage evidence only. The
           # installation above is the warning-enabled documentation gate.
           cabal haddock all -j1 \
@@ -274,6 +274,7 @@ jobs:
                 bash scripts/check-acyclic-purity
                 bash scripts/check-game-core-boundary
                 bash scripts/check-mixed-game-boundary
+                bash scripts/check-correlated-solver
                 bash scripts/check-feedback-boundary
                 bash scripts/check-aggregation-boundary
                 bash scripts/check-root-topology
@@ -523,20 +524,10 @@ jobs:
           ghcup --url-source 3rdparty run --quick \
             --tool "fourmolu,${MARKOVIAN_FOURMOLU_VERSION}" \
             --bindir "${HOME}/.local/bin"
-          cabal install \
-            "hlint-${MARKOVIAN_HLINT_VERSION}" \
-            --ignore-project \
-            --install-method=copy \
-            --installdir="${HOME}/.local/bin" \
-            --overwrite-policy=always
+          bash scripts/install-ancillary-tools \
+            "${HOME}/.local/bin" "${RUNNER_TEMP}/ancillary-tool-store"
           cabal install \
             "ShellCheck-${MARKOVIAN_SHELLCHECK_VERSION}" \
-            --ignore-project \
-            --install-method=copy \
-            --installdir="${HOME}/.local/bin" \
-            --overwrite-policy=always
-          cabal install \
-            "cabal-fmt-${MARKOVIAN_CABAL_FMT_VERSION}" \
             --ignore-project \
             --install-method=copy \
             --installdir="${HOME}/.local/bin" \
@@ -597,6 +588,7 @@ jobs:
             scripts/check-acyclic-purity \
             scripts/check-game-core-boundary \
             scripts/check-mixed-game-boundary \
+            scripts/check-correlated-solver \
             scripts/check-feedback-boundary \
             scripts/check-aggregation-boundary \
             scripts/check-release-archive \
@@ -626,9 +618,22 @@ jobs:
             -type f -name '*.hs' -print0 \
             | sort -z \
             | xargs -0 fourmolu --mode check
+          python3 scripts/test_install_ancillary_tools.py
           python3 -m py_compile \
             scripts/check-book-links \
             scripts/check-haddock-coverage \
+            scripts/check_haddock_install.py \
+            scripts/test_check_haddock_install.py \
+            scripts/install-hls-official.py \
+            scripts/seal-hls.py \
+            scripts/guard-hls.py \
+            scripts/hls_selectors.py \
+            scripts/project-hls.py \
+            scripts/snapshot-project.py \
+            scripts/probe-hls-lsp.py \
+            scripts/test_project_hls.py \
+            scripts/test_hls_selectors.py \
+            scripts/test_hls_live_guard.py \
             scripts/check-capabilities \
             scripts/test_capabilities.py \
             scripts/check-learning \

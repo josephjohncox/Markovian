@@ -2,7 +2,8 @@
 
 ## Unreleased
 
-- Add the proposed D-077 canonical CUDA profile and typed same-session receipt validation. Retain profile, PTX, executable, command, outcome, native observation, sanitizer, and ordered benchmark evidence. D-077 remains Proposed; verified hardware execution does not close immutable-retention or governance requirements.
+- Add the proposed D-077 canonical CUDA profile and typed same-session receipt validation. Retain profile, PTX, executable, command, outcome, native observation, sanitizer, and ordered benchmark evidence. D-077 remains Proposed. Separate governance review remains open.
+- Record the [2026-09-08 user amendment](../../docs/WORKFLOWS.md#gpu-deployment-evidence) permitting finite evidence retention, including the current 90-day period. GPU deployment or promotion requires complete raw evidence and signature verification bound to its deployed revision. Keep compact verification and expiry records. Later expiry does not invalidate past verification, but missing raw data cannot support new verification or promotion.
 - Fix sanitizer-version collection after protected run 34172607126 stopped before hardware tests. Use the same anchored Version-line parser for collection and receipt validation; reject partial or ambiguous observations. Add real-banner and malformed-input regression tests without changing the profile or public interfaces.
 
 - Correct racecheck's success marker after run 34175882779 failed receipt validation. Require zero hazards, errors and warnings in its tool-specific summary; retain the other sanitizer markers and exit/binding checks. Regenerate the profile-bound outputs and plan golden, and test against independently recorded summaries. This creates a new profile identity, not a repaired historical receipt or hardware evidence.
