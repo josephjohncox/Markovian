@@ -55,7 +55,7 @@ bash scripts/prepare-release \
   four Compute Sanitizer tools use the `cabal list-bin` executable with the
   Cabal `markovian_gpu_datadir` override.
 - [ ] For a future GPU deployment or promotion, verify the complete raw D-077 receipt directory and signatures against the deployed revision.
-- [ ] Apply the [deployment-scoped evidence policy](docs/WORKFLOWS.md#82-deployment-scoped-gpu-evidence-amendment--2026-09-08), including issuer, source/run, and transparency checks.
+- [ ] Apply the [deployment-scoped evidence policy](docs/WORKFLOWS.md#gpu-deployment-evidence), including issuer, source/run, and transparency checks.
 - [ ] Keep compact tested/deployed revision, profile, run/session, digest, verification-result, and expiry records.
   Current 90-day retention is allowed. Later expiry does not invalidate past verification.
   Missing raw data cannot support new verification or promotion. Historical release obligations remain unchanged.

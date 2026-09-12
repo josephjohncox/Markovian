@@ -4,7 +4,7 @@
 
 Placement is approved in the existing base-only `Markovian` library. Both public operations belong in `Markovian.Game.Correlated.Exact`.
 
-D-083 is implemented but remains Proposed pending the verification requirements in §11. The remaining work is tracked in [TODO.md](../../TODO.md#all-nine-execution-checklist).
+D-083 is implemented but remains Proposed pending the verification requirements in §11. The remaining work is tracked in [TODO.md](../../TODO.md#open-work).
 
 Keep the active-set generator, constraint builder, elimination, and account private in that module. No additional internal module is needed for this design. Add no package, dependency edge, general LP interface, matrix callback, or pivot callback.
 

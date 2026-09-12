@@ -580,4 +580,4 @@ Before implementing, independently review this exact freeze, including signature
 5. Update forward-looking Gate A compatibility documentation without rewriting historical records; run the package suite and applicable boundary checks on the implementation.
 6. Obtain fresh independent implementation/evidence review. Parent records any full-proposal acceptance separately; neither this freeze nor Gate A alone completes D-079.
 
-The documentation-only validation commands and actual results for this freeze are recorded in the task's acceptance artifact, not represented as completed implementation gates. [DECISIONS D-079](../DECISIONS.md#d-079-add-exact-joint-affine-continuous-kernels) and [TODO R3](../../TODO.md#r3-d-079-joint-affine-kernels) track this contract and its remaining review boundary.
+[Decision D-079](../DECISIONS.md#d-079-add-exact-joint-affine-continuous-kernels) records the implementation and acceptance status of this contract.

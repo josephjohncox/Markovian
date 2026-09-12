@@ -35,9 +35,8 @@ fallback compiler.
 
 Upstream HLS on GHC 9.14 omits integrated HLint, Fourmolu, Ormolu,
 stylish-haskell, Retrie, Stan and Splice. Standalone formatters and HLint remain
-available. The [repository README](../../../README.md#verification) and
-[toolchain decision](../../DECISIONS.md#development-toolchain-amendment-2026-09-08)
-record the recipe and validation details.
+available. The [toolchain decision](../../DECISIONS.md#development-toolchain-amendment-2026-09-08)
+records the recipe and validation details.
 
 ## Build and test the packages
 
@@ -68,7 +67,7 @@ The value contains one transition reward and one discounted terminal payoff.
 
 ## Build a checked source archive
 
-Markovian is not published. Use only a checked preparation archive from an immutable revision.
+Use a verified release archive or create a checked preparation archive from an immutable revision.
 
 Validate an archive before extraction:
 

@@ -2,7 +2,7 @@
 
 **Decision status:** Accepted
 
-This document defines the repository-side receipt boundary. Run `34181389307` produced a validated same-session receipt and 14 cryptographically verified subjects, recorded below. The [2026-09-08 user amendment](../WORKFLOWS.md#82-deployment-scoped-gpu-evidence-amendment--2026-09-08) replaces permanent retention with deployment-scoped availability and verification. D-077 is Accepted for the bounded repair and policy, not deployment or release; see the dated acceptance note below. The two earlier failed attempts remain unvalidated and are not combined with the successful run.
+This document defines the repository-side receipt boundary. Run `34181389307` produced a validated same-session receipt and 14 cryptographically verified subjects, recorded below. The [2026-09-08 user amendment](../WORKFLOWS.md#gpu-deployment-evidence) replaces permanent retention with deployment-scoped availability and verification. D-077 is Accepted for the bounded repair and policy, not deployment or release; see the dated acceptance note below. The two earlier failed attempts remain unvalidated and are not combined with the successful run.
 
 ## Profile authority
 
