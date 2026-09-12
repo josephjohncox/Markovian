@@ -44,6 +44,12 @@ main = do
         ["--spine-reservation"] -> testSpineReservation
         ["--publication-reservation"] -> testPublicationReservation
         ["--reservation-events"] -> testSingletonReservations
+        ["--candidate-positive"] -> testCandidateReservation 2
+        ["--candidate-zero"] -> testCandidateReservation 0
+        ["--candidate-next"] -> testCandidateReservation 1
+        ["--successor-exact"] -> testSuccessorReservation Nothing
+        ["--successor-materialization"] -> testSuccessorReservation (Just Public.CorrelationMaterialization)
+        ["--successor-work"] -> testSuccessorReservation (Just Public.CorrelationWork)
         _ -> ioError (userError "unknown private solver control")
 
 runTests :: IO ()
@@ -61,6 +67,8 @@ runTests = do
     testAdmissionReservation
     testSpineReservation
     testPublicationReservation
+    mapM_ testCandidateReservation [0, 1, 2]
+    testRejectionCounters
 
 -- Independently derive the singleton block schedule for one or three owners.
 -- There are 3r+3 spine inspections, three blocks of dimension 2r+2, and
@@ -149,6 +157,107 @@ testPublicationReservation = mapM_ check [(mode, owners) | mode <- [CorrelatedMo
         assert
             "one-below publication work rejects before comparison"
             (publicAccount mode workLimits game == Left (Public.CorrelationSolveLimitExceeded Public.CorrelationPublication Public.CorrelationWork (work - 1) work))
+
+-- The first tuple [0] yields (0,1), which violates the inactive optimum
+-- inequality. Tuple [1] yields (1,0). The script observes matrix and elimination
+-- entry separately: cap zero reaches neither, cap one reaches each once per
+-- mode, and the positive cap-two control reaches each twice per mode.
+testCandidateReservation :: Natural -> IO ()
+testCandidateReservation cap = mapM_ check [CorrelatedMode, CoarseMode]
+  where
+    check mode = do
+        let limits = Public.correlationSolveLimits tinyLimits ceiling_ cap ceiling_
+        case publicAccount mode limits strictOptimumGame of
+            Left problem ->
+                assert
+                    "candidate exhaustion precedes the next matrix and elimination"
+                    ( cap < 2
+                        && problem == Public.CorrelationSolveLimitExceeded Public.CorrelationCombination Public.CorrelationCandidateCount cap (cap + 1)
+                    )
+            Right account ->
+                assert
+                    "two candidates admit the strict optimum"
+                    ( cap == 2
+                        && Public.correlationSolveCandidates account == 2
+                        && Public.correlationSolveInequalityRejectedCandidates account == 1
+                        && Public.correlationSolveSelectedInequalities account == [1]
+                    )
+
+strictOptimumGame :: ExactNormalGame String String
+strictOptimumGame =
+    buildGame
+        [("R", ["A", "B"])]
+        [ ([("R", "A")], [("R", 1)])
+        , ([("R", "B")], [("R", 0)])
+        ]
+
+-- This command is run ONLY against the script's scratch production-loop
+-- injection. Real admission and constraint construction run on the two-action
+-- game; then the stream receives x>=0, y>=0, -x-y>=0 with normalization x+y=1.
+-- No public finite game is claimed to have no equilibrium.
+--
+-- Eight spine inspections cost 128 work. Product validation, two payoff rows,
+-- and geometry cost four F(6) blocks; four two-column constraints cost twelve
+-- F(10) blocks. The injected dimension is nine. Its three matrices, six column
+-- searches, three classifications, eight inequality blocks, and FOUR tuple
+-- requests cost 24 F(9) blocks. The fourth request establishes completion and
+-- needs no fourth candidate credit. Both modes have the same schedule here.
+testSuccessorReservation :: Maybe Public.CorrelationSolveResource -> IO ()
+testSuccessorReservation exhausted = mapM_ check [CorrelatedMode, CoarseMode]
+  where
+    fields dimension = 1024 * dimension ^ (6 :: Int)
+    materialization = 4 * fields 6 + 12 * fields 10 + 24 * fields 9
+    work = 128 + 65 * materialization
+    check mode = do
+        let (fieldCap, workCap_, expected) = case exhausted of
+                Nothing ->
+                    ( materialization
+                    , work
+                    , Public.CorrelationSolveInvariantFailure Public.CorrelationCompletedSearchWithoutWitness
+                    )
+                Just Public.CorrelationMaterialization ->
+                    ( materialization - 1
+                    , ceiling_
+                    , Public.CorrelationSolveLimitExceeded Public.CorrelationCombination Public.CorrelationMaterialization (materialization - 1) materialization
+                    )
+                Just Public.CorrelationWork ->
+                    ( ceiling_
+                    , work - 1
+                    , Public.CorrelationSolveLimitExceeded Public.CorrelationCombination Public.CorrelationWork (work - 1) work
+                    )
+                _ -> error "unsupported successor resource control"
+            limits = Public.correlationSolveLimits (tinyLimits{maximumGameWork = workCap_}) ceiling_ 3 fieldCap
+        assert
+            "the final successor requires a block but no extra candidate credit"
+            (publicAccount mode limits strictOptimumGame == Left expected)
+
+-- The matching-pennies prefix has 52 rejections before [4,5,6]. Independently,
+-- its only dependent three-row selections are two nonnegativity rows plus
+-- their deviation equality: CE [0,1,4], [0,2,6], [1,3,7], [2,3,5]. Each is
+-- consistent with normalization. CCE permutes the deviation rows and has the
+-- same four cases. The other 48 prefix bases have full rank and violate an
+-- inequality. Checking only the counter sum cannot detect swapped categories.
+testRejectionCounters :: IO ()
+testRejectionCounters = mapM_ check [CorrelatedMode, CoarseMode]
+  where
+    game =
+        buildGame
+            [("R", ["A", "B"]), ("C", ["A", "B"])]
+            [ ([("R", "A"), ("C", "A")], [("R", 1), ("C", -1)])
+            , ([("R", "A"), ("C", "B")], [("R", -1), ("C", 1)])
+            , ([("R", "B"), ("C", "A")], [("R", -1), ("C", 1)])
+            , ([("R", "B"), ("C", "B")], [("R", 1), ("C", -1)])
+            ]
+    check mode = case publicAccount mode (Public.correlationSolveLimits tinyLimits ceiling_ ceiling_ ceiling_) game of
+        Left problem -> ioError (userError ("rejection counters: " ++ show problem))
+        Right account ->
+            assert
+                "matching pennies preserves each independently counted rejection class"
+                ( Public.correlationSolveCandidates account == 53
+                    && Public.correlationSolveRankDeficientCandidates account == 4
+                    && Public.correlationSolveInconsistentCandidates account == 0
+                    && Public.correlationSolveInequalityRejectedCandidates account == 48
+                )
 
 -- Numerator and denominator consume the same bit budget. Rejection stops at
 -- the first bit over that budget, including when the denominator crosses it.

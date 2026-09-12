@@ -1329,11 +1329,7 @@ All operations validate configured limits in raw-entry, owner, output, coefficie
 
 **Current Gate A implementation boundary:** `Markovian.Continuous.Kernel.JointAffine.Exact` now provides an opaque nominal kernel with two affine input coordinates and one canonical local owner table, exact materialization to `ExactJointLaw RealBorel RealBorel`, exact support extrema, same-scope partial alpha-renaming, complete-map scope transitions, cumulative bounded preflight, checked rational arithmetic, frozen operation precedence, and deterministic reports. Coordinate phantoms are labels and never become joint-law space parameters. Measurability is discharged syntax by syntax: affine real coordinates are continuous and Borel measurable, compact uniforms are Borel laws, finite products remain standard Borel, and finite affine projections are Borel measurable. Fixtures cover duplicate-before-zero-filter validation, shared and distinct owners, independent multinomial expansion, empty and omitted scope mappings, complete renaming preflight, adversarial failure precedence, reordered rows, negative signed-owner extrema against corner enumeration, exact and one-below limits, machine overflow, opacity, real-Borel output restriction, and nominal coordinate roles. Gate A intentionally has no cross-kernel composition; the composition-collision and explicit fresh-owner evidence required by the full proposal remain future work. The package and repository metadata retain `2026.9.3.0` under the no-version-change task invariant; this worktree is not the immutable published source, and no candidate, tag, publication, or workflow was authorized. This implementation evidence does not accept the decision. D-079 remains `Proposed`.
 
-**Gate B reviewed-design contract (future implementation):** The [left-successor substitution plan](plans/D079-LEFT-SUCCESSOR-SUBSTITUTION.md) records the parent-approved design with the independent review's required conservative correction: both result projections admit and seed their meters with `substitutionMaximumRationalBits`, including discarded left reward and canceled intermediates; separate projection work does not reset historical bit admission. It freezes exact signatures, nominal roles, a sealed non-chainable result, explicit loss of left reward, complete all-shared-right/all-fresh-right mappings, actual-operand-bound private witnesses, both-source freshness disjointness, complete zero-inclusive manifests, and deterministic failure/work/rational schedules and evidence obligations.
-
-The plan explicitly supersedes retained-only Gate A renaming semantics **for future Gate B implementation**: membership, collisions, complete re-scoping, and rename work must cover every declaration, including zeros. The historical Gate A contract and current implementation above remain unchanged records of baseline behavior. The freeze originated in a separate contract branch at `049372690908f179a095bb170ec7e80034b04d2e`. It passed independent review `8f9b416a-ce2d-4033-8d6a-a3350d107111` and was committed at `a8fe21e12b2d036e8ec22f10e25c4d07a5374f6f` before the parent authorized implementation in that isolated worktree. No completed Gate B implementation or D-079 acceptance is claimed. Current D-077/D-078 acceptance is recorded separately above; D-079 remains `Proposed`.
-
-**Gate B implementation follow-up (unaccepted):** Contract-freeze review `8f9b416a-ce2d-4033-8d6a-a3350d107111` passed, and the parent separately authorized implementation against `a8fe21e12b2d036e8ec22f10e25c4d07a5374f6f`. The preceding Gate A and contract-only paragraphs are historical baseline records. The current isolated branch implements the frozen Gate B contract in the existing module: complete zero-inclusive declarations, declaration-complete renamers, count-only combined admission, captured-actual-operand witnesses, complete shared/fresh requests, sealed non-chainable right-reward/right-successor results, and conservative-history projections. This activates the explicitly frozen supersession of retained-only Gate A membership, collisions, scope completeness, and rename work; no other Gate A signature or schedule changes. Public independent symbolic/corner, exact-limit, precedence, history, and boundary fixtures and private manifest/reservation/witness probes supply implementation evidence for separate review, not acceptance. No decision status, version, package edge, released artifact, or publication authority changes. D-079 remains `Proposed`.
+**Gate B supersession:** The [left-successor substitution contract](plans/D079-LEFT-SUCCESSOR-SUBSTITUTION.md) replaces retained-only Gate A renaming with complete zero-inclusive declarations. Its projections preserve rational history, including discarded left rewards and canceled intermediates. The [contract-freeze and implementation records](https://github.com/josephjohncox/Markovian/blob/35510dba1650295d6ff4ce776087ddc739cc56f5/docs/DECISIONS.md#L1332-L1336) retain their historical Proposed status; the acceptance above is current.
 
 ### D-080: Add bounded first-order quotation with callback-free let
 
@@ -1349,7 +1345,7 @@ Acceptance is supported by independent exact-budget, all-coordinate associated-f
 
 #### D-080 historical proposal and initial implementation boundary
 
-The following original proposal and initial implementation paragraph retain their historical meaning. The cumulative repair disposition below and acceptance above supersede their then-Proposed status; the separate-account API freeze is not rewritten.
+The original proposal and initial implementation below retain their historical meaning. The accepted cumulative repair supersedes their then-Proposed status and initial compilation account; the original API snapshot is linked below.
 
 **Decision:** Extend only the closed first-order autodiff language with explicit quotation. Quoted variables use hidden scope-indexed nominal paths. Public code cannot construct, inspect, coerce, or reuse a path outside its scope. A callback-free `let` node binds one quoted first-order term in another quoted term. The syntax stores no Haskell function.
 
@@ -1365,81 +1361,14 @@ Provide independent exact primal and JVP interpreters by direct recursion over q
 
 **Current implementation boundary:** `Markovian.Autodiff.Quote` now provides opaque nominal paths with generative lexical scope tokens. Independent equal-shaped scopes cannot exchange paths. `letQuote` stores exact-polynomial body syntax and no callback. One cumulative ledger bounds traversal, syntax depth, paths, coordinates, machine extent, target size, allocation, lowering work, compilation, arithmetic work, and rational size. Preflight charges before descent and allocates no target `Program` on failure. Direct primal and JVP recursion is separate from reverse lowering. Tests cover used and unused bindings, nested scopes, projections, all-coordinate pairing, deterministic reports, exact and one-below limits, failure precedence, and stop-before-descent behavior. Compile-fail fixtures cover hidden constructors, path roles, escaped tokens, and independent same-shape scopes. The proposal-stage API is present while package metadata remains unchanged under the task invariant. The published `v2026.9.3.0` surface stays unchanged. This evidence does not add Haskell quotation, effects, higher-order values, branches, recursion, or nested differentiation. D-080 remains `Proposed`.
 
-#### D-080 prospective cumulative-compilation repair
+#### D-080 API and preserved admission rules
 
-The [cumulative-compilation repair contract](plans/D080-CUMULATIVE-COMPILATION.md) records prospective metadata planning, cumulative logical construction reservations (including a named primitive ownership-layout equality coupon), deterministic failure/report semantics, and a private production-path probe specification. The parent-approved scalar-product output fixture is now expressible using existing dot/one-hot extraction, with its full literal parameter tree and baseline public-library differential execution preserved. **Independent contract-freeze review `eeb4e4ba-4417-442e-b5bd-cb28ca4f4556` passed.** The current repair implements numeric metadata planning, one cumulative compilation reservation, derived capacities and caller bits, with private production-path instrumentation and independent budget/differential tests. Decision-specific PASS `98a7de79-1e4f-4539-aa61-80cf332a2ed7` reviewed the complete frozen obligation matrix against modern committed `12f3794`, closing the implementation and integration gates for the bounded acceptance recorded above. Separate 13-file status-delta review `57601418` passed with P2, addressed by the changelog clarifications. Follow-up validation/review must precede the parent-owned commit. The following existing-behavior freeze and the prospective contract document remain unchanged as historical records, including the old separate compiler account.
-
-#### D-080 existing API freeze — declaration reference
-
-This freeze records the existing `Markovian.Autodiff.Quote` implementation at `c86b4e0241debe0a9ea51b6e9f962d89ea8293df`. It adds no runtime API and does not accept D-080. Placement stays in `markovian-autodiff`, with the existing `markovian-reverse` dependency and no new package edge. The declarations below are API reference tables, not executable examples or standalone Haskell modules. No teaching fence or compiled-example claim is added. The source module supplies the implementations; the tables omit private constructor bodies explicitly.
-
-**Type exports and opacity.** `Type`, `Shape`, `Fragment`, `Parameters`, `SShape`, `Program`, `Value`, `ParameterValue`, `Natural`, `TapePolicy`, `ExactExecutable`, `CompileReport`, and `CompileError` in these declarations retain their existing definitions; this module does not newly define or export them. The two environment aliases below name private promoted constructors. Their equations record the existing representation, not permission to use those constructors from client code.
-
-| Exported type declaration / alias | Existing boundary |
-| --- | --- |
-| `data Environment` | Private alternatives are `RootEnvironmentConstructor Shape` and `BindEnvironmentConstructor Type Environment Shape`; neither constructor is exported. |
-| `type RootEnvironment shape = 'RootEnvironmentConstructor shape` | Root environment alias. |
-| `type BindEnvironment scope environment bound = 'BindEnvironmentConstructor scope environment bound` | Lexical extension alias; scope identity is retained. |
-| `type family EnvironmentShape (environment :: Environment) :: Shape` | Closed family: root maps to `shape`; binding maps to `'Product (EnvironmentShape environment) bound`. No flattening or reassociation. |
-| `data QuoteEnvironment (environment :: Environment)` | Private witnesses; `type role QuoteEnvironment nominal`. |
-| `data QuoteScope (scope :: Type)` | Private token constructor; `type role QuoteScope nominal`. |
-| `data Path (environment :: Environment) (selected :: Shape)` | Private `PathHere`, `PathLeft`, `PathRight`; `type role Path nominal nominal`. No path inspector or raw index API. |
-| `data Quote scalar (fragment :: Fragment) (environment :: Environment) (parameters :: Parameters) (output :: Shape)` | Private `ProgramQuote`, `ProjectQuote`, `ComposeQuote`, `FanoutQuote`, `LetQuote`; `type role Quote nominal nominal nominal nominal nominal`. No public fold or pattern-match eliminator. |
-| `data QuotationLimits` | Private `QuotationLimitsValue`; `Eq`, `Show`. Twelve strict `Natural` fields. |
-| `data QuoteReport` | Private constructor; exported strict record selectors listed below; `Eq`, `Show`. A report is an account, not an admission witness accepted by another operation. |
-| `data QuoteCompilationReport` | Private constructor; two exported strict record selectors listed below; `Eq`, `Show`. |
-| `data QuoteError` | All constructors in the failure table are exported, with strict fields; `Eq`, `Show`. |
-| `data QuoteCompileError` | Both constructors in the failure table are exported, with strict fields; `Eq`, `Show`. |
-
-**Complete construction signature schedule.** Parameter products are literal associated trees, including every `NoParameters` leaf. They do not normalize to unit or flatten to a list.
-
-| Export | Exact signature |
-| --- | --- |
-| `rootEnvironment` | `rootEnvironment :: SShape shape -> QuoteEnvironment (RootEnvironment shape)` |
-| `extendEnvironment` | `extendEnvironment :: QuoteScope scope -> QuoteEnvironment environment -> SShape bound -> QuoteEnvironment (BindEnvironment scope environment bound)` |
-| `withQuoteScope` | `withQuoteScope :: (forall scope. QuoteScope scope -> result) -> result` |
-| `pathHere` | `pathHere :: SShape shape -> Path (RootEnvironment shape) shape` |
-| `pathLeft` | `pathLeft :: QuoteScope scope -> Path environment selected -> SShape bound -> Path (BindEnvironment scope environment bound) selected` |
-| `pathRight` | `pathRight :: QuoteScope scope -> QuoteEnvironment environment -> SShape bound -> Path (BindEnvironment scope environment bound) bound` |
-| `quoteProgram` | `quoteProgram :: Program scalar fragment parameters input output -> Quote scalar fragment (RootEnvironment input) parameters output` |
-| `quoteProgramAt` | `quoteProgramAt :: QuoteEnvironment environment -> Program scalar fragment parameters (EnvironmentShape environment) output -> Quote scalar fragment environment parameters output` |
-| `project` | `project :: Path environment output -> Quote scalar fragment environment 'NoParameters output` |
-| `composeQuote` | `composeQuote :: Quote scalar fragment environment p middle -> Program scalar fragment q middle output -> Quote scalar fragment environment ('ParameterProduct p q) output` |
-| `fanoutQuote` | `fanoutQuote :: Quote scalar fragment environment p leftOutput -> Quote scalar fragment environment q rightOutput -> Quote scalar fragment environment ('ParameterProduct p q) ('Product leftOutput rightOutput)` |
-| `letQuote` | `letQuote :: QuoteScope scope -> Quote scalar fragment environment p bound -> Quote scalar fragment (BindEnvironment scope environment bound) q output -> Quote scalar fragment environment ('ParameterProduct ('ParameterProduct 'NoParameters p) q) output` |
-| `quotationLimits` | `quotationLimits :: Natural -> Natural -> Natural -> Natural -> Natural -> Natural -> Natural -> Natural -> Natural -> Natural -> Natural -> Natural -> QuotationLimits` |
-
-`withQuoteScope` takes a rank-2 **construction-time Haskell continuation**. Independent invocations introduce distinct lexical type identities even for equal shapes. The token is not linear: syntax may reuse one token within its scope, and a completed quotation may leave the continuation after the bound scope disappears from its result type. This is neither a runtime scope allocator nor a promise that clients cannot package existential syntax. The boundary rejects treating independently generated scope indexes as equal or returning the fresh token as an arbitrary caller-chosen `QuoteScope scope`.
-
-`pathHere` selects the entire root. `pathLeft` retains an old selection through one extension; `pathRight` selects the newest bound value, not an arbitrary numeric slot. `extendEnvironment` supplies a witness for the associated product. `quoteProgram` infers the root witness from the program input; `quoteProgramAt` receives the matching witness. These are typed constructors, not bounded validation operations: they return no `Either`, run no quotation preflight, and do not report `QuoteError`. Neither do the report selectors. The failure schedules below concern finite defined syntax and represented values, not arbitrary Haskell bottoms or exceptions during syntax construction.
-
-Stored `Quote` syntax is callback-free, even though its builder can use `withQuoteScope`. Construction signatures are polymorphic in `scalar` and `fragment`; only the operations below admit `Rational` and `'Polynomial`. `letQuote` stores an already supplied body term and token, not a continuation, and has no arbitrary-Haskell, effect, higher-order, or smooth execution overload.
-
-**Complete observer and operation signature schedule.** All twelve `QuoteReport` selectors return `Natural`; their explicit types follow to distinguish report order from limit argument order.
-
-| Export | Exact signature |
-| --- | --- |
-| `quoteNodeCount` | `quoteNodeCount :: QuoteReport -> Natural` |
-| `quoteSourceDepth` | `quoteSourceDepth :: QuoteReport -> Natural` |
-| `quoteMaximumPathDepth` | `quoteMaximumPathDepth :: QuoteReport -> Natural` |
-| `quotePredictedTargetNodes` | `quotePredictedTargetNodes :: QuoteReport -> Natural` |
-| `quotePredictedTargetDepth` | `quotePredictedTargetDepth :: QuoteReport -> Natural` |
-| `quoteTransformedNodes` | `quoteTransformedNodes :: QuoteReport -> Natural` |
-| `quoteMaximumCoordinateExtent` | `quoteMaximumCoordinateExtent :: QuoteReport -> Natural` |
-| `quoteAllocationCount` | `quoteAllocationCount :: QuoteReport -> Natural` |
-| `quoteRuntimeWork` | `quoteRuntimeWork :: QuoteReport -> Natural` |
-| `quoteTraversalWork` | `quoteTraversalWork :: QuoteReport -> Natural` |
-| `quoteTotalWork` | `quoteTotalWork :: QuoteReport -> Natural` |
-| `quoteMaximumRationalBits` | `quoteMaximumRationalBits :: QuoteReport -> Natural` |
-| `quoteCompilationPreflight` | `quoteCompilationPreflight :: QuoteCompilationReport -> QuoteReport` |
-| `quoteCompilationTarget` | `quoteCompilationTarget :: QuoteCompilationReport -> CompileReport` |
-| `preflightQuote` | `preflightQuote :: QuotationLimits -> Quote Rational 'Polynomial environment parameters output -> Either QuoteError QuoteReport` |
-| `preflightExactQuoteExecution` | `preflightExactQuoteExecution :: QuotationLimits -> Quote Rational 'Polynomial environment parameters output -> ParameterValue Rational parameters -> Value Rational (EnvironmentShape environment) -> Either QuoteError QuoteReport` |
-| `preflightExactQuoteJVPExecution` | `preflightExactQuoteJVPExecution :: QuotationLimits -> Quote Rational 'Polynomial environment parameters output -> ParameterValue Rational parameters -> ParameterValue Rational parameters -> Value Rational (EnvironmentShape environment) -> Value Rational (EnvironmentShape environment) -> Either QuoteError QuoteReport` |
-| `lowerQuote` | `lowerQuote :: QuotationLimits -> Quote Rational 'Polynomial environment parameters output -> Either QuoteError (Program Rational 'Polynomial parameters (EnvironmentShape environment) output)` |
-| `compileExactQuote` | `compileExactQuote :: QuotationLimits -> TapePolicy -> Quote Rational 'Polynomial environment parameters output -> Either QuoteCompileError (ExactExecutable parameters (EnvironmentShape environment) output, QuoteCompilationReport)` |
-| `interpretExactQuote` | `interpretExactQuote :: QuotationLimits -> Quote Rational 'Polynomial environment parameters output -> ParameterValue Rational parameters -> Value Rational (EnvironmentShape environment) -> Either QuoteError (Value Rational output)` |
-| `interpretExactQuoteJVP` | `interpretExactQuoteJVP :: QuotationLimits -> Quote Rational 'Polynomial environment parameters output -> ParameterValue Rational parameters -> ParameterValue Rational parameters -> Value Rational (EnvironmentShape environment) -> Value Rational (EnvironmentShape environment) -> Either QuoteError (Value Rational output, Value Rational output)` |
+The public declarations and constructor boundaries are documented in
+[`Markovian.Autodiff.Quote`](../packages/markovian-autodiff/src/Markovian/Autodiff/Quote.hs).
+The [historical API snapshot and review record](https://github.com/josephjohncox/Markovian/blob/35510dba1650295d6ff4ce776087ddc739cc56f5/docs/DECISIONS.md#L1368-L1563)
+describe the implementation at `c86b4e0241debe0a9ea51b6e9f962d89ea8293df`.
+The syntax-admission and direct-evaluation rules below remain current;
+quotation compilation follows the accepted [cumulative contract](plans/D080-CUMULATIVE-COMPILATION.md).
 
 #### D-080 failure schedule and cumulative account
 
@@ -1461,7 +1390,7 @@ The twelve inclusive `quotationLimits` arguments are, in order: traversal, quota
 | `QuoteTotalWorkLimitExceeded !Natural !Natural` | Active total-work limit, saturated required count. |
 | `QuoteRationalMagnitudeLimitExceeded !String !Natural !Natural` | Context, zero-based coordinate, active bit limit; not actual bit size. |
 | `QuoteInternalVectorLengthMismatch !String` | Direct arithmetic helper context; defensive internal shape invariant failure. |
-| `QuoteCompilePreflightFailure !QuoteError` | First quotation syntax-preflight failure; target compiler is not called. |
+| `QuoteCompilePreflightFailure !QuoteError` | First quotation admission, planning, or reservation failure; target compiler is not called. |
 | `QuoteCompileTargetFailure !CompileError` | Existing opaque target compiler error, unchanged and not converted to a quotation limit error. |
 
 The last two constructors belong to `QuoteCompileError`; the preceding fourteen belong to `QuoteError`. There is no partial successful report or output in a `Left`.
@@ -1472,7 +1401,7 @@ The last two constructors belong to `QuoteCompileError`; the preceding fourteen 
 | --- | --- |
 | `preflightQuote` | Start empty ledger; syntax DFS at depth 1; return syntax report. No evaluation or lowering. |
 | `lowerQuote` | Entire `preflightQuote`; then `buildQuote`; return target `Program`. No target compilation or direct value scan. |
-| `compileExactQuote` | Entire `preflightQuote` (wrap failure); then `buildQuote`; then `compileExactPolynomial` with the mapped limits and supplied tape policy (wrap failure); return executable plus both reports. No direct runtime value scan or run. |
+| `compileExactQuote` | Syntax admission, cumulative numeric planning and reservations, strict admission witness, then `buildQuote` and `compileExactPolynomial` with derived limits and the supplied tape policy. Return executable plus both reports; no direct runtime value scan or run. See the cumulative contract §1 for failure wrapping. |
 | `preflightExactQuoteExecution` | Syntax DFS; scan all parameters; scan all input coordinates in the same ledger; return report. No primal arithmetic. |
 | `preflightExactQuoteJVPExecution` | Syntax DFS; all parameters; all parameter directions; all inputs; all input directions, in the same ledger; return report. No primal/JVP arithmetic. |
 | `interpretExactQuote` | Entire `preflightExactQuoteExecution`; then direct primal recursion with the rational-bit limit; return value only. |
@@ -1520,9 +1449,9 @@ Primitive inspection order is input shape, output shape, parameter shape, `A(2 *
 
 `buildQuote` reuses embedded programs, lowers a path to one internal `ProjectValue` primitive, and uses existing composition and fanout. A let lowers literally to `compose (fanout identity bound) body`, with the environment-shaped identity and parameter tree `ParameterProduct (ParameterProduct NoParameters p) q`. No dead-let elimination occurs. Successful quotation preflight precedes construction of this target and direct output/environment evaluation; failed preflight returns no target, dense output, or tape.
 
-**Target compilation boundary.** `limitsCompiler` maps the same limit record to `compilerLimits targetNodes allocation targetDepth targetNodes coordinates coordinates allocation targetDepth runtime bits`, whose arguments mean source nodes, primitive nodes, depth, owners, primal extent, cotangent extent, structure nodes, structure depth, scalar work, and rational bits. This is an exact mapping, not twelve independently configurable compiler limits. `compileExactPolynomial` first performs the existing reverse preparation (`prepareReverseProgram` over `lower` with `resolveTargetPrimitive`), then `preflightSource`, then constructs its executable/report. Target errors retain the existing opaque `CompileError` and its existing internal precedence; quotation does not reinterpret them. `preflightSource` visits children left to right, checks primitive parameter, input, output and parameter extents before forward then reverse costs; at structural joins it adds/checks forward before reverse cost. No execution, seed validation, or VJP occurs during `compileExactQuote`.
+**Target compilation boundary.** The cumulative contract §6 specifies derived compiler capacities; it supersedes the historical `limitsCompiler` mapping. `compileExactPolynomial` first performs the existing reverse preparation (`prepareReverseProgram` over `lower` with `resolveTargetPrimitive`), then `preflightSource`, then constructs its executable/report. Target errors retain the existing opaque `CompileError` and its existing internal precedence; quotation does not reinterpret them. `preflightSource` visits children left to right, checks primitive parameter, input, output and parameter extents before forward then reverse costs; at structural joins it adds/checks forward before reverse cost. No execution, seed validation, or VJP occurs during `compileExactQuote`.
 
-There is one cumulative **quotation** ledger per operation. Compilation then uses the existing target compiler's separate bounded account; it does not continue or subtract from the quotation ledger, and the two reports are not summed. Repeated public operations each start a fresh ledger. The earlier summary's phrase “one cumulative ledger ... compilation” must be read as this conservative quotation admission plus mapped target compilation, not as a shared mutable compilation/runtime meter. Whether that existing split meets the proposal-wide governance requirement is a review item, not a runtime repair authorized by this freeze.
+Each public operation starts a fresh quotation ledger. `compileExactQuote` extends its syntax ledger through planning and compiler reservations. The target compiler keeps its own bounded account under the derived capacities; the two reports are not summed.
 
 **Direct evaluation and first arithmetic failure.** `evalQuotePrimal` and `evalQuoteJVP` recurse on quotation and embedded source programs, independently of `compileExactPolynomial`, reverse primitive VJPs, produced tapes, and `Compile.interpretExactPolynomial`. They share shape/syntax representations, not derivative implementations. Composition evaluates the left term before the right; fanout evaluates the complete left branch before the right. A let evaluates the bound once, even if unused, then evaluates the body in `(oldEnvironment, boundValue)`; JVP also extends with `(oldDirection, boundDirection)`. Its nested parameter products split into identity/no-parameters, bound parameters, and body parameters without reassociation. Program parallel splits input and parameters; program fanout splits parameters but shares input; shared-parameter syntax splits input but passes the same parameters to both branches. All evaluate left before right.
 
@@ -1545,23 +1474,6 @@ At each primitive, primal validation order is `parameter`, `primitive-input`, pr
 
 Primal vector zip helpers check/check-advance matched coordinates and return `QuoteInternalVectorLengthMismatch` only when a remaining tail does not match. Dot length mismatch precedes products. JVP vector-add and Hadamard four-list mismatch precedes their arithmetic. Contexts are `vector-add`, `hadamard`, or the active dot context, respectively. Public value construction protects lengths; these failures are defensive, not a newly exposed malformed-vector input API. Empty dots and sums produce zero without loop-body arithmetic, then undergo normal output validation. This ordering preserves discarded-intermediate failures: for example, an unused bound `16 * 16` exceeds eight bits under `multiply` even though both source constants and the returned old environment fit.
 
-#### D-080 evidence map and remaining review boundary
-
-The source of this freeze is `packages/markovian-autodiff/src/Markovian/Autodiff/Quote.hs`: export list and declarations; `walkQuote`, `walkProgram`, `walkPath`, `inspectPrimitive`, charge helpers and `scanRationals`; `limitsCompiler`; `buildQuote`; direct evaluators and checked arithmetic helpers. Supporting definitions are `Internal/Shape.hs` (`valueScalars`, `parameterScalars`) and `Compile.hs` (`compileExactPolynomial`, `preflightSource`). This is a characterization of existing code, not a proof that the complete governance evidence matrix has passed.
-
-| Existing evidence seam | What it checks; limit of the evidence |
-| --- | --- |
-| `test/Main.hs`: `quotationEvidence`, `boundedQuotationGrammar` | Four scalar leaves (path, identity, negate, constant), used/unused lets, nested old-environment paths, square primal 9/JVP 6 at input 3, direct/lowered primal and scalar JVP/VJP pairing. Not exhaustive enumeration of quotation trees or vector primitives. |
-| `test/Main.hs`: `parameterizedLet` assertions | Both parameter coordinates return cotangents `[0,23]` and the input cotangent is 0; direct tangent is 17 for parameter directions `[13,17]` and input direction 19. Bound parameter is unused but retained in the associated tree. This fixture checks every represented parameter/input cotangent, not every independent basis direction for arbitrary programs. |
-| `test/Main.hs`: unused failing bound | Source constants fit eight bits; direct bound multiplication fails first; the separately compiled reverse run also fails at multiplication. |
-| `test/Main.hs`: `quotationBudgets` | Used/unused fixed reports, repeated reports, exact and one-below syntax dimensions, execution traversal one-below, source/input rational-bit cases, traversal-before-total and total-before-node precedence, poisoned embedded program stopped by node exhaustion, machine extent rejection. Does not fault-instrument allocation or exhaust all competing failure pairs. |
-| `test/compile-fail/AutodiffQuoteBoundary.hs` | Private path/quote/report/limit constructors, callback misuse, escaped scope token, independent equal-shaped scopes, wrong associated let parameter tree. |
-| `test/compile-fail/AutodiffQuoteRoles.hs` | Path environment/selection and quote environment/parameter coercions rejected; not a separate probe for every declared nominal role. |
-| `test/compile-fail/AutodiffQuoteEffects.hs` | Arbitrary Haskell function and `IO` cannot be embedded as a `Program`. |
-| `scripts/check-autodiff-boundary` in the autodiff package | Runs the above negative fixtures against the isolated public package and checks required diagnostics; also runs the package's existing non-quotation boundaries. |
-
-All paths in the evidence table are relative to `packages/markovian-autodiff`. Quotation-specific reverse comparisons currently use `StorePullbacks`; broader package tests with `RecomputePullbacks` are not quotation-specific evidence. The finite scalar grammar, nested old-path fixture, and parameterized let do not establish full vector/product basis coverage, full shadowing variants, or all rational failure contexts. “All input/parameter coordinates” is a validation/admission rule and a required differential evidence scope, not a claim that every possible quotation has been tested. Keep those gaps, the separate target account, and any further implementation-review findings for independent review. Do not implement an extension or change a status from this freeze alone.
-
 ### D-081: Add immutable host-F64 affine views after reverse-equivalence evidence repair
 
 **Status:** Accepted
@@ -1570,7 +1482,7 @@ All paths in the evidence table are relative to `packages/markovian-autodiff`. Q
 
 #### Historical original proposal and transpose-only prerequisite evidence
 
-The following proposal and evidence record is preserved verbatim. The full v3 plan plus the narrowly superseding r4 addendum above control the selected design; neither reinterprets existing transpose tests as signed-map or base-pullback evidence or authorizes runtime continuation.
+The original proposal follows; prerequisite execution details remain in the linked evidence record. The v3 plan and r4 addendum above define the accepted design. Existing transpose tests alone do not establish signed-map or base-pullback correctness.
 
 **Decision:** Repair the reverse-equivalence evidence for existing materialized views before admitting a wider view API. This requirement records an evidence gap, not a demonstrated implementation defect. The proposed view is an immutable host-F64 affine coordinate map with an opaque base offset, signed per-axis strides, and a checked finite shape. Every represented coordinate must map within one owned immutable storage object. Non-singleton zero strides and overlapping coordinate maps are rejected, so broadcasting is not represented.
 
@@ -1582,7 +1494,7 @@ View creation allocates no payload. Materialization and each primitive preflight
 
 **Required evidence:** Freeze all view constructors, admitted maps, signatures, and failure precedence. Test scalars, empty dimensions, transpose, reversal, slicing, composed views, negative strides, bounds, overlap, storage sharing, materialization, and region escape. Compare direct and materialized primal and pullback paths for every coordinate. Exact and one-below shape, offset, payload, buffer, and work tests must use one cumulative ledger and prove preflight before allocation.
 
-**Current prerequisite evidence boundary:** The [prerequisite evidence record](evidence/D081-TRANSPOSE-REVERSE-EQUIVALENCE.md) compares the existing zero-copy rank-two transpose view with `contiguousCopy` for every closed primitive tape. Square fixtures compare every primal and pullback coordinate for addition, multiplication, matrix multiplication, `tanh`, and total sum; independent central finite differences check every logical input coordinate. A rectangular `3 x 2` by `2 x 4` matrix fixture separately detects dimension and stride reversal, compares direct and materialize-first primals and pullbacks, and checks every logical operand coordinate by finite differences. Multiplication and matrix pullbacks are checked to allocate cotangents distinct from operand and seed storage; addition retains its accepted immutable seed sharing. These tests differentiate with respect to the view's logical coordinates. They do not define or prove a pullback from view coordinates into the underlying base tensor, add an affine-view operation to a tape, or test any unimplemented signed stride, reversal, slice, offset, overlap, or broadcast rule. The prerequisite evidence gap is repaired for the existing transpose fragment only. D-081 remains `Proposed`; no wider view API is implemented or accepted.
+**Historical prerequisite evidence:** The [transpose/reverse comparison](evidence/D081-TRANSPOSE-REVERSE-EQUIVALENCE.md) established the existing transpose fragment before affine-view implementation. It concerns logical view coordinates, not signed-map geometry or base-coordinate pullbacks. Current affine-view checks are listed in the [implementation record](evidence/D081-AFFINE-IMPLEMENTATION.md#verification).
 
 ### D-082: Add bounded CUDA multiply-chain graphs
 

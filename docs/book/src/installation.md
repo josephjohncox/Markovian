@@ -107,9 +107,10 @@ mdbook serve docs/book --open
 
 ## Build Haddock API documentation
 
-Use the same two-stage gate as CI and release preparation. First, install all 16 libraries with documentation into a fresh isolated Cabal store. Reject every warning and require one `.haddock` interface per manifest package. Then run a separate `cabal haddock all --haddock-options=--no-warnings` pass only to collect declaration coverage with `scripts/check-haddock-coverage`.
-
-The second pass does not prove warning freedom. See [Release preparation](release-preparation.md) for the exact commands. The book explains concepts and workflows. Haddock lists exact types, constructors, and error values.
+Run the [Haddock checks](release-preparation.md#haddock-checks) used by CI and
+release preparation. They verify installed documentation and declaration
+coverage separately. The book explains concepts and workflows; Haddock lists
+exact types, constructors, and error values.
 
 ## Optional CUDA build
 

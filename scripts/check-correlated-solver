@@ -111,7 +111,7 @@ done
 # Observe source-level ordering in scratch copies, leaving the library and its
 # public API unchanged. These events are deliberately attached to evaluation,
 # not inferred from the final error or the successful accounting report.
-python3 - "${tmp_dir}/instrumented" <<'PY'
+python3 - "${tmp_dir}/instrumented" "${tmp_dir}/infeasible" <<'PY'
 from pathlib import Path
 import sys
 
@@ -128,13 +128,42 @@ for relative in ["Markovian/Game/Correlated/Exact/Internal.hs", "Markovian/Game/
     if relative.endswith("Internal.hs"):
         source = replace_once(source, "pure (result : results)", 'pure (trace "SOLVER_RESULT_LIST_CONS" (result : results))')
         source = replace_once(source, "carrierValues = NonEmpty.toList . finiteObjectValues", 'carrierValues carrier = trace "SOLVER_CARRIER_INSPECTION" (NonEmpty.toList (finiteObjectValues carrier))')
+        source = replace_once(source, "candidateMatrix limits dimension constraints selected = do", 'candidateMatrix limits dimension constraints selected = trace "SOLVER_CANDIDATE_MATRIX" $ do')
+        source = replace_once(source, "eliminate limits dimension variables matrix = go matrix 0 0 0", 'eliminate limits dimension variables matrix = trace "SOLVER_ELIMINATION" $ go matrix 0 0 0')
+        source = replace_once(source, "successorTuple bound indices = scan (reverseList indices []) 0", 'successorTuple bound indices = trace "SOLVER_SUCCESSOR" $ scan (reverseList indices []) 0')
     else:
         for name in ["agreesWithCorrelatedShadow limits game device shadow report", "agreesWithCoarseShadow limits device shadow report"]:
             source = replace_once(source, name + "\n", name + '\n    | trace "SOLVER_REPORT_COMPARISON" False = disagreement\n')
     target = destination / relative
     target.parent.mkdir(parents=True, exist_ok=True)
     target.write_text(source)
+
+# Retain the actual admission, geometry, builder and search loop. Only its
+# private stream input is replaced by the frozen infeasible linear system.
+# The dimension is 1 owner + 2 local actions + 2 variables + 3 rows + 1.
+# This source is compiled separately and never installed or exported.
+relative = "Markovian/Game/Correlated/Exact.hs"
+source = (destination / relative).read_text()
+source = replace_once(source,
+    "    stream constraints constraintDimension profiles rows",
+    "    stream (take 2 constraints ++ [Internal.ConstraintRow (Internal.NonnegativityRow 2) [-1,-1]]) 9 2 3")
+target = Path(sys.argv[2]) / relative
+target.parent.mkdir(parents=True, exist_ok=True)
+target.write_text(source)
 PY
+
+check_event_count() {
+  local event="$1"
+  local expected="$2"
+  local log_file="$3"
+  local observed
+  observed="$(grep -Fc "${event}" "${log_file}" || true)"
+  if [[ "${observed}" != "${expected}" ]]; then
+    cat "${log_file}" >&2
+    echo "Expected ${expected} ${event} events; observed ${observed}." >&2
+    exit 1
+  fi
+}
 
 for optimization in 0 2; do
   cabal exec "${project_args[@]}" -- ghc \
@@ -174,4 +203,47 @@ for optimization in 0 2; do
     fi
   done
   echo "PASS: D083 admission and publication reserve before evaluation at O${optimization}"
+
+  # Both modes: cap zero admits no matrix, cap one admits one rejected matrix,
+  # and the positive cap-two control admits two matrices and a checked witness.
+  for control in positive zero next; do
+    case "${control}" in
+      positive) expected=4 ;;
+      zero) expected=0 ;;
+      next) expected=2 ;;
+    esac
+    log_file="${tmp_dir}/candidate-${control}-O${optimization}.log"
+    if ! "${tmp_dir}/reservation-O${optimization}-probe" "--candidate-${control}" >"${log_file}" 2>&1; then
+      cat "${log_file}" >&2
+      exit 1
+    fi
+    check_event_count SOLVER_CANDIDATE_MATRIX "${expected}" "${log_file}"
+    check_event_count SOLVER_ELIMINATION "${expected}" "${log_file}"
+  done
+  echo "PASS: D083 candidate caps precede matrix and elimination entry at O${optimization}"
+
+  cabal exec "${project_args[@]}" -- ghc \
+    -package-env - -hide-all-packages -package base \
+    "-i${tmp_dir}/infeasible" "-i${tmp_dir}/instrumented" -isrc -XGHC2021 \
+    "-O${optimization}" -Wall -Werror \
+    -outputdir "${tmp_dir}/successor-O${optimization}" \
+    test/CorrelatedSolverPrivate.hs \
+    -o "${tmp_dir}/successor-O${optimization}-probe"
+  # Three matrices per mode always run. Exact limits reach all three successor
+  # evaluations; one-below limits reject the final reservation before its scan.
+  for control in exact materialization work; do
+    case "${control}" in
+      exact) expected=6 ;;
+      materialization|work) expected=4 ;;
+    esac
+    log_file="${tmp_dir}/successor-${control}-O${optimization}.log"
+    if ! "${tmp_dir}/successor-O${optimization}-probe" "--successor-${control}" >"${log_file}" 2>&1; then
+      cat "${log_file}" >&2
+      exit 1
+    fi
+    check_event_count SOLVER_CANDIDATE_MATRIX 6 "${log_file}"
+    check_event_count SOLVER_ELIMINATION 6 "${log_file}"
+    check_event_count SOLVER_SUCCESSOR "${expected}" "${log_file}"
+  done
+  echo "PASS: D083 final successor reserves before completion at O${optimization}"
 done

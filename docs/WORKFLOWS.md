@@ -88,7 +88,7 @@ module snapshots. Run the two documentation checks used by CI:
    including the declared private-module exclusions, but cannot establish
    warning freedom.
 
-See [release preparation](book/src/release-preparation.md) for the full commands.
+See [Haddock checks](book/src/release-preparation.md#haddock-checks) for the commands.
 
 ### Semantic tests
 

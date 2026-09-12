@@ -27,9 +27,11 @@ The accepted placement adds no package or dependency edge.
   tiny-vertex controls (§11.5). Compare production builders and witness
   inequalities with independent references, including private infeasible
   traversal and public budget exhaustion.
-- [ ] Observe successor-reservation exhaustion and candidate rejection before
-  elimination. Complete exact/one-below atomic-failure, report-length, and
-  competing-failure checks (§11.8).
+- [x] Observe candidate-count exhaustion before matrix construction and elimination,
+  and exact/one-below final successor reservations in the production search
+  loop (§11.8).
+- [ ] Complete remaining atomic-failure, report-length, and competing-failure
+  checks (§11.8).
 - [ ] Complete source-loop, reservation, and strictness evidence.
 - [ ] Obtain independent review of placement, solver behavior, accounting, and
   evidence; record any acceptance in a separate reviewed decision update.

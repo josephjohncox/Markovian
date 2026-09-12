@@ -18,7 +18,7 @@ Public sibling bounds still use Cabal's `^>=` operator. The `YYYY.M` pair theref
 
 The preparation script requires a full lowercase 40-character commit object ID and a clean worktree at that exact commit. It refuses Hackage credentials and an existing output directory.
 
-The script runs package checks, tests, lower-bound resolution, boundaries, benchmarks, Haddock, and the book check. Its warning-enabled Haddock installation uses a fresh store, rejects every build and Haddock warning, and requires one interface per package. Cabal 3.16 emits a two-line missing-package-list advisory in the scrubbed home even when `active-repositories: :none`; the warning checker permits only that exact non-build advisory. A separate serial `cabal haddock all` pass uses `--haddock-options=--no-warnings` only to produce declaration-coverage rows. The coverage checker excludes declared private modules and requires exact public coverage; the suppressed pass is never warning evidence. The script then creates each source archive twice.
+The script runs package checks, tests, lower-bound resolution, boundaries, benchmarks, the [Haddock checks](#haddock-checks), and the book check. It then creates each source archive twice.
 
 The script compares archive bytes before extraction. It rejects traversal, links, duplicate entries, unsafe modes, credential-like names, and size-budget failures. Checked extraction writes regular files and directories only and verifies that the archive bytes did not change after validation.
 
@@ -45,6 +45,31 @@ bash scripts/prepare-release \
 ```
 
 The repository scripts can have mode `0644` in a Cabal source archive. Run them with `bash scripts/...` after extraction.
+
+## Haddock checks
+
+CI and release preparation use two separate checks. The installation checker
+builds all 16 libraries offline with a fresh configuration, cache, store, and
+logs. It binds the source archives and compiler plan, checks all 17 public and
+private component logs, and requires 16 installed public interfaces. Every
+build and Haddock warning fails; only the exact Cabal notices for an absent
+package index or an intentionally empty repository list are permitted.
+
+Run from the repository root:
+
+```sh
+python3 scripts/check_haddock_install.py \
+  --output-parent ../markovian-haddock
+cabal haddock all -j1 --project-file=cabal.project.ci \
+  --haddock-hyperlink-source --haddock-for-hackage \
+  --haddock-options=--no-warnings > ../markovian-haddock-coverage.log 2>&1
+python3 scripts/check-haddock-coverage ../markovian-haddock-coverage.log
+```
+
+The second check measures declaration coverage, with declared private modules
+excluded. Its warning suppression provides no evidence of warning freedom.
+Release preparation repeats both checks against validated, unpacked source
+archives; the installation checker takes that tree through `--archive-root`.
 
 ## Verify a downloaded bundle before extraction
 
