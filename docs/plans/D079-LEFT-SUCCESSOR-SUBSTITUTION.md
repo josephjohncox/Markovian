@@ -1,38 +1,15 @@
-# D-079 Gate B — Explicit left-successor substitution contract
+# D-079 left-successor substitution contract
 
-**Status:** Proposed. Independent contract-freeze review `8f9b416a-ce2d-4033-8d6a-a3350d107111` passed. This is a future implementation contract, not implementation evidence, D-079 acceptance, or authorization to implement.
+D-079 is Accepted within its unreleased scope. The
+[decision record](../DECISIONS.md#d-079-add-exact-joint-affine-continuous-kernels)
+records implementation and acceptance evidence.
 
-**Drafting provenance:** `feat/d079-contract-freeze`, baseline `049372690908f179a095bb170ec7e80034b04d2e`, separate from the acceptance branch. At that baseline D-077 through D-085 were `Proposed`; current statuses are in [DECISIONS](../DECISIONS.md). This contract does not change decision statuses, versions, package edges, publication, or release authority.
+## 1. Scope and source
 
-**Validation follow-up:** Review noted that adding the plan to Cabal source membership invalidated the teaching receipt binding. Parent ran `python3 scripts/check-learning --write --project-file=cabal.project.ci` on the contract worktree. All seven fixtures executed; their output bytes stayed identical and only the receipt source digest changed. Evidence: `/tmp/d079-parent-contract/teaching-write.log` and `teaching-result.json`. This validates the existing teaching fixtures, not the proposed substitution implementation.
-
-**Authority:** The parent approved the design for repository freeze with the independent review's conservative projection-history correction. Both projections admit and seed their meters with `substitutionMaximumRationalBits`, including discarded left reward and canceled intermediates. Separate projection work does not reset historical bit admission. This document incorporates that correction throughout.
-
-The declaration blocks below are **declaration specifications**, not executable examples, compiled teaching fragments, or standalone Haskell modules. Opaque bodies and implementations are deliberately absent. As with the D-080 declaration reference in [DECISIONS](../DECISIONS.md), no teaching execution or output-receipt claim is added.
-
-## 1. Provenance, source baseline, and scope
-
-The source artifacts were read in full:
-
-- Design: session artifact `c115d7d2-22ff-431a-8bed-6534f6d2223d/d079-composition-design.md`, titled “D-079 Gate B: explicit left-successor substitution”.
-- Independent full review: session artifact `9974af1a-e227-466c-bad0-da4cf1add26c/d079-composition-design-review.md`, titled “D079 Gate B independent contract review”. Its P1 blocker was the unspecified projection rational-bit seed; the parent selected historical admission, not represented-only admission.
-- Both artifacts describe baseline `049372690908f179a095bb170ec7e80034b04d2e`. Their original read-only review statements are provenance, not evidence that this repository freeze or future implementation has passed review.
-
-The following paths and line ranges refer to that baseline; repository-relative paths remain usable without the session artifacts.
-
-| Source evidence | Contract consequence |
-| --- | --- |
-| `packages/markovian-continuous/src/Markovian/Continuous/Kernel/JointAffine/Exact.hs:143–193` | Gate A stores two affine coordinates, retained owner rows, declaration counts, and a report. It does not retain zero-filtered declaration identities or intervals. Full manifests require a future representation change. |
-| Same file, `:197–251`, `:374–400` | Both renamers currently inspect retained rows. Complete re-scoping means retained-owner coverage. The future declaration-complete change is observable, including work. |
-| Same file, `:253–314`, `:403–411` | Stored admission precedes operation-specific work; both projection meters start at the stored rational maximum. |
-| Same file, `:352–358` | Existing `boundedRenaming` allocates a reversed mapping list during admission. It cannot be reused unchanged for Gate B's count-only preflight. |
-| Same file, `:433–465`, `:467–529` | Rational size, checked operand/result arithmetic, coordinate/support order, and signed endpoint extrema provide the existing accounting pattern. |
-| `packages/markovian-continuous/src/Markovian/Continuous/Measure/Exact.hs:69–71`, `:125–136` | `noiseOwner` accepts any `Natural`; neither a novel number nor a nominal scope proves freshness. Existing sharing/pairing does not supply full declaration evidence. |
-| `packages/markovian-continuous/test/JointAffine.hs:191–345`, `:359` onward | Existing exact/one-below, precedence, bounded-spine, machine, and independent multinomial-oracle seams. |
-| `packages/markovian-continuous/test/compile-fail/JointAffineBoundary.hs:10–14`, `JointAffineRoles.hs:16–38`, `JointAffineWrongScope.hs:12–17` | Preserve opacity, nominal roles, real-Borel materialization, and wrong-scope mapping failures. |
-| `docs/DECISIONS.md`, D-079 Gate A record; `packages/markovian-continuous/README.md`, Gate A boundary | Historical retained-only behavior must not be rewritten as declaration-complete behavior. |
-
-Implementation placement remains exclusively `markovian-continuous`, preferably the existing `Markovian.Continuous.Kernel.JointAffine.Exact` module. No general measurable-map API or new package edge is needed.
+The implementation and public declarations are in
+[`Markovian.Continuous.Kernel.JointAffine.Exact`](../../packages/markovian-continuous/src/Markovian/Continuous/Kernel/JointAffine/Exact.hs).
+The [original design record](https://github.com/josephjohncox/Markovian/blob/871f0eedf8a8f460b2b3a5906bec57a365d53e5d/docs/plans/D079-LEFT-SUCCESSOR-SUBSTITUTION.md)
+retains baseline source references and contract-review history.
 
 The selected operation is **left-successor substitution**: substitute the left successor into both right coordinates, returning the **right reward and right successor**. It neither retains nor accumulates the left reward. It is not temporal control, a policy operation, or a discounted-return construction.
 
@@ -69,67 +46,23 @@ Offer exactly two modes, not a mixed routing language:
 
 The left manifest is the unchanged anchor namespace. Completeness concerns every right declaration, not a fictitious left identity map. Mixed shared/fresh right routing is outside this gate.
 
-## 3. Exact public declaration specification and ownership boundary
+## 3. Public API and ownership
 
 ### 3.1 Requests, limits, result, and projections
 
 All newly introduced constructors are hidden except the error and small enumeration constructors explicitly listed below. Existing referenced types retain their definitions. Public requests are untrusted input, not validated evidence.
 
-```text
-data ExactSuccessorOwnerRequest leftOwner rightOwner
-type role ExactSuccessorOwnerRequest nominal nominal
+The public module defines opaque `ExactSuccessorOwnerRequest`,
+`ExactSuccessorSubstitutionLimits`, and `ExactSuccessorSubstitution` types.
+Requests use `sharedSuccessorOwners` or `freshSuccessorOwners`;
+`substituteLeftSuccessor` admits them against both actual operands. Request
+owner indices and result coordinate indices are nominal.
 
-sharedSuccessorOwners ::
-    [(NoiseOwner rightOwner, NoiseOwner leftOwner)] ->
-    ExactSuccessorOwnerRequest leftOwner rightOwner
-
-freshSuccessorOwners ::
-    [(NoiseOwner rightOwner, Natural)] ->
-    ExactSuccessorOwnerRequest leftOwner rightOwner
-
-data ExactSuccessorSubstitutionLimits
-
-exactSuccessorSubstitutionLimits ::
-    Natural -> -- combined raw entries
-    Natural -> -- owner-reservation slots
-    Natural -> -- result output width
-    Natural -> -- input-plus-result coefficient slots
-    Natural -> -- combined semantic work
-    Natural -> -- rational bits
-    ExactSuccessorSubstitutionLimits
-
-data ExactSuccessorSubstitution sourceLabel rewardLabel successorLabel
-type role ExactSuccessorSubstitution nominal nominal nominal
-
-substituteLeftSuccessor ::
-    ExactSuccessorSubstitutionLimits ->
-    ExactJointAffineKernel
-        leftOwner sourceLabel leftRewardLabel intermediateLabel ->
-    ExactJointAffineKernel
-        rightOwner intermediateLabel rightRewardLabel successorLabel ->
-    ExactSuccessorOwnerRequest leftOwner rightOwner ->
-    Either ExactSuccessorSubstitutionError
-        (ExactSuccessorSubstitution
-            sourceLabel rightRewardLabel successorLabel)
-
-successorSubstitutionReport ::
-    ExactSuccessorSubstitution sourceLabel rewardLabel successorLabel ->
-    ExactSuccessorSubstitutionReport
-
-materializeSuccessorSubstitution ::
-    ExactJointAffineLimits ->
-    ExactSuccessorSubstitution sourceLabel rewardLabel successorLabel ->
-    Rational ->
-    Either ExactJointAffineError
-        (ExactJointLaw RealBorel RealBorel, ExactJointAffineReport)
-
-successorSubstitutionSupportExtrema ::
-    ExactJointAffineLimits ->
-    ExactSuccessorSubstitution sourceLabel rewardLabel successorLabel ->
-    RationalInterval ->
-    Either ExactJointAffineError
-        ((RationalInterval, RationalInterval), ExactJointAffineReport)
-```
+`exactSuccessorSubstitutionLimits` takes six inclusive limits, in order: raw
+entries, owner-reservation slots, output width, input-plus-result coefficient
+slots, semantic work, and rational bits. Results expose reporting,
+`materializeSuccessorSubstitution`, and `successorSubstitutionSupportExtrema`.
+The public source linked above defines their complete signatures.
 
 A fresh target `Natural` is an untrusted candidate name, not a local owner token or freshness proof. A separate substitution limit type avoids silently changing Gate A limit interpretation. Both projection operations are subsequent, separately requested operations, not hidden substitution subcalls. Substitution has exactly one ledger. Projection work is separate; historical bit admission is not reset (§7).
 
@@ -161,7 +94,7 @@ Each witness is created and consumed within one substitution operation and retai
 
 No witness is returned separately, reused with another pair, or authorized by equal phantom types, counts, shape equality, or a numeric-ID cache. Execution must consume the captured actual operands/manifests. Reusing a public request is allowed only as untrusted input revalidated against the new operands; that is not witness reuse.
 
-## 4. Representation and explicit future Gate A supersession
+## 4. Declaration retention and renaming
 
 ### 4.1 Full Gate A declaration retention
 
@@ -175,18 +108,17 @@ The current retained table plus counts cannot recover discarded declaration iden
 
 Canonical declaration order is ascending owner number. Construction still admits the full raw spine, rejects duplicates before filtering, validates coordinates and rows in caller input order, and only then forms canonical tables and the retained view. Zero declarations remain private and charged.
 
-### 4.2 Superseding renaming contract — FUTURE implementation changes
+### 4.2 Declaration-complete renaming
 
-These clauses explicitly supersede the **retained-only Gate A renaming contract for future Gate B implementation**. They do not describe baseline behavior or retroactively amend the historical Gate A record. The existing public Gate A signatures and nominal roles remain unchanged.
+Gate B renaming uses the full declaration manifest, including zero rows. The historical Gate A implementation inspected only retained rows. Public signatures and nominal roles remain unchanged.
 
-| Surface | Required future behavior |
+| Surface | Required behavior |
 | --- | --- |
 | Partial alpha-renaming membership | Full declaration manifest; mapping a declared zero row becomes valid. |
 | Partial rename collisions | A target colliding with an unmapped zero declaration fails with `JointAffineNonInjectiveRenaming`. |
 | Complete re-scoping | Complete mapping of all declarations, including zero declarations. |
 | Empty re-scoping | Succeeds only with no declarations, not merely no retained owners. |
 | Rename accounting | Membership, coverage, lookup, final collisions, and canonicalization use declared count, not retained count. |
-| Documentation | Add explicit superseding notes; preserve historical records and label future behavior honestly. |
 
 Keep semantic-error order: duplicate source, duplicate target, unknown source, optional completeness, final collision.
 
@@ -212,35 +144,10 @@ Two operands may have the same numeric name with different intervals: fresh mode
 
 ## 5. Errors, canonical choice, preflight, and atomicity
 
-### 5.1 Exact error declarations
+### 5.1 Diagnostics
 
-```text
-data SuccessorSubstitutionParticipant
-    = SuccessorSubstitutionLeft
-    | SuccessorSubstitutionRight
-    deriving stock (Eq, Show)
-
-data ExactSuccessorSubstitutionError
-    = SuccessorSubstitutionAdmission
-        !ExactJointAffineError
-    | SuccessorSubstitutionDuplicateSource
-        !Natural !Natural
-    | SuccessorSubstitutionNonInjectiveTarget
-        !Natural !Natural
-    | SuccessorSubstitutionUnknownSource
-        !Natural
-    | SuccessorSubstitutionIncompleteMapping
-        !Natural
-    | SuccessorSubstitutionUnknownSharedTarget
-        !Natural
-    | SuccessorSubstitutionFreshTargetCollision
-        !Natural !SuccessorSubstitutionParticipant !Natural
-    | SuccessorSubstitutionSharedIntervalMismatch
-        !Natural !RationalInterval !RationalInterval
-    | SuccessorSubstitutionAccountingMismatch
-        !Natural !Natural
-    deriving stock (Eq, Show)
-```
+`ExactSuccessorSubstitutionError` and `SuccessorSubstitutionParticipant` have
+public constructors with `Eq` and `Show` instances, defined in the public module.
 
 Indices are one-based. Duplicate errors identify mapping positions. Unknown-source, unknown-target, and interval-mismatch errors identify mapping position. Incomplete mapping identifies canonical right declaration position. Fresh collision identifies mapping position, participant, and canonical declaration position. Interval mismatch carries the left interval then right interval. Errors expose no generated owner token.
 
@@ -363,45 +270,39 @@ The reports are existing `ExactJointAffineReport` values, with operation `JointA
 
 Stored baseline work failure precedes historical bit failure; historical bit failure precedes insufficient **operation-specific total** work. After stored admission, full operation work precedes projection input bits or interval validity. These are deliberately distinct precedence boundaries, not the substitution operation's work-before-input-history rule.
 
-## 8. Exact report declaration specification
+## 8. Report meanings
 
 The substitution report is opaque, with non-record accessors; none performs arithmetic or exposes owner identity.
 
-```text
-data ExactSuccessorSubstitutionMode
-    = SharedRightOwners
-    | FreshRightOwners
-    deriving stock (Eq, Show)
+`ExactSuccessorSubstitutionMode` exposes `SharedRightOwners` and
+`FreshRightOwners`. `ExactSuccessorSubstitutionReport` has a hidden constructor.
 
-data ExactSuccessorSubstitutionReport
-```
-
-| Exact accessor signature | Value |
+| Accessor | Value |
 | --- | --- |
-| `substitutionMode :: ExactSuccessorSubstitutionReport -> ExactSuccessorSubstitutionMode` | Selected mode |
-| `substitutionLeftDeclaredOwners :: ExactSuccessorSubstitutionReport -> Natural` | `n_L` |
-| `substitutionRightDeclaredOwners :: ExactSuccessorSubstitutionReport -> Natural` | `n_R` |
-| `substitutionMappingEntries :: ExactSuccessorSubstitutionReport -> Natural` | `m` |
-| `substitutionRawEntries :: ExactSuccessorSubstitutionReport -> Natural` | `H` |
-| `substitutionOwnerReservationSlots :: ExactSuccessorSubstitutionReport -> Natural` | `H` |
-| `substitutionReservedNames :: ExactSuccessorSubstitutionReport -> Natural` | Actual reservation-set cardinality |
-| `substitutionSharedOwners :: ExactSuccessorSubstitutionReport -> Natural` | `m` shared; otherwise `0` |
-| `substitutionFreshOwners :: ExactSuccessorSubstitutionReport -> Natural` | `m` fresh; otherwise `0` |
-| `substitutionDeclaredResultOwners :: ExactSuccessorSubstitutionReport -> Natural` | `n_L` shared; `N` fresh |
-| `substitutionRetainedResultOwners :: ExactSuccessorSubstitutionReport -> Natural` | Result rows with either coefficient nonzero |
-| `substitutionZeroFilteredResultOwners :: ExactSuccessorSubstitutionReport -> Natural` | Declared minus retained result rows |
-| `substitutionOutputs :: ExactSuccessorSubstitutionReport -> Natural` | `2` |
-| `substitutionCoefficientSlots :: ExactSuccessorSubstitutionReport -> Natural` | `12+4N` |
-| `substitutionPreflightWork :: ExactSuccessorSubstitutionReport -> Natural` | `P` |
-| `substitutionCoefficientMultiplications :: ExactSuccessorSubstitutionReport -> Natural` | `4+2n_L` |
-| `substitutionCoefficientAdditions :: ExactSuccessorSubstitutionReport -> Natural` | `2+2N` |
-| `substitutionArithmeticWork :: ExactSuccessorSubstitutionReport -> Natural` | `A` |
-| `substitutionWork :: ExactSuccessorSubstitutionReport -> Natural` | `P+A` |
-| `substitutionMaximumRationalBits :: ExactSuccessorSubstitutionReport -> Natural` | Complete maximum, including discarded inputs/intermediates; both projections' stored-admission/meter seed |
+| `substitutionMode` | Selected mode |
+| `substitutionLeftDeclaredOwners` | `n_L` |
+| `substitutionRightDeclaredOwners` | `n_R` |
+| `substitutionMappingEntries` | `m` |
+| `substitutionRawEntries` | `H` |
+| `substitutionOwnerReservationSlots` | `H` |
+| `substitutionReservedNames` | Actual reservation-set cardinality |
+| `substitutionSharedOwners` | `m` shared; otherwise `0` |
+| `substitutionFreshOwners` | `m` fresh; otherwise `0` |
+| `substitutionDeclaredResultOwners` | `n_L` shared; `N` fresh |
+| `substitutionRetainedResultOwners` | Result rows with either coefficient nonzero |
+| `substitutionZeroFilteredResultOwners` | Declared minus retained result rows |
+| `substitutionOutputs` | `2` |
+| `substitutionCoefficientSlots` | `12+4N` |
+| `substitutionPreflightWork` | `P` |
+| `substitutionCoefficientMultiplications` | `4+2n_L` |
+| `substitutionCoefficientAdditions` | `2+2N` |
+| `substitutionArithmeticWork` | `A` |
+| `substitutionWork` | `P+A` |
+| `substitutionMaximumRationalBits` | Complete maximum, including discarded inputs/intermediates; both projections' stored-admission/meter seed |
 
 ## 9. Required independent oracles and boundary fixtures
 
-These are future test obligations and expected exact outcomes, not executed examples or current test-pass claims.
+These are test requirements and independent expected values. Execution evidence is recorded in the decision record.
 
 ### 9.1 Sharing versus freshness and lost left reward
 
@@ -557,7 +458,7 @@ Add a successful client using both modes and both projections so missing APIs ca
 
 Freeze these compatibility risks explicitly:
 
-1. Zero-row renaming is an observable future change; update its docs, errors, exact-work tests, and boundary descriptions together without rewriting history.
+1. Zero-row renaming changes observable behavior; its documentation, errors, exact-work tests, and boundary descriptions must agree.
 2. Fresh identity renaming is rejected; injectivity is insufficient without both-source disjointness.
 3. Equal numbers do not imply sharing; full explicit mapping and exact interval equality are required.
 4. Combined substitution limits are not Gate A limits applied twice; individually admissible inputs may fail combined admission.
@@ -566,18 +467,3 @@ Freeze these compatibility risks explicitly:
 7. Reports measure conservative semantic reservations, not exact machine cost or heap size.
 8. Scope-erased materialization is retained, not widened into reusable owner evidence.
 9. No version, package-edge, acceptance, or publication change is implied.
-
-## 11. Implementation hold points and review evidence
-
-This document records the parent-approved contract with the independent review's required correction. **Independent review of the repository freeze remains pending.** No runtime/API implementation or implementation tests are added by this freeze; all fixture outcomes above are obligations, not executions. Gate A remains the baseline implementation, and D-079 remains `Proposed`.
-
-Before implementing, independently review this exact freeze, including signatures, error payloads/precedence, manifests, declared-count renaming changes, fixed ledger, and projection historical-bit boundary. Then, only under separate authorization:
-
-1. Change the private full-declaration representation and constructor/renamers coherently in `Kernel/JointAffine/Exact.hs`; retain existing public signatures and roles.
-2. Add the exact request/result/report API, actual-operand-bound private evidence, count-only combined admission, checked arithmetic, and conservative-history projections.
-3. Extend `test/JointAffine.hs` with independent symbolic/corner oracles, complete mapping and zero-row cases, deterministic accounting goldens, cancellation and discarded reward, all exact/one-below dimensions, total failure precedence, and projection-history fixtures.
-4. Supply private invariant probes and separately identifiable compile-failure plus positive-client fixtures/harness diagnostics.
-5. Update forward-looking Gate A compatibility documentation without rewriting historical records; run the package suite and applicable boundary checks on the implementation.
-6. Obtain fresh independent implementation/evidence review. Parent records any full-proposal acceptance separately; neither this freeze nor Gate A alone completes D-079.
-
-[Decision D-079](../DECISIONS.md#d-079-add-exact-joint-affine-continuous-kernels) records the implementation and acceptance status of this contract.

@@ -6,10 +6,9 @@ See the [implementation record](../D081-AFFINE-IMPLEMENTATION.md) for current
 scope and runnable checks.
 
 - [Source proof](SOURCE-PROOF.md): reconciled schedules, arithmetic, and
-  simultaneous-storage bounds. Its substitutions take precedence over the
-  preliminary [prefix](advisories/d081-prefix-proof.md),
-  [geometry](advisories/d081-geometry-proof.md), and
-  [runtime](advisories/d081-runtime-proof.md) derivations.
+  simultaneous-storage bounds. The preliminary expansions are
+  [archived in Git](https://github.com/josephjohncox/Markovian/tree/871f0eedf8a8f460b2b3a5906bec57a365d53e5d/docs/evidence/D081-MATERIALIZATION/advisories); their superseded coefficients are not current
+  requirements.
 - [Operation fixtures](FIXTURES-OPERATIVE.md) and [inputs](FIXTURE-INPUTS.md):
   expected cells, work, and peak values, including failure-state interpretation.
 - [Prefix failure fixtures](FAILURE-FIXTURES-FINAL.md): count, rank, and sentinel

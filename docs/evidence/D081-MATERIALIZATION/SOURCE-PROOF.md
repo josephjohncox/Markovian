@@ -2,8 +2,8 @@
 
 This derivation uses logical source operations and storage slots. Read it with
 the [materialization addendum](../../plans/D081-MATERIALIZATION-ADDENDUM.md).
-The detailed prefix, geometry, and runtime expansions are in `advisories/`;
-the substitutions and ownership partition below take precedence over their
+The detailed preliminary expansions are [archived in Git](https://github.com/josephjohncox/Markovian/tree/871f0eedf8a8f460b2b3a5906bec57a365d53e5d/docs/evidence/D081-MATERIALIZATION/advisories).
+The substitutions and ownership partition below take precedence over their
 preliminary coefficients. The [source basis](README.md#source-basis) identifies
 the historical snapshots used for line references.
 
@@ -135,7 +135,7 @@ C fixed192 includes publication10 already in the common transaction: use182. Cal
 
 `182+P(b)+ (39b+18)+(39r+18)+Dc(b,interval)+Ds(r)`
 
-=752+166b+93r +[B>0](176+290b+12j(b))+[V>0](176+290r). Since j(b)≤b, this is≤**1104+468b+383r**. There is no registry or payload loop.
+`=752+166b+93r +[B>0](176+290b+12j(b))+[V>0](176+290r)`. Since j(b)≤b, this is≤**1104+468b+383r**. There is no registry or payload loop.
 
 R=P_R(b)+8r+45 result/layout/report/state fields+2 shifted-offset scalar =94+48b+8r. H local58 (26 references+12 controls+12 saved arguments+8 scalars; lock/handler six removed from C) +P_H(b)+(7b+8)+4b+(7r+8)+(224+5b)+(224+16r) =598+30b+23r. Every concurrent dimension, producer and shifted-layout family is separately reserved.
 
@@ -151,7 +151,7 @@ Full body call sum is
 
 `536+24n+P_W(r)+(39b+18)+(39r+18)+Dc(b,interval)+2Dc(r,no interval)+2[V>0](42r+49)+G_W(b)+12B+32V+2V(104+96r)+128`.
 
-Before uniform branch domination it is1524+91b+206r+24n+[B>0](180+310b)+[V>0](264+500r+12j(r))+12B+32V+2V(104+96r). Taking indicators≤1 and j≤r gives **1968+401b+718r+12B+V(240+192r)+24n**. The fixed1524 includes the128 failure allowance (the corresponding successful constant is1396); the algebra is independently evaluated from the call sum, not native reports.
+Before uniform branch domination it is `1524+91b+206r+24n+[B>0](180+310b)+[V>0](264+500r+12j(r))+12B+32V+2V(104+96r)`. Taking indicators≤1 and j≤r gives **1968+401b+718r+12B+V(240+192r)+24n**. The fixed1524 includes the128 failure allowance (the corresponding successful constant is1396); the algebra is independently evaluated from the call sum, not native reports.
 
 R=P_R(r)+4b+(4b+4)+4(n+1)+46 fixed gradient/ID/owner/memory/report/state/result fields+12 new byte/scalar-work/four updated-counter numeric slots =113+8b+48r+4n. A already owns charge/usage numeric referents. R's diagnostic alternative covers any finite failure without publishing candidate registry/result objects.
 

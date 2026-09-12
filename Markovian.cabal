@@ -36,9 +36,6 @@ extra-doc-files:
   docs/evidence/CUDA-TENSOR-2026-09-02.md
   docs/evidence/D061-2026-09-02.md
   docs/evidence/D081-AFFINE-IMPLEMENTATION.md
-  docs/evidence/D081-MATERIALIZATION/advisories/d081-geometry-proof.md
-  docs/evidence/D081-MATERIALIZATION/advisories/d081-prefix-proof.md
-  docs/evidence/D081-MATERIALIZATION/advisories/d081-runtime-proof.md
   docs/evidence/D081-MATERIALIZATION/FAILURE-FIXTURES-FINAL.md
   docs/evidence/D081-MATERIALIZATION/FIXTURE-INPUTS.md
   docs/evidence/D081-MATERIALIZATION/FIXTURES-OPERATIVE.md

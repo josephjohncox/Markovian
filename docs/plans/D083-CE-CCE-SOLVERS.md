@@ -16,7 +16,7 @@ The design source basis is commit `7f2d8bdbe699a9b9fad99f22335a9ebc6b13446d`.
 
 Read and preserve these definitions:
 
-- `docs/DECISIONS.md`, D-083, and `TODO.md`, R7.
+- [Decision D-083](../DECISIONS.md#d-083-add-exact-bounded-ce-and-cce-one-witness-solvers) and [open work](../../TODO.md#open-work).
 - `Markovian.cabal:215–269`: the game modules are exposed by the base-only library.
 - `src/Markovian/Category/Finite/Object.hs:1–83`: `FiniteObject` is nonempty and layout-sensitive.
 - `src/Markovian/Game/Profile/Finite.hs:55–232,327–383`: limits, nominal products/profiles, product enumeration, replacement, and combined Rational bits.
@@ -36,119 +36,24 @@ A successful solve certifies its actual input payoff table. A device alone certi
 
 ## 3. Frozen public surface
 
-The following names and signatures form the frozen public surface. `Natural` is from `Numeric.Natural`.
-
-```haskell
-data CorrelationSolveLimits
-correlationSolveLimits
-  :: GameLimits -> Natural -> Natural -> Natural -> CorrelationSolveLimits
-correlationSolveGameLimits
-  :: CorrelationSolveLimits -> GameLimits
-maximumCorrelationSolveInequalities
-  :: CorrelationSolveLimits -> Natural
-maximumCorrelationSolveCandidates
-  :: CorrelationSolveLimits -> Natural
-maximumCorrelationSolveMaterialization
-  :: CorrelationSolveLimits -> Natural
-
-solveCorrelatedEquilibrium
-  :: (Eq owner, Eq action)
-  => CorrelationSolveLimits
-  -> ExactNormalGame owner action
-  -> Either (CorrelationSolveError owner action)
-            (CorrelatedEquilibriumSolution owner action)
-
-solveCoarseCorrelatedEquilibrium
-  :: (Eq owner, Eq action)
-  => CorrelationSolveLimits
-  -> ExactNormalGame owner action
-  -> Either (CorrelationSolveError owner action)
-            (CoarseCorrelatedEquilibriumSolution owner action)
-
-data CorrelatedEquilibriumSolution owner action
-data CoarseCorrelatedEquilibriumSolution owner action
-type role CorrelatedEquilibriumSolution nominal nominal
-type role CoarseCorrelatedEquilibriumSolution nominal nominal
-
-correlatedSolutionGame
-  :: CorrelatedEquilibriumSolution owner action -> ExactNormalGame owner action
-correlatedSolutionDevice
-  :: CorrelatedEquilibriumSolution owner action -> ExactCorrelationDevice owner action
-correlatedSolutionCheck
-  :: CorrelatedEquilibriumSolution owner action -> CorrelatedEquilibriumReport owner action
-correlatedSolutionAccounting
-  :: CorrelatedEquilibriumSolution owner action -> CorrelationSolveAccounting
-
-coarseCorrelatedSolutionGame
-  :: CoarseCorrelatedEquilibriumSolution owner action -> ExactNormalGame owner action
-coarseCorrelatedSolutionDevice
-  :: CoarseCorrelatedEquilibriumSolution owner action -> ExactCorrelationDevice owner action
-coarseCorrelatedSolutionCheck
-  :: CoarseCorrelatedEquilibriumSolution owner action -> CoarseCorrelatedEquilibriumReport owner action
-coarseCorrelatedSolutionAccounting
-  :: CoarseCorrelatedEquilibriumSolution owner action -> CorrelationSolveAccounting
-
-data CorrelationSolveAccounting
-correlationSolveReservedWork :: CorrelationSolveAccounting -> Natural
-correlationSolveReservedMaterialization :: CorrelationSolveAccounting -> Natural
-correlationSolveObservedRationalBits :: CorrelationSolveAccounting -> Natural
-correlationSolveCheckerCoveredRationalBits :: CorrelationSolveAccounting -> Natural
-correlationSolveCandidates :: CorrelationSolveAccounting -> Natural
-correlationSolveRankDeficientCandidates :: CorrelationSolveAccounting -> Natural
-correlationSolveInconsistentCandidates :: CorrelationSolveAccounting -> Natural
-correlationSolveInequalityRejectedCandidates :: CorrelationSolveAccounting -> Natural
-correlationSolveSelectedInequalities :: CorrelationSolveAccounting -> [Natural]
-```
+The public declarations are in
+[`Markovian.Game.Correlated.Exact`](../../src/Markovian/Game/Correlated/Exact.hs).
+`correlationSolveLimits` constructs opaque limits from `GameLimits` and three
+`Natural` caps. `solveCorrelatedEquilibrium` and
+`solveCoarseCorrelatedEquilibrium` return their respective opaque solution
+types through `Either (CorrelationSolveError owner action)`. Both solution
+types have nominal owner/action indices.
 
 The three trailing constructor arguments are inequality count, attempted candidate count, and cumulative materialization credits, in that order. Every cap is inclusive. Zero is a valid cap. The constructor performs no game traversal and supplies no defaults. Work and Rational caps come from the embedded `GameLimits`. Its horizon field has no solver use.
 
 Limits, solutions, and accounting have hidden positional constructors and `Eq`/`Show` instances. Their accessors are functions, not record selectors. Clients cannot construct or update a solution or its accounting. Each solution retains four fields: the original game handle, device, actual checker report, and accounting. Retaining the game handle does not copy its payoff table.
 
-Accounting has nine fields, in the accessor order above. The selected indices are zero-based inequality indices. There is no public search continuation or rejected-candidate trace. CE and CCE solution types are not interchangeable.
+Accounting has nine fields: reserved work, reserved materialization, observed Rational bits, checker-covered Rational bits, candidate count, rank-deficient count, inconsistent count, inequality-rejected count, and selected inequality indices. The selected indices are zero-based inequality indices. There is no public search continuation or rejected-candidate trace. CE and CCE solution types are not interchangeable.
 
-Export the following error and enumeration constructors. Give each `Eq` and `Show` instances. Apply nominal owner/action roles to `CorrelationSolveError`.
-
-```haskell
-data CorrelationSolvePhase
-  = CorrelationAdmission
-  | CorrelationConstraints
-  | CorrelationCombination
-  | CorrelationElimination
-  | CorrelationInequalities
-  | CorrelationVerification
-  | CorrelationPublication
-
-data CorrelationSolveResource
-  = CorrelationInequalityCount
-  | CorrelationCandidateCount
-  | CorrelationMaterialization
-  | CorrelationWork
-  | CorrelationRationalBits
-
-data CorrelationRepresentation
-  = CorrelationOwnerLength
-  | CorrelationChoiceLength
-  | CorrelationProfileLength
-  | CorrelationReportLength
-  | CorrelationRationalLength
-
-data CorrelationSolveInvariant
-  = CorrelationInputLayoutInvariant
-  | CorrelationConstraintLayoutInvariant
-  | CorrelationCandidateShapeInvariant
-  | CorrelationShadowVerificationInvariant
-  | CorrelationCheckerDisagreement
-  | CorrelationCompletedSearchWithoutWitness
-
-data CorrelationSolveError owner action
-  = CorrelationSolveProductError !(OwnedProductError owner)
-  | CorrelationSolveLimitExceeded
-      !CorrelationSolvePhase !CorrelationSolveResource !Natural !Natural
-  | CorrelationSolveRepresentationExceeded !CorrelationRepresentation
-  | CorrelationSolveDeviceError !(CorrelationDeviceError owner action)
-  | CorrelationSolveCheckerError !CorrelatedCheckError
-  | CorrelationSolveInvariantFailure !CorrelationSolveInvariant
-```
+`CorrelationSolveError`, `CorrelationSolvePhase`, `CorrelationSolveResource`,
+`CorrelationRepresentation`, and `CorrelationSolveInvariant` expose their
+constructors with `Eq` and `Show` instances. Error owner/action indices are
+nominal. Their declarations are maintained in the public source linked above.
 
 For `CorrelationSolveLimitExceeded`, the two numbers are the cap and the saturated required value, in that order. On failure, the required value is exactly `cap + 1`. It is not a claimed exact demand beyond the cap. Errors contain no candidate, device, accounting snapshot, or resumable state. Existing nested product/device errors retain their existing meanings.
 

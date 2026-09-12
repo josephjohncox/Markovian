@@ -107,7 +107,7 @@ After complete header and (runtime) old payload preflight, calculate full rows w
 
 ## 4. Proof composition and simultaneous storage
 
-The detailed elementary expansions are in `SOURCE-PROOF.md` and the captured advisory appendices, with the reconciliation there controlling every overlap. This section states the completed proof interface; no unspecified coefficient remains.
+The detailed elementary expansions are in `SOURCE-PROOF.md` and its linked historical appendices, with the reconciliation there controlling every overlap. This section states the completed proof interface; no unspecified coefficient remains.
 
 Body envelopes, excluding the common fixed/prefix lane:
 

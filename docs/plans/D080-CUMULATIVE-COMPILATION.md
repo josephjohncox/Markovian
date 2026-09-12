@@ -1,16 +1,16 @@
-# D-080 cumulative quotation compilation — prospective repair contract
+# D-080 cumulative quotation compilation contract
 
-## Status and boundary
+D-080 is Accepted within its unreleased scope. See the
+[decision record](../DECISIONS.md#d-080-add-bounded-first-order-quotation-with-callback-free-let)
+for implementation and acceptance evidence. The
+[original design record](https://github.com/josephjohncox/Markovian/blob/871f0eedf8a8f460b2b3a5906bec57a365d53e5d/docs/plans/D080-CUMULATIVE-COMPILATION.md)
+retains the preliminary review and validation history.
 
-**Contract freeze reviewed. Prospective, not implemented. D-080 remains Proposed.** Independent review `eeb4e4ba-4417-442e-b5bd-cb28ca4f4556` passed for this contract only. The approved product-of-scalars fixture is expressible and its literal parameter tree is verified against the existing public library (§7). The previously omitted primitive ownership-layout equality now has a named coupon (§5.2). This is not decision acceptance or implementation-completion evidence; the accounting proof still requires the specified implementation controls. Baseline: `049372690908f179a095bb170ec7e80034b04d2e`.
-
-The [existing D-080 API and failure freeze](../DECISIONS.md#d-080-existing-api-freeze-declaration-reference) remains a historical characterization. In that implementation `compileExactQuote` runs syntax admission, builds a program, and gives the target compiler a separate mapped account. In particular, the old compilation report equals the syntax report. Neither fact is retroactively changed by this document. The earlier summary claiming cumulative compilation is not evidence of this repair.
-
-This contract supersedes the earlier repair design's `3N + 4M + N^3 + P^2` traversal and quadratic allocation policy. Those coefficients did not cover cumulative owner-list construction. It also resolves that design's missing embedded-projection schedule, opaque-report agreement decision, and private instrumentation mechanism.
-
-Keep **every public declaration, constructor boundary, role and signature unchanged**. Keep standalone `compileExactPolynomial`, `preflightQuote`, `lowerQuote`, direct execution preflights, and independent primal/JVP behavior unchanged. Only quotation **compilation** gains cumulative planning/reservations, derived compiler capacities, and a larger `quoteCompilationPreflight` account. No new public selector, mismatch error, callback, hook, module, package, dependency edge, or `Compile.hs` API change is authorized. No implementation, test, workflow, version, release, or status edit is supplied by this contract.
-
-The prospective formulae and private signature tables below are **declaration specifications**, not implemented or tested budget repairs. Section 7 separately identifies an executed external public-library client proving the amended baseline fixture; it does not execute the future planner or probe.
+The public declarations, constructor boundaries, roles, and signatures remain
+unchanged. Standalone `compileExactPolynomial`, `preflightQuote`, `lowerQuote`,
+direct execution preflights, and independent primal/JVP behavior retain their
+contracts. Quotation compilation adds cumulative planning and reservations,
+derived compiler capacities, and a larger `quoteCompilationPreflight` account.
 
 ## 1. Production sequence and report agreement
 
@@ -130,34 +130,13 @@ Embedded program: primitive node enters its primitive then its fields below; ide
 
 Each completed path/projection checks input then selected extent. Environment, shape and explicit parameter helper checks precede those endpoint checks. Do not call `projectionInputShape` then `projectionOutputShape`, build replacement projections, or reconstruct shapes to rediscover these summaries.
 
-### 3.3 Private declarations to implement later
+### 3.3 Private planner metadata
 
-All fields below are strict `Natural` unless identified otherwise; all constructors/selectors stay private in `Quote.hs`.
-
-| Private metadata | Frozen fields |
-| --- | --- |
-| `ShapeSummary` | extent, layoutNodes, layoutDepth |
-| `ParameterSummary` | layout :: ShapeSummary; ownershipNodes, ownershipDepth, ownerLeaves, keyEnumerationCells |
-| `TargetSummary` | parameters :: ParameterSummary; input/output :: ShapeSummary; nodes, primitives, depth, maximumExtent, maximumStructureNodes, maximumStructureDepth, forwardWork, reverseWork; metadataTraversalSum, metadataAllocationSum, ownershipTraversalSum, ownershipAllocationSum, joinComparisonSum, primitiveLayoutComparisonSum, pathCellSum, depthSum; quoteEntries, builderReservation |
-| `CompilerReservation` | traversal, allocation, runtime :: Natural; capacities :: CompilerLimits |
-| `AdmittedQuoteCompilation` | completeReport :: QuoteReport; reservation :: CompilerReservation |
+The private summary types and helper signatures are defined in
+[`Quote.hs`](../../packages/markovian-autodiff/src/Markovian/Autodiff/Quote.hs).
+Their fields and the intermediate scalar summaries stay private.
 
 `depthSum` is the sum of one-based relative node depths. Leaf=1; binary=`1+depthSum(l)+nodes(l)+depthSum(r)+nodes(r)`. Therefore `pathCellSum=depthSum-nodes`. `quoteEntries` counts quotation entries only (embedded program summaries carry zero); it supplies the builder bound below. The metadata/ownership/comparison sums are exactly the §5 recurrences evaluated bottom-up. No list of nodes is retained. `builderReservation` is additive across quotation children plus the local §5 `G` term; embedded programs contribute zero. Helper results may use additional fixed-size scalar tuples, never an owner table or shape/target tree.
-
-| Private helper | Signature specification |
-| --- | --- |
-| planQuoteCompilation | `QuotationLimits -> Quote Rational 'Polynomial environment parameters output -> Ledger -> Either QuoteError (TargetSummary, Ledger)` |
-| planProgramCompilation | `QuotationLimits -> Program Rational 'Polynomial parameters input output -> Ledger -> Either QuoteError (TargetSummary, Ledger)` |
-| planPrimitiveCompilation | `QuotationLimits -> Primitive Rational 'Polynomial parameters input output -> Ledger -> Either QuoteError (TargetSummary, Ledger)` |
-| planPath | `QuotationLimits -> Path environment selected -> Ledger -> Either QuoteError (ShapeSummary, ShapeSummary, Ledger)` |
-| planProjection | `QuotationLimits -> Projection input output -> Ledger -> Either QuoteError (ShapeSummary, ShapeSummary, Ledger)` |
-| planEnvironment | `QuotationLimits -> QuoteEnvironment environment -> Ledger -> Either QuoteError (ShapeSummary, Ledger)` |
-| planShape | `QuotationLimits -> SShape shape -> Ledger -> Either QuoteError (ShapeSummary, Ledger)` |
-| planParameters | `QuotationLimits -> SParameters parameters -> Ledger -> Either QuoteError (ParameterSummary, Ledger)` |
-| reserveQuoteCompilation | `QuotationLimits -> TargetSummary -> Ledger -> Either QuoteError AdmittedQuoteCompilation` |
-| preflightQuoteCompilation | `QuotationLimits -> Quote Rational 'Polynomial environment parameters output -> Either QuoteError AdmittedQuoteCompilation` |
-
-The explicit parameter helper is a specification of the parameter-witness entry rule, not permission to call `programParameters` during planning or to add an unused exported helper. If no implementation caller needs it, its recurrence belongs in the numeric parameter constructors instead.
 
 ## 4. Bounded arithmetic and exact failure precedence
 
@@ -276,7 +255,7 @@ Let `h=2k-1`. Then `N=P=D=q=1`, `Lp=Lo=h`, `Li=1`, `O=K=C=1`, `B=2h+1`, `U=2h+3`
 
 Adding the named table rows gives `MT=87h+145+4k`, `MA=MT-12`; `OT=OA=6`, `CT=5`, `CA=3`. Hence `Tc=180k+79`, `Ac=180k+68`, `Rc=2+8k`. The old syntax account is `Tq=2`, `Nq=1`, `Xq=0`, `Aq=1+3k`, `Rq=1+5k`, `Wq=5+8k`. The extra 1 in Aq is the existing `chargeTargetNodes` allocation, not a new coupon. Planner entries are quotation, Program, Primitive, input Unit and h output-shape constructors: `Tp=4+h=2k+3`. Redundant environment and the reused parameter/output shape are not revisited.
 
-Complete prospective report work fields are therefore `T=182k+84`, `A=183k+69`, `R=13k+3`, `W=378k+157`. Other fields: quotation nodes 1, source depth 2, path depth 0, target nodes/depth 1, transformed 0, maximum extent k, source bits 0. Compiler limits are `compilerLimits 1 1 1 1 k k h (d+1) (1+5k) callerBits`.
+Complete report work fields are therefore `T=182k+84`, `A=183k+69`, `R=13k+3`, `W=378k+157`. Other fields: quotation nodes 1, source depth 2, path depth 0, target nodes/depth 1, transformed 0, maximum extent k, source bits 0. Compiler limits are `compilerLimits 1 1 1 1 k k h (d+1) (1+5k) callerBits`.
 
 | k | EQp | Tp | Tc | Ac | Rc | complete T | complete A | complete R | complete W |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -285,7 +264,7 @@ Complete prospective report work fields are therefore `T=182k+84`, `A=183k+69`, 
 | 4 | 7 | 11 | 799 | 788 | 34 | 812 | 801 | 55 | 1669 |
 | 128 | 255 | 259 | 23119 | 23108 | 1026 | 23380 | 23493 | 1667 | 48541 |
 
-These table values are independent arithmetic oracles, **not executed future budget tests**. For each row and both policies, the eventual production test must succeed with all four complete additive budgets exact. Separately set each complete budget one below, leaving other budgets generous: `QuoteTraversalLimitExceeded (T-1) T`, `QuoteAllocationLimitExceeded (A-1) A`, `QuoteRuntimeWorkLimitExceeded (R-1) R`, and `QuoteTotalWorkLimitExceeded (W-1) W`, all inside `QuoteCompilePreflightFailure`, before any builder/compiler call. At k=128 these are `(23379,23380)`, `(23492,23493)`, `(1666,1667)`, `(48540,48541)` respectively. Total one-below fails at Rc's total charge; individual one-below tests fail at their bulk dimension, not in old syntax or planner visits.
+These table values are independent arithmetic oracles. For each row and both policies, the production test must succeed with all four complete additive budgets exact. Separately set each complete budget one below, leaving other budgets generous: `QuoteTraversalLimitExceeded (T-1) T`, `QuoteAllocationLimitExceeded (A-1) A`, `QuoteRuntimeWorkLimitExceeded (R-1) R`, and `QuoteTotalWorkLimitExceeded (W-1) W`, all inside `QuoteCompilePreflightFailure`, before any builder/compiler call. At k=128 these are `(23379,23380)`, `(23492,23493)`, `(1666,1667)`, `(48540,48541)` respectively. Total one-below fails at Rc's total charge; individual one-below tests fail at their bulk dimension, not in old syntax or planner visits.
 
 Also admit traversal `T-h=23125` or allocation `A-h=23238` separately, other limits generous: each must reject with its saturated `(limit,limit+1)` error. A mutation omitting EQp would wrongly succeed. Omitting EQp subtracts h from both complete T and A, and 2h from W, while leaving R unchanged; the one-below tests alone also detect that mutation. This discriminator isolates the previously unnamed structural equality without claiming the old aggregate bound was numerically disproved by it.
 
@@ -317,9 +296,9 @@ The old Rq compiler-oriented charges remain; Rc is an additional compiler-stage 
 
 ### 7.1 Approved construction and literal parameter tree
 
-The parent approved replacing the impossible vector component with two scalar outputs. Use input `I = Vector 2 × (Scalar × Vector 2)` with coordinates `(x,(s,z))` and output **`Product (Product Scalar Scalar) (Product Scalar Scalar)`**, flattened `(v0,v1,w,t)`. There is no scalar-to-vector pack/broadcast, new primitive, or identification of Vector with Product. The earlier dependency invariant still rules out the old vector-output fixture; it does not rule out these scalar outputs.
+Use input `I = Vector 2 × (Scalar × Vector 2)` with coordinates `(x,(s,z))` and output **`Product (Product Scalar Scalar) (Product Scalar Scalar)`**, flattened `(v0,v1,w,t)`. There is no scalar-to-vector pack/broadcast, new primitive, or identification of Vector with Product.
 
-The following recipe is fixed to the externally compiled `Fixture.hs`. All abbreviations expand at each use: host-language reuse is not an extra quotation let, parameter sharing or tree normalization. Let `0` below mean **`noParameters`**, not scalar zero; `(p,q)` means literal `parameterProduct p q`. The owner leaves are `a=ownedParameters (vectorValue [2,3])`, `b=ownedParameters (scalarValue 5)`, `c=ownedParameters (vectorValue [7,11])`; vector values use the public checked length-2 constructor. Direction/gradient trees replace only these owned values, retaining every zero leaf and product.
+The following recipe specifies `QuoteCompilationFixture.hs`. All abbreviations expand at each use: host-language reuse is not an extra quotation let, parameter sharing or tree normalization. Let `0` below mean **`noParameters`**, not scalar zero; `(p,q)` means literal `parameterProduct p q`. The owner leaves are `a=ownedParameters (vectorValue [2,3])`, `b=ownedParameters (scalarValue 5)`, `c=ownedParameters (vectorValue [7,11])`; vector values use the public checked length-2 constructor. Direction/gradient trees replace only these owned values, retaining every zero leaf and product.
 
 Bind in exact lexical order, with fresh scopes `su,sb,sc`:
 
@@ -368,29 +347,20 @@ At `a=(2,3), b=5, c=(7,11), x=(13,17), s=19, z=(23,29)`, output is `(141,196,172
 
 For **both policies**, independently check all ten combined parameter/input basis columns with direct JVP, all four output-basis rows with VJP, every one of the forty pairings, both primals, zero and nontrivial mixed directions/seeds, and at least two seeds on one retained tape. Repeat at fixed zero/negative/non-unit-denominator points. Formal expectations must use these handwritten polynomial formulae, not production interpreters, lowering, primitive VJPs, tapes or shared derivative helpers. Typed values and a checked flattening/pairing helper may be shared. Actual `ParameterValue` tree assertions must accompany flattened comparisons, using the fully resolved §7.1 tree. The external baseline client already checks the complete parameter-gradient tree on every tested seed; these checks must be retained in the later implementation suite.
 
-### 7.3 Executed baseline fixture evidence, not budget-repair evidence
+### 7.3 Executable fixture
 
-`Fixture.hs` imports only the existing public `Markovian.Autodiff` API. GHC 9.8.4 typechecked its explicit input/output/parameter indexes against the unchanged built library. At each of these flattened ten-coordinate points it executed both policies, independent direct primal and JVP, compiled primal and retained-tape VJP:
+[`QuoteCompilationFixture.hs`](../../packages/markovian-autodiff/test/QuoteCompilationFixture.hs)
+defines the public-library fixture; the package tests compare its direct primal,
+JVP, compiled primal, and retained-tape VJP with independent expected values.
+The mathematical oracle and complete parameter tree above specify the comparison.
 
-1. `(2,3,5,7,11,13,17,19,23,29)`.
-2. `(0,-3,-2,7,11,-5,0,0,2,-7)`.
-3. `(2/3,-3/5,5/7,7/11,11/13,13/17,-17/19,19/23,23/29,-29/31)`.
-
-Each policy/point checks ten basis directions plus zero and `(1,-2,3,-4,5,-6,7,-8,9,-10)`, crossed with four basis seeds plus zero and `(2,-3,5,-7)`, all on one retained tape. That is 72 JVP direction cases and 432 tape-seed/pairing cases across six runs, including all forty basis pairings per run. Expected primals and derivatives are separately spelled scalar polynomials, not results of production helpers. Every returned parameter-gradient tree is compared structurally with the separately constructed expected `ParameterValue`, retaining both c zero columns. The point-1 output is `(141,196,172,5165)`, with `u=(26,51)`; point-2 output is `(-4,14,0,20)`.
-
-The unchanged compiler reports `N=163`, `P=69`, `D=17`, `F=768`, `V=932`, identities/compositions/tensors/input-shares/parameter-shares `13/51/0/30/0`, maximum primal/cotangent extent 10, and owner order a/b/c. Stored/recomputed primitive counts are respectively 69/0 and 0/69; all primitive-use policy entries change accordingly. The baseline quotation report is still the **old syntax account**: quote nodes 74, source depth 17, path depth 4, target nodes/depth 163/17, transformed 77, extent 10, allocation 676, runtime 1117, traversal 234, total 2267, source bits 1. These numbers are not the prospective complete compile report.
-
-The baseline fixture runs described here preceded cumulative compilation. Current regression fixtures live in `packages/markovian-autodiff/test/QuoteCompilationBudgets.hs`.
-
-Neither client implements a planner, instrumentation, new primitive or production budget repair. The product-owner client confirms baseline construction, actual target reports and old syntax counts for k=1,2,4,128; its future exact budgets come only from the independent arithmetic script. This closes expressibility/tree evidence, not any future admission/allocation gate.
-
-## 8. Required implementation tests (none supplied here)
+## 8. Required implementation tests
 
 - Independently calculate small projection, identity, square, used-let and unused-let reports. For each additive dimension and total: exact complete budget succeeds, one below returns the exact saturated error, other limits generous. Syntax-only exact budgets are not compile budgets anymore.
 - Reset-account discriminator: limit at least each stage's separate demand but less than their sum; `preflightQuote` and `lowerQuote` succeed, compilation fails before builders. Reject post-hoc report addition and final-total-only accounting.
 - Failure competition: old syntax before planner; planner traversal before total; machine before coordinate; traversal/allocation/runtime reservations before their own total; bound and synthetic identity/fanout before body; insufficient resources before duplicate independent owners, and duplicate owners after sufficient reservation.
 - Requote a previously lowered nested path so the embedded program contains `ProjectValue (ProjectionLeft/ProjectionRight ...)`; fix both endpoint and entered-Projection counts independently. Direct `ProjectQuote` alone is not coverage.
-- Single balanced-product owner primitive at k=1,2,4,128 with the §5.4 independently calculated complete reports, exact/one-below and no-EQp discriminators; both policies and real pre-build admission events. This has no binary nodes and prevents CM from hiding the missing layout equality. Baseline construction is executed; future budgets are not.
+- Single balanced-product owner primitive at k=1,2,4,128 with the §5.4 independently calculated complete reports, exact/one-below and no-EQp discriminators; both policies and real pre-build admission events. This has no binary nodes and prevents CM from hiding the missing layout equality.
 - Left-associated distinct owners including k=128, balanced association, `ShareParameters` with two branches but one endpoint owner tree, many NoParameters leaves, zero-length vectors, and shallow identity with deep product shape.
 - Aggregate-parameter failure: compose k scalar-parameter-to-scalar primitives; syntax sees individual owner extents 1, planner checks aggregate k. Coordinate limit k-1 rejects only compilation. A machine-extent variant can use shallow owners with huge vector dimensions individually machine-admissible whose combined parameter extent is not; include the old syntax's output/runtime allowances generously and specify the resulting shapes before coding it.
 - Literal-free identity/projection compiled with caller bits 8, observed literal bits 0, then nonzero runtime input 13 and seed 1. Both policies must succeed; passing observed bits instead would fail. No input literals are stored in quotation syntax.
@@ -398,9 +368,9 @@ Neither client implements a planner, instrumentation, new primitive or productio
 - Nested equal-shaped lexical root/outer/newest selections returned together with different values and tangents; used and unused variants. Complete primitive coverage includes constants, product-shaped owners, vector lengths 0/1/2, first/second, parallel/fanout/compose/share and actual quotation wrappers. Empty coordinate cases are shape/primal evidence, not nonvacuous Jacobian evidence.
 - Preserve unused-bound rational failure before body/sibling; separate primal overflow from JVP-only intermediate overflow. Test compiled forward behavior under both policies, with each backend's actual error context rather than invented cross-backend context equality.
 
-## 9. Private instrumented production-path probe (future only)
+## 9. Private production-path probe requirements
 
-Extend the existing `packages/markovian-autodiff/scripts/check-autodiff-boundary`, using the private-source compilation pattern already present in `packages/markovian-continuous/scripts/check-continuous-boundary`. No new Cabal component or dependency is needed. Add future `test/QuoteCompilationPrivate.hs` and a private probe support module only as source-distribution inputs; none is created by this documentation change.
+The `packages/markovian-autodiff/scripts/check-autodiff-boundary` harness compiles `test/QuoteCompilationPrivate.hs` with the private probe support module from the source distribution. The required instrumentation contract follows.
 
 Freeze the build mechanism: the boundary script creates an isolated temporary output directory, compiles **the actual checkout** autodiff source and reverse source as home modules, with `-i<autodiff>/src -i<reverse>/src -i<autodiff>/test`, `-hide-all-packages -package base`, the script's isolated package DB flags, `-Wall -Werror -XGHC2021 -O0 -fforce-recomp -fno-cse -fno-full-laziness -cpp -DD080_PRIVATE_PROBE`, and an explicit `-outputdir`/executable path. Do not simultaneously expose the installed autodiff/reverse units to this probe. The normal opacity checks continue to use the exact installed unit. Production source has private CPP-gated counters with no changed public exports; a test-only IORef event sink from base may instrument pure entries under the probe flag. Normal builds contain neither sink nor hooks. Archive-only execution must compile the same local source paths.
 
@@ -415,24 +385,4 @@ On syntax/planner/reservation failure: no builder-call, target-compiler-call, ta
 
 Controls required: positive successful compile and run; negative each reservation failure; a poisoned later child for selected planner order; mutation moving builder/compiler call before reservation must fail the boundary probe even if its result stays lazy; bypassing a charge or resetting the ledger must fail budget tests; disabling an event site must fail its positive control; swapping Projection field order and truncating shared summaries to allocation capacity must fail exact/competing-limit tests. Compile and run normal builds too, proving CPP instrumentation does not change the public export set. No public callback injection is permitted.
 
-These events establish production sequencing and selected **logical constructor-entry** coverage. They are not physical allocator instrumentation, byte counts, or proof of zero Haskell allocations during preflight. Compiler optimization/laziness changes real heap behavior; no such measurement is asserted. Adding this private probe is a later implementation task and must be independently reviewed.
-
-## 10. Historical documentation-stage disposition
-
-This section preserves the record from before independent freeze review. Its pending-review statements are historical; the status header records the later contract-only PASS. This clarification changes no declaration, equation, failure order or evidence requirement.
-
-Resolved in the prospective design: test-only report agreement and total target failure path; caller bit limit; Projection and stored-field order; exact dimension-first saturation; cumulative owner/cursor/path list recurrence; root/builder/metadata/zero coverage; complete report equations; private instrumented build mechanism. These are source-backed **design arguments**, not implementation evidence.
-
-The five prior finding areas now have explicit prospective closures: (1) cumulative source/metadata/list coverage, including the newly named EQp equality coupon and large-product discriminator; (2) exact planner/Projection visitation and dimension-specific saturation; (3) test-only report agreement, total target failure forwarding and caller bits; (4) approved expressible fixture, once-bound b and complete executed literal-tree/coordinate evidence; (5) documentation integration through actual teaching execution, not a hash-only refresh. The previously reviewed private production-path probe and strict pre-build witness sequencing remain mandatory, unimplemented specifications.
-
-**Independent freeze review remains pending.** Completion here removes the identified fixture and documentation blockers, not the review gate. Independent review must validate the full coupon coverage and exact report policy before implementation. No repository source/runtime/test or public API changed; no status acceptance is implied. Required later gates are independent contract review, actual implementation and private probe, all planned differential/budget controls, supported-compiler tests, archive-only compiler tests, and final independent implementation review.
-
-### Documentation-stage validation scope
-
-Prior partial-delivery logs remain under `dist-newstyle/d080-contract-logs/`, including the superseded stale-receipt/book failures. Their independent Python arithmetic enumerated left-associated key lists through k=128 and checked the 357759/268131 discriminator, plus all handwritten Jacobian entries via exact polynomial coordinate differences. New executed baseline clients and independent tree/coupon arithmetic are distinguished in §7.3; no future planner or private declaration was implemented.
-
-After the Cabal membership edit, **`python3 scripts/check-learning --write` actually built the registered contexts and executed all seven teaching runs**, successfully validating 77 fences and refreshing `docs/learning/output-receipt.json`. All seven output files were compared byte-for-byte with pre-execution copies and are unchanged; only the receipt's source digest changes. The execution log and per-output hashes/byte-equality results are preserved. This is not the previous in-memory hash-only diagnosis.
-
-Documentation gate reruns passed: learning, book, capabilities, release policy, plan links, package manifest, Cabal checking/formatting and whitespace. The book gate checked 52 files and 422 display-math blocks and built HTML with mdbook 0.5.4 / local MathJax 3.2.2. Sixteen development source archives were regenerated, and all five changed/new root files were compared byte-for-byte with the root archive. Exit-status logs and final source-membership/scope evidence are preserved externally. Archive membership is byte comparison, not archive-only Haskell execution.
-
-The verified delta is this plan, its D-080/TODO links, root Cabal plan membership and the executed teaching receipt. All other tracked files, every decision status and the full historical D-080 freeze remain unchanged; there are no staged files. These checks do not award an independent contract verdict.
+These events establish production sequencing and selected **logical constructor-entry** coverage. They are not physical allocator instrumentation, byte counts, or proof of zero Haskell allocations during preflight. Compiler optimization/laziness changes real heap behavior; no such measurement is asserted.
