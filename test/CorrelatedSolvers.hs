@@ -4,9 +4,8 @@ These cover the frozen public surface: the tiny vertex games, the CE/CCE
 separating game's public witnesses, and the resource-boundary controls.  The
 mandated private controls -- the production builder row comparison, the
 linear-system controls, the arithmetic-only geometry gates, and the source-bound
-shadow injection -- live in the standalone private probe
-@test/CorrelatedSolverPrivate.hs@, because they must call the private core
-directly without exposing it publicly.
+shadow injection -- run through @scripts/check-correlated-solver@, which
+compiles the private, geometry, and trace probes against the hidden core.
 
 The independently labelled evaluator here shares no production constraint
 builder, elimination, or replacement function with the solver.  It reads
@@ -32,7 +31,9 @@ runCorrelatedSolverTests run = do
     run "public CE and CCE witnesses coincide on the separating game" testSeparatingPublic
     run "solutions retain the game handle, device, actual report and accounting" testSolutionFields
     run "an independent labelled evaluator agrees with every returned witness" testIndependentEvaluator
-    run "zero and one-below caps fail atomically with cap+1 and no solution" testResourceBoundaries
+    run "every zero public solve cap fails separately in both modes" testZeroResourceBoundaries
+    run "candidate-prefix caps are exact in both modes" testCandidatePrefixBoundaries
+    run "matching-pennies elimination has an exact public Rational boundary" testPublicEliminationRationalBoundary
     run "materialization is selected before work in the same block" testMaterializationBeforeWork
     run "a zero CE row count still validates the device and calls the real checker" testZeroRowChecker
     run "rejected candidate reservations and bits remain in the final accounting" testRejectedHistoryRetained
@@ -72,6 +73,26 @@ orDie = either (error . show) id
 
 masses :: ExactCorrelationDevice String String -> [Rational]
 masses = map snd . correlationEntries
+
+type Solver =
+    CorrelationSolveLimits ->
+    ExactNormalGame String String ->
+    Either (CorrelationSolveError String String) ([Rational], CorrelationSolveAccounting)
+
+solveCorrelatedAccount :: Solver
+solveCorrelatedAccount limits game =
+    fmap
+        (\solution -> (masses (correlatedSolutionDevice solution), correlatedSolutionAccounting solution))
+        (solveCorrelatedEquilibrium limits game)
+
+solveCoarseAccount :: Solver
+solveCoarseAccount limits game =
+    fmap
+        (\solution -> (masses (coarseCorrelatedSolutionDevice solution), coarseCorrelatedSolutionAccounting solution))
+        (solveCoarseCorrelatedEquilibrium limits game)
+
+solverEntrypoints :: [(String, Solver)]
+solverEntrypoints = [("CE", solveCorrelatedAccount), ("CCE", solveCoarseAccount)]
 
 profileLabels :: ExactNormalGame String String -> [[(String, String)]]
 profileLabels game =
@@ -256,22 +277,8 @@ testCoordination = do
         Left problem -> ioError (userError ("coordination CCE: " ++ show problem))
         Right value -> pure value
     assert "coordination CCE first success" (masses (coarseCorrelatedSolutionDevice coarse) == [0, 0, 0, 1])
-    -- The complete tiny vertex set, verified by the independent evaluator
-    -- without requiring the public operation to continue after success.
-    let vertices =
-            [ [1, 0, 0, 0]
-            , [0, 0, 0, 1]
-            , [1 / 3, 1 / 3, 0, 1 / 3]
-            , [1 / 3, 0, 1 / 3, 1 / 3]
-            , [1 / 4, 1 / 4, 1 / 4, 1 / 4]
-            ]
-    mapM_
-        ( \vertex ->
-            assert
-                ("coordination vertex is CE: " ++ show vertex)
-                (evaluateCorrelated coordinationGame vertex)
-        )
-        vertices
+
+-- The complete set and every basis are checked by CorrelatedSolverGeometry.
 
 -- §11.6 public half.  The mandatory production-builder row comparison is in
 -- the private probe.
@@ -353,68 +360,154 @@ testIndependentEvaluator = do
         , ("separating", separatingGame)
         ]
 
--- §11.8 resource boundaries.
+-- §11.1 and §11.8 resource boundaries.
 
-testResourceBoundaries :: IO ()
-testResourceBoundaries = do
-    -- A zero candidate cap fails on the initial tuple, not at constructor time.
-    let zeroCandidates = correlationSolveLimits tinyLimits ceiling_ 0 ceiling_
-    case solveCorrelatedEquilibrium zeroCandidates zeroPayoffGame of
-        Left (CorrelationSolveLimitExceeded phase resource cap required) ->
-            assert
-                "zero candidate cap fails in combination with cap+1"
-                (phase == CorrelationCombination && resource == CorrelationCandidateCount && cap == 0 && required == 1)
-        other -> ioError (userError ("zero candidate cap: " ++ describe other))
-    -- A zero inequality cap fails in constraints.
-    let zeroInequalities = correlationSolveLimits tinyLimits 0 ceiling_ ceiling_
-    case solveCorrelatedEquilibrium zeroInequalities zeroPayoffGame of
-        Left (CorrelationSolveLimitExceeded phase resource cap required) ->
-            assert
-                "zero inequality cap fails in constraints with cap+1"
-                (phase == CorrelationConstraints && resource == CorrelationInequalityCount && cap == 0 && required == 1)
-        other -> ioError (userError ("zero inequality cap: " ++ describe other))
-    -- A zero materialization cap fails atomically with no solution.
-    let zeroMaterialization = correlationSolveLimits tinyLimits ceiling_ ceiling_ 0
-    case solveCorrelatedEquilibrium zeroMaterialization zeroPayoffGame of
-        Left (CorrelationSolveLimitExceeded _ resource cap required) ->
-            assert
-                "zero materialization cap fails with cap+1"
-                (resource == CorrelationMaterialization && cap == 0 && required == 1)
-        other -> ioError (userError ("zero materialization cap: " ++ describe other))
-    -- A zero work cap fails atomically in admission, whose spine block is (16,0).
-    let zeroWork = gameLimits 64 64 64 4096 0 64 ceiling_
-        zeroWorkSolve = correlationSolveLimits zeroWork ceiling_ ceiling_ ceiling_
-    case solveCorrelatedEquilibrium zeroWorkSolve zeroPayoffGame of
-        Left (CorrelationSolveLimitExceeded phase resource cap required) ->
-            assert
-                "zero work cap fails in admission with cap+1"
-                (phase == CorrelationAdmission && resource == CorrelationWork && cap == 0 && required == 1)
-        other -> ioError (userError ("zero work cap: " ++ describe other))
-    -- A tight input-payoff Rational bound fails during admission.  Payoff -1
-    -- has combined size two, so a bound of one cannot admit it.
-    let tightBits = gameLimits 64 64 64 4096 ceiling_ 1 ceiling_
-        tightSolve = correlationSolveLimits tightBits ceiling_ ceiling_ ceiling_
-    case solveCorrelatedEquilibrium tightSolve uniqueNonDiracGame of
-        Left (CorrelationSolveLimitExceeded phase resource cap required) ->
-            assert
-                "tight payoff bits fail in admission with cap+1"
-                (phase == CorrelationAdmission && resource == CorrelationRationalBits && cap == 1 && required == 2)
-        other -> ioError (userError ("tight payoff bits: " ++ describe other))
-    -- The exact required candidate prefix admits, and one below fails.
-    let atPrefix = correlationSolveLimits tinyLimits ceiling_ 53 ceiling_
-        belowPrefix = correlationSolveLimits tinyLimits ceiling_ 52 ceiling_
-    case solveCorrelatedEquilibrium atPrefix uniqueNonDiracGame of
-        Right solution ->
-            assert
-                "the exact candidate prefix admits its boundary"
-                (correlationSolveCandidates (correlatedSolutionAccounting solution) == 53)
-        other -> ioError (userError ("candidate prefix boundary: " ++ describe other))
-    case solveCorrelatedEquilibrium belowPrefix uniqueNonDiracGame of
-        Left (CorrelationSolveLimitExceeded phase resource cap required) ->
-            assert
-                "one below the candidate prefix fails with cap+1"
-                (phase == CorrelationCombination && resource == CorrelationCandidateCount && cap == 52 && required == 53)
-        other -> ioError (userError ("one-below candidate prefix: " ++ describe other))
+{- | Each failure runs through both public entrypoints.  The source game was
+constructed under 'tinyLimits'; each control therefore tests the operation's
+active limits rather than manufacturing an invalid game.
+-}
+testZeroResourceBoundaries :: IO ()
+testZeroResourceBoundaries =
+    mapM_ (\(label, limits, expected) -> expectFailureBoth ("zero " ++ label) limits zeroPayoffGame expected) controls
+  where
+    productFailure = CorrelationSolveProductError
+    limitFailure = CorrelationSolveLimitExceeded
+    controls =
+        [
+            ( "owner cap"
+            , correlationSolveLimits (tinyLimits{maximumGameOwners = 0}) ceiling_ ceiling_ ceiling_
+            , productFailure (TooManyOwners 1 0)
+            )
+        ,
+            ( "local-choice cap"
+            , correlationSolveLimits (tinyLimits{maximumGameLocalChoices = 0}) ceiling_ ceiling_ ceiling_
+            , productFailure (TooManyLocalChoices "R" 1 0)
+            )
+        ,
+            ( "profile cap"
+            , correlationSolveLimits (tinyLimits{maximumGameProfiles = 0}) ceiling_ ceiling_ ceiling_
+            , productFailure (ProductCardinalityLimitExceeded 1 0)
+            )
+        ,
+            ( "cell cap"
+            , correlationSolveLimits (tinyLimits{maximumGameCells = 0}) ceiling_ ceiling_ ceiling_
+            , productFailure (ProductCellLimitExceeded 1 0)
+            )
+        ,
+            ( "work cap"
+            , correlationSolveLimits (tinyLimits{maximumGameWork = 0}) ceiling_ ceiling_ ceiling_
+            , limitFailure CorrelationAdmission CorrelationWork 0 1
+            )
+        ,
+            ( "Rational cap"
+            , correlationSolveLimits (tinyLimits{maximumGameRationalBits = 0}) ceiling_ ceiling_ ceiling_
+            , limitFailure CorrelationAdmission CorrelationRationalBits 0 1
+            )
+        ,
+            ( "inequality cap"
+            , correlationSolveLimits tinyLimits 0 ceiling_ ceiling_
+            , limitFailure CorrelationConstraints CorrelationInequalityCount 0 1
+            )
+        ,
+            ( "candidate cap"
+            , correlationSolveLimits tinyLimits ceiling_ 0 ceiling_
+            , limitFailure CorrelationCombination CorrelationCandidateCount 0 1
+            )
+        ,
+            ( "materialization cap"
+            , correlationSolveLimits tinyLimits ceiling_ ceiling_ 0
+            , limitFailure CorrelationAdmission CorrelationMaterialization 0 1
+            )
+        ]
+
+expectFailureBoth :: String -> CorrelationSolveLimits -> ExactNormalGame String String -> CorrelationSolveError String String -> IO ()
+expectFailureBoth label limits game expected =
+    mapM_ check solverEntrypoints
+  where
+    check (mode, solve) = case solve limits game of
+        Left problem -> assert (label ++ " " ++ mode ++ " (got " ++ show problem ++ ")") (problem == expected)
+        Right account -> ioError (userError (label ++ " " ++ mode ++ " returned an account: " ++ show account))
+
+testCandidatePrefixBoundaries :: IO ()
+testCandidatePrefixBoundaries = mapM_ check solverEntrypoints
+  where
+    atPrefix = correlationSolveLimits tinyLimits ceiling_ 53 ceiling_
+    belowPrefix = correlationSolveLimits tinyLimits ceiling_ 52 ceiling_
+    check (mode, solve) = do
+        case solve atPrefix uniqueNonDiracGame of
+            Right (_, account) ->
+                assert
+                    (mode ++ " exact candidate prefix admits candidate 53")
+                    ( correlationSolveCandidates account == 53
+                        && correlationSolveSelectedInequalities account == [4, 5, 6]
+                    )
+            other -> ioError (userError (mode ++ " candidate prefix boundary: " ++ describe other))
+        expectFailure
+            (mode ++ " one-below candidate prefix")
+            (solve belowPrefix uniqueNonDiracGame)
+            (CorrelationSolveLimitExceeded CorrelationCombination CorrelationCandidateCount 52 53)
+
+{- | The matching-pennies candidate family has public Rational boundaries.
+The input payoffs @-1@ and @1@ have combined size two.  The first constraint
+differences @-2@ and @2@ have size three.  At the third CE basis @[0,1,4]@,
+the normalized first row is @[1,1,1,1|1]@ and the deviation row is
+@[2,-2,0,0|0]@.  Eliminating its first column computes @-2 - 2*1 = -4@,
+the first size-four value.  CCE's corresponding third-column elimination
+computes @2 - (-2) = 4@.  Thus @B=3@ fails in elimination with @cap+1=4@.
+
+The candidate-prefix control proves that candidate 53 is the first attempted
+after 52.  With @B=4@ it reaches candidate normalization: the all-quarter
+candidate's normalization prefixes are @1/4, 1/2, 3/4, 1@, and @3/4@ has size five
+(two numerator bits plus three denominator bits).  @B=5@ admits exactly that
+candidate and independently checks both its masses and the named prefix.
+-}
+testPublicEliminationRationalBoundary :: IO ()
+testPublicEliminationRationalBoundary = mapM_ check solverEntrypoints
+  where
+    oneBit = correlationSolveLimits (tinyLimits{maximumGameRationalBits = 1}) ceiling_ ceiling_ ceiling_
+    twoBits = correlationSolveLimits (tinyLimits{maximumGameRationalBits = 2}) ceiling_ ceiling_ ceiling_
+    threeBits = correlationSolveLimits (tinyLimits{maximumGameRationalBits = 3}) ceiling_ ceiling_ ceiling_
+    fourBits = correlationSolveLimits (tinyLimits{maximumGameRationalBits = 4}) ceiling_ ceiling_ ceiling_
+    fourBitsAt52 = correlationSolveLimits (tinyLimits{maximumGameRationalBits = 4}) ceiling_ 52 ceiling_
+    fiveBits = correlationSolveLimits (tinyLimits{maximumGameRationalBits = 5}) ceiling_ ceiling_ ceiling_
+    check (mode, solve) = do
+        expectFailure
+            (mode ++ " one-bit matching-pennies admission")
+            (solve oneBit uniqueNonDiracGame)
+            (CorrelationSolveLimitExceeded CorrelationAdmission CorrelationRationalBits 1 2)
+        expectFailure
+            (mode ++ " two-bit matching-pennies reaches the constraint boundary")
+            (solve twoBits uniqueNonDiracGame)
+            (CorrelationSolveLimitExceeded CorrelationConstraints CorrelationRationalBits 2 3)
+        expectFailure
+            (mode ++ " three-bit matching-pennies elimination")
+            (solve threeBits uniqueNonDiracGame)
+            (CorrelationSolveLimitExceeded CorrelationElimination CorrelationRationalBits 3 4)
+        expectFailure
+            (mode ++ " four-bit matching-pennies has not reached candidate 53")
+            (solve fourBitsAt52 uniqueNonDiracGame)
+            (CorrelationSolveLimitExceeded CorrelationCombination CorrelationCandidateCount 52 53)
+        expectFailure
+            (mode ++ " four-bit matching-pennies reaches the later inequality boundary")
+            (solve fourBits uniqueNonDiracGame)
+            (CorrelationSolveLimitExceeded CorrelationInequalities CorrelationRationalBits 4 5)
+        case solve fiveBits uniqueNonDiracGame of
+            Right (solutionMasses, account) ->
+                assert
+                    (mode ++ " five-bit matching-pennies quarter-normalization witness")
+                    ( correlationSolveCandidates account == 53
+                        && correlationSolveSelectedInequalities account == [4, 5, 6]
+                        && correlationSolveObservedRationalBits account == 5
+                        && solutionMasses == [1 / 4, 1 / 4, 1 / 4, 1 / 4]
+                        && scanl (+) 0 solutionMasses == [0, 1 / 4, 1 / 2, 3 / 4, 1]
+                        && rationalSizeBits (3 / 4) == 5
+                    )
+            other -> ioError (userError (mode ++ " five-bit matching-pennies elimination: " ++ describe other))
+
+expectFailure :: String -> Either (CorrelationSolveError String String) value -> CorrelationSolveError String String -> IO ()
+expectFailure label result expected = case result of
+    Left problem -> assert (label ++ " (got " ++ show problem ++ ")") (problem == expected)
+    Right _ -> ioError (userError (label ++ " returned a solution"))
 
 {- | Materialization and work crossing in the same block selects
 materialization.  Admission's spine block is @(16,0)@ and charges no

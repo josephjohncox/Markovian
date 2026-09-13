@@ -4,9 +4,9 @@
 
 Placement is approved in the existing base-only `Markovian` library. Both public operations belong in `Markovian.Game.Correlated.Exact`.
 
-D-083 is implemented but remains Proposed pending the verification requirements in §11. The remaining work is tracked in [TODO.md](../../TODO.md#open-work).
+D-083 is implemented and the verification requirements in §11 are covered. It remains Proposed pending a separate reviewed acceptance update, tracked in [TODO.md](../../TODO.md#open-work).
 
-Keep the active-set generator, constraint builder, elimination, and account private in that module. No additional internal module is needed for this design. Add no package, dependency edge, general LP interface, matrix callback, or pivot callback.
+The active-set generator, constraint builder, elimination, and account live in the hidden `Markovian.Game.Correlated.Exact.Internal` module. The public module owns the solve pipeline and publication checks. Add no package, dependency edge, general LP interface, matrix callback, or pivot callback.
 
 The solver returns the first checked witness. It does not optimize an objective, solve Nash, enumerate equilibria, or return all vertices. It uses exact `Rational` arithmetic. It does not clip masses, rescale a solution, apply a tolerance, or normalize a device after elimination.
 
@@ -308,6 +308,18 @@ Each site's construction fits its reserved field envelope. Cumulative `C` bounds
 
 The combination state cannot retain prior tuples. The elimination loop cannot retain prior matrices through unevaluated closures. Rejection counters cannot retain candidates. Force fold accumulators and new matrix entries before the next transition. Keep no cache, all-vertex collection, or hidden optimizer state.
 
+The implementation follows this decomposition:
+
+| Source route | Reservation and strictness evidence |
+|---|---|
+| `admitGame`, `countSpine` | Inspect stored `NonEmpty` heads and borrowed tails after carrier-spine reservations. No conversion cons is constructed before materialization admission. Owner/payoff driver dispatch is bounded within the block decomposition; it does not add a separate carrier-spine charge. |
+| `reserveBlock`, `writeAccount` | Check materialization before work, then commit the strict account. Failed blocks neither commit nor continue. |
+| `buildConstraints`, `candidateMatrix`, `eliminate` | Reserve coefficient/row, matrix, and column blocks before their bodies. Replacement and lookup scans use the bounds in §6.1; each candidate constructs one matrix. |
+| `traverseSolve`, `foldSolve`, scalar counts | Force each result or accumulator before advancing. Scalar count folds use `foldl'`. Copied candidate entries are observed within classification's reservation before normalization. |
+| `searchWitness`, `advance` | Rejection passes only constraints, dimensions, and the current tuple onward. Strict counters retain no matrix or candidate. Publication compares row labels as well as every numeric, status, and count field. |
+
+The private harness checks admission, candidate, successor, and publication evaluation order at O0/O2. Public trace controls compare observations after forcing only the outer `Either` with observations after forcing the retained payload; later reads must add none. The geometry oracle derives cumulative reservations independently across rejected bases. These controls and the source decomposition concern represented operations and logical payloads, not physical heap residency.
+
 ## 10. Completeness and terminal meaning
 
 Every admitted game has finitely many nonempty action sets and rational payoffs. A finite game has a CE. Every CE is a CCE. Each corresponding probability polytope is nonempty and bounded.
@@ -320,7 +332,7 @@ Resource exhaustion terminates with its resource error. It never skips a tuple, 
 
 ## 11. Independent test matrix and exact fixtures
 
-These are required future tests, not executed evidence. Use source-named tests for each public operation and the private combination/elimination functions. Share no production constraint builder, elimination, or replacement function with the mathematical oracle.
+The required coverage below runs through [`scripts/check-correlated-solver`](../../scripts/check-correlated-solver) at O0/O2 and the public root suite. The [private controls](../../test/CorrelatedSolverPrivate.hs) cover boundaries and linear systems; the [geometry oracle](../../test/CorrelatedSolverGeometry.hs) checks complete tiny basis families and independent ledgers; the [trace oracle](../../test/CorrelatedSolverTrace.hs) checks constructor/checker arithmetic, strictness, and publication. The mathematical oracles share no production constraint builder, elimination, or replacement function.
 
 The oracle reads labelled payoff tables and labelled joint masses. It evaluates deviations by constructing changed label tuples directly. CE evaluation groups by recommendation labels. CCE evaluation evaluates constant deviations before recommendation. Check literal mass completeness, nonnegativity, and total one separately.
 
@@ -474,9 +486,9 @@ Also bind these aggregate-count counterexamples to the production count formulas
 - **CE, 64-bit `Int`:** `I=2^63-1`. One owner with `a=2^32` actions has `n=a`, `q=a(a-1)=2^64-2^32`, and `m=2^64`. Owner, local-action, and profile counts individually fit `I-1`. With inequality cap `m`, the report-length gate must reject `q`.
 - **CCE:** let `r=I-1`. Use two binary carriers and singleton carriers for the other owners. Then `n=4`, `L=2+2+(r-2)=r+2=I+1`, `q=I+1`, and `m=I+5`. All individual owner/action/profile lengths fit `I-1`. With inequality cap `m`, the report-length gate must reject `q`.
 
-Compute these scalar expressions directly in future arithmetic-helper tests. For CCE, derive the singleton contribution algebraically, not by traversing `I-3` singleton entries. Inspect the source route to confirm that production's CE count fold computes `sum_i a_i(a_i-1)` and its CCE fold computes `L`. Confirm that both routes call this same gate before constants or materialization. No compressed-carrier production API is needed.
+Compute these scalar expressions directly in the arithmetic-helper tests. For CCE, derive the singleton contribution algebraically, not by traversing `I-3` singleton entries. The production CE count fold computes `sum_i a_i(a_i-1)` and its CCE fold computes `L`; both routes call the same geometry gate before constants or row materialization. No compressed-carrier production API is needed.
 
-These are arithmetic-helper and source-route controls. Do not construct huge carriers, games, report lists, or row lists. Do not describe them as execution of those giant games. This draft adopts the algebra by inspection only. No executable arithmetic model ran.
+The private scalar controls execute the reserved geometry route and compare exact and one-below limits, including competing failures. They do not construct huge carriers, games, report lists, or row lists.
 
 ### 11.10 Source-bound private shadow Rational control
 

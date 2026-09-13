@@ -106,6 +106,14 @@ for optimization in 0 2; do
     -o "${tmp_dir}/correlated-solver-private-O${optimization}"
   "${tmp_dir}/correlated-solver-private-O${optimization}"
   echo "PASS: D083 private builder, elimination, geometry and shadow controls at O${optimization}"
+  cabal exec "${project_args[@]}" -- ghc \
+    -package-env - -hide-all-packages -package base -isrc -XGHC2021 \
+    "-O${optimization}" -Wall -Werror \
+    -outputdir "${tmp_dir}/geometry-O${optimization}" \
+    test/CorrelatedSolverGeometry.hs \
+    -o "${tmp_dir}/geometry-O${optimization}-probe"
+  "${tmp_dir}/geometry-O${optimization}-probe"
+  echo "PASS: D083 complete tiny geometry and independent ledger at O${optimization}"
 done
 
 # Observe source-level ordering in scratch copies, leaving the library and its
@@ -128,10 +136,17 @@ for relative in ["Markovian/Game/Correlated/Exact/Internal.hs", "Markovian/Game/
     if relative.endswith("Internal.hs"):
         source = replace_once(source, "pure (result : results)", 'pure (trace "SOLVER_RESULT_LIST_CONS" (result : results))')
         source = replace_once(source, "carrierValues = NonEmpty.toList . finiteObjectValues", 'carrierValues carrier = trace "SOLVER_CARRIER_INSPECTION" (NonEmpty.toList (finiteObjectValues carrier))')
+        source = replace_once(source, "case finiteObjectValues values of", 'case trace "SOLVER_BORROWED_CARRIER_INSPECTION" (finiteObjectValues values) of')
         source = replace_once(source, "candidateMatrix limits dimension constraints selected = do", 'candidateMatrix limits dimension constraints selected = trace "SOLVER_CANDIDATE_MATRIX" $ do')
         source = replace_once(source, "eliminate limits dimension variables matrix = go matrix 0 0 0", 'eliminate limits dimension variables matrix = trace "SOLVER_ELIMINATION" $ go matrix 0 0 0')
         source = replace_once(source, "successorTuple bound indices = scan (reverseList indices []) 0", 'successorTuple bound indices = trace "SOLVER_SUCCESSOR" $ scan (reverseList indices []) 0')
+        for name in ["correlatedShadow", "coarseShadow"]:
+            source = replace_once(source, f"{name} limits game entries labels = do", f'{name} limits game entries labels = trace "SOLVER_SHADOW" $ do')
     else:
+        source = replace_once(source, "exactCorrelationDevice limits product_ supplied = do", 'exactCorrelationDevice limits product_ supplied = trace "SOLVER_DEVICE" $ do')
+        for name in ["checkCorrelatedEquilibrium", "checkCoarseCorrelatedEquilibrium"]:
+            header = f"{name} limits game device@(ExactCorrelationDevice product_ _)\n"
+            source = replace_once(source, header, header + '    | trace "SOLVER_CHECKER" False = Left CorrelatedInternalLayoutMismatch\n')
         for name in ["agreesWithCorrelatedShadow limits game device shadow report", "agreesWithCoarseShadow limits device shadow report"]:
             source = replace_once(source, name + "\n", name + '\n    | trace "SOLVER_REPORT_COMPARISON" False = disagreement\n')
     target = destination / relative
@@ -178,7 +193,7 @@ for optimization in 0 2; do
     cat "${log_file}" >&2
     exit 1
   fi
-  for expected in SOLVER_RESULT_LIST_CONS SOLVER_CARRIER_INSPECTION SOLVER_REPORT_COMPARISON; do
+  for expected in SOLVER_RESULT_LIST_CONS SOLVER_CARRIER_INSPECTION SOLVER_BORROWED_CARRIER_INSPECTION SOLVER_REPORT_COMPARISON; do
     if ! grep -F "${expected}" "${log_file}" >/dev/null; then
       cat "${log_file}" >&2
       echo "The positive reservation control did not observe ${expected}." >&2
@@ -187,19 +202,24 @@ for optimization in 0 2; do
   done
   for control in admission spine publication; do
     case "${control}" in
-      admission) forbidden=SOLVER_RESULT_LIST_CONS ;;
-      spine) forbidden=SOLVER_CARRIER_INSPECTION ;;
-      publication) forbidden=SOLVER_REPORT_COMPARISON ;;
+      admission) forbidden=(SOLVER_RESULT_LIST_CONS SOLVER_CARRIER_INSPECTION) ;;
+      spine) forbidden=(SOLVER_CARRIER_INSPECTION SOLVER_BORROWED_CARRIER_INSPECTION) ;;
+      publication) forbidden=(SOLVER_REPORT_COMPARISON) ;;
     esac
     log_file="${tmp_dir}/${control}-O${optimization}.log"
     if ! "${tmp_dir}/reservation-O${optimization}-probe" "--${control}-reservation" >"${log_file}" 2>&1; then
       cat "${log_file}" >&2
       exit 1
     fi
-    if grep -F "${forbidden}" "${log_file}" >/dev/null; then
-      cat "${log_file}" >&2
-      echo "The ${control} control evaluated ${forbidden} before its reservation." >&2
-      exit 1
+    for event in "${forbidden[@]}"; do
+      if grep -F "${event}" "${log_file}" >/dev/null; then
+        cat "${log_file}" >&2
+        echo "The ${control} control evaluated ${event} before its reservation." >&2
+        exit 1
+      fi
+    done
+    if [[ "${control}" == admission ]]; then
+      check_event_count SOLVER_BORROWED_CARRIER_INSPECTION 10 "${log_file}"
     fi
   done
   echo "PASS: D083 admission and publication reserve before evaluation at O${optimization}"
@@ -246,12 +266,47 @@ for optimization in 0 2; do
     check_event_count SOLVER_SUCCESSOR "${expected}" "${log_file}"
   done
   echo "PASS: D083 final successor reserves before completion at O${optimization}"
+
+  cabal exec "${project_args[@]}" -- ghc \
+    -package-env - -hide-all-packages -package base \
+    "-i${tmp_dir}/instrumented" -isrc -XGHC2021 \
+    "-O${optimization}" -Wall -Werror \
+    -outputdir "${tmp_dir}/final-O${optimization}" \
+    test/CorrelatedSolverGeometry.hs -o "${tmp_dir}/final-O${optimization}-probe"
+  stages=(shadow device checker publication)
+  events=(SOLVER_SHADOW SOLVER_DEVICE SOLVER_CHECKER SOLVER_REPORT_COMPARISON)
+  for mode in ce cce; do
+    for stage in "${!stages[@]}"; do
+      for resource in work materialization; do
+        for boundary in below exact; do
+          log_file="${tmp_dir}/final-${mode}-${stage}-${resource}-${boundary}-O${optimization}.log"
+          if ! "${tmp_dir}/final-O${optimization}-probe" --final-boundary "${mode}" "${stages[stage]}" "${resource}" "${boundary}" >"${log_file}" 2>&1; then
+            cat "${log_file}" >&2
+            exit 1
+          fi
+          admitted="${stage}"
+          if [[ "${boundary}" == exact ]]; then admitted=$((admitted + 1)); fi
+          for event in "${!events[@]}"; do
+            expected=0
+            if (( event < admitted )); then expected=1; fi
+            check_event_count "${events[event]}" "${expected}" "${log_file}"
+          done
+        done
+      done
+    done
+  done
+  echo "PASS: D083 final verification bodies follow each reservation at O${optimization}"
 done
 
 # Measure constructor/checker operands and results against the production
 # shadow and an independent fixture oracle. Disable sharing of probe effects;
 # these are source-operation traces, not measurements of optimized allocation.
-for variant in none reverse zero operands; do
+for variant in none reverse zero operands ce-labels cce-labels; do
+  case "${variant}" in
+    ce-labels) expected_failure='publication rejects CE owner' ;;
+    cce-labels) expected_failure='publication rejects CCE owner' ;;
+    *) expected_failure='ordered constructor/checker/shadow Rational trace' ;;
+  esac
   python3 scripts/instrument-correlated-checker.py "${tmp_dir}/trace-${variant}" "${variant}"
   for optimization in 0 2; do
     cabal exec "${project_args[@]}" -- ghc \
@@ -267,7 +322,7 @@ for variant in none reverse zero operands; do
         echo "Checker trace accepted the ${variant} mutation at O${optimization}." >&2
         exit 1
       fi
-    elif [[ "${variant}" == none ]] || ! grep -F 'ordered constructor/checker/shadow Rational trace' "${log_file}" >/dev/null; then
+    elif [[ "${variant}" == none ]] || ! grep -F "${expected_failure}" "${log_file}" >/dev/null; then
       cat "${log_file}" >&2
       exit 1
     fi

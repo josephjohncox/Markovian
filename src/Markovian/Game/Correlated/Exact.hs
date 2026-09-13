@@ -670,6 +670,7 @@ searchWitness limits mode game runChecker compareReport = do
                 countRankDeficient
                 advance constraints dimension profiles rows selected
             Internal.FullRank masses -> do
+                mapM_ (Internal.observeRational limits Internal.CorrelationElimination) masses
                 admitted <- Internal.verifyCandidate limits dimension constraints masses
                 if not admitted
                     then do
@@ -758,7 +759,8 @@ agreesWithCorrelatedShadow limits game device shadow report
             rowCount
             (cappedGameProduct (maximumGameWork limits) (Internal.naturalCount (correlationEntries device)) 4)
     agrees row check =
-        Internal.shadowRecommendation row == recommendationMass check
+        Internal.shadowLabel row == Internal.ObedienceRow (recommendedFor check) (recommendedAction check) (alternativeAction check)
+            && Internal.shadowRecommendation row == recommendationMass check
             && Internal.shadowSlack row == obedienceSlack check
             && recommendationStatus check == (if Internal.shadowRecommendation row == 0 then NullRecommendation else PositiveRecommendation)
     disagreement = Just (CorrelationSolveInvariantFailure CorrelationCheckerDisagreement)
@@ -788,7 +790,9 @@ agreesWithCoarseShadow limits device shadow report
             (maximumGameWork limits)
             rowCount
             (cappedGameProduct (maximumGameWork limits) profiles 4)
-    agrees row check = Internal.shadowSlack row == coarseDeviationSlack check
+    agrees row check =
+        Internal.shadowLabel row == Internal.CoarseRow (coarseDeviationOwner check) (coarseAlternativeAction check)
+            && Internal.shadowSlack row == coarseDeviationSlack check
     disagreement = Just (CorrelationSolveInvariantFailure CorrelationCheckerDisagreement)
 
 -- | Map a private fault onto the frozen public error type.

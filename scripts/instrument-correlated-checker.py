@@ -45,6 +45,11 @@ def generate(destination, mutation):
         ("checkCoarseCorrelatedEquilibrium limits game device@", "{- | Check whether a device", "2f7f74d6ea6e5a2a09bf810ddb8d6dcc14a65e939298cc9dca2a4eb17bf9b278"),
         ("validateDevice limits (ExactCorrelationDevice product_ entries)", "checked ::", "b76b487c1f9978c2296ebed3cb417c6ce1b6c14d93858a324248967fe6667216"),
     ])
+    source = once(source, "    solveCoarseCorrelatedEquilibrium,\n) where",
+                  "    solveCoarseCorrelatedEquilibrium,\n    searchWitness,\n    agreesWithCorrelatedShadow,\n    agreesWithCoarseShadow,\n) where")
+    source = once(source,
+                  "mapM_ (Internal.observeRational limits Internal.CorrelationElimination) masses",
+                  'mapM_ (Internal.observeRational limits Internal.CorrelationElimination . Trace.mass "copy" "candidate") masses')
     source = once(source, "import Data.List.NonEmpty qualified as NonEmpty",
                   "import Data.List.NonEmpty qualified as NonEmpty\nimport D083Trace qualified as Trace")
     source = instrument(source, "    canonical profile =", "-- | Read the canonical complete table.", [
@@ -76,6 +81,10 @@ def generate(destination, mutation):
         # Equal offsets leave each difference and the complete report unchanged.
         source = once(source, 'checked limits "CE payoff difference" (Trace.binary "actual" "difference" (-) incumbent deviating)',
                       'checked limits "CE payoff difference" (Trace.binary "actual" "difference" (-) (incumbent + 1) (deviating + 1))')
+    elif mutation == "ce-labels":
+        source = once(source, "Internal.shadowLabel row == Internal.ObedienceRow (recommendedFor check) (recommendedAction check) (alternativeAction check)", "True")
+    elif mutation == "cce-labels":
+        source = once(source, "Internal.shadowLabel row == Internal.CoarseRow (coarseDeviationOwner check) (coarseAlternativeAction check)", "True")
     elif mutation != "none":
         raise SystemExit(f"unknown mutation: {mutation}")
     target = destination / relative

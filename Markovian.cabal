@@ -181,6 +181,7 @@ extra-source-files:
   test/compile-fail/PushoutKind.hs
   test/compile-fail/RefinementRoles.hs
   test/compile-fail/RootMovedModules.hs
+  test/CorrelatedSolverGeometry.hs
   test/CorrelatedSolverPrivate.hs
   test/CorrelatedSolverTrace.hs
   test/D083Trace.hs

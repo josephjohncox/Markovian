@@ -1,7 +1,7 @@
 {-# OPTIONS_GHC -fno-cse -fno-full-laziness #-}
 
 -- Test-build arithmetic hooks. This module is never part of the library.
-module D083Trace (Event (..), mass, binary, resetEvents, readEvents, capture) where
+module D083Trace (Event (..), mass, binary, resetEvents, readEvents, capture, captureStrict) where
 
 import Control.Exception (evaluate)
 import Data.IORef
@@ -44,3 +44,16 @@ capture value = do
     _ <- evaluate (length (show value))
     observed <- readEvents
     pure (value, observed)
+
+-- Observing only the outer Either must finish the public solve's arithmetic.
+-- Forcing its retained payload afterward must not add deferred observations.
+captureStrict :: (Show value) => value -> IO (value, [Event])
+captureStrict value = do
+    resetEvents
+    _ <- evaluate value
+    before <- readEvents
+    _ <- evaluate (length (show value))
+    after <- readEvents
+    if before == after
+        then pure (value, after)
+        else ioError (userError "public solve deferred observations until its payload was forced")

@@ -6,7 +6,7 @@
 module Main (main) where
 
 import Control.Monad (unless, when)
-import D083Trace (Event (..), capture)
+import D083Trace (Event (..), capture, captureStrict)
 import Data.Ratio (denominator, numerator, (%))
 import Markovian.Category.Finite.Object
 import Markovian.Game.Correlated.Exact qualified as Public
@@ -272,9 +272,13 @@ testPublic mode fixture = do
             CoarseMode -> do
                 solution <- Public.solveCoarseCorrelatedEquilibrium limits game
                 pure (Public.coarseCorrelatedSolutionDevice solution, Right (Public.coarseCorrelatedSolutionCheck solution), Public.coarseCorrelatedSolutionAccounting solution)
-    (evaluated, observed) <- capture result
+    (evaluated, observed) <- captureStrict result
     let (device, report, account) = orDie evaluated
         masses = map snd (Public.correlationEntries device)
+        copied = filter ((== "copy") . producerOf) observed
+        observationsAfterCopies = [(left, right) | (left, right) <- zip observed (drop 1 observed), producerOf left == "copy"]
+    assert "RHS candidate copies are observed before normalization" (length copied >= length masses && map resultOf (drop (length copied - length masses) copied) == masses)
+    assert "each copied RHS is observed in the reserved classification phase" (all (\(left, right) -> right == Mass "observe" (show CorrelationElimination) (resultOf left)) observationsAfterCopies)
     measured <- checkTraces mode fixture masses observed
     assert "every public solution report field" (report == case mode of CorrelatedMode -> Left (ceOracle fixture masses); CoarseMode -> Right (cceOracle fixture masses))
     assert "same-run measured peak equals public checker-covered account" (measured == Public.correlationSolveCheckerCoveredRationalBits account)
@@ -282,6 +286,58 @@ testPublic mode fixture = do
     assert "public witness still evaluates discarded ten-bit differences" (measured == 10)
     when (payoffOffset fixture > 0) $
         assert "public V excludes already admitted large payoff operands" (Public.correlationSolveObservedRationalBits account > measured)
+
+-- Inject through the existing private pipeline callback. Public reports have
+-- constructors; publication must check every field before retaining one.
+testPublication :: IO ()
+testPublication = do
+    let game = fixtureGame frozenFixture
+        bounds = gameBounds 64
+        disagreement = Public.CorrelationSolveInvariantFailure Public.CorrelationCheckerDisagreement
+        compareCE shadow device = Public.agreesWithCorrelatedShadow bounds game device shadow
+        compareCCE shadow device = Public.agreesWithCoarseShadow bounds device shadow
+        first change values = case values of
+            [] -> error "publication fixture needs a report row"
+            value : remaining -> change value : remaining
+        ceRow change report = report{Public.correlatedObedienceChecks = first change (Public.correlatedObedienceChecks report)}
+        cceRow change report = report{Public.coarseDeviationChecks = first change (Public.coarseDeviationChecks report)}
+        ceChanges =
+            [ ("CE satisfied", \r -> r{Public.correlatedEquilibriumSatisfied = False})
+            , ("CE profiles", \r -> r{Public.correlatedProfileCount = 0})
+            , ("CE count", \r -> r{Public.correlatedObedienceCount = 0})
+            , ("CE work", \r -> r{Public.correlatedArithmeticWork = 0})
+            , ("CE short rows", \r -> r{Public.correlatedObedienceChecks = drop 1 (Public.correlatedObedienceChecks r)})
+            , ("CE extra rows", \r -> r{Public.correlatedObedienceChecks = Public.correlatedObedienceChecks r ++ Public.correlatedObedienceChecks r})
+            , ("CE owner", ceRow (\r -> r{Public.recommendedFor = "absent"}))
+            , ("CE recommended", ceRow (\r -> r{Public.recommendedAction = Public.alternativeAction r}))
+            , ("CE alternative", ceRow (\r -> r{Public.alternativeAction = Public.recommendedAction r}))
+            , ("CE mass", ceRow (\r -> r{Public.recommendationMass = 1}))
+            , ("CE status", ceRow (\r -> r{Public.recommendationStatus = Public.PositiveRecommendation}))
+            , ("CE slack", ceRow (\r -> r{Public.obedienceSlack = 1}))
+            ]
+        cceChanges =
+            [ ("CCE satisfied", \r -> r{Public.coarseCorrelatedEquilibriumSatisfied = False})
+            , ("CCE profiles", \r -> r{Public.coarseCorrelatedProfileCount = 0})
+            , ("CCE count", \r -> r{Public.coarseDeviationCount = 0})
+            , ("CCE work", \r -> r{Public.coarseArithmeticWork = 0})
+            , ("CCE short rows", \r -> r{Public.coarseDeviationChecks = drop 1 (Public.coarseDeviationChecks r)})
+            , ("CCE extra rows", \r -> r{Public.coarseDeviationChecks = Public.coarseDeviationChecks r ++ Public.coarseDeviationChecks r})
+            , ("CCE owner", cceRow (\r -> r{Public.coarseDeviationOwner = "absent"}))
+            , ("CCE alternative", cceRow (\r -> r{Public.coarseAlternativeAction = "absent"}))
+            , ("CCE slack", cceRow (\r -> r{Public.coarseDeviationSlack = 1}))
+            ]
+        check label mode checker compareReport expected = do
+            (result, _) <- capture (runSolve (Public.searchWitness (solveBounds 64) mode game checker compareReport))
+            case result of
+                Right (Left problem, account) -> do
+                    assert ("publication rejects " ++ label) (problem == expected)
+                    assert "publication failure cannot try another candidate or publish its tuple" (correlationSolveCandidates' account == 1 && null (correlationSolveSelectedInequalities' account))
+                other -> ioError (userError ("publication rejects " ++ label ++ ": " ++ show other))
+        checkerError = Public.CorrelationSolveCheckerError Public.CorrelatedInternalLayoutMismatch
+    mapM_ (\(label, change) -> check label CorrelatedMode (either (Left . Public.CorrelationSolveCheckerError) (Right . change) . Public.checkCorrelatedEquilibrium bounds game) compareCE disagreement) ceChanges
+    mapM_ (\(label, change) -> check label CoarseMode (either (Left . Public.CorrelationSolveCheckerError) (Right . change) . Public.checkCoarseCorrelatedEquilibrium bounds game) compareCCE disagreement) cceChanges
+    check "CE checker error" CorrelatedMode (const (Left checkerError)) compareCE checkerError
+    check "CCE checker error" CoarseMode (const (Left checkerError)) compareCCE checkerError
 
 main :: IO ()
 main = do
@@ -293,4 +349,5 @@ main = do
     testPrivate 8 CorrelatedMode frozenFixture [1 % 3, 1 % 6, 1 % 5, 3 % 10]
     testPrivate 7 CoarseMode frozenFixture [1 % 3, 1 % 6, 1 % 5, 3 % 10]
     testFrozenFailure
+    testPublication
     putStrLn "PASS: D083 ordered constructor/checker/shadow Rational traces, complete reports, and measured checker-covered peaks"

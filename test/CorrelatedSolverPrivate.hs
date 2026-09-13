@@ -16,7 +16,6 @@ machinery:
   traversal.
 * §11.9 the arithmetic-only report-length admission gates, through the same
   production geometry route.
-* §11.10 the source-bound private CE shadow 'Rational' control.
 -}
 module Main (main) where
 
@@ -66,7 +65,7 @@ runTests = do
     testSpineReservation
     testPublicationReservation
     mapM_ testCandidateReservation [0, 1, 2]
-    testRejectionCounters
+    testAtomicFailureIsolation
 
 -- Independently derive the singleton block schedule for one or three owners.
 -- There are 3r+3 spine inspections, three blocks of dimension 2r+2, and
@@ -181,6 +180,50 @@ testCandidateReservation cap = mapM_ check [CorrelatedMode, CoarseMode]
                         && Public.correlationSolveSelectedInequalities account == [1]
                     )
 
+{- | A candidate-limit failure occurs after the first strict-optimum basis has
+been admitted, eliminated, and recorded as an inequality rejection.  The
+public error carries no partial solution or ledger.  A fresh solve must start
+from the zero account rather than inherit that rejected candidate.
+-}
+testAtomicFailureIsolation :: IO ()
+testAtomicFailureIsolation = mapM_ check [CorrelatedMode, CoarseMode]
+  where
+    check mode = do
+        let exhausted = Public.correlationSolveLimits tinyLimits ceiling_ 1 ceiling_
+            sufficient = Public.correlationSolveLimits tinyLimits ceiling_ 2 ceiling_
+        case publicAccount mode exhausted strictOptimumGame of
+            Left problem ->
+                assert
+                    "candidate exhaustion remains a terminal resource error"
+                    ( problem
+                        == Public.CorrelationSolveLimitExceeded
+                            Public.CorrelationCombination
+                            Public.CorrelationCandidateCount
+                            1
+                            2
+                    )
+            Right account ->
+                ioError
+                    ( userError
+                        ( "candidate exhaustion leaked a partial solution/account: "
+                            ++ show account
+                        )
+                    )
+        let firstFresh = publicAccount mode sufficient strictOptimumGame
+            secondFresh = publicAccount mode sufficient strictOptimumGame
+        case (firstFresh, secondFresh) of
+            (Right first, Right second) ->
+                assert
+                    "a failed solve cannot retain counters into a fresh solve"
+                    ( first == second
+                        && Public.correlationSolveCandidates first == 2
+                        && Public.correlationSolveInequalityRejectedCandidates first == 1
+                        && Public.correlationSolveRankDeficientCandidates first == 0
+                        && Public.correlationSolveInconsistentCandidates first == 0
+                        && Public.correlationSolveSelectedInequalities first == [1]
+                    )
+            _ -> ioError (userError "fresh strict-optimum solve failed after candidate exhaustion")
+
 strictOptimumGame :: ExactNormalGame String String
 strictOptimumGame =
     buildGame
@@ -228,34 +271,6 @@ testSuccessorReservation exhausted = mapM_ check [CorrelatedMode, CoarseMode]
         assert
             "the final successor requires a block but no extra candidate credit"
             (publicAccount mode limits strictOptimumGame == Left expected)
-
--- The matching-pennies prefix has 52 rejections before [4,5,6]. Independently,
--- its only dependent three-row selections are two nonnegativity rows plus
--- their deviation equality: CE [0,1,4], [0,2,6], [1,3,7], [2,3,5]. Each is
--- consistent with normalization. CCE permutes the deviation rows and has the
--- same four cases. The other 48 prefix bases have full rank and violate an
--- inequality. Checking only the counter sum cannot detect swapped categories.
-testRejectionCounters :: IO ()
-testRejectionCounters = mapM_ check [CorrelatedMode, CoarseMode]
-  where
-    game =
-        buildGame
-            [("R", ["A", "B"]), ("C", ["A", "B"])]
-            [ ([("R", "A"), ("C", "A")], [("R", 1), ("C", -1)])
-            , ([("R", "A"), ("C", "B")], [("R", -1), ("C", 1)])
-            , ([("R", "B"), ("C", "A")], [("R", -1), ("C", 1)])
-            , ([("R", "B"), ("C", "B")], [("R", 1), ("C", -1)])
-            ]
-    check mode = case publicAccount mode (Public.correlationSolveLimits tinyLimits ceiling_ ceiling_ ceiling_) game of
-        Left problem -> ioError (userError ("rejection counters: " ++ show problem))
-        Right account ->
-            assert
-                "matching pennies preserves each independently counted rejection class"
-                ( Public.correlationSolveCandidates account == 53
-                    && Public.correlationSolveRankDeficientCandidates account == 4
-                    && Public.correlationSolveInconsistentCandidates account == 0
-                    && Public.correlationSolveInequalityRejectedCandidates account == 48
-                )
 
 -- Numerator and denominator consume the same bit budget. Rejection stops at
 -- the first bit over that budget, including when the denominator crosses it.
@@ -703,17 +718,33 @@ testGeometryAdmission = do
         (machine - 1)
         (Left (SolveLimitFault CorrelationConstraints CorrelationInequalityCount (machine - 1) machine))
     -- Competing failures through the same reserved production route.
-    -- Insufficient materialization wins before work or either geometry gate.
-    let noMaterialization = correlationSolveLimits tinyLimits 0 ceiling_ 0
-    case runSolve (geometryThread noMaterialization CoarseMode 1 [machine]) of
-        Left (SolveLimitFault _ resource _ _) ->
-            assert "insufficient materialization wins first" (resource == CorrelationMaterialization)
+    -- Insufficient materialization wins before work or either geometry gate,
+    -- even when work would cross in that same reserved block.
+    let fieldsBelow = geometryFields - 1
+        workBelow = geometryWork geometryBits - 1
+        materializationFirst = geometryLimits machine fieldsBelow workBelow geometryBits
+    case runSolve (geometryThread materializationFirst CoarseMode 1 [machine]) of
+        Left (SolveLimitFault phase resource cap required) ->
+            assert
+                "geometry materialization precedes work and the inequality gate"
+                ( phase == CorrelationConstraints
+                    && resource == CorrelationMaterialization
+                    && cap == fieldsBelow
+                    && required == geometryFields
+                )
         other -> ioError (userError ("geometry materialization: " ++ describeThread other))
-    -- With materialization admitted, insufficient work wins before either gate.
-    let noWork = correlationSolveLimits (gameLimits 64 64 64 4096 0 64 ceiling_) 0 ceiling_ ceiling_
-    case runSolve (geometryThread noWork CoarseMode 1 [machine]) of
-        Left (SolveLimitFault _ resource _ _) ->
-            assert "insufficient work wins before either gate" (resource == CorrelationWork)
+    -- With materialization admitted, the same block reports work before the
+    -- inequality gate.
+    let workFirst = geometryLimits machine geometryFields workBelow geometryBits
+    case runSolve (geometryThread workFirst CoarseMode 1 [machine]) of
+        Left (SolveLimitFault phase resource cap required) ->
+            assert
+                "geometry work precedes the inequality gate after materialization"
+                ( phase == CorrelationConstraints
+                    && resource == CorrelationWork
+                    && cap == workBelow
+                    && required == geometryWork geometryBits
+                )
         other -> ioError (userError ("geometry work: " ++ describeThread other))
 
 {- | Reserve the geometry block, then run the production gate, exactly as §7
@@ -726,19 +757,66 @@ geometryThread ::
     [Natural] ->
     Solve String (Natural, Natural)
 geometryThread limits mode profiles locals = do
-    reserveBlock limits CorrelationConstraints 8
+    reserveBlock limits CorrelationConstraints geometryDimension
     admitGeometry limits mode profiles locals
+
+{- | The next two source constants after geometry admission.  The production
+search observes these only after the inequality and report-length gates.
+-}
+geometryThenConstants ::
+    CorrelationSolveLimits ->
+    SolveMode ->
+    Natural ->
+    [Natural] ->
+    Solve String (Natural, Natural)
+geometryThenConstants limits mode profiles locals = do
+    geometry <- geometryThread limits mode profiles locals
+    observeRational limits CorrelationConstraints 0
+    observeRational limits CorrelationConstraints 1
+    pure geometry
+
+{- | The scalar controls reserve one actual geometry block.  This is the
+independent block-table arithmetic for dimension eight and @B=64@, not a
+value copied from a successful solve report.
+-}
+geometryDimension :: Natural
+geometryDimension = 8
+
+geometryBits :: Natural
+geometryBits = 64
+
+geometryFields :: Natural
+geometryFields = 1024 * geometryDimension ^ (6 :: Int)
+
+geometryWork :: Natural -> Natural
+geometryWork bits = geometryFields * (bits + 1)
+
+geometryLimits :: Natural -> Natural -> Natural -> Natural -> CorrelationSolveLimits
+geometryLimits inequalities fields work bits =
+    correlationSolveLimits
+        (gameLimits 64 64 64 4096 work bits ceiling_)
+        inequalities
+        ceiling_
+        fields
 
 {- | Drive the production geometry gate with a synthetic @q@.  CCE's count fold
 is @L@, so a single-entry local list supplies @q@ directly without constructing
-a carrier.
+a carrier.  Every case takes the same prior geometry reservation as production
+does, and successful cases prove that its exact work/materialization boundary
+was admitted.
 -}
 expectGeometry :: String -> Natural -> Natural -> Natural -> Either (SolveFault String) (Natural, Natural) -> IO ()
 expectGeometry label profiles rows cap expected = do
-    let limits = correlationSolveLimits tinyLimits cap ceiling_ ceiling_
-    case runSolve (admitGeometry limits CoarseMode profiles [rows]) of
+    let limits = geometryLimits cap geometryFields (geometryWork geometryBits) geometryBits
+    case runSolve (geometryThread limits CoarseMode profiles [rows]) of
         Left fault -> assert (label ++ " (got " ++ show fault ++ ")") (Left fault == expected)
-        Right (value, _) -> assert (label ++ " (got " ++ show value ++ ")") (Right value == expected)
+        Right (value, account) -> do
+            assert (label ++ " (got " ++ show value ++ ")") (Right value == expected)
+            assert
+                (label ++ " reserves exactly one geometry block")
+                ( correlationSolveReservedMaterialization' account == geometryFields
+                    && correlationSolveReservedWork' account == geometryWork geometryBits
+                )
 
 {- | §11.9 the aggregate-count counterexamples, bound to the production count
 formulas and the geometry gate.  These are scalar computations: no giant
@@ -756,8 +834,8 @@ testAggregateCounterexamples = do
     assert "the CE aggregate count is a(a-1)" (obedienceRowCount expectedM [actions] == expectedQ)
     assert "the CE aggregate m is 2^64" (expectedM == 2 ^ (64 :: Int))
     assert "the individual action count still fits I-1" (actions <= ceiling_)
-    let ceLimits = correlationSolveLimits tinyLimits expectedM ceiling_ ceiling_
-    case runSolve (admitGeometry ceLimits CorrelatedMode actions [actions] :: Solve String (Natural, Natural)) of
+    let ceLimits = geometryLimits expectedM geometryFields (geometryWork geometryBits) geometryBits
+    case runSolve (geometryThread ceLimits CorrelatedMode actions [actions] :: Solve String (Natural, Natural)) of
         Left fault ->
             assert
                 ("the CE aggregate must be rejected by report length, got " ++ show fault)
@@ -773,8 +851,8 @@ testAggregateCounterexamples = do
     assert "the CCE aggregate L is I+1" (localSum == machine + 1)
     assert "the CCE aggregate m is I+5" (coarseM == machine + 5)
     assert "the CCE count fold is L" (coarseRowCount coarseM [2, 2, owners - 2] == localSum)
-    let cceLimits = correlationSolveLimits tinyLimits coarseM ceiling_ ceiling_
-    case runSolve (admitGeometry cceLimits CoarseMode 4 [2, 2, owners - 2] :: Solve String (Natural, Natural)) of
+    let cceLimits = geometryLimits coarseM geometryFields (geometryWork geometryBits) geometryBits
+    case runSolve (geometryThread cceLimits CoarseMode 4 [2, 2, owners - 2] :: Solve String (Natural, Natural)) of
         Left fault ->
             assert
                 ("the CCE aggregate must be rejected by report length, got " ++ show fault)
@@ -811,8 +889,8 @@ testTraversalOrder = do
 
 Covers two orderings the public fixtures do not isolate: within one admitted
 block, work is reported before an observed 'Rational' would exceed its cap; and
-the report-length gate fires before any constant 'Rational' observation, because
-'admitGeometry' performs no observation at all.
+the report-length gate fires before the production constants.  The final case
+also proves that the exact report-length boundary reaches those constants.
 -}
 testCompetingFailures :: IO ()
 testCompetingFailures = do
@@ -847,16 +925,30 @@ testCompetingFailures = do
                     && required == 2
                 )
         other -> ioError (userError ("arithmetic after work: " ++ describeThread other))
-    -- The report-length gate precedes constant observation: even with B=1, which
-    -- cannot admit the constants zero or one, a q above the representational
-    -- ceiling reports ReportLength, because admitGeometry observes nothing.
-    let bitStarved = correlationSolveLimits (gameLimits 64 64 64 4096 ceiling_ 1 ceiling_) (machine + 5) ceiling_ ceiling_
-    case runSolve (admitGeometry bitStarved CoarseMode 4 [machine + 1] :: Solve String (Natural, Natural)) of
+    -- The report-length gate precedes constant observation: even with B=1,
+    -- which cannot admit either constant, q=I reaches ReportLength before the
+    -- first zero is observed.
+    let oneBitWork = geometryWork 1
+        bitStarved = geometryLimits (machine + 1) geometryFields oneBitWork 1
+    case runSolve (geometryThenConstants bitStarved CoarseMode 1 [machine] :: Solve String (Natural, Natural)) of
         Left fault ->
             assert
                 ("report length must precede constant observation, got " ++ show fault)
                 (fault == SolveRepresentationFault CorrelationReportLength)
         Right value -> ioError (userError ("geometry admitted " ++ show value))
+    -- At the exact q=I-1, m=I boundary, geometry is admitted.  The next
+    -- production constant is then the first failure at B=1.
+    let constantsAfterGeometry = geometryLimits machine geometryFields oneBitWork 1
+    case runSolve (geometryThenConstants constantsAfterGeometry CoarseMode 1 [machine - 1] :: Solve String (Natural, Natural)) of
+        Left (SolveLimitFault phase resource cap required) ->
+            assert
+                "the exact report-length boundary reaches the first constant"
+                ( phase == CorrelationConstraints
+                    && resource == CorrelationRationalBits
+                    && cap == 1
+                    && required == 2
+                )
+        other -> ioError (userError ("constants after geometry: " ++ describeThread other))
 
 enumerate :: Natural -> [Natural] -> [[Natural]]
 enumerate bound = go
