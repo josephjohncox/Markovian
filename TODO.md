@@ -18,11 +18,11 @@ EL-04, and EL-05 are implemented but remain Proposed. See the
 [CE/CCE contract](docs/plans/D083-CE-CCE-SOLVERS.md). D-083 remains Proposed.
 The accepted placement adds no package or dependency edge.
 
-- [ ] Instrument the constructor/checker's ordered Rational intermediates and
-  compare them with the shadow sequence (§11.8). `testCheckerRowSequenceAgreement`
-  compares returned rows but misses discarded intermediates.
-  `correlationSolveCheckerCoveredRationalBits` currently comes from the shadow,
-  without an actual checker measurement.
+- [x] Compare ordered constructor/checker operands and results with the production
+  shadow and an independent oracle (§11.8), including discarded intermediates,
+  zero masses, null recommendations, reordered layouts, and every report field.
+  Private O0/O2 builds measure the checker peak against the shadow-derived
+  account and check the source-bound seven/eight-bit control (§11.10).
 - [ ] Complete redundant-row, degeneracy, rank-deficiency, inconsistency, and
   tiny-vertex controls (§11.5). Compare production builders and witness
   inequalities with independent references, including private infeasible

@@ -58,9 +58,7 @@ runTests = do
     testLinearSystemControls
     testGeometryAdmission
     testAggregateCounterexamples
-    testShadowRationalControl
     testTraversalOrder
-    testCheckerRowSequenceAgreement
     testCompetingFailures
     testBoundedRationalObservation
     testSingletonReservations
@@ -783,101 +781,6 @@ testAggregateCounterexamples = do
                 (fault == SolveRepresentationFault CorrelationReportLength)
         Right value -> ioError (userError ("CCE aggregate admitted " ++ show value))
 
-{- | §11.10 the source-bound private CE shadow control.
-
-A zero-payoff game with owners @[Row,Column]@, Row actions @[A,B]@ and Column
-actions @[L,R]@, profile order @(AL,AR,BL,BR)@.  The complete candidate masses
-@(1/3,1/6,1/5,3/10)@ are injected only into this private route; they are not the
-public solver's selected candidate.
--}
-testShadowRationalControl :: IO ()
-testShadowRationalControl = do
-    let game =
-            buildGame
-                [("Row", ["A", "B"]), ("Column", ["L", "R"])]
-                [ ([("Row", a), ("Column", c)], [("Row", 0), ("Column", 0)])
-                | a <- ["A", "B"]
-                , c <- ["L", "R"]
-                ]
-        profiles = carrierValues (ownedProfiles (normalGameProduct game))
-        injected = [1 / 3, 1 / 6, 1 / 5, 3 / 10]
-        entries = zip profiles injected
-    -- The independent labelled arithmetic trace.
-    assert "the injected masses have sizes 3,4,4,6" (map (boundedRationalSize 64) injected == [3, 4, 4, 6])
-    let prefixes = scanl1 (+) injected
-    assert "the normalization prefixes are 1/3, 1/2, 7/10, 1" (prefixes == [1 / 3, 1 / 2, 7 / 10, 1])
-    assert
-        "the normalization prefix sizes are 3,3,7,2"
-        (map (boundedRationalSize 64) prefixes == [3, 3, 7, 2])
-    -- 1/3 + 1/5 = 8/15, whose reduced numerator and denominator each have four
-    -- bits, so the combined size is eight: the first new peak after preparation.
-    assert "1/3 + 1/5 is 8/15 with combined size eight" (boundedRationalSize 64 (1 / 3 + 1 / 5) == 8)
-    assert "1/6 + 3/10 is 7/15 with combined size seven" (boundedRationalSize 64 (1 / 6 + 3 / 10) == 7)
-    -- Preparation: admit the zero game and constants, build the production
-    -- rows for each mode, observe the injected masses in profile order, and run
-    -- the declared normalization and ordered inequality folds without
-    -- elimination.  That cumulative account carries into the production shadow.
-    let prepare limits mode = do
-            _ <- admitGame limits game
-            reserveBlock limits CorrelationConstraints 16
-            _ <- admitGeometry limits mode 4 [2, 2]
-            observeRational limits CorrelationConstraints 0
-            observeRational limits CorrelationConstraints 1
-            rows <- buildConstraints limits mode game 32
-            mapM_ (observeRational limits CorrelationVerification) injected
-            _ <- verifyCandidate limits 32 rows injected
-            pure rows
-    -- Preparation alone ends with historical H = 7 under a seven-bit bound.
-    let sevenBits = correlationSolveLimits (gameLimits 64 64 64 4096 ceiling_ 7 ceiling_) ceiling_ ceiling_ ceiling_
-    case runSolve (prepare sevenBits CorrelatedMode) of
-        Left fault -> ioError (userError ("CE preparation should fit seven bits: " ++ show fault))
-        Right (_, account) ->
-            assert
-                ( "CE preparation ends with H=7, saw "
-                    ++ show (correlationSolveObservedRationalBits' account)
-                )
-                (correlationSolveObservedRationalBits' account == 7)
-    -- Through the ACTUAL production CE shadow, B=7 must fail at the Column-L
-    -- recommendation addition.
-    let ceLabels = deviationLabels CorrelatedMode (normalGameProduct game)
-        ceShadowThread limits = do
-            _ <- prepare limits CorrelatedMode
-            correlatedShadow limits game entries ceLabels
-    case runSolve (ceShadowThread sevenBits) of
-        Left fault ->
-            assert
-                ("the CE shadow must fail at seven bits with 7/8, got " ++ show fault)
-                (fault == SolveLimitFault CorrelationVerification CorrelationRationalBits 7 8)
-        Right _ -> ioError (userError "the CE shadow should not fit seven bits")
-    -- With B=8 the same CE shadow history fits and reaches H=8.
-    let eightBits = correlationSolveLimits (gameLimits 64 64 64 4096 ceiling_ 8 ceiling_) ceiling_ ceiling_ ceiling_
-    case runSolve (ceShadowThread eightBits) of
-        Left fault -> ioError (userError ("the CE shadow should fit eight bits: " ++ show fault))
-        Right (rows, account) -> do
-            assert
-                ( "the CE shadow reaches H=8, saw "
-                    ++ show (correlationSolveObservedRationalBits' account)
-                )
-                (correlationSolveObservedRationalBits' account == 8)
-            assert "every CE shadow slack is zero" (all ((== 0) . shadowSlack) rows)
-            -- All recommendation totals are positive.
-            assert "every CE recommendation total is positive" (all ((> 0) . shadowRecommendation) rows)
-    -- The corresponding production CCE shadow has no recommendation-subset
-    -- folds, so its history fits seven bits and retains H=7.
-    let cceLabels = deviationLabels CoarseMode (normalGameProduct game)
-        cceShadowThread limits = do
-            _ <- prepare limits CoarseMode
-            coarseShadow limits game entries cceLabels
-    case runSolve (cceShadowThread sevenBits) of
-        Left fault -> ioError (userError ("the CCE shadow should fit seven bits: " ++ show fault))
-        Right (rows, account) -> do
-            assert
-                ( "the CCE shadow retains H=7, saw "
-                    ++ show (correlationSolveObservedRationalBits' account)
-                )
-                (correlationSolveObservedRationalBits' account == 7)
-            assert "every CCE shadow slack is zero" (all ((== 0) . shadowSlack) rows)
-
 {- | The deterministic traversal: the initial tuple, the lexicographic
 successor, and the empty-tuple case, over the real production functions.
 -}
@@ -903,107 +806,6 @@ testTraversalOrder = do
     assert
         "the two-subsets of four rows are complete and ordered"
         (enumerate 4 (initialTuple 2) == [[0, 1], [0, 2], [0, 3], [1, 2], [1, 3], [2, 3]])
-
-{- | §11.8 unmodified-call row-sequence agreement.
-
-Compares the ACTUAL production shadow's ordered per-row outputs against the
-ACTUAL unmodified legacy checker's ordered per-row outputs, on a device chosen
-to contain zero-mass entries and a null recommendation. This measures agreement
-at the level of observable per-row results rather than re-deriving them.
-
-It does NOT capture the discarded source-level intermediate operands inside the
-legacy bodies; doing so would require instrumenting those unmodified bodies,
-which the contract forbids refactoring. That residue is disclosed in the report:
-'Public.correlationSolveCheckerCoveredRationalBits' remains argued from sequence
-equality, not measured.
--}
-testCheckerRowSequenceAgreement :: IO ()
-testCheckerRowSequenceAgreement = do
-    let game = zeroPayoffPair
-        product_ = normalGameProduct game
-        profiles = carrierValues (ownedProfiles product_)
-        -- Zero-mass entries at AR and BR. For CE this also forces a NULL
-        -- recommendation on Column/R, whose matching masses are both zero.
-        supplied = [1 / 2, 0, 1 / 2, 0]
-        entries = zip profiles supplied
-    device <- case Public.exactCorrelationDevice tinyLimits product_ entries of
-        Left problem -> ioError (userError ("row-sequence device: " ++ show problem))
-        Right value -> pure value
-    -- The real production CE shadow.
-    ceShadow <- case runSolve (correlatedShadow tinySolve game entries (deviationLabels CorrelatedMode product_)) of
-        Left fault -> ioError (userError ("row-sequence CE shadow: " ++ show fault))
-        Right (rows, _) -> pure rows
-    -- The real unmodified CE checker.
-    ceReport <- case Public.checkCorrelatedEquilibrium tinyLimits game device of
-        Left problem -> ioError (userError ("row-sequence CE checker: " ++ show problem))
-        Right value -> pure value
-    let ceChecks = Public.correlatedObedienceChecks ceReport
-    assert
-        "the CE shadow and the real CE checker produce the same row count"
-        (naturalCount ceShadow == naturalCount ceChecks)
-    -- The control genuinely contains a null recommendation and zero masses.
-    assert
-        "the CE control exercises a null recommendation"
-        (any (\c -> Public.recommendationStatus c == Public.NullRecommendation) ceChecks)
-    assert
-        "the CE control exercises positive recommendations too"
-        (any (\c -> Public.recommendationStatus c == Public.PositiveRecommendation) ceChecks)
-    assert "the CE control exercises zero-mass entries" (0 `elem` supplied)
-    -- Ordered, element-by-element agreement including the zero-mass and null rows.
-    mapM_
-        ( \(index, shadowRow, check) -> do
-            assert
-                ( "CE row "
-                    ++ show index
-                    ++ " recommendation must agree (shadow "
-                    ++ show (shadowRecommendation shadowRow)
-                    ++ " vs checker "
-                    ++ show (Public.recommendationMass check)
-                    ++ ")"
-                )
-                (shadowRecommendation shadowRow == Public.recommendationMass check)
-            assert
-                ( "CE row "
-                    ++ show index
-                    ++ " slack must agree (shadow "
-                    ++ show (shadowSlack shadowRow)
-                    ++ " vs checker "
-                    ++ show (Public.obedienceSlack check)
-                    ++ ")"
-                )
-                (shadowSlack shadowRow == Public.obedienceSlack check)
-            assert
-                ("CE row " ++ show index ++ " status must follow the shadow recommendation")
-                ( Public.recommendationStatus check
-                    == (if shadowRecommendation shadowRow == 0 then Public.NullRecommendation else Public.PositiveRecommendation)
-                )
-        )
-        (zip3 [0 :: Int ..] ceShadow ceChecks)
-    -- The same comparison for CCE, which has no recommendation folds.
-    cceShadow <- case runSolve (coarseShadow tinySolve game entries (deviationLabels CoarseMode product_)) of
-        Left fault -> ioError (userError ("row-sequence CCE shadow: " ++ show fault))
-        Right (rows, _) -> pure rows
-    cceReport <- case Public.checkCoarseCorrelatedEquilibrium tinyLimits game device of
-        Left problem -> ioError (userError ("row-sequence CCE checker: " ++ show problem))
-        Right value -> pure value
-    let cceChecks = Public.coarseDeviationChecks cceReport
-    assert
-        "the CCE shadow and the real CCE checker produce the same row count"
-        (naturalCount cceShadow == naturalCount cceChecks)
-    mapM_
-        ( \(index, shadowRow, check) ->
-            assert
-                ( "CCE row "
-                    ++ show index
-                    ++ " slack must agree (shadow "
-                    ++ show (shadowSlack shadowRow)
-                    ++ " vs checker "
-                    ++ show (Public.coarseDeviationSlack check)
-                    ++ ")"
-                )
-                (shadowSlack shadowRow == Public.coarseDeviationSlack check)
-        )
-        (zip3 [0 :: Int ..] cceShadow cceChecks)
 
 {- | §11.8 and §11.9 competing-failure order, through the real reserved routes.
 
@@ -1055,16 +857,6 @@ testCompetingFailures = do
                 ("report length must precede constant observation, got " ++ show fault)
                 (fault == SolveRepresentationFault CorrelationReportLength)
         Right value -> ioError (userError ("geometry admitted " ++ show value))
-
--- | A zero-payoff two-owner game, used by the row-sequence control.
-zeroPayoffPair :: ExactNormalGame String String
-zeroPayoffPair =
-    buildGame
-        [("Row", ["A", "B"]), ("Column", ["L", "R"])]
-        [ ([("Row", a), ("Column", c)], [("Row", 0), ("Column", 0)])
-        | a <- ["A", "B"]
-        , c <- ["L", "R"]
-        ]
 
 enumerate :: Natural -> [Natural] -> [[Natural]]
 enumerate bound = go

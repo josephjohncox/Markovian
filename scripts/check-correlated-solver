@@ -247,3 +247,30 @@ for optimization in 0 2; do
   done
   echo "PASS: D083 final successor reserves before completion at O${optimization}"
 done
+
+# Measure constructor/checker operands and results against the production
+# shadow and an independent fixture oracle. Disable sharing of probe effects;
+# these are source-operation traces, not measurements of optimized allocation.
+for variant in none reverse zero operands; do
+  python3 scripts/instrument-correlated-checker.py "${tmp_dir}/trace-${variant}" "${variant}"
+  for optimization in 0 2; do
+    cabal exec "${project_args[@]}" -- ghc \
+      -package-env - -hide-all-packages -package base \
+      "-i${tmp_dir}/trace-${variant}" -isrc -itest -XGHC2021 \
+      "-O${optimization}" -fno-cse -fno-full-laziness -Wall -Werror \
+      -outputdir "${tmp_dir}/trace-${variant}-O${optimization}" \
+      test/CorrelatedSolverTrace.hs \
+      -o "${tmp_dir}/trace-${variant}-O${optimization}-probe"
+    log_file="${tmp_dir}/trace-${variant}-O${optimization}.log"
+    if "${tmp_dir}/trace-${variant}-O${optimization}-probe" >"${log_file}" 2>&1; then
+      if [[ "${variant}" != none ]]; then
+        echo "Checker trace accepted the ${variant} mutation at O${optimization}." >&2
+        exit 1
+      fi
+    elif [[ "${variant}" == none ]] || ! grep -F 'ordered constructor/checker/shadow Rational trace' "${log_file}" >/dev/null; then
+      cat "${log_file}" >&2
+      exit 1
+    fi
+    echo "PASS: D083 checker trace ${variant} control at O${optimization}"
+  done
+done
