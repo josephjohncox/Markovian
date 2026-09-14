@@ -221,3 +221,19 @@ must bind the implementation revision. Existing historical receipts do not
 attest D-082. This contract neither authorizes a hardware workflow nor asserts
 hardware acceptance, deployment, publication, speedup, fusion, or generic reverse
 program lowering.
+
+## Direct local validation — 2026-09-14
+
+The compiled source, tests, profile, and build inputs match
+`03493e83bd842d2e9c0b41d0c0de4ab4380e4dc3`; later changes are documentation.
+Direct execution on GB10 UUID `GPU-ac353d74-ffaf-96d2-7849-b8d03d5cd1a7`
+passed the graph's exact dyadic, all-coordinate VJP, budget, and fault tests.
+The run used GHC 9.14.1, CUDA 13.0, driver 580.173.02, and Compute Sanitizer
+2025.3.1.0. `memcheck`, `initcheck`, and `synccheck` reported zero errors;
+`racecheck` reported zero hazards, errors, and warnings. The existing
+transfer-inclusive kernel benchmark completed twenty measured samples with
+checksum `49439/128`. This is a kernel check, not a graph speedup measurement.
+
+These are unsigned local results. D-082 remains Proposed until the protected
+workflow supplies the complete verified same-session receipts required by
+[D-077](../WORKFLOWS.md#gpu-deployment-evidence).

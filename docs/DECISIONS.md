@@ -1500,7 +1500,7 @@ View creation allocates no payload. Materialization and each primitive preflight
 
 **Status:** Proposed
 
-**Current prerequisites:** D-077 and [D-081](evidence/D081-AFFINE-IMPLEMENTATION.md) acceptance prerequisites are satisfied. D-082 remains unimplemented. Graph contract freeze, implementation, independent review, and explicit hardware authority remain pending.
+**Current implementation:** D-077 and [D-081](evidence/D081-AFFINE-IMPLEMENTATION.md) prerequisites are satisfied. The [graph contract](plans/D082-CUDA-GRAPHS.md) and implementation at `03493e83bd842d2e9c0b41d0c0de4ab4380e4dc3` passed independent CPU/source review and direct GB10 execution with all four sanitizers. These unsigned local results do not satisfy the protected same-session receipt requirement; acceptance remains pending.
 
 **Decision:** After D-077 and D-081 are accepted with complete evidence, add only a closed typed DAG of F64 matrix inputs, admitted affine views, and matrix-multiply nodes. Preparation validates dimensions, node order, sharing, view maps, transfer bytes, host and device payloads, scalar work, and forward and VJP launch counts before executor admission or allocation. One prepared graph owns its immutable plan. One scoped executor owns all device resources.
 

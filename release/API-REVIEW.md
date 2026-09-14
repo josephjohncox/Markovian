@@ -12,8 +12,8 @@ manifest now has 16 packages, 18 test suites, and 13 benchmarks. Published
 membership and versions remain unchanged.
 
 - `Markovian.Backend.GPU.Graph` owns typed F64 input/view/multiply graphs,
-  cumulative preparation, and all-input VJPs. Independent CPU/source review
-  passed. D-082 hardware acceptance remains pending its protected evidence.
+  cumulative preparation, and all-input VJPs. Independent CPU/source review and direct GB10 execution with all four
+  sanitizers passed. D-082 acceptance remains pending protected signed evidence.
 - `Markovian.Backend.Neural.Bridge.DQN.Trainer` owns positive fuel, explicit
   generator state, replay/checkpoint composition, and resumable failures.
   D-084 is Accepted after independent O0/O2 and constructor-mutation review.

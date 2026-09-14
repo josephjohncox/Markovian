@@ -62,7 +62,7 @@ also reserves 200 request trace slots, not an actual cache's resident size.
 
 ## Why a warm answer cannot bypass validation
 
-The proposed key includes explicit interpreter identity, source circuit identity,
+The semantic key includes explicit interpreter identity, source circuit identity,
 both **ordered** endpoint layouts, and every semantic limit. Changed limits
 **miss**. The model checks this with a closed key-equality test; it implements
 neither lookup nor identity/purity certification. Tokens stand for trusted,
