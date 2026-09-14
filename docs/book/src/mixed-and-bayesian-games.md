@@ -1,12 +1,12 @@
 # Exact mixed, stochastic, and Bayesian games
 
-Markovian's exact strategic layer verifies finite represented candidates. It does not solve every finite game and does not assert equilibrium existence.
+Markovian verifies finite mixed, correlated, stochastic, and Bayesian game candidates. It also searches for one exact CE or CCE witness under explicit resource limits.
 
 ## Modules
 
 - `Markovian.Game.Profile.Finite` owns checked heterogeneous owner products, pure profiles, and complete exact simplexes.
 - `Markovian.Game.NormalForm.Exact` owns rational payoff tables, independent mixed profiles, expectation, pure deviations, and mixed-Nash checks.
-- `Markovian.Game.Correlated.Exact` owns joint correlation devices and separate CE and CCE reports.
+- `Markovian.Game.Correlated.Exact` owns joint correlation devices, separate CE and CCE reports, and bounded first-witness solvers.
 - `Markovian.Game.Outcome.Exact` owns complete joint outcome laws.
 - `Markovian.Game.Stochastic.Exact` evaluates finite-horizon public-state Markov profiles and verifies finite-horizon Markov-perfect candidates.
 - `Markovian.Game.Harsanyi.Exact` owns correlated common priors, behavioral type policies, Bayes-Nash checks, and bounded strategic-normal conversion.
@@ -71,7 +71,9 @@ The types and reports remain separate. Fixtures show:
 - mass `1/2` on `(A,L)` and `(C,R)` in the documented three-row fixture passes CCE but fails CE;
 - degenerate and irrational boundaries prevent a general rational enumeration claim.
 
-No CE-polytope, LP, LCP, Lemke--Howson, support-enumeration, or denominator-grid solver is included.
+`solveCorrelatedEquilibrium` and `solveCoarseCorrelatedEquilibrium` stream active constraint sets in a fixed order and return the first device revalidated by the corresponding checker. `CorrelationSolveLimits` bounds inequalities, attempted candidates, cumulative materialization, work, and rational size. These are logical resource limits, not physical time or heap bounds. Limit exhaustion is an error, not a nonexistence result.
+
+The solvers do not enumerate the CE or CCE polytope or optimize an objective. They add no LP, LCP, Lemke--Howson, support-enumeration, denominator-grid, or Nash solver.
 
 ## Joint stochastic outcomes and timing
 
@@ -120,7 +122,7 @@ The result is one contextual normal form. It is not a compositional probabilisti
 
 `MixedGamesExample` builds matching pennies, verifies the exact half-half mixed-Nash candidate, converts its product masses to a separate correlation device, and verifies CE. It is a verifier example, not an equilibrium solver.
 
-`test/MixedBayesianGames.hs` contains construction, laws, independent enumeration, Dirac-CE/pure-Nash and product-Nash/CE differentials, carrier mismatch, timing, null-type, correlated-prior-sensitive conversion, degeneracy, active-rational-limit, contingent-plan one-below, report-golden, and atomic-budget fixtures. `scripts/check-mixed-game-boundary` checks opacity, nominal roles, removal of the superseded agent-normal name, and separation of priors, independent profiles, and correlation devices. `mixed-games-exact-bench` uses one excluded warmup and twenty samples, reports host/compiler/clock metadata and raw CPU-time samples, and asserts a pinned FNV-1a checksum of its deterministic semantic report.
+`test/MixedBayesianGames.hs` contains construction, laws, independent enumeration, Dirac-CE/pure-Nash and product-Nash/CE differentials, carrier mismatch, timing, null-type, correlated-prior-sensitive conversion, degeneracy, active-rational-limit, contingent-plan one-below, report-golden, and atomic-budget fixtures. `scripts/check-mixed-game-boundary` checks opacity, nominal roles, removal of the superseded agent-normal name, and separation of priors, independent profiles, and correlation devices. `test/CorrelatedSolvers.hs` and `scripts/check-correlated-solver` cover the public first-witness API and its private geometry, trace, accounting, optimization-level, and source-boundary controls. `mixed-games-exact-bench` uses one excluded warmup and twenty samples, reports host/compiler/clock metadata and raw CPU-time samples, and asserts a pinned FNV-1a checksum of its deterministic semantic report.
 
 The general `exactFiniteDist` constructor rejects raw supports above 4096 entries and consumes at most one additional list cell. General sequencing is available only through `bindExactFiniteDistChecked`, with explicit result-support, work, numerator-bit, and denominator-bit limits. The game layer retains its separate `GameLimits`; it does not borrow general distribution limits or use checked bind to bypass game-specific admission. D-061 is `Accepted` after its topology, compiler, documentation, archive, and hosted gates passed.
 

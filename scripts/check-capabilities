@@ -154,7 +154,7 @@ def render(records: list[dict]) -> str:
         lines.append(f"| {record['label']} | `{record['package']}: {module}`{planned} | "
                      f"{record['availability']} | {record['decision']} {record['decisionStatus']} | "
                      f"{record['evidenceScope']} (`{record['evidence']}`) | {record['boundary']} |")
-    lines.extend(["", "Repository evidence paths above name files, not promises that all their claims apply to this capability. Contract-only rows have no implementation evidence. See the [current module map](api-map.md) for navigation. Independent contract review passed; later implementation reviews and executable-learning stages remain separately gated.", ""])
+    lines.extend(["", "Repository evidence paths above name files, not promises that all their claims apply to this capability. Contract-only rows have no implementation evidence. See the [current module map](api-map.md) for navigation.", ""])
     return "\n".join(lines)
 
 
