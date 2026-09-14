@@ -4,7 +4,7 @@
 
 Placement is approved in the existing base-only `Markovian` library. Both public operations belong in `Markovian.Game.Correlated.Exact`.
 
-D-083 is implemented and the verification requirements in §11 are covered. It remains Proposed pending a separate reviewed acceptance update, tracked in [TODO.md](../../TODO.md#open-work).
+D-083 is Accepted and unreleased. The [decision](../DECISIONS.md#d-083-add-exact-bounded-ce-and-cce-one-witness-solvers) pins the reviewed implementation; §11 maps its verification evidence.
 
 The active-set generator, constraint builder, elimination, and account live in the hidden `Markovian.Game.Correlated.Exact.Internal` module. The public module owns the solve pipeline and publication checks. Add no package, dependency edge, general LP interface, matrix callback, or pivot callback.
 
@@ -16,7 +16,7 @@ The design source basis is commit `7f2d8bdbe699a9b9fad99f22335a9ebc6b13446d`.
 
 Read and preserve these definitions:
 
-- [Decision D-083](../DECISIONS.md#d-083-add-exact-bounded-ce-and-cce-one-witness-solvers) and [open work](../../TODO.md#open-work).
+- [Decision D-083](../DECISIONS.md#d-083-add-exact-bounded-ce-and-cce-one-witness-solvers).
 - `Markovian.cabal:215–269`: the game modules are exposed by the base-only library.
 - `src/Markovian/Category/Finite/Object.hs:1–83`: `FiniteObject` is nonempty and layout-sensitive.
 - `src/Markovian/Game/Profile/Finite.hs:55–232,327–383`: limits, nominal products/profiles, product enumeration, replacement, and combined Rational bits.

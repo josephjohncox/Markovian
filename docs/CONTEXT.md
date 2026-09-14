@@ -19,8 +19,7 @@ does not establish whether a development API was released.
   cumulative quotation compilation, and host-F64 affine views.
 - EL-03, EL-04, and EL-05 are implemented and unreleased; their decisions remain
   Proposed.
-- D-083's CE/CCE solvers are implemented and unreleased. D-083 remains Proposed
-  pending accounting instrumentation, failure controls, and verification.
+- D-083's exact CE/CCE first-witness solvers are Accepted and unreleased.
 - D-082 CUDA graphs, D-084's reference trainer, and D-085's concrete trace cache
   remain Proposed and unimplemented. EL-06 supplies a resource-admission model
   for D-085, not the cache implementation.

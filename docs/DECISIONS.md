@@ -1514,7 +1514,9 @@ Define the graph first by D-077's exact dyadic matrix denotation. Compare CPU an
 
 ### D-083: Add exact bounded CE and CCE one-witness solvers
 
-**Status:** Proposed
+**Status:** Accepted
+
+**Bounded, unreleased acceptance:** D-083 accepts the exact CE and CCE first-witness solvers at `0209d543d378a12eabdff0751630b592abc3a772`, reviewed and merged in [PR #11](https://github.com/josephjohncox/Markovian/pull/11). The [contract](plans/D083-CE-CCE-SOLVERS.md) defines the admitted games, deterministic search order, logical resource accounting, and failure precedence. Acceptance covers this implementation and its source-level accounting; it makes no physical-memory or release claim.
 
 **Decision:** Add separate exact solvers that return at most one checked rational CE witness or one checked rational CCE witness for an existing bounded complete normal game. Generate candidate active constraint sets in a frozen deterministic order. Stream one active set and one candidate at a time. Do not allocate the family of active sets, all vertices, or all equilibria.
 
@@ -1522,9 +1524,9 @@ Solve each candidate system with checked rational elimination. Classify rank def
 
 **Rationale:** Finite rational CE and CCE polytopes permit exact feasibility checks. A deterministic active-set search can produce one auditable witness without introducing a floating LP dependency or claiming complete polytope enumeration.
 
-**Consequences:** This proposal is not an unrestricted equilibrium solver. It does not solve Nash, mixed Nash, extensive, stochastic, Bayesian, continuous, or real-coefficient games. It does not enumerate all CE or CCE points, prove a general complexity bound, or add LP/LCP claims. Placement is approved in the existing base-only `Markovian.Game.Correlated.Exact` module, with private search machinery and no new package or edge. The [contract](plans/D083-CE-CCE-SOLVERS.md) specifies the solver and its verification requirements. Commit `fdfc1f8` added both solvers and their public/private fixtures. D-083 remains Proposed pending a separate reviewed acceptance update.
+**Consequences:** These solvers do not solve Nash, mixed Nash, extensive, stochastic, Bayesian, continuous, or real-coefficient games. They do not enumerate all CE or CCE points, prove a general complexity bound, or add LP/LCP claims. They live in the existing base-only `Markovian.Game.Correlated.Exact` module, with private search machinery and no new package or dependency edge.
 
-**Verification:** The [contract verification map](plans/D083-CE-CCE-SOLVERS.md#11-independent-test-matrix-and-exact-fixtures) links independent tiny geometry and ledger oracles, every-phase resource boundaries, private infeasible traversal, constructor/checker arithmetic traces, and source-loop/strictness controls. These run at O0/O2 alongside the public solver suite. Independent source and test reviews found no remaining verification blocker. Acceptance remains a separate decision; private injected systems do not establish public first-witness reachability.
+**Verification:** The [contract verification map](plans/D083-CE-CCE-SOLVERS.md#11-independent-test-matrix-and-exact-fixtures) links independent tiny geometry and ledger oracles, every-phase resource boundaries, private infeasible traversal, constructor/checker arithmetic traces, and source-loop/strictness controls. The public solver suite passed at O0/O2. The complete solver harness passed at O0/O2 from both the checkout and source archive. Independent source and test reviews found no remaining verification blocker; [hosted CI](https://github.com/josephjohncox/Markovian/actions/runs/34752609549) passed on the accepted commit. Private injected systems do not establish public first-witness reachability.
 
 ### D-084: Add a bounded reference DQN trainer contract
 

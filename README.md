@@ -33,9 +33,8 @@ distinguishes availability from decision status.
 
 Accepted, unreleased additions include strict-discount affine feedback,
 joint-affine substitution, polynomial quotation with cumulative compilation
-budgets, and host-F64 affine views. The CE/CCE solvers are implemented and
-unreleased; D-083 remains Proposed pending verification. CUDA multiply-chain
-graphs remain unimplemented.
+budgets, host-F64 affine views, and exact CE/CCE first-witness solvers. CUDA
+multiply-chain graphs remain unimplemented.
 
 See the [release notes](RELEASE-NOTES.md), [migration guide](MIGRATION.md), and
 [open work](TODO.md). Releases use coordinated UTC CalVer `YYYY.M.D.N` and
