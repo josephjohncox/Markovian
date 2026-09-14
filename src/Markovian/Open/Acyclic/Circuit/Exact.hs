@@ -45,6 +45,21 @@ module Markovian.Open.Acyclic.Circuit.Exact (
     acyclicOpenCircuitDenotation,
     acyclicDeterministicDenotation,
     runAcyclicOpenCircuit,
+    ExactTablePrimitive,
+    exactDeterministicPrimitive,
+    exactStochasticPrimitive,
+    exactTableInterpreter,
+    ExactTableInterpreterIdentity (..),
+    CircuitSemanticLimits (..),
+    CircuitCacheLimits (..),
+    CircuitCacheMode (..),
+    CircuitSourceError (..),
+    CircuitInfrastructureError (..),
+    CircuitCacheReport (..),
+    RetainedAcyclicOpenCircuit,
+    RetainedCircuitError (..),
+    retainAcyclicOpenCircuit,
+    retainedAcyclicOpenCircuitDenotation,
 ) where
 
 import Data.Foldable (foldlM)
@@ -58,6 +73,7 @@ import Markovian.Category.Matrix.Stochastic
 import Markovian.Circuit
 import Markovian.Circuit.Interpret.Exact
 import Markovian.Open.Acyclic
+import Markovian.Open.Acyclic.Circuit.Cache.Internal
 import Markovian.Open.Hypergraph
 import Markovian.Open.Interface
 import Markovian.Open.StructuredCospan
@@ -319,12 +335,14 @@ data SomeAcyclicOpenCircuit primitive sort input output vertex edge label value 
 data SelectedCircuit primitive sort vertex edge value where
     SelectedDeterministicCircuit ::
         !Int ->
+        !Int ->
         !edge ->
         ![(vertex, sort)] ->
         ![(vertex, sort)] ->
         !(Circuit primitive 'Deterministic (Assignment Int value) (Assignment Int value)) ->
         SelectedCircuit primitive sort vertex edge value
     SelectedStochasticCircuit ::
+        !Int ->
         !Int ->
         !edge ->
         ![(vertex, sort)] ->
@@ -391,7 +409,7 @@ acyclicOpenCircuit topology domains table = do
         let inputSignature = map snd (hyperedgeInputs typedEdge)
             outputSignature = map snd (hyperedgeOutputs typedEdge)
             key = (hyperedgeLabel typedEdge, inputSignature, outputSignature)
-        entry <-
+        (circuitIdentity, entry) <-
             case lookupLabelCircuit key table of
                 Nothing ->
                     Left
@@ -406,6 +424,7 @@ acyclicOpenCircuit topology domains table = do
         inputObject <- mapObjectFailure (portAssignmentObject domains inputSignature)
         outputObject <- mapObjectFailure (portAssignmentObject domains outputSignature)
         checkSelectedEndpoints
+            circuitIdentity
             edgeIndex
             edgeId
             (hyperedgeInputs typedEdge)
@@ -544,10 +563,10 @@ interpretSelected ::
         (InterpretedEdge sort vertex edge value)
 interpretSelected interpreter selected =
     case selected of
-        SelectedDeterministicCircuit edgeIndex edgeId inputs outputs circuit -> do
+        SelectedDeterministicCircuit _ edgeIndex edgeId inputs outputs circuit -> do
             arrow <- mapEdgeError edgeIndex edgeId (interpretExactCircuit interpreter circuit)
             Right (InterpretedEdge edgeIndex edgeId inputs outputs arrow)
-        SelectedStochasticCircuit edgeIndex edgeId inputs outputs circuit -> do
+        SelectedStochasticCircuit _ edgeIndex edgeId inputs outputs circuit -> do
             arrow <- mapEdgeError edgeIndex edgeId (interpretExactCircuit interpreter circuit)
             Right (InterpretedEdge edgeIndex edgeId inputs outputs arrow)
 
@@ -756,6 +775,7 @@ circuitParts circuit =
 checkSelectedEndpoints ::
     (Eq value) =>
     Int ->
+    Int ->
     edge ->
     [(vertex, sort)] ->
     [(vertex, sort)] ->
@@ -765,19 +785,19 @@ checkSelectedEndpoints ::
     Either
         (AcyclicOpenCircuitError sort edge label)
         (edge, SelectedCircuit primitive sort vertex edge value)
-checkSelectedEndpoints edgeIndex edgeId inputs outputs inputObject outputObject entry =
+checkSelectedEndpoints circuitIdentity edgeIndex edgeId inputs outputs inputObject outputObject entry =
     case entry of
         UnsafeDeterministicLabelCircuit _ _ _ circuit -> do
             validateCircuitEndpoints edgeIndex edgeId inputObject outputObject circuit
             Right
                 ( edgeId
-                , SelectedDeterministicCircuit edgeIndex edgeId inputs outputs circuit
+                , SelectedDeterministicCircuit circuitIdentity edgeIndex edgeId inputs outputs circuit
                 )
         UnsafeStochasticLabelCircuit _ _ _ circuit -> do
             validateCircuitEndpoints edgeIndex edgeId inputObject outputObject circuit
             Right
                 ( edgeId
-                , SelectedStochasticCircuit edgeIndex edgeId inputs outputs circuit
+                , SelectedStochasticCircuit circuitIdentity edgeIndex edgeId inputs outputs circuit
                 )
 
 validateCircuitEndpoints ::
@@ -817,13 +837,13 @@ lookupLabelCircuit ::
     (Eq sort, Eq label) =>
     (label, [sort], [sort]) ->
     LabelCircuitTable primitive sort label value ->
-    Maybe (LabelCircuit primitive sort label value)
-lookupLabelCircuit requested (UnsafeLabelCircuitTable entries) = go entries
+    Maybe (Int, LabelCircuit primitive sort label value)
+lookupLabelCircuit requested (UnsafeLabelCircuitTable entries) = go 0 entries
   where
-    go [] = Nothing
-    go (entry : remaining)
-        | labelCircuitKey entry == requested = Just entry
-        | otherwise = go remaining
+    go _ [] = Nothing
+    go index (entry : remaining)
+        | labelCircuitKey entry == requested = Just (index, entry)
+        | otherwise = go (index + 1) remaining
 
 labelCircuitKey :: LabelCircuit primitive sort label value -> (label, [sort], [sort])
 labelCircuitKey entry =
@@ -911,3 +931,87 @@ mapEdgeError ::
     Either (ExactCircuitInterpretationError primitiveError) value ->
     Either (AcyclicOpenInterpretationError edge primitiveError) value
 mapEdgeError edgeIndex edgeId = either (Left . AcyclicEdgeExactError edgeIndex edgeId) Right
+
+{- | An immutable network and its local exact-table cache. The nominal owner
+binds every circuit slot to its original syntax, layouts and interpreter.
+There is no operation to replace the network or transplant stored entries.
+-}
+type role RetainedAcyclicOpenCircuit nominal nominal nominal nominal nominal nominal nominal nominal
+
+data RetainedAcyclicOpenCircuit purity sort input output vertex edge label value
+    = RetainedAcyclicOpenCircuit
+        !ExactTableInterpreterIdentity
+        !(AcyclicOpenCircuit ExactTablePrimitive purity sort input output vertex edge label value)
+        !(TableCache (Assignment Int value) (Assignment Int value))
+
+{- | Source failures retain represented edge context; cache infrastructure has
+a separate error class and makes no source-result claim.
+-}
+data RetainedCircuitError edge
+    = RetainedCircuitInvalidLimits !CircuitSourceError
+    | RetainedCircuitInfrastructureError !CircuitInfrastructureError
+    | RetainedCircuitSourceError !Int !edge !CircuitSourceError
+    | RetainedCircuitConsumerError !(AcyclicOpenInterpretationError edge ())
+    deriving (Eq, Show)
+
+-- | Start an empty cache for exactly this network and the closed interpreter.
+retainAcyclicOpenCircuit ::
+    ExactTableInterpreterIdentity ->
+    AcyclicOpenCircuit ExactTablePrimitive purity sort input output vertex edge label value ->
+    RetainedAcyclicOpenCircuit purity sort input output vertex edge label value
+retainAcyclicOpenCircuit interpreter circuit = RetainedAcyclicOpenCircuit interpreter circuit emptyTableCache
+
+{- | Interpret with checked, cumulative local-table source admission. The
+uncached mode executes the same source algorithm and preserves the input cache.
+The retained mode inserts only complete successful tables and source traces.
+Failure returns no changed owner or partial result.
+
+Limits and the report cover local circuit tabulation across all edge occurrences.
+The following global live-frontier matrix phase retains the existing interpreter's
+resource contract; these limits do not bound its arithmetic or allocation.
+-}
+retainedAcyclicOpenCircuitDenotation ::
+    CircuitCacheMode ->
+    CircuitSemanticLimits ->
+    CircuitCacheLimits ->
+    RetainedAcyclicOpenCircuit purity sort input output vertex edge label value ->
+    Either
+        (RetainedCircuitError edge)
+        ( StochasticMatrix NonNegativeRational (Assignment input value) (Assignment output value)
+        , RetainedAcyclicOpenCircuit purity sort input output vertex edge label value
+        , CircuitCacheReport
+        )
+retainedAcyclicOpenCircuitDenotation mode semantic infrastructure (RetainedAcyclicOpenCircuit interpreter circuit cache) = do
+    (tables, nextCache, report) <-
+        either (Left . mapCacheError) Right $
+            runCircuitCache mode semantic infrastructure interpreter (map request selected) cache
+    interpreted <- matchTables selected tables
+    raw <-
+        either (Left . RetainedCircuitConsumerError) Right $
+            topologicalMatrix topology inputObject (assignmentObjectValues inputObject) outputObject apexDomains interpreted
+    result <- either (Left . RetainedCircuitConsumerError) Right (normalizeTopological raw)
+    forceMatrix (forgetStochastic result) `seq`
+        Right (result, RetainedAcyclicOpenCircuit interpreter circuit nextCache, report)
+  where
+    (topology, inputObject, outputObject, apexDomains, selected) = circuitParts circuit
+    request selectedCircuit = case selectedCircuit of
+        SelectedDeterministicCircuit identity index _ _ _ local -> TableRequest index identity local
+        SelectedStochasticCircuit identity index _ _ _ local -> TableRequest index identity local
+    mapCacheError failure = case failure of
+        CacheInvalidLimits problem -> RetainedCircuitInvalidLimits problem
+        CacheInfrastructure problem -> RetainedCircuitInfrastructureError problem
+        CacheSource requested problem ->
+            case [edgeId | selectedCircuit <- selected, let (index, edgeId) = selectedIdentity selectedCircuit, index == requested] of
+                edgeId : _ -> RetainedCircuitSourceError requested edgeId problem
+                [] -> RetainedCircuitConsumerError AcyclicInterpretationInternalInvariantFailure
+    selectedIdentity selectedCircuit = case selectedCircuit of
+        SelectedDeterministicCircuit _ index edgeId _ _ _ -> (index, edgeId)
+        SelectedStochasticCircuit _ index edgeId _ _ _ -> (index, edgeId)
+    matchTables [] [] = Right []
+    matchTables (selectedCircuit : remaining) (table : tables) = do
+        let interpreted = case selectedCircuit of
+                SelectedDeterministicCircuit _ index edgeId inputs outputs _ -> InterpretedEdge index edgeId inputs outputs table
+                SelectedStochasticCircuit _ index edgeId inputs outputs _ -> InterpretedEdge index edgeId inputs outputs table
+        rest <- matchTables remaining tables
+        Right (interpreted : rest)
+    matchTables _ _ = Left (RetainedCircuitConsumerError AcyclicInterpretationInternalInvariantFailure)

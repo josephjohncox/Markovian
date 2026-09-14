@@ -88,6 +88,8 @@ jobs:
             markovian-autodiff-bench \
             markovian-tensor-bench \
             markovian-gpu-bench \
+            circuit-cache-bench \
+            dqn-trainer-bench \
             --project-file=cabal.project.ci
 
       - name: Compile teaching contexts and check executed output
@@ -117,6 +119,9 @@ jobs:
 
       - name: Enforce acyclic aggregate purity
         run: scripts/check-acyclic-purity
+
+      - name: Check retained circuit cache admission and boundaries
+        run: bash scripts/check-circuit-cache
 
       - name: Enforce finite-game opacity and endpoint roles
         run: scripts/check-game-core-boundary
@@ -177,6 +182,8 @@ jobs:
           cabal bench markovian-autodiff-bench --project-file=cabal.project.ci
           cabal bench markovian-tensor-bench --project-file=cabal.project.ci
           cabal bench markovian-gpu-bench --project-file=cabal.project.ci
+          cabal bench circuit-cache-bench --project-file=cabal.project.ci
+          cabal bench dqn-trainer-bench --project-file=cabal.project.ci
 
       - name: Run exact root tests with optimization
         run: |
@@ -272,6 +279,7 @@ jobs:
                 bash scripts/check-circuit-purity
                 bash scripts/check-acyclic-proof-boundary
                 bash scripts/check-acyclic-purity
+                bash scripts/check-circuit-cache
                 bash scripts/check-game-core-boundary
                 bash scripts/check-mixed-game-boundary
                 bash scripts/check-correlated-solver
@@ -305,26 +313,23 @@ jobs:
           bridge_root="$(
             find_sdist_package -name 'markovian-neural-bridge-*'
           )"
-          root_package="$(find_sdist_package -name 'Markovian-*')"
           neural_package="$(
             find_sdist_package \
               -name 'markovian-neural-*' \
               ! -name 'markovian-neural-bridge-*'
           )"
           reverse_package="$(find_sdist_package -name 'markovian-reverse-*')"
-          cat > "${bridge_root}/cabal.project" <<EOF
-          packages:
-            .
-            ../$(basename "${root_package}")
-            ../$(basename "${neural_package}")
-            ../$(basename "${reverse_package}")
-          EOF
+          python3 scripts/release_tool.py archive-consumer-project \
+            --archive-root sdist-unpacked \
+            --package markovian-neural-bridge \
+            --output "${bridge_root}/cabal.project"
           (
             cd "${bridge_root}"
             cabal check
             cabal build all
             cabal test all --test-show-details=direct
             bash scripts/check-exact-support-boundary
+            cabal bench dqn-trainer-bench
           )
           autodiff_root="$(find_sdist_package -name 'markovian-autodiff-*')"
           cat > "${autodiff_root}/cabal.project" <<EOF
@@ -586,6 +591,7 @@ jobs:
             scripts/check-circuit-purity \
             scripts/check-acyclic-proof-boundary \
             scripts/check-acyclic-purity \
+            scripts/check-circuit-cache \
             scripts/check-game-core-boundary \
             scripts/check-mixed-game-boundary \
             scripts/check-correlated-solver \

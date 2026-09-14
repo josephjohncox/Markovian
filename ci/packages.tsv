@@ -12,6 +12,6 @@ markovian-exact-benchmarks	packages/markovian-exact-benchmarks	1
 markovian-neural	backends/markovian-neural	1
 markovian-numerical	packages/markovian-numerical	1
 markovian-gpu	backends/markovian-gpu	2
-markovian-neural-bridge	backends/markovian-neural-bridge	2
 markovian-sampling	packages/markovian-sampling	2
 markovian-learning	packages/markovian-learning	3
+markovian-neural-bridge	backends/markovian-neural-bridge	3

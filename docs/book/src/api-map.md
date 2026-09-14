@@ -124,7 +124,7 @@ These modules provide no universal trace, instantaneous fixed-point operator, cy
 | `Markovian.Open.StructuredCospan` | Open-system composition, tensor, and cells |
 | `Markovian.Open.Circuit.Exact` | Global circuit-decorated open topology |
 | `Markovian.Open.Acyclic` | Acyclic boundary-functional refinement |
-| `Markovian.Open.Acyclic.Circuit.Exact` | Exact local-circuit DAG semantics |
+| `Markovian.Open.Acyclic.Circuit.Exact` | Exact local-circuit DAG semantics and retained tables with ordered source-validation replay |
 
 ## Finite interaction protocols
 
@@ -174,6 +174,7 @@ These are candidate semantics, not unrestricted solvers. They provide no equilib
 | `markovian-continuous-numerical: Markovian.Continuous.Numerical.Quadrature` | Bounded deterministic GK15/7 with estimated error |
 | `markovian-continuous-numerical: Markovian.Continuous.Numerical.MonteCarlo` | Bounded resumable Welford reports |
 | `markovian-gpu: Markovian.Backend.GPU` | Prepared F64 matrix/VJP CPU and optional admitted CUDA execution with explicit cleanup and pre-launch fallback |
+| `markovian-gpu: Markovian.Backend.GPU.Graph` | Closed matrix-input, affine-view, and multiply DAGs with declared-input VJPs and cumulative schedule reservations |
 | `markovian-neural: Markovian.Backend.Neural.Approximation` | Explicit precision, error, and observation boundary |
 | `markovian-neural: Markovian.Backend.Neural.Numeric` | Opaque finite scalars, checked floating arithmetic, and tolerances |
 | `markovian-neural: Markovian.Backend.Neural.Dense` | Dense networks and manual VJPs |
@@ -203,5 +204,6 @@ These are candidate semantics, not unrestricted solvers. They provide no equilib
 | `markovian-neural: Markovian.Backend.Neural.DQN` | Standard and Double-DQN batch updates |
 | `markovian-neural: Markovian.Backend.Neural` | Small façade that re-exports the neural modules |
 | `markovian-neural-bridge: Markovian.Backend.Neural.Bridge.ExactSupportMask` | Bounded exact global action-layout and per-state availability compilation for neural heads |
+| `markovian-neural-bridge: Markovian.Backend.Neural.Bridge.DQN.Trainer` | Resumable reference DQN loop with explicit fuel, generator, replay, checkpoints, and cumulative protocol limits |
 
 Use Haddock for complete signatures and error constructors. Use this book for semantic selection and composition rules.

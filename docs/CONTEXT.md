@@ -21,8 +21,8 @@ does not establish whether a development API was released.
   Proposed.
 - D-083's exact CE/CCE first-witness solvers are Accepted and unreleased.
 - D-082 CUDA graphs, D-084's reference trainer, and D-085's concrete trace cache
-  remain Proposed and unimplemented. EL-06 supplies a resource-admission model
-  for D-085, not the cache implementation.
+  are implemented and Proposed while final validation proceeds. EL-06 supplies
+  the separate resource-admission model and policy.
 
 The [capability inventory](book/src/capabilities.md) checks selected status and
 module claims. [TODO.md](../TODO.md#open-work) tracks remaining work;

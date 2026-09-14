@@ -9,8 +9,9 @@ certificates](circuits.md) and [laws and boundaries](laws-and-boundaries.md).
 **Tempting claim:** if a cache gives the same answer faster, it preserves every
 work-budget failure. This is false for actual-work admission. D-085 instead
 selects **source-semantic admission**, with separately bounded executor work.
-D-085 remains **Proposed**; this lesson is an **accounting-model experiment, not
-a cache implementation**, benchmark or optimizer certificate.
+This lesson is an accounting-model experiment. The [D-085 retained circuit
+cache](../../plans/D085-CIRCUIT-CACHE.md) implements the policy for one concrete
+consumer and has separate correctness and timing evidence.
 
 ## Run and predict
 
@@ -145,8 +146,10 @@ lesson and runs all five named resource checks in the ordinary root suite.
 {{#include ../../../test/ResourceAdmission.hs}}
 ```
 
-This checks a bounded accounting relation and one real-API counterexample.
-D-085's future exact matrix equality, opaque owned cache entries, interpreter
-certification, actual trace compression and time/allocation measurements remain
-unimplemented and require their own review. No package or dependency edge is
-added.
+This checks a bounded accounting relation and one checked-bind counterexample.
+The concrete cache uses a closed exact table interpreter in
+`Markovian.Open.Acyclic.Circuit.Exact`. Its tests compare cached and uncached
+matrices, cumulative source failures, and ordered validation traces.
+`circuit-cache-bench` reports uncached, cold, and warm execution time and
+allocation on the same workload. Its measured replay cost is separate from this
+lesson's hypothetical one-unit hit.

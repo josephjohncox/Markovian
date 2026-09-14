@@ -216,6 +216,17 @@ class ReleaseToolTests(unittest.TestCase):
                 gpu, {"markovian-tensor", "markovian-tensor-reverse"}
             )
 
+    def test_trainer_sampling_belongs_to_bridge(self) -> None:
+        neural = release_tool.Package("markovian-neural", Path("neural"), "2026.9.3.0", 1)
+        bridge = release_tool.Package("markovian-neural-bridge", Path("bridge"), "2026.9.3.0", 3)
+        release_tool.check_public_sibling_dependencies(
+            bridge, {"markovian", "markovian-neural", "markovian-numerical", "markovian-sampling"}
+        )
+        with self.assertRaisesRegex(release_tool.ReleaseError, "reviewed graph requires"):
+            release_tool.check_public_sibling_dependencies(
+                neural, {"markovian-reverse", "markovian-sampling"}
+            )
+
     def test_dependency_bounds_require_modern_policy_in_every_component(self) -> None:
         cabal = self.root / "demo.cabal"
         valid = (

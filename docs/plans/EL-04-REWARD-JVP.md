@@ -2,9 +2,7 @@
 
 **Status:** Proposed
 
-Frozen declarations and algorithm passed independent contract review. Implemented with local fixture evidence in `test/FeedbackRewardJVP.hs`; independent implementation review remains required. Not accepted or released. Extends only the exact root's `Markovian.Feedback.Value.Exact`, using `Markovian.Feedback.Internal`. D-078 remains Proposed. No numerical, autodiff, continuous, or new package edge.
-
-**Status update — 2026-09-08:** EL-04 has a separate independent implementation PASS (`d078-acceptance-review.md`, readiness review `172bb833-8189-4b78-acf1-4df2455d3752`); the earlier review requirement above is a point-in-time record. D-078 is now Accepted only for its original strict-discount affine coefficients and four Rational equations. That acceptance does not accept this JVP contract. EL-04 remains Proposed and unreleased, with fixed probabilities and discount; probability/discount-direction derivatives remain outside its API.
+Implemented in `Markovian.Feedback.Value.Exact`, using private `Markovian.Feedback.Internal` machinery. Independent determinant and dual-unrolling oracles live in `test/FeedbackRewardJVP.hs`; private reservation checks live in `test/FeedbackRewardJVPPrivate.hs`. Acceptance remains separate from D-078's base affine-feedback operation. Probabilities and discount are fixed; their derivatives are outside this API.
 
 ## Parameterized semantics and admitted directions
 

@@ -1,9 +1,38 @@
 # markovian-gpu
 
-Optional CUDA 13 execution for the checked F64 matrix-product and matrix-VJP
-fragment in `markovian-tensor`. The package also depends on
-`markovian-tensor-reverse` at the optional integration tier, but it does not
-provide a CUDA resolver for that package's closed host reverse programs.
+Optional CUDA 13 execution for checked F64 matrix products, matrix VJPs,
+and closed multiply-chain graphs over `markovian-tensor`. It does not provide
+a CUDA resolver for generic reverse programs.
+
+`Markovian.Backend.GPU.Graph` adds matrix inputs, typed lexical references,
+explicit `matrixLet` sharing, D-081 affine views, and `matrixMultiply`.
+Preparation admits the entire graph and reserves syntax, dimensions, elements,
+transfers, host/device payload, scalar work, and launches before tensor reads or
+device admission. Reverse execution returns a full logical-coordinate gradient
+for every input declaration, including unused inputs. Reusing a lexical reference
+shares a node; declaring the same tensor twice creates two independent inputs.
+
+For square inputs, an explicit shared square has this typed form:
+
+```haskell
+squareGraph :: FiniteTensor region 'F64 '[n, n] -> Graph '[] region n n
+squareGraph input =
+    matrixLet (matrixInput input) $
+        matrixMultiply (matrixRef matrixHere) (matrixRef matrixHere)
+```
+
+`prepareGraph` admits forward evaluation; `prepareGraphVJP` also takes a finite
+output seed and reserves all input gradients. Run the resulting plan inside its
+originating tensor session with `runGraph` or `runGraphVJP` and an explicit
+`BackendRequest`. Results contain copied values and can leave that session.
+
+The graph uses one scoped executor and the existing kernel. Intermediate matrix
+results return to the host before their consumers execute. Affine gathers,
+pullbacks, and cotangent sums run on the host. These transfers add latency and
+traffic; the implementation makes no speedup claim. The
+[graph contract](../../docs/plans/D082-CUDA-GRAPHS.md) defines the exact dyadic
+meaning, fixed schedule, resource coefficients, and failure order. CPU and CUDA
+fixtures are checked independently against exact all-coordinate derivatives.
 
 The default build is CUDA-disabled. It still tests CPU execution, explicit
 `CUDANotCompiled` failure, and configured pre-launch fallback. An enabled

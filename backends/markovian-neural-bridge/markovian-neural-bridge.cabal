@@ -2,11 +2,12 @@ cabal-version:      3.0
 name:               markovian-neural-bridge
 version:            2026.9.3.0
 synopsis:
-  Checked exact-action support masks for Markovian neural heads
+  Exact-action masks and bounded DQN training for Markovian neural heads
 
 description:
-  A structural adapter from exact finite Markovian action layouts and
-  availability order to sized masks accepted by markovian-neural.
+  Structural adapters from exact finite Markovian action layouts and availability
+  order to sized masks accepted by markovian-neural, plus a bounded resumable
+  sampled reference DQN trainer.
 
 category:           Math
 homepage:           https://github.com/josephjohncox/Markovian
@@ -39,12 +40,17 @@ source-repository this
   subdir:   backends/markovian-neural-bridge
 
 library
-  exposed-modules:  Markovian.Backend.Neural.Bridge.ExactSupportMask
+  exposed-modules:
+    Markovian.Backend.Neural.Bridge.DQN.Trainer
+    Markovian.Backend.Neural.Bridge.ExactSupportMask
+
   hs-source-dirs:   src
   build-depends:
-    , base              >=4.22.0.0    && <4.23
-    , Markovian         ^>=2026.9.3.0
-    , markovian-neural  ^>=2026.9.3.0
+    , base                 >=4.22.0.0    && <4.23
+    , Markovian            ^>=2026.9.3.0
+    , markovian-neural     ^>=2026.9.3.0
+    , markovian-numerical  ^>=2026.9.3.0
+    , markovian-sampling   ^>=2026.9.3.0
 
   default-language: GHC2021
   ghc-options:      -Wall
@@ -52,12 +58,28 @@ library
 test-suite markovian-neural-bridge-test
   type:             exitcode-stdio-1.0
   main-is:          Main.hs
+  other-modules:    DQNTrainer
   hs-source-dirs:   test
   build-depends:
     , base                     >=4.22.0.0    && <4.23
     , Markovian                ^>=2026.9.3.0
     , markovian-neural         ^>=2026.9.3.0
     , markovian-neural-bridge  ==2026.9.3.0
+    , markovian-numerical      ^>=2026.9.3.0
+    , markovian-sampling       ^>=2026.9.3.0
+
+  default-language: GHC2021
+  ghc-options:      -Wall
+
+benchmark dqn-trainer-bench
+  type:             exitcode-stdio-1.0
+  main-is:          Main.hs
+  hs-source-dirs:   bench/DQNTrainer
+  build-depends:
+    , base                     >=4.22.0.0    && <4.23
+    , markovian-neural         ^>=2026.9.3.0
+    , markovian-neural-bridge  ==2026.9.3.0
+    , markovian-sampling       ^>=2026.9.3.0
 
   default-language: GHC2021
   ghc-options:      -Wall

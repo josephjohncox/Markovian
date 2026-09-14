@@ -2,13 +2,11 @@
 
 ## Unreleased
 
-- Resolve EL-06/D-085 source-semantic admission versus separately bounded executor cost with a checked 100/1/10 accounting-model lesson, cumulative construction/hit and ordered discarded-rational boundaries, and a real checked-bind association contrast. Wire its executed output through existing source/archive learning gates. D-085 remains Proposed; no cache, public API, package edge or version change.
-
-- Add EL-05 supplied-partition fixed-policy aggregation in `Markovian.Aggregation.Exact`: opaque owned quotient or checked first-difference witness, exact joint reward/next-block laws, observations and terminal/payoff timing, bounded admission and one cumulative rational ledger. Include independent finite-value/trace fixtures, nominal/opacity gates and an executable success/counterexample lesson. No partition discovery or general MDP/POMDP claim; versions and Proposed decisions are unchanged.
-
-- Add EL-04 fixed-topology event-reward feedback JVP with one base-plus-derivative ledger, eight checked coefficient equation families, nominal ownership, independent determinant/dual-unrolling fixtures and an executable retry lesson. Probabilities and discount are fixed; reward derivative 4/3 and separately symbolic probability derivative 8/9 are not conflated. Preserve existing affine behavior, package versions and Proposed decisions.
-
-- Add the bounded EL-03 paired-difference report in `markovian-continuous`, with one cumulative exact meter, independent moment-oracle tests and an executable common-noise-worsens-variance lesson. Update current capability evidence without changing package versions, published history or Proposed decision statuses.
+- Add closed F64 matrix graphs with explicit sharing, affine views, all-input VJPs, and bounded CPU/CUDA schedules in `Markovian.Backend.GPU.Graph`.
+- Add a resumable DQN reference trainer in `markovian-neural-bridge`, with explicit transition fuel, generator state, replay sampling, atomic updates, and checkpoint timing.
+- Add retained exact local circuit tables with ordered source-validation replay, separate source and executor budgets, and cached/uncached benchmarks.
+- Add exact paired-difference moments, fixed-probability event-reward feedback JVPs, and supplied-partition fixed-policy aggregation. Independent moment, determinant, and trace oracles check their bounded contracts.
+- Add the executable resource-admission lesson, including a checked-bind association counterexample. Equal denotations can have different resource admission.
 
 ## 2026.9.3.0 — 2026-09-03
 

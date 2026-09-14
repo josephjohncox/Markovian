@@ -609,6 +609,13 @@ data AffineMap (map :: Type) (base :: [Nat]) (view :: [Nat])
 
 type role AffineMap nominal nominal nominal
 
+{- | Read the already admitted logical geometry. This observer reveals no
+storage, owner, or constructor capability and performs no new admission.
+-}
+affineMapDescriptor :: AffineMap map base view -> (SShape base, SShape view, Integer, [Integer])
+affineMapDescriptor (AffineMap base view _ _ _ _ offset strides _ _ _) =
+    (base, view, offset, strides)
+
 -- Post-admission copies only. Both values and the terminating spine are forced.
 affineDimensions :: SShape shape -> [Natural]
 affineDimensions SNil = []

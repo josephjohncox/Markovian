@@ -2,7 +2,7 @@
 
 **Status:** Proposed
 
-Frozen and independently reviewed before semantic implementation. Unreleased implementation evidence now lives in `packages/markovian-continuous/test/PairedDifference.hs` and the [executable lesson](../book/src/paired-difference.md); independent implementation review remains a separate gate. This contract asserts no acceptance. Owner: existing `markovian-continuous`, public module `Markovian.Continuous.Measure.Exact`; private machinery stays in `Markovian.Continuous.Internal`. No dependency changes. Related D-070 is Accepted for its older bounded fragment; D-079 remains Proposed.
+Implemented in `markovian-continuous`, public module `Markovian.Continuous.Measure.Exact`, with private machinery in `Markovian.Continuous.Internal`. The independent moment oracle and admission tests are in `packages/markovian-continuous/test/PairedDifference.hs`; the [executable lesson](../book/src/paired-difference.md) demonstrates shared and independent noise. Acceptance remains separate from the accepted D-070 and D-079 fragments.
 
 ## Consumer and semantics
 

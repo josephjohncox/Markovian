@@ -2,7 +2,7 @@
 
 **Status:** Proposed
 
-EL-01 froze this policy for EL-06 teaching and D-085 design. EL-06 now supplies a checked, test-only accounting model and an actual checked-bind association contrast in `test/ResourceAdmission.hs`, with [executed teaching output](../book/src/resource-admission.md). This is not a cache implementation or benchmark. Full cache signatures/implementation remain future D-085 work. D-085 remains Proposed. No new package edges or publication authority follow.
+This policy governs the checked accounting model and checked-bind association example in `test/ResourceAdmission.hs`, with [executed teaching output](../book/src/resource-admission.md). The model uses hypothetical replay costs. The concrete retained cache has a separate [D-085 contract](D085-CIRCUIT-CACHE.md) and measured costs.
 
 ## Four distinct contracts
 
@@ -46,8 +46,8 @@ The same lesson calls existing `bindExactFiniteDistChecked` on a fair `[0,1]` so
 
 Those are separately budgeted **public operations**, not a reset-budget implementation of the model's request-wide meter. Inner work is not included in the outer receipt. The two expressions happen to have equal summed work 28, yet local admission differs. Source association therefore remains visible to D-085; this is no unrestricted Monad or universal optimizer law.
 
-## Evidence and future cache gate
+## Evidence and cache boundary
 
 `docs/learning/fences.json` registers the full runnable module and `--resource-admission` output. `scripts/check-learning --write` generates stdout/receipt by execution; `--run` checks compilation and freshness. Normal root tests exercise all model boundaries. Existing source CI and `scripts/check-learning-archive` consume the same manifest, compile the archived module and compare archived output.
 
-Freeze D-085's concrete cache and interpreter-evidence signatures only when its consumer can satisfy this source contract. Opaque nominal table ownership, exact layout checks, real callback evidence, deterministic insertion/lookup, trace compression proof, cache capacity and actual time/allocation/hit measurements remain future cache work, not requirements silently satisfied by this accounting experiment.
+D-085 separately checks table ownership, exact layouts, closed interpreter identity, deterministic lookup/insertion, capacity, and actual time, allocation, and hit measurements. The teaching model supplies none of that implementation evidence.

@@ -14,7 +14,7 @@ Public sibling bounds still use Cabal's `^>=` operator. The `YYYY.M` pair theref
 
 ## Preparation contract
 
-`release/packages.tsv` owns the bounded 16-package list, versions, and dependency tiers. `release/components.tsv` owns the 18 required test suites, 11 benchmarks, and the neural integration flag. These files describe the released integration graph. They do not by themselves authorize publication.
+`release/packages.tsv` owns the bounded 16-package list, versions, and dependency tiers. `release/components.tsv` owns the 18 required test suites, 13 benchmarks, and the neural integration flag. These files describe the current development integration graph; published membership is recorded separately. They do not by themselves authorize publication.
 
 The preparation script requires a full lowercase 40-character commit object ID and a clean worktree at that exact commit. It refuses Hackage credentials and an existing output directory.
 
