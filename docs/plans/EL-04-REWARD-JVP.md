@@ -1,6 +1,8 @@
 # EL-04 — Fixed-topology event-reward feedback JVP
 
-**Status:** Proposed
+**Status:** Accepted
+
+**Bounded, unreleased acceptance — 2026-09-14:** Independent review accepts fixed-probability, fixed-discount event-reward JVPs. It checked 105 additional dense systems with algebraically chosen derivative solutions and 6,561 independent reservation comparisons. The audited implementation is unchanged from `24b81f7d33680bc78b3a0ecff39100f206d45385` through `03493e83bd842d2e9c0b41d0c0de4ab4380e4dc3`. The scope below remains binding; acceptance does not establish a release or a physical resource bound.
 
 Implemented in `Markovian.Feedback.Value.Exact`, using private `Markovian.Feedback.Internal` machinery. Independent determinant and dual-unrolling oracles live in `test/FeedbackRewardJVP.hs`; private reservation checks live in `test/FeedbackRewardJVPPrivate.hs`. Acceptance remains separate from D-078's base affine-feedback operation. Probabilities and discount are fixed; their derivatives are outside this API.
 

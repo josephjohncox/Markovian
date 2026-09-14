@@ -17,12 +17,13 @@ does not establish whether a development API was released.
 - D-077 through D-081 are Accepted and unreleased. They cover GPU evidence
   policy, strict-discount affine feedback, joint-affine substitution,
   cumulative quotation compilation, and host-F64 affine views.
-- EL-03, EL-04, and EL-05 are implemented and unreleased; their decisions remain
-  Proposed.
+- EL-03 through EL-06 are Accepted and unreleased for paired differences,
+  reward derivatives, fixed-policy aggregation, and the resource-admission model.
 - D-083's exact CE/CCE first-witness solvers are Accepted and unreleased.
-- D-082 CUDA graphs, D-084's reference trainer, and D-085's concrete trace cache
-  are implemented and Proposed while final validation proceeds. EL-06 supplies
-  the separate resource-admission model and policy.
+- D-084's reference trainer and D-085's retained local circuit cache are Accepted
+  and unreleased.
+- D-082 CUDA graphs are implemented and Proposed pending protected hardware
+  evidence for their reviewed revision.
 
 The [capability inventory](book/src/capabilities.md) checks selected status and
 module claims. [TODO.md](../TODO.md#open-work) tracks remaining work;

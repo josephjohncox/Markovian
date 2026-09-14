@@ -51,7 +51,7 @@ D-061 is `Accepted` for the reviewed package graph. D-067 is accepted only for t
 | --- | --- |
 | `Markovian.Interpreter.Exact` | Exact traces and expected returns |
 | `Markovian.Compile.Exact` | Policy-free exact MDP compilation and separate policy closure |
-| `Markovian.Aggregation.Exact` | Unreleased [supplied-partition fixed-policy checker](aggregation.md): opaque owned quotient or bounded distinguishing witness; joint reward/next-block laws, observations and terminal payoffs; EL-05 Proposed |
+| `Markovian.Aggregation.Exact` | Unreleased [supplied-partition fixed-policy checker](aggregation.md): opaque owned quotient or bounded distinguishing witness; joint reward/next-block laws, observations and terminal payoffs; EL-05 Accepted |
 | `Markovian.Interpreter.DynamicProgramming.Exact` | Finite-horizon policy evaluation |
 | `Markovian.Interpreter.Bellman.Exact` | Discounted contraction policy evaluation |
 | `Markovian.Interpreter.Control.Exact` | Exact value iteration, greedy extraction, and policy iteration |
@@ -110,7 +110,7 @@ The old `Markovian.Category.Finite.Exact` module is private regression code. No 
 | `Markovian.Feedback.Channel.Exact` | Proper first-exit coproduct routing with exact solve evidence |
 | `Markovian.Feedback.Delay.Exact` | Explicit seed and bounded one-tick delayed execution |
 | `Markovian.Feedback.Timed.Exact` | Nilpotent reward-, duration-, and output-preserving closure |
-| `Markovian.Feedback.Value.Exact` | Unreleased strict-discount affine `A`/`K` coefficients and `closeAffineFeedbackRewardJVP`: opaque jointly owned base and event-reward derivative, exact layout checks and one cumulative ledger; fixed probabilities/discount only; original D-078 coefficients Accepted, separate EL-04 JVP contract Proposed |
+| `Markovian.Feedback.Value.Exact` | Unreleased strict-discount affine `A`/`K` coefficients and `closeAffineFeedbackRewardJVP`: opaque jointly owned base and event-reward derivative, exact layout checks and one cumulative ledger; fixed probabilities/discount only; original D-078 coefficients Accepted, separate EL-04 JVP contract Accepted |
 
 These modules provide no universal trace, instantaneous fixed-point operator, cyclic open-system black-boxing, or stationary-distribution selector. The value module returns no evaluator or normalized output channel. D-078 is `Accepted` only for its original coefficients and four exact equations, not EL-04's JVP contract; both remain unreleased.
 

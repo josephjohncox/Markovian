@@ -81,10 +81,9 @@ prefix, include discarded Gaussian and derivative cancellation growth, and check
 layout/failure order. Private probes compare machine-saturating reservations
 against an independent Integer formula. Compile-fail gates protect constructor
 opacity and all four nominal roles. See the [frozen EL-04 contract](../../plans/EL-04-REWARD-JVP.md)
-for the complete deterministic operation order. EL-04 remains Proposed with a
-separate implementation PASS; this is unreleased evidence, not acceptance of its
-contract. D-078 is Accepted only for the original affine coefficients and four
-Rational equations, not this JVP or probability/discount derivatives.
+for the complete deterministic operation order. EL-04 is Accepted for this unreleased reward-only derivative. D-078 covers the
+original affine coefficients; neither decision adds probability or discount
+derivatives.
 
 ## Run and inspect the independent evidence
 

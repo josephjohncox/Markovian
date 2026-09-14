@@ -4,20 +4,13 @@
 
 ## Open work
 
-The remaining implementations are present and unreleased. Acceptance is pending
-final integration and evidence review:
+All recorded implementations are present. [D-082 CUDA graphs](docs/plans/D082-CUDA-GRAPHS.md)
+still require protected same-session hardware/sanitizer evidence and a reviewed
+acceptance update. The trainer, retained cache, and EL-03 through EL-06 have
+passed independent review and are Accepted within their unreleased scopes.
 
-- [D-082 CUDA graphs](docs/plans/D082-CUDA-GRAPHS.md): CPU review passed;
-  same-session hardware and sanitizer validation remains.
-- [D-084 reference trainer](docs/plans/D084-DQN-TRAINER.md): independent review
-  and final publication-boundary checks are in progress.
-- [D-085 retained circuit cache](docs/plans/D085-CIRCUIT-CACHE.md): independent
-  review passed; archive and integration checks remain.
-- EL-03 through EL-06: independent review supports the documented bounded
-  scopes; a reviewed status update remains.
-
-See the [capability inventory](docs/book/src/capabilities.md) for current status
-and the [decision log](docs/DECISIONS.md) for accepted work.
+See the [capability inventory](docs/book/src/capabilities.md) and
+[decision log](docs/DECISIONS.md) for scope and evidence.
 
 ## Requirements for new work
 

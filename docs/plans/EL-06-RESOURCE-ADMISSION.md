@@ -1,6 +1,8 @@
 # EL-06 — Source-semantic admission policy
 
-**Status:** Proposed
+**Status:** Accepted
+
+**Bounded, unreleased acceptance — 2026-09-14:** Independent review accepts the source-admission policy, closed accounting model, and checked-bind example. It checked the ordered-failure, cumulative-ledger, and literal checked-bind association fixtures. The audited implementation is unchanged from `24b81f7d33680bc78b3a0ecff39100f206d45385` through `03493e83bd842d2e9c0b41d0c0de4ab4380e4dc3`. The scope below remains binding; acceptance does not establish a release or a physical resource bound.
 
 This policy governs the checked accounting model and checked-bind association example in `test/ResourceAdmission.hs`, with [executed teaching output](../book/src/resource-admission.md). The model uses hypothetical replay costs. The concrete retained cache has a separate [D-085 contract](D085-CIRCUIT-CACHE.md) and measured costs.
 

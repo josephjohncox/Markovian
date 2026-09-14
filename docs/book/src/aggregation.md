@@ -78,7 +78,7 @@ This is a sufficient congruence for **one fixed policy** and the declared
 reward/observation/stop traces and finite-horizon returns. Actions and policy
 alternatives are not preserved observations. No automatic partition discovery,
 optimal-policy preservation, general MDP/POMDP abstraction, or performance claim
-follows. EL-05 remains Proposed; this implementation is unreleased.
+follows. EL-05 is Accepted within this unreleased scope.
 
 ## Run and inspect
 
