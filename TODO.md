@@ -1,9 +1,6 @@
 # Open development work
 
-Next: review D-083 acceptance. Its implementation and verification are complete;
-the decision remains Proposed until a separate reviewed acceptance update.
-
-D-077 through D-081 are Accepted within their unreleased scopes. EL-03,
+D-077 through D-081 and D-083 are Accepted within their unreleased scopes. EL-03,
 EL-04, and EL-05 are implemented but remain Proposed. See the
 [capability inventory](docs/book/src/capabilities.md) for status and
 [decision log](docs/DECISIONS.md) for completed work.
@@ -11,22 +8,6 @@ EL-04, and EL-05 are implemented but remain Proposed. See the
 <a id="all-nine-execution-checklist"></a>
 
 ## Open work
-
-### D-083: CE and CCE solvers (next)
-
-`Markovian.Game.Correlated.Exact` implements the
-[CE/CCE contract](docs/plans/D083-CE-CCE-SOLVERS.md). D-083 remains Proposed.
-The accepted placement adds no package or dependency edge.
-
-The [verification map](docs/plans/D083-CE-CCE-SOLVERS.md#11-independent-test-matrix-and-exact-fixtures)
-links the public tests, complete tiny geometry oracle, independent ledgers,
-failure boundaries, and source-level arithmetic/strictness controls. Source
-and test reviews found no remaining verification blocker.
-
-- [ ] Record acceptance, if approved, in a separate reviewed decision update.
-
-A completed public search without a witness is an invariant failure. These
-solvers make no Nash or unrestricted equilibrium-solving claim.
 
 ### D-082: CUDA multiply-chain graphs
 

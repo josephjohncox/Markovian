@@ -88,7 +88,7 @@ These reservations count cumulative logical reconstruction, including copied own
 They do not measure heap allocations, bytes, peak residency, or unlimited future executions.
 The original accessor traversals in syntax preflight retain their historical schedule; charged-before-inspection metadata entries are a rule of the new planner.
 Private instrumented production-path tests distinguish metadata witnesses, target construction, and later runtime tapes.
-D-080 is `Accepted` within its bounded, unreleased scope after decision-specific implementation and integration review; see the [separate parent-authorized acceptance record](../../DECISIONS.md#d-080-add-bounded-first-order-quotation-with-callback-free-let). Acceptance does not extend to arbitrary-Haskell/higher-order AD, control flow, effects, sampling, tensors, devices, nested differentiation, vector packing, physical allocation/peak memory, performance or release claims.
+D-080 is `Accepted` within its bounded, unreleased scope after decision-specific implementation and integration review; see the [acceptance record](../../DECISIONS.md#d-080-add-bounded-first-order-quotation-with-callback-free-let). Acceptance does not extend to arbitrary-Haskell/higher-order AD, control flow, effects, sampling, tensors, devices, nested differentiation, vector packing, physical allocation/peak memory, performance or release claims.
 
 The direct exact primal and JVP interpreters recurse over the quotation and source syntax.
 They check rational size after each operation.

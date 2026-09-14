@@ -42,13 +42,13 @@ The measurement proves one local execution. It is not a general GPU performance 
 
 ## Clark--Scarf finite-specialization evidence
 
-`test/ClarkScarf1960.hs` checks the page/equation-crosswalked finite specialization against three exact paths: generic exact-MDP backward induction, direct equation (14), and equations (15), (20), (21), and (26). It also evaluates the decomposed policy in the joint model and requires zero exact regret. The deterministic golden report records the inspected scan checksum, source assumptions, repository finite assumptions, retained and omitted mass, explicit budgets, and cap-widening diagnostics.
+`packages/markovian-exact-benchmarks/test/ClarkScarf1960.hs` checks the page/equation-crosswalked finite specialization against three exact paths: generic exact-MDP backward induction, direct equation (14), and equations (15), (20), (21), and (26). It also evaluates the decomposed policy in the joint model and requires zero exact regret. The deterministic golden report records the inspected scan checksum, source assumptions, repository finite assumptions, retained and omitted mass, explicit budgets, and cap-widening diagnostics.
 
 The paper supplies no numeric oracle. This is equation-level differential evidence for one finite lattice, not a published-value reproduction, continuous approximation result, average-cost theorem, or unbounded proof.
 
 ## Fixed-batch finite and stationary evidence
 
-`test/FixedBatchRnQ.hs` checks the BETA Working Paper 134 event order, physical integer-ratio batches, exact supplier delay, same-demand cost/successor outcomes, conditioned-demand mass, complete finite layouts, independent finite-horizon oracle and fixed-policy recursions, exact subsystem shortfalls, forward differences, weak and strict discrete inequalities, unit batches, and all computation budgets. It includes a finite-horizon-versus-stationary counterexample. The golden report keeps bounded execution and stationary newsvendor results in separate sections and labels widening and omitted mass as diagnostics rather than error bounds.
+`packages/markovian-exact-benchmarks/test/FixedBatchRnQ.hs` checks the BETA Working Paper 134 event order, physical integer-ratio batches, exact supplier delay, same-demand cost/successor outcomes, conditioned-demand mass, complete finite layouts, independent finite-horizon oracle and fixed-policy recursions, exact subsystem shortfalls, forward differences, weak and strict discrete inequalities, unit batches, and all computation budgets. It includes a finite-horizon-versus-stationary counterexample. The golden report keeps bounded execution and stationary newsvendor results in separate sections and labels widening and omitted mass as diagnostics rather than error bounds.
 
 `fixed-batch-rnq-bench` excludes one warm-up and measures twenty complete runs. It requires every run to reproduce the same semantic report. Timing is local reproducibility evidence only; there is no speedup or convergence claim.
 
@@ -58,4 +58,4 @@ The paper supplies no numeric oracle. This is equation-level differential eviden
 
 This evidence applies only to represented finite pure contextual equilibria. It supplies no equilibrium-existence, mixed, correlated, repeated, stochastic, Bayesian, continuous, or subgame-perfect result.
 
-Use an evidence record when a result depends on hardware, a benchmark method, or a large verification campaign.
+Use an evidence record when a result depends on hardware, a benchmark method, or checks that need a separate derivation.

@@ -57,6 +57,7 @@ Floating modules need `markovian-numerical`. Sampling needs `markovian-sampling`
 | Enumerate exact pure contextual equilibria | `Markovian.Game.Open.Exact` and `enumeratePureEquilibria` |
 | Verify a supplied exact mixed-Nash candidate | `Markovian.Game.NormalForm.Exact` |
 | Check CE or CCE obedience separately | `Markovian.Game.Correlated.Exact` |
+| Find the first checked exact CE or CCE witness under explicit limits | `solveCorrelatedEquilibrium` or `solveCoarseCorrelatedEquilibrium` |
 | Evaluate a finite-horizon public-state stochastic profile | `Markovian.Game.Stochastic.Exact` |
 | Check a one-shot correlated-prior Bayesian profile | `Markovian.Game.Harsanyi.Exact` |
 | Integrate a represented affine-uniform law exactly | `Markovian.Continuous.Measure.Exact` |

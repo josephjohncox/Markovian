@@ -63,13 +63,14 @@ class CapabilityTests(unittest.TestCase):
         self.rejected(self.changed(5, availability="released", evidenceScope="bounded-release"),
                       "not in immutable released membership")
 
-    def test_d079_d080_d081_bounded_acceptance_statuses(self):
+    def test_bounded_unreleased_acceptance_statuses(self):
         decisions = (cap.ROOT / "docs/DECISIONS.md").read_text()
         statuses = dict(re.findall(
             r"(?ms)^### (D-\d+):.*?^\*\*Status:\*\* ([^\n]+)$", decisions))
         for number in range(77, 82):
             self.assertEqual(statuses[f"D-{number:03}"], "Accepted")
-        for number in range(82, 86):
+        self.assertEqual(statuses["D-083"], "Accepted")
+        for number in (82, 84, 85):
             self.assertEqual(statuses[f"D-{number:03}"], "Proposed")
         for decision in ("EL-03", "EL-04", "EL-05"):
             record = next(r for r in self.document["capabilities"]
@@ -93,10 +94,10 @@ class CapabilityTests(unittest.TestCase):
         self.assertIn(module, self.current["markovian-tensor"])
         self.assertNotIn(module, self.released["markovian-tensor"])
 
-    def test_d083_implementation_remains_unreleased_and_proposed(self):
+    def test_d083_acceptance_remains_unreleased(self):
         record = next(r for r in self.document["capabilities"] if r["decision"] == "D-083")
         self.assertEqual(record["availability"], "unreleased")
-        self.assertEqual(record["decisionStatus"], "Proposed")
+        self.assertEqual(record["decisionStatus"], "Accepted")
         self.assertEqual(record["evidenceScope"], "implementation-fixtures")
         self.assertEqual(record["evidence"], "test/CorrelatedSolvers.hs")
         self.assertIn("Markovian.Game.Correlated.Exact", self.current["Markovian"])

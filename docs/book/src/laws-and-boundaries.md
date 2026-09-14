@@ -575,7 +575,7 @@ P_{c\otimes c}(F,F)=P(F,T)=P(T,F)=P(T,T)=\frac14.
 
 Therefore, copy naturality would equate correlated and independent draws. The purity index permits this rewrite only for deterministic circuits.
 
-**Executable evidence:** [`testStochasticNormalization` and `testDeterministic`](https://github.com/josephjohncox/Markovian/blob/main/test/AlgebraicFoundation.hs#L421-L558), plus [`testPurityAndSharing`](https://github.com/josephjohncox/Markovian/blob/main/test/StochasticCircuit.hs#L147-L193).
+**Executable evidence:** [`testStochasticNormalization` and `testDeterministic`](https://github.com/josephjohncox/Markovian/blob/main/test/AlgebraicFoundation.hs#L421-L558), plus [`testPurityAndSharing`](https://github.com/josephjohncox/Markovian/blob/main/packages/markovian-dense-exact/test/StochasticCircuit.hs#L147-L193).
 
 ## Exact convex laws
 
@@ -725,7 +725,7 @@ and Theorem 1's equivalent weak and strict discrete inequalities. An independent
 
 These are finite exact fixtures under the reported conditioned demand and grid. They do not prove an unbounded minimizer, continuous equality, average-cost convergence, or optimality of a constant `(R,nQ)` policy for the finite-horizon oracle. A pinned counterexample has different finite-horizon and stationary selections.
 
-**Executable evidence:** [`FixedBatchRnQ.hs`](https://github.com/josephjohncox/Markovian/blob/main/test/FixedBatchRnQ.hs).
+**Executable evidence:** [`FixedBatchRnQ.hs`](https://github.com/josephjohncox/Markovian/blob/main/packages/markovian-exact-benchmarks/test/FixedBatchRnQ.hs).
 
 ## Circuit interpretation laws
 
@@ -749,7 +749,7 @@ They also check symmetry involution, associator and unitor round trips, copy coc
 
 The deterministic compiler preserves identity, composition, products, pairing, and projections. Pairing compiles through copy followed by tensor.
 
-**Executable evidence:** [`testHomomorphismAndCoherence` and `testMonoidalCoherence`](https://github.com/josephjohncox/Markovian/blob/main/test/StochasticCircuit.hs#L194-L369), plus [`testDeterministicCompilation`](https://github.com/josephjohncox/Markovian/blob/main/test/StochasticCircuit.hs#L465).
+**Executable evidence:** [`testHomomorphismAndCoherence` and `testMonoidalCoherence`](https://github.com/josephjohncox/Markovian/blob/main/packages/markovian-dense-exact/test/StochasticCircuit.hs#L194-L369), plus [`testDeterministicCompilation`](https://github.com/josephjohncox/Markovian/blob/main/packages/markovian-dense-exact/test/StochasticCircuit.hs#L468).
 
 ## Bounded circuit costs and deterministic rewrites
 
@@ -862,13 +862,13 @@ Independent profile mass factors exactly as `product_i sigma_i(a_i)`. Expected p
 
 CE checks unconditional direct-recommendation slacks; a null recommendation has zero slack and no conditional-optimality claim. CCE checks constant pre-recommendation deviations separately. Every matching-pennies Nash product fixture passes CE, while the Battle of the Sexes device shows that correlation is not the product of its marginals. The `(A,L)/(C,R)` fixture passes CCE and fails CE.
 
-The rational-payoff three-player fixture requires `p^2=1/2` at its symmetric equilibrium. The zero-payoff game admits every profile. These are counterexamples to complete `Rational` enumeration and silent singular-support handling. No solver is implemented.
+The rational-payoff three-player fixture requires `p^2=1/2` at its symmetric equilibrium. The zero-payoff game admits every profile. These are counterexamples to complete `Rational` enumeration and silent singular-support handling. No mixed-Nash solver is implemented. The separate bounded CE and CCE solvers stream active constraint sets in a fixed order and return the first witness revalidated by the corresponding checker. Their limits cover logical work, materialization, candidates, inequalities, and rational size; exhaustion is an error, not a nonexistence result.
 
 A stochastic stage law retains `(reward vector, successor)` in one atom. Terminal value precedes horizon, a nonterminal at horizon zero adds zero, transition reward is added once, and continuation is discounted once. Markov-perfect checking uses continuation payoffs rather than isolated stage payoffs.
 
 The Harsanyi common prior is over complete type profiles and can be correlated. Positive-type comparisons use exact unnormalized sums. Null types expose no conditional value. Bounded strategic-normal conversion supplies a separate exact evaluation route for the one-shot contingent-plan fragment. It is not agent normal form because types are not split into independent agents.
 
-**Executable evidence:** `test/MixedBayesianGames.hs`, `scripts/check-mixed-game-boundary`, and `mixed-games-exact-bench`.
+**Executable evidence:** `test/MixedBayesianGames.hs`, `test/CorrelatedSolvers.hs`, `scripts/check-mixed-game-boundary`, `scripts/check-correlated-solver`, and `mixed-games-exact-bench`.
 
 ## Restricted continuous laws and counterexamples
 
