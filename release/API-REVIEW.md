@@ -12,8 +12,9 @@ manifest now has 16 packages, 18 test suites, and 13 benchmarks. Published
 membership and versions remain unchanged.
 
 - `Markovian.Backend.GPU.Graph` owns typed F64 input/view/multiply graphs,
-  cumulative preparation, and all-input VJPs. Independent CPU/source review and direct GB10 execution with all four
-  sanitizers passed. D-082 acceptance remains pending protected signed evidence.
+  cumulative preparation, and all-input VJPs. D-082 is Accepted after independent
+  CPU/source review and [verified protected GB10 execution](../docs/plans/D082-CUDA-GRAPHS.md#protected-validation--2026-09-14)
+  at `e9612a3ddfe1b14ff3a471bfceaedfabb4a54232`, including all four sanitizers.
 - `Markovian.Backend.Neural.Bridge.DQN.Trainer` owns positive fuel, explicit
   generator state, replay/checkpoint composition, and resumable failures.
   D-084 is Accepted after independent O0/O2 and constructor-mutation review.

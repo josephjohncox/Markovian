@@ -22,8 +22,8 @@ does not establish whether a development API was released.
 - D-083's exact CE/CCE first-witness solvers are Accepted and unreleased.
 - D-084's reference trainer and D-085's retained local circuit cache are Accepted
   and unreleased.
-- D-082 CUDA graphs are implemented and Proposed pending protected hardware
-  evidence for their reviewed revision.
+- D-082 CUDA graphs are Accepted and unreleased, with verified protected
+  hardware evidence at `e9612a3ddfe1b14ff3a471bfceaedfabb4a54232`.
 
 The [capability inventory](book/src/capabilities.md) checks selected status and
 module claims. [TODO.md](../TODO.md#open-work) tracks remaining work;

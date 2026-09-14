@@ -4,10 +4,10 @@
 
 ## Open work
 
-All recorded implementations are present. [D-082 CUDA graphs](docs/plans/D082-CUDA-GRAPHS.md)
-still require protected same-session hardware/sanitizer evidence and a reviewed
-acceptance update. The trainer, retained cache, and EL-03 through EL-06 have
-passed independent review and are Accepted within their unreleased scopes.
+The recorded backlog is complete. D-082 through D-085 and EL-03 through EL-06
+are Accepted within their documented unreleased scopes. The
+[CUDA graph contract](docs/plans/D082-CUDA-GRAPHS.md#protected-validation--2026-09-14)
+records the verified hardware evidence and its exact tested revision.
 
 See the [capability inventory](docs/book/src/capabilities.md) and
 [decision log](docs/DECISIONS.md) for scope and evidence.

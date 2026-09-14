@@ -33,8 +33,8 @@ distinguishes availability from decision status.
 
 Accepted, unreleased additions include strict-discount affine feedback,
 joint-affine substitution, polynomial quotation with cumulative compilation
-budgets, host-F64 affine views, and exact CE/CCE first-witness solvers. CUDA
-multiply-chain graphs are implemented and unreleased; hardware acceptance is tracked in D-082.
+budgets, host-F64 affine views, exact CE/CCE first-witness solvers, CUDA
+multiply-chain graphs, the reference DQN trainer, and retained exact circuit tables.
 
 See the [release notes](RELEASE-NOTES.md), [migration guide](MIGRATION.md), and
 [open work](TODO.md). Releases use coordinated UTC CalVer `YYYY.M.D.N` and

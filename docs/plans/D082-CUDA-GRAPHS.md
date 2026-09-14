@@ -218,22 +218,89 @@ free, and teardown faults with no fallback after commitment.
 Hardware execution belongs to the root workflow owner: D-077 same-session
 correctness, all applicable sanitizer, benchmark, receipt and signature checks
 must bind the implementation revision. Existing historical receipts do not
-attest D-082. This contract neither authorizes a hardware workflow nor asserts
-hardware acceptance, deployment, publication, speedup, fusion, or generic reverse
-program lowering.
+attest D-082. The verified run below supplies that evidence for its named revision. Deployment
+and promotion require evidence bound to their actual revision under D-077.
 
-## Direct local validation — 2026-09-14
+## Protected validation — 2026-09-14
 
-The compiled source, tests, profile, and build inputs match
-`03493e83bd842d2e9c0b41d0c0de4ab4380e4dc3`; later changes are documentation.
-Direct execution on GB10 UUID `GPU-ac353d74-ffaf-96d2-7849-b8d03d5cd1a7`
-passed the graph's exact dyadic, all-coordinate VJP, budget, and fault tests.
-The run used GHC 9.14.1, CUDA 13.0, driver 580.173.02, and Compute Sanitizer
-2025.3.1.0. `memcheck`, `initcheck`, and `synccheck` reported zero errors;
-`racecheck` reported zero hazards, errors, and warnings. The existing
-transfer-inclusive kernel benchmark completed twenty measured samples with
-checksum `49439/128`. This is a kernel check, not a graph speedup measurement.
+[Run 34884826237, attempt 2](https://github.com/josephjohncox/Markovian/actions/runs/34884826237/attempts/2)
+passed at `e9612a3ddfe1b14ff3a471bfceaedfabb4a54232`. Its session is
+`github-34884826237-2-e9612a3ddfe1b14ff3a471bfceaedfabb4a54232`.
+The graph's exact dyadic, all-coordinate VJP, budget, and fault tests completed
+in correctness and each of the four sanitizer logs. `memcheck`, `initcheck`, and
+`synccheck` reported zero errors; `racecheck` reported zero hazards, errors, and
+warnings. The existing transfer-inclusive kernel benchmark returned checksum
+`49439/128` over twenty ordered measured samples. This does not measure graph speedup.
 
-These are unsigned local results. D-082 remains Proposed until the protected
-workflow supplies the complete verified same-session receipts required by
-[D-077](../WORKFLOWS.md#gpu-deployment-evidence).
+The run used GB10 UUID `GPU-ac353d74-ffaf-96d2-7849-b8d03d5cd1a7`,
+GHC 9.14.1, CUDA 13.0, driver 580.173.02, native driver API 13000, and Compute
+Sanitizer 2025.3.1.0. The unchanged receipt validator passed with explicit
+revision, session, and UUID arguments, binding all six records, commands,
+executables, observations, raw samples, profile, and PTX.
+
+**Signature verification:** `gh 2.100.0 attestation verify` passed separately
+for all 14 downloaded files, using the same selected Sigstore bundle and default
+signature, claims, and transparency checks. Arguments constrained
+`--repo josephjohncox/Markovian`, `--source-digest` and `--signer-digest` to the
+revision above, `--source-ref refs/heads/feat/remaining-backlog`,
+`--cert-oidc-issuer https://token.actions.githubusercontent.com`, and exact
+`--cert-identity https://github.com/josephjohncox/Markovian/.github/workflows/cuda-hardware.yml@refs/heads/feat/remaining-backlog`.
+
+The verified certificate independently binds that issuer, repository, source
+revision/ref, signer/config revision, self-hosted runner, dispatch event, and
+run invocation ending `/34884826237/attempts/2`. The verified Rekor timestamp is
+`2026-09-14T19:13:31Z`. The signed predicate agrees with those certificate fields;
+its assertions alone were not used to establish identity. The signed subject map
+matches exactly the 14 downloaded names and hashes below. A separate reviewer
+checked the receipt, subject map, graph markers, and certified bindings.
+
+The verifier binary SHA-256 is
+`28a037b967065aa314cb6d539943b55d27ef2f97c523ab2b6023ccf284e1828d`;
+the selected bundle SHA-256 is
+`99dd5c4afcd535b00aeded1245730897b9c33c05d1719ca33aae5f8632be25ad`.
+
+| Subject | SHA-256 |
+| --- | --- |
+| `benchmark-executable` | `87003141b9e360afa80ea7b6b96585e0e70b820f4b3c7a4a592ebff93e9f9151` |
+| `benchmark.log` | `7a35384f8cff036064ed2c96218dc79739ac91fe1908cf8a4d32d021ed507449` |
+| `correctness.log` | `3672406e5fa35dc7ada48bccd6a44ae5547cfe5be8ddfa716535ac15474d1ea2` |
+| `device-query.log` | `c5a9074437002e7389bcce69e77b7fc61f9543085b80485258b35f908d903698` |
+| `markovian_dense.ptx` | `a01d2c898a78dc4f603a8919c9f84019b79066201bc12430fedc725ac97f6239` |
+| `profile.json` | `5fbed61193cf483a2ff5642c7487ad052add4ed52da1a83a110da4711c7480dd` |
+| `receipt.json` | `b9b55df4396a955638dbce19257b30cd15a671ce9521b7f9ce021d1ef051de5b` |
+| `sanitizer-initcheck.log` | `df9e9b7c200bfbda6ca70a05d09f9358405468aafca26e975a4f3fb50cc26cc7` |
+| `sanitizer-memcheck.log` | `7d56a10639eabe24f92f539388fdb86febb9fe2528c5639e8d449e3dfb98c5b7` |
+| `sanitizer-racecheck.log` | `6ee59e17e4ef7b2f69182a5e4eed3a8aea528b6a2b688e4c61d5e952ca5e2f14` |
+| `sanitizer-synccheck.log` | `1efe9df001befce0020dc195556466936a71a20cc9533e1fd817d993243cf8f0` |
+| `sanitizer-version.log` | `958b7c9c5c577e9382369664b0c1704b4dccef3b6d3b9835b0f6d6f1cb280e0d` |
+| `test-executable` | `752fc5f11fb1dc4a5c404b323b10b07728c5bf381222fe97bcb6bd0d42bcab42` |
+| `toolkit-version.log` | `bdfae8c97a7f2b553bc5fd8891d113ee5a5e09818e3531e9bf58f80392df9a40` |
+
+**Availability:** GitHub artifact `10363778769`, named
+`cuda-hardware-e9612a3ddfe1b14ff3a471bfceaedfabb4a54232-2`, contains the raw
+14-file evidence set. Its downloaded ZIP SHA-256 matches GitHub metadata:
+`bfd90fb66bbfd6957646de64943a308bec0e9909899ccc6f6e1dce93e25a6f56`.
+It expires `2026-12-13T19:11:17Z`. This compact record preserves past verification;
+raw evidence is still required for any new verification or promotion.
+
+Extraction produced executable modes `0664`. After signature verification,
+only owner execute permission was restored in a separate byte-identical copy
+(`0764`) for the unchanged receipt validator. No downloaded executable was run.
+The ephemeral runner processed this job, removed its registration, and exited
+successfully; the subsequent repository API query returned zero runners.
+The named environment has no required-reviewer or branch restrictions.
+
+**Failed attempt:** Attempt 1 stopped at racecheck with
+`CUDAContextCreate / CUDA_ERROR_OUT_OF_MEMORY`, despite a zero-hazard summary.
+It produced no attested receipt. A later local diagnostic passed with the same
+binary, but the allocation failure's cause was not established. No records from
+attempt 1 or unsigned local runs were combined with attempt 2.
+
+Acceptance is bounded and unreleased. The implementation inputs match
+`03493e83bd842d2e9c0b41d0c0de4ab4380e4dc3`; changes through the protected tested
+revision are documentation. The subsequent acceptance edit changes only
+`README.md`, `TODO.md`, `docs/CONTEXT.md`, `docs/DECISIONS.md`,
+`docs/book/src/capabilities.md`, `docs/capabilities/current.json`, this contract,
+and `release/API-REVIEW.md`. [PR #13](https://github.com/josephjohncox/Markovian/pull/13)
+records the reviewed documentation delta endpoints. The hardware evidence
+attests the exact tested revision above, not its descendants.

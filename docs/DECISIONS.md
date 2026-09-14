@@ -1498,9 +1498,9 @@ View creation allocates no payload. Materialization and each primitive preflight
 
 ### D-082: Add bounded CUDA multiply-chain graphs
 
-**Status:** Proposed
+**Status:** Accepted
 
-**Current implementation:** D-077 and [D-081](evidence/D081-AFFINE-IMPLEMENTATION.md) prerequisites are satisfied. The [graph contract](plans/D082-CUDA-GRAPHS.md) and implementation at `03493e83bd842d2e9c0b41d0c0de4ab4380e4dc3` passed independent CPU/source review and direct GB10 execution with all four sanitizers. These unsigned local results do not satisfy the protected same-session receipt requirement; acceptance remains pending.
+**Bounded, unreleased acceptance:** D-082 accepts the closed F64 input/view/multiply graph and all-input VJP contract after independent CPU/source review and [protected hardware verification](plans/D082-CUDA-GRAPHS.md#protected-validation--2026-09-14) at `e9612a3ddfe1b14ff3a471bfceaedfabb4a54232`. Run `34884826237`, attempt 2, passed correctness, all four sanitizers, and the existing kernel benchmark in one session. All 14 evidence subjects passed cryptographic verification with exact certified source, workflow, and run bindings. D-077 and [D-081](evidence/D081-AFFINE-IMPLEMENTATION.md) prerequisites are satisfied. Acceptance adds no graph speedup, generic device lowering, deployment, or release claim.
 
 **Decision:** After D-077 and D-081 are accepted with complete evidence, add only a closed typed DAG of F64 matrix inputs, admitted affine views, and matrix-multiply nodes. Preparation validates dimensions, node order, sharing, view maps, transfer bytes, host and device payloads, scalar work, and forward and VJP launch counts before executor admission or allocation. One prepared graph owns its immutable plan. One scoped executor owns all device resources.
 
@@ -1508,7 +1508,7 @@ Define the graph first by D-077's exact dyadic matrix denotation. Compare CPU an
 
 **Rationale:** A multiply-chain DAG is a bounded extension of the admitted matrix fragment. It can test shared inputs, view-based transposes, scheduling, and lifetime accounting without pretending that an arbitrary reverse program is device-lowerable.
 
-**Consequences:** This proposal does not lower generic `ReverseProgram`, arbitrary tensor graphs, callbacks, stochastic nodes, mutation, new dtypes, user kernels, or unapproved device profiles. It makes no speedup, fusion, optimal-schedule, or general device claim.
+**Consequences:** This API does not lower generic `ReverseProgram`, arbitrary tensor graphs, callbacks, stochastic nodes, mutation, new dtypes, user kernels, or unapproved device profiles. It makes no speedup, fusion, optimal-schedule, or general device claim.
 
 **Required evidence:** D-077 and D-081 acceptance are hard prerequisites. Freeze graph signatures, ownership, schedule, cleanup behavior, and failure precedence. Add exact and one-below graph, dimension, transfer, payload, work, launch, and cleanup tests. Compare every forward and VJP coordinate with independent dyadic and CPU references. Protected hardware evidence must use complete, verified same-session receipts and all applicable sanitizer checks. Apply section 8.2's deployment-scoped retention and deployed-revision binding. Preserve compact verification and expiry records after raw-data expiry.
 
