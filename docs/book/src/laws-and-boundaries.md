@@ -575,7 +575,7 @@ P_{c\otimes c}(F,F)=P(F,T)=P(T,F)=P(T,T)=\frac14.
 
 Therefore, copy naturality would equate correlated and independent draws. The purity index permits this rewrite only for deterministic circuits.
 
-**Executable evidence:** [`testStochasticNormalization` and `testDeterministic`](https://github.com/josephjohncox/Markovian/blob/main/test/AlgebraicFoundation.hs#L421-L558), plus [`testPurityAndSharing`](https://github.com/josephjohncox/Markovian/blob/main/test/StochasticCircuit.hs#L147-L193).
+**Executable evidence:** [`testStochasticNormalization` and `testDeterministic`](https://github.com/josephjohncox/Markovian/blob/main/test/AlgebraicFoundation.hs#L421-L558), plus [`testPurityAndSharing`](https://github.com/josephjohncox/Markovian/blob/main/packages/markovian-dense-exact/test/StochasticCircuit.hs#L147-L193).
 
 ## Exact convex laws
 
@@ -749,7 +749,7 @@ They also check symmetry involution, associator and unitor round trips, copy coc
 
 The deterministic compiler preserves identity, composition, products, pairing, and projections. Pairing compiles through copy followed by tensor.
 
-**Executable evidence:** [`testHomomorphismAndCoherence` and `testMonoidalCoherence`](https://github.com/josephjohncox/Markovian/blob/main/test/StochasticCircuit.hs#L194-L369), plus [`testDeterministicCompilation`](https://github.com/josephjohncox/Markovian/blob/main/test/StochasticCircuit.hs#L465).
+**Executable evidence:** [`testHomomorphismAndCoherence` and `testMonoidalCoherence`](https://github.com/josephjohncox/Markovian/blob/main/packages/markovian-dense-exact/test/StochasticCircuit.hs#L194-L369), plus [`testDeterministicCompilation`](https://github.com/josephjohncox/Markovian/blob/main/packages/markovian-dense-exact/test/StochasticCircuit.hs#L468).
 
 ## Bounded circuit costs and deterministic rewrites
 
