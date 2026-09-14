@@ -80,6 +80,7 @@ module Markovian.Game.Correlated.Exact.Internal (
     carrierValues,
 ) where
 
+import Data.List qualified as List
 import Data.List.NonEmpty qualified as NonEmpty
 import Data.Ratio (denominator, numerator)
 import Markovian.Category.Finite.Object
@@ -366,7 +367,7 @@ the production count fold used by both the solver and its private controls.
 -}
 obedienceRowCount :: Natural -> [Natural] -> Natural
 obedienceRowCount cap =
-    foldl
+    List.foldl'
         ( \accumulator count ->
             cappedGameAdd cap accumulator (cappedGameProduct cap count (if count == 0 then 0 else count - 1))
         )
@@ -374,7 +375,7 @@ obedienceRowCount cap =
 
 -- | @q = L@ for CCE, saturated at the supplied cap.
 coarseRowCount :: Natural -> [Natural] -> Natural
-coarseRowCount cap = foldl (cappedGameAdd cap) 0
+coarseRowCount cap = List.foldl' (cappedGameAdd cap) 0
 
 {- | The scalar geometry gate.  Computes the mode's @q@ and @m = n + q@ under
 the inequality cap, reports an inequality failure before any report-length
@@ -410,7 +411,7 @@ admitGame ::
 admitGame limits game = do
     let limits' = correlationSolveGameLimits' limits
         product_ = normalGameProduct game
-        owners = carrierValues (ownedOwners product_)
+        owners = ownedOwners product_
         rows = ownedProductRows product_
     ownerCount <-
         countSpine
@@ -423,7 +424,7 @@ admitGame limits game = do
     profileCount <-
         countSpine
             limits
-            (carrierValues (ownedProfiles product_))
+            (ownedProfiles product_)
             (maximumGameProfiles limits')
             (\actual cap -> SolveProductFault (ProductCardinalityLimitExceeded actual cap))
             CorrelationProfileLength
@@ -458,7 +459,7 @@ admitGame limits game = do
         count <-
             countSpine
                 limits
-                (carrierValues choices)
+                choices
                 (maximumGameLocalChoices (correlationSolveGameLimits' limits))
                 (\actual cap -> SolveProductFault (TooManyLocalChoices owner actual cap))
                 CorrelationChoiceLength
@@ -477,29 +478,35 @@ admissionDimension owners localSum profiles =
 
 {- | Count one carrier spine, reserving @(16,0)@ before each cons or terminating
 nil inspection and checking the configured cap and then the representation
-ceiling immediately after each increment.
+ceiling immediately after each increment. Inspect the stored 'NonEmpty.NonEmpty'
+head directly and borrow its tail: converting it to a list would construct a
+cons before any materialization block has been admitted.
 -}
 countSpine ::
     CorrelationSolveLimits ->
-    [value] ->
+    FiniteObject value ->
     Natural ->
     (Natural -> Natural -> SolveFault owner) ->
     CorrelationRepresentation ->
     Solve owner Natural
-countSpine limits values cap fault representation = go values 0
+countSpine limits values cap fault representation = do
+    reserveSpine limits
+    case finiteObjectValues values of
+        _ NonEmpty.:| rest -> countOne rest 0
   where
     go remaining !seen = do
         reserveSpine limits
         case remaining of
             [] -> pure seen
-            _ : rest ->
-                let next = seen + 1
-                 in if next > cap
-                        then abort (fault next cap)
-                        else
-                            if next > representationCeiling
-                                then abort (SolveRepresentationFault representation)
-                                else go rest next
+            _ : rest -> countOne rest seen
+    countOne rest !seen =
+        let next = seen + 1
+         in if next > cap
+                then abort (fault next cap)
+                else
+                    if next > representationCeiling
+                        then abort (SolveRepresentationFault representation)
+                        else go rest next
 
 -- | Which inequality a stored row represents.
 data RowLabel owner action
@@ -961,7 +968,7 @@ indicesOf values = initialTuple (naturalCount values)
 
 -- | Length as a 'Natural', by bounded traversal.
 naturalCount :: [value] -> Natural
-naturalCount = foldl (\accumulator _ -> accumulator + 1) 0
+naturalCount = List.foldl' (\accumulator _ -> accumulator + 1) 0
 
 reverseList :: [value] -> [value] -> [value]
 reverseList [] accumulator = accumulator

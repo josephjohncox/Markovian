@@ -1,7 +1,7 @@
 # Open development work
 
-Next: complete D-083 solver verification. Its implementation and public/private
-fixtures exist; the remaining evidence is listed below.
+Next: review D-083 acceptance. Its implementation and verification are complete;
+the decision remains Proposed until a separate reviewed acceptance update.
 
 D-077 through D-081 are Accepted within their unreleased scopes. EL-03,
 EL-04, and EL-05 are implemented but remain Proposed. See the
@@ -18,23 +18,12 @@ EL-04, and EL-05 are implemented but remain Proposed. See the
 [CE/CCE contract](docs/plans/D083-CE-CCE-SOLVERS.md). D-083 remains Proposed.
 The accepted placement adds no package or dependency edge.
 
-- [ ] Instrument the constructor/checker's ordered Rational intermediates and
-  compare them with the shadow sequence (§11.8). `testCheckerRowSequenceAgreement`
-  compares returned rows but misses discarded intermediates.
-  `correlationSolveCheckerCoveredRationalBits` currently comes from the shadow,
-  without an actual checker measurement.
-- [ ] Complete redundant-row, degeneracy, rank-deficiency, inconsistency, and
-  tiny-vertex controls (§11.5). Compare production builders and witness
-  inequalities with independent references, including private infeasible
-  traversal and public budget exhaustion.
-- [x] Observe candidate-count exhaustion before matrix construction and elimination,
-  and exact/one-below final successor reservations in the production search
-  loop (§11.8).
-- [ ] Complete remaining atomic-failure, report-length, and competing-failure
-  checks (§11.8).
-- [ ] Complete source-loop, reservation, and strictness evidence.
-- [ ] Obtain independent review of placement, solver behavior, accounting, and
-  evidence; record any acceptance in a separate reviewed decision update.
+The [verification map](docs/plans/D083-CE-CCE-SOLVERS.md#11-independent-test-matrix-and-exact-fixtures)
+links the public tests, complete tiny geometry oracle, independent ledgers,
+failure boundaries, and source-level arithmetic/strictness controls. Source
+and test reviews found no remaining verification blocker.
+
+- [ ] Record acceptance, if approved, in a separate reviewed decision update.
 
 A completed public search without a witness is an invariant failure. These
 solvers make no Nash or unrestricted equilibrium-solving claim.
