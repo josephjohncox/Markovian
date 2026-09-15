@@ -1,6 +1,6 @@
 cabal-version:      3.4
 name:               markovian-continuous
-version:            2026.9.3.0
+version:            2026.9.15.1
 synopsis:           Restricted exact continuous probability for Markovian
 description:
   Compact rational affine-uniform laws, exact polynomial expectations,
@@ -59,7 +59,7 @@ source-repository head
 source-repository this
   type:     git
   location: https://github.com/josephjohncox/Markovian.git
-  tag:      v2026.9.3.0
+  tag:      v2026.9.15.1
   subdir:   packages/markovian-continuous
 
 common warnings
@@ -94,8 +94,8 @@ test-suite markovian-continuous-test
 
   autogen-modules:  Paths_markovian_continuous
   build-depends:
-    , base                  >=4.22.0.0   && <4.23
-    , markovian-continuous  ==2026.9.3.0
+    , base                  >=4.22.0.0    && <4.23
+    , markovian-continuous  ==2026.9.15.1
 
   default-language: GHC2021
 
@@ -105,7 +105,7 @@ benchmark markovian-continuous-bench
   main-is:          Main.hs
   hs-source-dirs:   bench
   build-depends:
-    , base                  >=4.22.0.0   && <4.23
-    , markovian-continuous  ==2026.9.3.0
+    , base                  >=4.22.0.0    && <4.23
+    , markovian-continuous  ==2026.9.15.1
 
   default-language: GHC2021

@@ -1,7 +1,11 @@
 # Revision history for Markovian
 
-## Unreleased
+## 2026.9.15.1 - 2026-09-15
 
+- Require GHC 9.14.1 and Cabal 3.18.1.0. Use exact sibling release bounds; calendar versions no longer claim same-month PVP compatibility.
+- Add exact CE/CCE first-witness solvers, strict-discount affine feedback, joint-affine left-successor substitution, cumulative polynomial quotation, and host-F64 affine views.
+- Add `TensorAffineError` to the public tensor error type. Exhaustive matches need the new case; see `MIGRATION.md` for report and lifetime changes.
+- Extend source-release validation to archived teaching examples and GPU profile tests, and remove the old version literal from Haddock archive tests.
 - Add closed F64 matrix graphs with explicit sharing, affine views, all-input VJPs, and bounded CPU/CUDA schedules in `Markovian.Backend.GPU.Graph`.
 - Add a resumable DQN reference trainer in `markovian-neural-bridge`, with explicit transition fuel, generator state, replay sampling, atomic updates, and checkpoint timing.
 - Add retained exact local circuit tables with ordered source-validation replay, separate source and executor budgets, and cached/uncached benchmarks.

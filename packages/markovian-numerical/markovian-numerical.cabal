@@ -1,6 +1,6 @@
 cabal-version:   3.4
 name:            markovian-numerical
-version:         2026.9.3.0
+version:         2026.9.15.1
 synopsis:        Floating finite models for Markovian
 description:
   Validated floating finite distributions, rewards, objectives, kernels,
@@ -29,7 +29,7 @@ source-repository head
 source-repository this
   type:     git
   location: https://github.com/josephjohncox/Markovian.git
-  tag:      v2026.9.3.0
+  tag:      v2026.9.15.1
   subdir:   packages/markovian-numerical
 
 common warnings
@@ -50,7 +50,7 @@ library
   hs-source-dirs:   src
   build-depends:
     , base       >=4.22.0.0    && <4.23
-    , Markovian  ^>=2026.9.3.0
+    , Markovian  ==2026.9.15.1
 
   default-language: GHC2021
 
@@ -60,7 +60,7 @@ test-suite markovian-numerical-test
   main-is:          Main.hs
   hs-source-dirs:   test
   build-depends:
-    , base                 >=4.22.0.0   && <4.23
-    , markovian-numerical  ==2026.9.3.0
+    , base                 >=4.22.0.0    && <4.23
+    , markovian-numerical  ==2026.9.15.1
 
   default-language: GHC2021

@@ -10,7 +10,7 @@ Coordinated releases use the UTC calendar version `YYYY.M.D.N`. The year has fou
 
 All 16 packages use the same calendar version. The Git tag is `vYYYY.M.D.N`, and every `source-repository this` section identifies that exact tag and package subdirectory. The release metadata checker rejects non-calendar versions, impossible dates, leading zeroes, mixed package versions, or mismatched tags.
 
-Public sibling bounds still use Cabal's `^>=` operator. The `YYYY.M` pair therefore defines the PVP compatibility line for a coordinated release.
+Calendar versions identify releases; they do not encode PVP compatibility. From `2026.9.15.1`, sibling dependencies use the exact coordinated version, such as `==2026.9.15.1`. Consumers should pin a reviewed release and check its migration notes before upgrading. A same-month `^>=` range can admit incompatible releases. The release sequence may skip a number; it does not imply that every preceding sequence was published.
 
 ## Preparation contract
 
@@ -94,16 +94,16 @@ After provenance and digest checks pass, use the bounded extractor:
 
 ```sh
 bash scripts/check-release-archive \
-  markovian-release-artifacts/archives/Markovian-2026.9.3.0.tar.gz \
+  markovian-release-artifacts/archives/Markovian-2026.9.15.1.tar.gz \
   --name Markovian \
-  --version 2026.9.3.0 \
+  --version 2026.9.15.1 \
   --extract unpacked
 ```
 
 Build the package from the checked directory:
 
 ```sh
-cd unpacked/Markovian-2026.9.3.0
+cd unpacked/Markovian-2026.9.15.1
 cabal build all
 cabal test all --test-show-details=direct
 ```
@@ -124,7 +124,7 @@ Hackage Security signs repository indexes. It does not provide a Markovian autho
 
 Stop after preparation and attestation. Ask the user for explicit approval before an external candidate or publication operation.
 
-Hackage publication is not atomic across packages. A failed later package can leave an earlier package published. Published versions cannot be replaced. Use a new PVP version when code must change. A Hackage metadata revision cannot change package source. Record a partial publication as partial.
+Hackage publication is not atomic across packages. A failed later package can leave an earlier package published. Published versions cannot be replaced. Use a new release version when code must change. A Hackage metadata revision cannot change package source. Record a partial publication as partial.
 
 ## Official references
 

@@ -1035,7 +1035,7 @@ def exposed_modules(cabal_path: Path) -> list[str]:
 
 
 def check_release_decision_statuses(text: str) -> None:
-    for number in range(61, 77):
+    for number in range(61, 86):
         decision = f"D-{number:03d}"
         match = re.search(
             rf"(?ms)^### {re.escape(decision)}:.*?^\*\*Status:\*\* ([^\n]+)$",
@@ -1145,10 +1145,10 @@ def check_metadata(
             if has_dependency:
                 public_sibling_dependencies.add(sibling_folded)
             if has_dependency and not re.search(
-                rf"(?mi)^\s*,\s*{re.escape(sibling)}\s+\^>=\s*{re.escape(version)}\s*$",
+                rf"(?mi)^\s*,\s*{re.escape(sibling)}\s+==\s*{re.escape(version)}\s*$",
                 library_text,
             ):
-                raise ReleaseError(f"{cabal_path}: {sibling} must use ^>={version}")
+                raise ReleaseError(f"{cabal_path}: {sibling} must use =={version}")
             if has_dependency and sibling_package.tier >= package.tier:
                 raise ReleaseError(
                     f"{cabal_path}: dependency tier {package.tier} does not follow "

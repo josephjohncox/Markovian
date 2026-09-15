@@ -1,15 +1,19 @@
-# First-release checklist
+# Release checklist
 
-This checklist records the published `v2026.9.3.0` process. It does not make the historical CUDA logs satisfy D-077.
+Use this checklist for coordinated release `2026.9.15.1`. Record completed
+workflow runs and artifact verification in the GitHub release.
 
-Preparation has no publication credential. `release/published-releases.json` is mandatory and blocks reuse of a published version from another source revision. The current bounded proposal work retains package versions, manifests, and bounds under the task's no-version-change invariant and is not a release candidate. Before preparing another candidate, verify that every changed package has the intended version and update the candidate notes and review records.
+Preparation has no publication credential. The mandatory published-release
+registry blocks reuse of a published version from another source revision.
+Version every package, pin sibling dependencies to that exact release, and
+review migration notes before preparing the immutable candidate.
 
 ## 1. Freeze the candidate API
 
-- [ ] Complete D-061 and D-067.
+- [ ] Confirm D-061 through D-085 and EL-03 through EL-06 acceptance.
 - [ ] Review every file in `release/exposed-modules`.
 - [ ] Check complete exposed declaration Haddock.
-- [ ] Confirm the coordinated UTC CalVer `YYYY.M.D.N` and full PVP sibling bounds.
+- [ ] Confirm the coordinated UTC CalVer `YYYY.M.D.N` and exact sibling release bounds.
 - [ ] Confirm each supported compiler with a complete job.
 - [ ] Confirm every `source-repository this` field identifies `vYYYY.M.D.N`.
 - [ ] Review `MIGRATION.md` and `RELEASE-NOTES.md`.
@@ -39,6 +43,7 @@ bash scripts/prepare-release \
 - [ ] Review `manifest.json`, every packaged semantic-golden checksum, and all SBOM subjects.
 - [ ] Confirm race-safe no-replace finalization by testing an existing destination.
 - [ ] Build the combined archive-only package graph and every package's isolated archive dependency closure.
+- [ ] Run archived capability, teaching, and GPU profile checks.
 - [ ] Check that the Cabal plan contains every entry in `release/components.tsv`.
 - [ ] Check that `component-results.json` contains every required suite and benchmark.
 - [ ] Check each component result against its bundled normalized invocation log and SHA-256.
@@ -87,6 +92,6 @@ For a candidate failure, delete or replace only the candidate. Do not describe i
 
 For partial publication, stop immediately. Do not reuse or replace a published version.
 
-Record the published subset and the exact failure. Fix the problem with a new PVP version when code must change.
+Record the published subset and the exact failure. Fix the problem with a new release version when code must change.
 
 Hackage does not permit replacement of published package versions. A metadata revision cannot change package code.

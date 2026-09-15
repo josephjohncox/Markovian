@@ -219,7 +219,9 @@ class InstalledHaddockTests(unittest.TestCase):
             sources=gate.archive_source_inventory(directories, project),
         )
         self.verify()
-        (archive_root / "Markovian-2026.9.3.0/Markovian.cabal").write_text(
+        root_package = next(package for package in self.packages
+                            if package.name == "Markovian")
+        (archive_root / root_package.archive_stem / "Markovian.cabal").write_text(
             "library\n-- changed\n"
         )
         with self.assertRaisesRegex(ReleaseError, "source snapshot changed"):

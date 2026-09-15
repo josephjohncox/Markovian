@@ -1,5 +1,10 @@
 # Revision history for markovian-neural
 
+## 2026.9.15.1 - 2026-09-15
+
+- Add compiled context coverage for dense networks, information measures, policy-gradient updates, replay, DQN, and optimizer examples used by the executable learning guide.
+- Target GHC 9.14.1 with `base >=4.22 && <4.23` and align the `markovian-reverse` bound with the coordinated release.
+
 ## 2026.9.3.0 — 2026-09-03
 
 - Added checked dense reference networks and manual VJPs.

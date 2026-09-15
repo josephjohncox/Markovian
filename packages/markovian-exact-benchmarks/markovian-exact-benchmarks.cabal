@@ -1,6 +1,6 @@
 cabal-version:      3.4
 name:               markovian-exact-benchmarks
-version:            2026.9.3.0
+version:            2026.9.15.1
 synopsis:           Exact finite benchmark fixtures for Markovian
 description:
   Domain fixtures, deterministic reports, and executable semantic benchmark
@@ -31,7 +31,7 @@ source-repository head
 source-repository this
   type:     git
   location: https://github.com/josephjohncox/Markovian.git
-  tag:      v2026.9.3.0
+  tag:      v2026.9.15.1
   subdir:   packages/markovian-exact-benchmarks
 
 common warnings
@@ -54,7 +54,7 @@ library
   hs-source-dirs:   src
   build-depends:
     , base       >=4.22.0.0    && <4.23
-    , Markovian  ^>=2026.9.3.0
+    , Markovian  ==2026.9.15.1
 
   default-language: GHC2021
 
@@ -72,8 +72,8 @@ test-suite markovian-exact-benchmarks-test
   hs-source-dirs:   test
   build-depends:
     , base                        >=4.22.0.0    && <4.23
-    , Markovian                   ^>=2026.9.3.0
-    , markovian-exact-benchmarks  ==2026.9.3.0
+    , Markovian                   ==2026.9.15.1
+    , markovian-exact-benchmarks  ==2026.9.15.1
 
   default-language: GHC2021
 
@@ -84,8 +84,8 @@ benchmark inventory-control-bench
   hs-source-dirs:   bench/Inventory
   build-depends:
     , base                        >=4.22.0.0    && <4.23
-    , Markovian                   ^>=2026.9.3.0
-    , markovian-exact-benchmarks  ==2026.9.3.0
+    , Markovian                   ==2026.9.15.1
+    , markovian-exact-benchmarks  ==2026.9.15.1
 
   default-language: GHC2021
 
@@ -96,8 +96,8 @@ benchmark clark-scarf-1960-bench
   hs-source-dirs:   bench/ClarkScarf1960
   build-depends:
     , base                        >=4.22.0.0    && <4.23
-    , Markovian                   ^>=2026.9.3.0
-    , markovian-exact-benchmarks  ==2026.9.3.0
+    , Markovian                   ==2026.9.15.1
+    , markovian-exact-benchmarks  ==2026.9.15.1
 
   default-language: GHC2021
 
@@ -108,8 +108,8 @@ benchmark dogru-inventory-bench
   hs-source-dirs:   bench/DogruInventory
   build-depends:
     , base                        >=4.22.0.0    && <4.23
-    , Markovian                   ^>=2026.9.3.0
-    , markovian-exact-benchmarks  ==2026.9.3.0
+    , Markovian                   ==2026.9.15.1
+    , markovian-exact-benchmarks  ==2026.9.15.1
 
   default-language: GHC2021
 
@@ -120,8 +120,8 @@ benchmark fixed-batch-rnq-bench
   hs-source-dirs:   bench/FixedBatchRnQ
   build-depends:
     , base                        >=4.22.0.0    && <4.23
-    , Markovian                   ^>=2026.9.3.0
-    , markovian-exact-benchmarks  ==2026.9.3.0
+    , Markovian                   ==2026.9.15.1
+    , markovian-exact-benchmarks  ==2026.9.15.1
 
   default-language: GHC2021
 
@@ -132,7 +132,7 @@ benchmark feedback-exact-bench
   hs-source-dirs:   bench/FeedbackExact
   build-depends:
     , base       >=4.22.0.0    && <4.23
-    , Markovian  ^>=2026.9.3.0
+    , Markovian  ==2026.9.15.1
 
   default-language: GHC2021
 
@@ -143,6 +143,6 @@ benchmark mixed-games-exact-bench
   hs-source-dirs:   bench/MixedGamesExact
   build-depends:
     , base       >=4.22.0.0    && <4.23
-    , Markovian  ^>=2026.9.3.0
+    , Markovian  ==2026.9.15.1
 
   default-language: GHC2021

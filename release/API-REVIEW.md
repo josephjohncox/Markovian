@@ -1,15 +1,36 @@
 # Public API review
 
-This review approves the `2026.9.3.0` 16-package integration API, 18 test suites, and 11 benchmarks for their stated bounded scopes.
+The current candidate is `2026.9.15.1`: 16 packages, 18 test suites, and 13 benchmarks. The original `2026.9.3.0` review is retained below.
 
 The files in `release/exposed-modules` are checked API snapshots. Each public API change needs a new review.
+
+## 2026.9.15.1 API and compatibility review
+
+The review compared published source `fe6abb8db9b3def65ead6602168eef860a79527c`
+with merged implementation `f4858b5f52dcbef114168d5a34dc34fb16e3e443`.
+Seven public modules were added. No existing public function signature,
+module, or explicit instance was removed. `TensorError(..)` adds
+`TensorAffineError !AffineProblem`, which breaks exhaustive matches.
+`MIGRATION.md` also records the GHC 9.14.1 requirement, stricter GPU profile
+admission, report text changes, and tensor callback lifetime requirements.
+
+All packages use `2026.9.15.1` and exact sibling constraints. This release
+follows calendar numbering, not PVP compatibility semantics; D-062 records
+the policy amendment. Older caret bounds can admit this incompatible version
+and need downstream review. The public dependency graph and module snapshots
+are unchanged from the merged implementation.
+
+D-061 through D-085 and EL-03 through EL-06 are Accepted within their
+recorded scopes. The candidate still requires fresh CI, archive preparation,
+provenance, and protected device evidence bound to the final source revision.
+The release page records those completed results after verification.
 
 ## Unreleased backlog API review — 2026-09-14
 
 The implementation at `03493e83bd842d2e9c0b41d0c0de4ab4380e4dc3` adds two
 public modules and extends the existing acyclic exact consumer. The development
-manifest now has 16 packages, 18 test suites, and 13 benchmarks. Published
-membership and versions remain unchanged.
+manifest now has 16 packages, 18 test suites, and 13 benchmarks. At that review, published
+membership and versions remained unchanged.
 
 - `Markovian.Backend.GPU.Graph` owns typed F64 input/view/multiply graphs,
   cumulative preparation, and all-input VJPs. D-082 is Accepted after independent
@@ -68,11 +89,11 @@ D-074 is `Accepted` for the owned dynamic CUDA 13 matrix/VJP fragment. The relea
 
 ## Version and bounds review
 
-This review covered packages at `2026.9.3.0` with public sibling dependencies at `^>=2026.9.3.0`. The current bounded proposal work retains those versions and bounds under the task's no-version-change invariant. It is not release source, does not approve a new candidate or any proposed decision, and cannot pass the published-version source boundary from another revision.
+The original review covered `2026.9.3.0` with public sibling dependencies at `^>=2026.9.3.0`. The current candidate uses exact coordinated bounds under the D-062 amendment above.
 
 The historical release declared `base >=4.17.2.1 && <4.20`. The 2026-09-08 development toolchain amendment in `docs/DECISIONS.md` now requires `base >=4.22.0.0 && <4.23` and `bytestring >=0.12.2.0 && <0.13` with GHC 9.14.1 and Cabal 3.18.1.0. Fresh modern checks are required; this historical release review does not supply them.
 
-A later incompatible public change must increment the PVP major pair. Any post-release source change must also use a new version before release preparation. `release/published-releases.json` blocks reuse of the published version.
+Every changed source release requires a new version and explicit compatibility review before release preparation. `release/published-releases.json` blocks reuse of the published version.
 
 ## Completed final review
 

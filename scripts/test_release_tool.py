@@ -4,6 +4,7 @@ from __future__ import annotations
 import importlib.util
 import io
 import json
+import shutil
 import subprocess
 import sys
 import tarfile
@@ -187,12 +188,18 @@ class ReleaseToolTests(unittest.TestCase):
     def test_release_decisions_must_all_be_accepted(self) -> None:
         accepted = "\n".join(
             f"### D-{number:03d}: Decision {number}\n\n**Status:** Accepted\n"
-            for number in range(61, 77)
+            for number in range(61, 86)
         )
         release_tool.check_release_decision_statuses(accepted)
         proposed = accepted.replace("**Status:** Accepted", "**Status:** Proposed", 1)
         with self.assertRaisesRegex(release_tool.ReleaseError, "must be Accepted"):
             release_tool.check_release_decision_statuses(proposed)
+        proposed_last = accepted.replace(
+            "### D-085: Decision 85\n\n**Status:** Accepted",
+            "### D-085: Decision 85\n\n**Status:** Proposed",
+        )
+        with self.assertRaisesRegex(release_tool.ReleaseError, "D-085 must be Accepted"):
+            release_tool.check_release_decision_statuses(proposed_last)
 
     def test_public_dependency_graph_rejects_missing_and_extra_edges(self) -> None:
         root = release_tool.Package("Markovian", Path("."), "2026.9.3.0", 0)
@@ -215,6 +222,36 @@ class ReleaseToolTests(unittest.TestCase):
             release_tool.check_public_sibling_dependencies(
                 gpu, {"markovian-tensor", "markovian-tensor-reverse"}
             )
+
+    def test_public_sibling_bounds_reject_mixed_release_sets(self) -> None:
+        source = Path(__file__).resolve().parents[1]
+        packages = release_tool.parse_manifest(source / "release/packages.tsv")
+        for name in ("cabal.project", "docs/DECISIONS.md",
+                     "release/packages.tsv", "release/published-releases.json"):
+            destination = self.root / name
+            destination.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(source / name, destination)
+        golden = self.root / "release/exposed-modules"
+        shutil.copytree(source / "release/exposed-modules", golden)
+        for package in packages:
+            directory = self.root / package.directory
+            directory.mkdir(parents=True, exist_ok=True)
+            cabal = release_tool.one_cabal_file(source / package.directory)
+            for path in (cabal, *(cabal.parent / name for name in
+                                  ("README.md", "CHANGELOG.md", "LICENSE"))):
+                shutil.copy2(path, directory / path.name)
+        manifest = self.root / "release/packages.tsv"
+        release_tool.check_metadata(self.root, manifest, golden)
+        package = next(p for p in packages if p.name == "markovian-numerical")
+        cabal = release_tool.one_cabal_file(self.root / package.directory)
+        original = cabal.read_text()
+        for bound in (f"^>={package.version}", "==2026.9.3.0",
+                      f">={package.version} && <2026.10"):
+            with self.subTest(bound=bound):
+                cabal.write_text(original.replace(f"=={package.version}", bound, 1))
+                with self.assertRaisesRegex(release_tool.ReleaseError,
+                                            "Markovian must use =="):
+                    release_tool.check_metadata(self.root, manifest, golden)
 
     def test_trainer_sampling_belongs_to_bridge(self) -> None:
         neural = release_tool.Package("markovian-neural", Path("neural"), "2026.9.3.0", 1)

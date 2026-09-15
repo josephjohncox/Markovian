@@ -1,6 +1,37 @@
 # Migration guide
 
-Markovian `2026.9.3.0` is released. This guide describes that corrected first-release interface and current development changes explicitly marked as unreleased.
+This guide covers changes since `2026.9.3.0`, followed by the original package migration.
+
+## Upgrading from 2026.9.3.0
+
+The new release is `2026.9.15.1`. Calendar versions identify releases without
+promising PVP compatibility. Pin the coordinated package set with
+`==2026.9.15.1`. An old `^>=2026.9.3.0` constraint admits this release even
+though the tensor error datatype changes; review and tighten downstream bounds.
+
+Use GHC 9.14.1 and Cabal 3.18.1.0. Packages now require
+`base >=4.22.0.0 && <4.23`; packages using `bytestring` require
+`bytestring >=0.12.2.0 && <0.13`. The earlier GHC 9.4.8 and 9.8.4
+project builds are no longer supported.
+
+`TensorError(..)` adds `TensorAffineError !AffineProblem`. Update exhaustive
+error matches to handle it. The existing seven-argument `tensorSessionLimits`
+constructor keeps affine operations disabled until explicitly enabled, but its
+derived `Show` output now includes `limitAffine = Nothing`.
+
+Complete tensor operations inside the session callback. Join or cancel and join
+dependent child threads before returning, including on errors and exceptions.
+Region indices do not prevent escaping IO closures or existentially packaged
+tensors. Return ordinary copied data after its reads have completed.
+
+`renderDevicePlanReport` adds a `profile-sha256:` line. Update text snapshots
+and report parsers. CUDA device admission now checks the pinned device
+constraints, including a minimum of 128 threads per block; unsupported-device
+diagnostics identify that profile's digest.
+
+The release adds seven public modules and preserves the existing public
+function signatures. New APIs retain explicit resource limits and bounded
+contracts; see [the release notes](RELEASE-NOTES.md).
 
 ## D-061 package moves
 

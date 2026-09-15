@@ -1,8 +1,12 @@
 # Changelog
 
-## Unreleased
+## 2026.9.15.1 - 2026-09-15
 
-- Repair the D-081 prerequisite evidence gap for the existing rank-two transpose fragment. Compare direct-view and `contiguousCopy`-first primals and pullbacks for every closed primitive tape, add all-logical-coordinate finite differences, and include a rectangular matrix fixture. This does not add the proposed affine-view API or accept D-081.
+- Add `Markovian.Tensor.Affine` with checked signed affine maps, a logical-geometry descriptor, permutation, reversal, bounded slicing, materialization, and fresh base-coordinate pullback for immutable host F64 tensors.
+- Add cumulative planning and runtime limits, nominal map and owner scopes, exact geometry checks, allocation-fault coverage, and direct-versus-materialized primal and pullback comparisons.
+- Record D-081 as Accepted for this bounded affine-view scope. Overlapping maps, broadcasting, mutation, device storage, and general tensor semantics remain outside it.
+- Breaking: `TensorError` adds the public `TensorAffineError AffineProblem` constructor, so exhaustive pattern matches must handle the new case.
+- Target GHC 9.14.1 with `base >=4.22 && <4.23`.
 
 ## 2026.9.3.0 — 2026-09-03
 

@@ -62,7 +62,7 @@ cabal test all --project-file=cabal.project.ci --test-show-details=direct
 Run the affected compile-failure boundaries and reference differentials. For
 new features, also run all manifested benchmarks, package checks, and source
 archives, including the applicable tests and benchmarks from unpacked archives.
-The manifests list 16 packages, 18 test suites, and 11 benchmarks.
+The manifests list 16 packages, 18 test suites, and 13 benchmarks.
 
 Use the pinned Fourmolu, HLint, and cabal-fmt checks from CI. Fourmolu 0.20
 cannot parse the three LaTeX-style `.lhs` files, so only `.hs` files enter that

@@ -1,6 +1,6 @@
 cabal-version:      3.0
 name:               markovian-autodiff
-version:            2026.9.3.0
+version:            2026.9.15.1
 synopsis:           Bounded closed-language autodiff lowering for Markovian
 description:
   A finite typed polynomial and tanh language with exact Rational and checked
@@ -47,7 +47,7 @@ source-repository head
 source-repository this
   type:     git
   location: https://github.com/josephjohncox/Markovian.git
-  tag:      v2026.9.3.0
+  tag:      v2026.9.15.1
   subdir:   packages/markovian-autodiff
 
 library
@@ -67,7 +67,7 @@ library
   hs-source-dirs:   src
   build-depends:
     , base               >=4.22.0.0    && <4.23
-    , markovian-reverse  ^>=2026.9.3.0
+    , markovian-reverse  ==2026.9.15.1
 
   default-language: GHC2021
   ghc-options:      -Wall
@@ -85,8 +85,8 @@ test-suite markovian-autodiff-test
   hs-source-dirs:   test
   build-depends:
     , base                >=4.22.0.0    && <4.23
-    , markovian-autodiff  ==2026.9.3.0
-    , markovian-neural    ^>=2026.9.3.0
+    , markovian-autodiff  ==2026.9.15.1
+    , markovian-neural    ==2026.9.15.1
 
   default-language: GHC2021
   ghc-options:      -Wall
@@ -96,8 +96,8 @@ benchmark markovian-autodiff-bench
   main-is:          Main.hs
   hs-source-dirs:   bench
   build-depends:
-    , base                >=4.22.0.0   && <4.23
-    , markovian-autodiff  ==2026.9.3.0
+    , base                >=4.22.0.0    && <4.23
+    , markovian-autodiff  ==2026.9.15.1
 
   default-language: GHC2021
   ghc-options:      -Wall

@@ -1,6 +1,6 @@
 cabal-version:      3.0
 name:               markovian-neural
-version:            2026.9.3.0
+version:            2026.9.15.1
 synopsis:           Framework-independent neural RL references for Markovian
 description:
   Checked dense networks, typed parametric reverse circuits, categorical
@@ -35,7 +35,7 @@ source-repository head
 source-repository this
   type:     git
   location: https://github.com/josephjohncox/Markovian.git
-  tag:      v2026.9.3.0
+  tag:      v2026.9.15.1
   subdir:   backends/markovian-neural
 
 flag markovian-integration
@@ -66,7 +66,7 @@ library
   hs-source-dirs:   src
   build-depends:
     , base               >=4.22.0.0    && <4.23
-    , markovian-reverse  ^>=2026.9.3.0
+    , markovian-reverse  ==2026.9.15.1
 
   default-language: GHC2021
   ghc-options:      -Wall
@@ -91,8 +91,8 @@ test-suite markovian-neural-test
   hs-source-dirs:   test
   build-depends:
     , base               >=4.22.0.0    && <4.23
-    , markovian-neural   ==2026.9.3.0
-    , markovian-reverse  ^>=2026.9.3.0
+    , markovian-neural   ==2026.9.15.1
+    , markovian-reverse  ==2026.9.15.1
 
   default-language: GHC2021
   ghc-options:      -Wall
@@ -114,7 +114,7 @@ test-suite markovian-neural-integration-test
 
     build-depends:
       , base                 >=4.22.0.0    && <4.23
-      , Markovian            ^>=2026.9.3.0
-      , markovian-learning   ^>=2026.9.3.0
-      , markovian-neural     ==2026.9.3.0
-      , markovian-numerical  ^>=2026.9.3.0
+      , Markovian            ==2026.9.15.1
+      , markovian-learning   ==2026.9.15.1
+      , markovian-neural     ==2026.9.15.1
+      , markovian-numerical  ==2026.9.15.1
