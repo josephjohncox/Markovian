@@ -1,14 +1,12 @@
 # Changelog
 
-## Unreleased
+## 2026.9.15.1 - 2026-09-15
 
-**Acceptance update — 2026-09-09:** D-079 is Accepted in its bounded, unreleased Gate A and frozen Gate B left-successor-substitution scope. This is not general or temporal composition, a performance claim, or release approval. EL-03 remains Proposed. The entries below retain their implementation-stage statuses; the current authority and exclusions are recorded in D-079 in `docs/DECISIONS.md`.
-
-### Historical implementation-stage entries
-
-- Add the opaque EL-03 exact paired-difference report on existing joint laws: exact marginal moments, covariance, difference moments, independent variance baseline and signed comparison. One cumulative meter covers saturated structural preflight, all five moments, twelve derived units and discarded rational intermediates, with work-before-arithmetic admission and atomic failure. Preserve the legacy bivariate API and goldens. Add direct affine-uniform oracle fixtures, exact/one-below and failure-order tests, opacity/private-invariant probes and the executable common-noise counterexample lesson. EL-03 and D-079 remain Proposed; no trajectory/policy framework or dependency edge is added.
-
-- Add D-079 Gate A exact joint affine kernels with nominal local owner scopes, duplicate-before-zero-filter admission, real-Borel exact joint-law materialization, exact support extrema, same-scope partial alpha-renaming, complete-map scope transitions, bounded cumulative reports, and compile-fail role and space checks. D-079 remains Proposed.
+- Add exact joint affine kernels with nominal local-owner scopes, bounded materialization to real-Borel joint laws, exact support extrema, and checked renaming across scopes.
+- Add sealed left-successor substitution. Complete requests either share all right declarations with equal-law left declarations or freshen all right declarations; the admitted left reward is accounted for but is not accumulated.
+- Add the EL-03 exact paired-difference report with marginal moments, covariance, difference moments, an independent-variance baseline, signed comparison, and one cumulative bounded account.
+- Record D-079 and EL-03 as Accepted within these bounded scopes. They do not add general composition, temporal reward accumulation, disintegration, or a performance claim.
+- Target GHC 9.14.1 with `base >=4.22 && <4.23`.
 
 ## 2026.9.3.0 — 2026-09-03
 

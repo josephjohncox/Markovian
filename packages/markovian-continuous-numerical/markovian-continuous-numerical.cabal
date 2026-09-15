@@ -1,6 +1,6 @@
 cabal-version:      3.4
 name:               markovian-continuous-numerical
-version:            2026.9.3.0
+version:            2026.9.15.1
 synopsis:           Bounded numerical continuous probability for Markovian
 description:
   Explicit exact-to-Double conversion, deterministic bounded GK15/7
@@ -35,7 +35,7 @@ source-repository head
 source-repository this
   type:     git
   location: https://github.com/josephjohncox/Markovian.git
-  tag:      v2026.9.3.0
+  tag:      v2026.9.15.1
   subdir:   packages/markovian-continuous-numerical
 
 common warnings
@@ -61,8 +61,8 @@ test-suite markovian-continuous-numerical-test
   hs-source-dirs:   test
   build-depends:
     , base                            >=4.22.0.0    && <4.23
-    , markovian-continuous            ^>=2026.9.3.0
-    , markovian-continuous-numerical  ==2026.9.3.0
+    , markovian-continuous            ==2026.9.15.1
+    , markovian-continuous-numerical  ==2026.9.15.1
 
   default-language: GHC2021
 
@@ -72,7 +72,7 @@ benchmark markovian-continuous-numerical-bench
   main-is:          Main.hs
   hs-source-dirs:   bench
   build-depends:
-    , base                            >=4.22.0.0   && <4.23
-    , markovian-continuous-numerical  ==2026.9.3.0
+    , base                            >=4.22.0.0    && <4.23
+    , markovian-continuous-numerical  ==2026.9.15.1
 
   default-language: GHC2021

@@ -1,6 +1,6 @@
 cabal-version:   3.4
 name:            markovian-dense-exact
-version:         2026.9.3.0
+version:         2026.9.15.1
 synopsis:        Optional dense Rational execution for Markovian
 description:
   Dense row-major Rational storage and execution lowered from the supported
@@ -29,7 +29,7 @@ source-repository head
 source-repository this
   type:     git
   location: https://github.com/josephjohncox/Markovian.git
-  tag:      v2026.9.3.0
+  tag:      v2026.9.15.1
   subdir:   packages/markovian-dense-exact
 
 common warnings
@@ -41,7 +41,7 @@ library
   hs-source-dirs:   src
   build-depends:
     , base       >=4.22.0.0    && <4.23
-    , Markovian  ^>=2026.9.3.0
+    , Markovian  ==2026.9.15.1
 
   default-language: GHC2021
 
@@ -52,7 +52,7 @@ library legacy-finite-ir
   hs-source-dirs:   legacy
   build-depends:
     , base       >=4.22.0.0    && <4.23
-    , Markovian  ^>=2026.9.3.0
+    , Markovian  ==2026.9.15.1
 
   default-language: GHC2021
 
@@ -67,9 +67,9 @@ test-suite markovian-dense-exact-test
   hs-source-dirs:   test
   build-depends:
     , base                                    >=4.22.0.0    && <4.23
-    , Markovian                               ^>=2026.9.3.0
-    , markovian-dense-exact                   ==2026.9.3.0
+    , Markovian                               ==2026.9.15.1
+    , markovian-dense-exact                   ==2026.9.15.1
     , markovian-dense-exact:legacy-finite-ir
-    , markovian-numerical                     ^>=2026.9.3.0
+    , markovian-numerical                     ==2026.9.15.1
 
   default-language: GHC2021

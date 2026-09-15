@@ -1,22 +1,12 @@
 # Changelog
 
-## Unreleased
+## 2026.9.15.1 - 2026-09-15
 
-- Add closed typed F64 multiply-chain graphs with lexical sharing and admitted
-  affine views, complete preparation budgets, deterministic all-input VJPs,
-  and one scoped CUDA executor. Intermediates are materialized on the host;
-  the existing kernel, PTX and device profile are unchanged. Add independent
-  exact-dyadic and every-coordinate derivative fixtures, resource boundaries,
-  and graph-wide launch/fallback tests.
-
-- Add the proposed D-077 canonical CUDA profile and typed same-session receipt validation. Retain profile, PTX, executable, command, outcome, native observation, sanitizer, and ordered benchmark evidence. D-077 remains Proposed. Separate governance review remains open.
-- Record the [2026-09-08 user amendment](../../docs/WORKFLOWS.md#gpu-deployment-evidence) permitting finite evidence retention, including the current 90-day period. GPU deployment or promotion requires complete raw evidence and signature verification bound to its deployed revision. Keep compact verification and expiry records. Later expiry does not invalidate past verification, but missing raw data cannot support new verification or promotion.
-- Fix sanitizer-version collection after protected run 34172607126 stopped before hardware tests. Use the same anchored Version-line parser for collection and receipt validation; reject partial or ambiguous observations. Add real-banner and malformed-input regression tests without changing the profile or public interfaces.
-
-- Correct racecheck's success marker after run 34175882779 failed receipt validation. Require zero hazards, errors and warnings in its tool-specific summary; retain the other sanitizer markers and exit/binding checks. Regenerate the profile-bound outputs and plan golden, and test against independently recorded summaries. This creates a new profile identity, not a repaired historical receipt or hardware evidence.
-- Rename the benchmark statistic label to `standard deviation (sample)` so it cannot be counted as a raw sample. Preserve the statistic, all 20 raw samples, and strict receipt validation; add producer-drift and rehashed-log regressions.
-
-- Record successful same-session run 34181389307 at source `3e850085fa96c4e48a80270b9e49e9f55fe0f757`: six validated records, 20 raw samples and 14 cryptographically verified subjects. Disclose separate executable-mode reconstruction, expiring storage and absent environment protections. No release or D-077 acceptance follows.
+- Add the D-077 canonical CUDA profile and strict same-session receipt validation, including corrected sanitizer-version parsing, the racecheck zero-hazard marker, and an unambiguous benchmark standard-deviation label.
+- Record D-077 as Accepted for the bounded profile, receipt, exact-dyadic reference, and deployment-scoped evidence policy. Deployment still requires complete evidence bound to the deployed revision; no general correctness, portability, or speed claim follows.
+- Add `Markovian.Backend.GPU.Graph`, a closed typed F64 multiply-chain graph with lexical sharing, admitted affine views, complete preparation budgets, deterministic gradients for every input, and one scoped executor. Intermediate affine operations remain host-materialized.
+- Record D-082 as Accepted for this bounded graph and all-input VJP scope. It does not add generic reverse-program lowering, arbitrary tensor graphs, fusion, or a graph speed claim.
+- Target GHC 9.14.1 with `base >=4.22 && <4.23` and align the `markovian-tensor` bound with the coordinated release.
 
 ## 2026.9.3.0 — 2026-09-03
 

@@ -10,8 +10,8 @@ See the [package map](../README.md#present-api-surfaces) and
 
 The published `v2026.9.3.0` release is pinned in
 [`release/published-releases.json`](../release/published-releases.json).
-The development tree still uses those package versions. A version number alone
-does not establish whether a development API was released.
+The next coordinated source release is `2026.9.15.1`. The registry and capability
+evidence remain pinned to the last publication until the new release is verified.
 
 - D-053 through D-076 are Accepted for their recorded release scopes.
 - D-077 through D-081 are Accepted and unreleased. They cover GPU evidence

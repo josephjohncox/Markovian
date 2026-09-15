@@ -1,6 +1,6 @@
 cabal-version:      3.4
 name:               markovian-gpu
-version:            2026.9.3.0
+version:            2026.9.15.1
 synopsis:           Optional checked CUDA executor for Markovian tensors
 description:
   Optional CUDA execution for the bounded F64 matrix-product and matrix-VJP
@@ -57,7 +57,7 @@ source-repository head
 source-repository this
   type:     git
   location: https://github.com/josephjohncox/Markovian.git
-  tag:      v2026.9.3.0
+  tag:      v2026.9.15.1
   subdir:   backends/markovian-gpu
 
 flag cuda
@@ -87,7 +87,7 @@ library
   other-modules:    Markovian.Backend.GPU.Artifact
   build-depends:
     , base              >=4.22.0.0    && <4.23
-    , markovian-tensor  ^>=2026.9.3.0
+    , markovian-tensor  ==2026.9.15.1
 
   default-language: GHC2021
 
@@ -116,8 +116,8 @@ test-suite markovian-gpu-test
   autogen-modules:  Paths_markovian_gpu
   build-depends:
     , base              >=4.22.0.0    && <4.23
-    , markovian-gpu     ==2026.9.3.0
-    , markovian-tensor  ^>=2026.9.3.0
+    , markovian-gpu     ==2026.9.15.1
+    , markovian-tensor  ==2026.9.15.1
 
   default-language: GHC2021
 
@@ -128,7 +128,7 @@ benchmark markovian-gpu-bench
   hs-source-dirs:   bench
   build-depends:
     , base              >=4.22.0.0    && <4.23
-    , markovian-gpu     ==2026.9.3.0
-    , markovian-tensor  ^>=2026.9.3.0
+    , markovian-gpu     ==2026.9.15.1
+    , markovian-tensor  ==2026.9.15.1
 
   default-language: GHC2021

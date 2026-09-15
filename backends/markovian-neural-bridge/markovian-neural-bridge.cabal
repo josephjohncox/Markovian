@@ -1,6 +1,6 @@
 cabal-version:      3.0
 name:               markovian-neural-bridge
-version:            2026.9.3.0
+version:            2026.9.15.1
 synopsis:
   Exact-action masks and bounded DQN training for Markovian neural heads
 
@@ -36,7 +36,7 @@ source-repository head
 source-repository this
   type:     git
   location: https://github.com/josephjohncox/Markovian.git
-  tag:      v2026.9.3.0
+  tag:      v2026.9.15.1
   subdir:   backends/markovian-neural-bridge
 
 library
@@ -47,10 +47,10 @@ library
   hs-source-dirs:   src
   build-depends:
     , base                 >=4.22.0.0    && <4.23
-    , Markovian            ^>=2026.9.3.0
-    , markovian-neural     ^>=2026.9.3.0
-    , markovian-numerical  ^>=2026.9.3.0
-    , markovian-sampling   ^>=2026.9.3.0
+    , Markovian            ==2026.9.15.1
+    , markovian-neural     ==2026.9.15.1
+    , markovian-numerical  ==2026.9.15.1
+    , markovian-sampling   ==2026.9.15.1
 
   default-language: GHC2021
   ghc-options:      -Wall
@@ -62,11 +62,11 @@ test-suite markovian-neural-bridge-test
   hs-source-dirs:   test
   build-depends:
     , base                     >=4.22.0.0    && <4.23
-    , Markovian                ^>=2026.9.3.0
-    , markovian-neural         ^>=2026.9.3.0
-    , markovian-neural-bridge  ==2026.9.3.0
-    , markovian-numerical      ^>=2026.9.3.0
-    , markovian-sampling       ^>=2026.9.3.0
+    , Markovian                ==2026.9.15.1
+    , markovian-neural         ==2026.9.15.1
+    , markovian-neural-bridge  ==2026.9.15.1
+    , markovian-numerical      ==2026.9.15.1
+    , markovian-sampling       ==2026.9.15.1
 
   default-language: GHC2021
   ghc-options:      -Wall
@@ -77,9 +77,9 @@ benchmark dqn-trainer-bench
   hs-source-dirs:   bench/DQNTrainer
   build-depends:
     , base                     >=4.22.0.0    && <4.23
-    , markovian-neural         ^>=2026.9.3.0
-    , markovian-neural-bridge  ==2026.9.3.0
-    , markovian-sampling       ^>=2026.9.3.0
+    , markovian-neural         ==2026.9.15.1
+    , markovian-neural-bridge  ==2026.9.15.1
+    , markovian-sampling       ==2026.9.15.1
 
   default-language: GHC2021
   ghc-options:      -Wall

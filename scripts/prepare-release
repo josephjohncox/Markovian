@@ -230,6 +230,8 @@ manifest_count="$(awk -F '\t' '$1 !~ /^#/ && NF == 4 { count += 1 } END { print 
   exit 1
 }
 
+python3 scripts/check-learning-archive "${stage}/archives-a"
+
 python3 scripts/release_tool.py archive-project \
   --output "${stage}/unpacked/cabal.project"
 mapfile -t archive_test_targets < <(
@@ -338,7 +340,7 @@ while IFS=$'\t' read -r package_name _package_dir version _dependency_tier; do
     if [[ -d scripts ]]; then
       while IFS= read -r boundary; do
         case "$(basename "${boundary}")" in
-          check-*boundary|check-*-purity|check-refinement-roles|check-root-topology|check-correlated-solver|check-circuit-cache)
+          check-*boundary|check-*-purity|check-refinement-roles|check-root-topology|check-correlated-solver|check-circuit-cache|check-profile)
             bash "${boundary}"
             ;;
         esac

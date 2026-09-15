@@ -1,16 +1,11 @@
 # Changelog for markovian-autodiff
 
-## Unreleased
+## 2026.9.15.1 - 2026-09-15
 
-**Acceptance update — 2026-09-09:** D-080 is Accepted in its bounded, unreleased closed exact-polynomial quotation and frozen cumulative-compilation scope. This does not accept arbitrary-Haskell differentiation, physical allocation bounds, device lowering, or release approval. The entries below retain their implementation-stage statuses; the current authority and exclusions are recorded in D-080 in `docs/DECISIONS.md`.
-
-### Historical implementation-stage entries
-
-- Add bounded explicit first-order quotation for the exact polynomial language.
-- Add opaque paths with generative lexical scope tokens and callback-free `letQuote` syntax.
-- Add one cumulative preflight ledger for traversal, extent, allocation, lowering, compilation, work, and rational size.
-- Add independent exact primal and JVP recursion, reverse lowering, deterministic reports, and boundary tests.
-- Keep D-080 proposed. This entry does not publish or tag the package.
+- Add `Markovian.Autodiff.Quote`, a bounded first-order quotation API for the closed exact-polynomial language, with opaque paths, generative lexical scopes, and callback-free `letQuote` bindings.
+- Add cumulative preflight for traversal, extent, allocation, lowering, compilation, work, and rational size. Independent exact primal and JVP interpreters remain separate from reverse lowering.
+- Record D-080 as Accepted for this bounded quotation and compilation scope. Arbitrary Haskell differentiation, physical allocation bounds, and device lowering remain outside it.
+- Target GHC 9.14.1 with `base >=4.22 && <4.23` and align the `markovian-reverse` bound with the coordinated release.
 
 ## 2026.9.3.0 — 2026-09-03
 
