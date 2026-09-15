@@ -1,0 +1,86 @@
+#!/usr/bin/env bash
+# Retained-table opacity, ordered source traces, planning fuel and strictness.
+set -euo pipefail
+
+project_args=()
+if [[ -f cabal.project && -f cabal.project.ci ]]; then
+  project_args+=(--project-file=cabal.project.ci)
+fi
+cache_check_tmp="$(mktemp -d)"
+trap 'rm -rf "${cache_check_tmp}"' EXIT
+
+if cabal exec "${project_args[@]}" -- ghc \
+  -package-env - -hide-all-packages -package base -isrc -XGHC2021 \
+  -fno-code -fmax-errors=100 -outputdir "${cache_check_tmp}/boundary" \
+  test/compile-fail/CircuitCacheBoundary.hs >"${cache_check_tmp}/boundary.log" 2>&1; then
+  echo 'Retained circuit cache ownership boundary was accepted.' >&2
+  exit 1
+fi
+for expected in badOwnerCoerce badOwnerConstructor badPrimitiveConstructor badCallbackOwner; do
+  if ! grep -F "${expected}" "${cache_check_tmp}/boundary.log" >/dev/null; then
+    cat "${cache_check_tmp}/boundary.log" >&2
+    echo "Missing expected retained cache rejection: ${expected}" >&2
+    exit 1
+  fi
+done
+
+# Isolate the primitive-role failure: GHC can suppress later Coercible errors
+# after another failing binding in the same module.
+if cabal exec "${project_args[@]}" -- ghc \
+  -package-env - -hide-all-packages -package base -isrc -XGHC2021 \
+  -fno-code -outputdir "${cache_check_tmp}/primitive-role" \
+  test/compile-fail/CircuitCachePrimitiveRole.hs >"${cache_check_tmp}/primitive-role.log" 2>&1; then
+  echo 'Retained primitive nominal role was accepted.' >&2
+  exit 1
+fi
+if ! grep -F 'badPrimitiveCoerce' "${cache_check_tmp}/primitive-role.log" >/dev/null; then
+  cat "${cache_check_tmp}/primitive-role.log" >&2
+  exit 1
+fi
+
+for optimization in 0 2; do
+  build="${cache_check_tmp}/O${optimization}"
+  mkdir -p "${build}"
+  if ! cabal exec "${project_args[@]}" -- ghc \
+    -package-env - -hide-all-packages -package base -isrc -itest -XGHC2021 \
+    "-O${optimization}" -Wall -Wcompat -Werror -main-is CircuitCachePrivate \
+    -outputdir "${build}" test/CircuitCachePrivate.hs -o "${build}/check" \
+    >"${build}/build.log" 2>&1; then
+    cat "${build}/build.log" >&2
+    exit 1
+  fi
+  "${build}/check"
+  echo "PASS: retained cache public/private controls at O${optimization}"
+
+  # Reversing the stored trace's execution order must fail a real construction
+  # followed by a hit: primitive-cell exhaustion precedes the hit's first work.
+  mutation="${cache_check_tmp}/mutation-O${optimization}"
+  mkdir -p "${mutation}/src/Markovian/Open/Acyclic/Circuit/Cache" "${mutation}/build"
+  python3 - "${mutation}" <<'PYMUTATION'
+from pathlib import Path
+import sys
+original = Path("src/Markovian/Open/Acyclic/Circuit/Cache/Internal.hs").read_text()
+needle = "        replayReverse remaining\n        emit event\n"
+if original.count(needle) != 1:
+    raise SystemExit("ordered replay mutation point changed")
+mutated = original.replace(needle, "        emit event\n        replayReverse remaining\n")
+(Path(sys.argv[1]) / "src/Markovian/Open/Acyclic/Circuit/Cache/Internal.hs").write_text(mutated)
+PYMUTATION
+  if ! cabal exec "${project_args[@]}" -- ghc \
+    -package-env - -hide-all-packages -package base -i"${mutation}/src" -isrc -itest -XGHC2021 \
+    "-O${optimization}" -main-is CircuitCachePrivate -outputdir "${mutation}/build" \
+    test/CircuitCachePrivate.hs -o "${mutation}/check" >"${mutation}/build.log" 2>&1; then
+    cat "${mutation}/build.log" >&2
+    exit 1
+  fi
+  if "${mutation}/check" >"${mutation}/run.log" 2>&1; then
+    echo 'Reversed source replay mutation survived the cache controls.' >&2
+    exit 1
+  fi
+  if ! grep -F 'hit replay changed primitive-before-work precedence' "${mutation}/run.log" >/dev/null; then
+    cat "${mutation}/run.log" >&2
+    echo 'Replay mutation failed without reaching the intended source-order assertion.' >&2
+    exit 1
+  fi
+  echo "PASS: source replay order mutation rejected at O${optimization}"
+done

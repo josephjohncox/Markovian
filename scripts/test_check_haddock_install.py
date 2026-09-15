@@ -280,7 +280,8 @@ class InstalledHaddockTests(unittest.TestCase):
         self.assertNotIn("worktree-haddock-install.log", prepare)
         self.assertNotIn("archive-haddock.log", prepare)
         self.assertIn("scripts/check-correlated-solver", prepare)
-        self.assertIn("check-correlated-solver)", prepare)
+        self.assertRegex(prepare, r"check-correlated-solver[|)]")
+        self.assertRegex(prepare, r"check-circuit-cache[|)]")
 
 
 if __name__ == "__main__":

@@ -45,9 +45,7 @@ policy comparison, arbitrary coupling solver, sampling estimate, optimization
 or universal variance-reduction result. Existing reward/successor joints keep
 their correlation and timing; this operation does not execute an MDP or change
 terminal/horizon semantics. Exact Rational arithmetic stays separate from
-floating backends. EL-03 remains Proposed; this is unreleased fixture evidence,
-not its acceptance or publication. D-079's separate bounded, unreleased acceptance
-for joint affine kernels and left-successor substitution does not accept EL-03.
+floating backends. EL-03 is Accepted for this bounded, unreleased operation.
 
 ## Run and check
 

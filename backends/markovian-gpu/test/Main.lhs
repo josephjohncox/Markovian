@@ -11,6 +11,7 @@ import Data.List (isInfixOf)
 import Data.Maybe (fromMaybe, isJust)
 import Data.Proxy (Proxy (..))
 import Markovian.Backend.GPU
+import GraphTests (graphContractTests)
 import Markovian.Tensor
 import Paths_markovian_gpu (getDataFileName)
 import System.Environment (lookupEnv, setEnv, unsetEnv)
@@ -42,6 +43,8 @@ main :: IO ()
 main = do
     printEvidenceBindings
     selector <- selectedDevice
+    requireHardware <- (== Just "1") <$> lookupEnv "MARKOVIAN_CUDA_REQUIRE_HARDWARE"
+    when (requireHardware && not gpuBackendCompiled) (failTest "protected CUDA validation requires a CUDA-enabled build")
     probe <- probeCUDA
     assertEqual "compiled probe classification" gpuBackendCompiled (cudaProbeCompiledSupport probe)
     sessionResult <- withTensorSession limits $ \session -> do
@@ -95,7 +98,6 @@ main = do
         if gpuBackendCompiled
             then do
                 when gpuFaultInjectionCompiled (checkDynamicLoaderFailures session prepared)
-                requireHardware <- (== Just "1") <$> lookupEnv "MARKOVIAN_CUDA_REQUIRE_HARDWARE"
                 when requireHardware requireEvidenceBindings
                 available <- gpuBackendAvailable
                 if available
@@ -124,6 +126,8 @@ main = do
             else checkDisabled session prepared
         pure (Right ())
     either (failTest . show) pure sessionResult
+    hardware <- gpuBackendAvailable
+    graphContractTests selector (requireHardware || hardware)
     putStrLn "markovian-gpu: device contract tests passed"
 
 printEvidenceBindings :: IO ()

@@ -24,7 +24,10 @@ extra-doc-files:
   CHANGELOG.md
   README.md
 
-data-files:         test/golden/device-plan.txt
+data-files:
+  test/golden/device-plan.txt
+  test/golden/graph-plan.txt
+
 extra-source-files:
   cbits/markovian_cuda_profile.h
   cbits/markovian_dense.cu
@@ -39,6 +42,10 @@ extra-source-files:
   test/cbits/incomplete_cuda_driver.c
   test/compile-fail/DeviceBoundary.hs
   test/compile-fail/DeviceRoles.hs
+  test/compile-fail/GraphBoundary.hs
+  test/compile-fail/GraphGradientUpdate.hs
+  test/compile-fail/GraphResultUpdate.hs
+  test/compile-fail/GraphVJPUpdate.hs
   test/test_cuda_profile.py
   toolchain.env
 
@@ -72,7 +79,10 @@ common warnings
 
 library
   import:           warnings
-  exposed-modules:  Markovian.Backend.GPU
+  exposed-modules:
+    Markovian.Backend.GPU
+    Markovian.Backend.GPU.Graph
+
   hs-source-dirs:   src
   other-modules:    Markovian.Backend.GPU.Artifact
   build-depends:
@@ -100,6 +110,7 @@ test-suite markovian-gpu-test
   hs-source-dirs:   test
   other-modules:
     GPUContexts
+    GraphTests
     Paths_markovian_gpu
 
   autogen-modules:  Paths_markovian_gpu

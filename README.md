@@ -33,8 +33,8 @@ distinguishes availability from decision status.
 
 Accepted, unreleased additions include strict-discount affine feedback,
 joint-affine substitution, polynomial quotation with cumulative compilation
-budgets, host-F64 affine views, and exact CE/CCE first-witness solvers. CUDA
-multiply-chain graphs remain unimplemented.
+budgets, host-F64 affine views, exact CE/CCE first-witness solvers, CUDA
+multiply-chain graphs, the reference DQN trainer, and retained exact circuit tables.
 
 See the [release notes](RELEASE-NOTES.md), [migration guide](MIGRATION.md), and
 [open work](TODO.md). Releases use coordinated UTC CalVer `YYYY.M.D.N` and
@@ -61,7 +61,7 @@ packages according to the computation you need:
 | `markovian-tensor-reverse` | Host tensor adapter for the bounded reverse interpreter. |
 | `markovian-safetensors` | Metadata-free F64 serialization under a pinned SafeTensors profile. |
 | `markovian-neural` | Numerical neural primitives and reference update algorithms. |
-| `markovian-neural-bridge` | Checked exact action layouts and neural masks. |
+| `markovian-neural-bridge` | Checked exact action layouts, neural masks, and a resumable DQN reference trainer. |
 | `markovian-gpu` | Positive-size F64 matrix multiplication and its VJP under the declared `sm_121` profile. |
 
 The [architecture](docs/ARCHITECTURE.md) defines package boundaries, equality
@@ -124,7 +124,7 @@ scripts/check-book
 ```
 
 [CI](.github/workflows/ci.yml) defines the full checks for all 16 packages,
-18 test suites, and 11 benchmarks, including source archives, compile-failure
+18 test suites, and 13 benchmarks, including source archives, compile-failure
 boundaries, formatting, and Haddock. [Contributor workflows](docs/WORKFLOWS.md)
 explain which checks apply to a change. CUDA compilation and protected hardware
 execution have separate workflows.

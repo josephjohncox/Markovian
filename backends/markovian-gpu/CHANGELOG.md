@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+- Add closed typed F64 multiply-chain graphs with lexical sharing and admitted
+  affine views, complete preparation budgets, deterministic all-input VJPs,
+  and one scoped CUDA executor. Intermediates are materialized on the host;
+  the existing kernel, PTX and device profile are unchanged. Add independent
+  exact-dyadic and every-coordinate derivative fixtures, resource boundaries,
+  and graph-wide launch/fallback tests.
+
 - Add the proposed D-077 canonical CUDA profile and typed same-session receipt validation. Retain profile, PTX, executable, command, outcome, native observation, sanitizer, and ordered benchmark evidence. D-077 remains Proposed. Separate governance review remains open.
 - Record the [2026-09-08 user amendment](../../docs/WORKFLOWS.md#gpu-deployment-evidence) permitting finite evidence retention, including the current 90-day period. GPU deployment or promotion requires complete raw evidence and signature verification bound to its deployed revision. Keep compact verification and expiry records. Later expiry does not invalidate past verification, but missing raw data cannot support new verification or promotion.
 - Fix sanitizer-version collection after protected run 34172607126 stopped before hardware tests. Use the same anchored Version-line parser for collection and receipt validation; reject partial or ambiguous observations. Add real-banner and malformed-input regression tests without changing the profile or public interfaces.

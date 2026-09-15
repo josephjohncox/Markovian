@@ -1,8 +1,10 @@
 # EL-03 — Exact paired-difference contract
 
-**Status:** Proposed
+**Status:** Accepted
 
-Frozen and independently reviewed before semantic implementation. Unreleased implementation evidence now lives in `packages/markovian-continuous/test/PairedDifference.hs` and the [executable lesson](../book/src/paired-difference.md); independent implementation review remains a separate gate. This contract asserts no acceptance. Owner: existing `markovian-continuous`, public module `Markovian.Continuous.Measure.Exact`; private machinery stays in `Markovian.Continuous.Internal`. No dependency changes. Related D-070 is Accepted for its older bounded fragment; D-079 remains Proposed.
+**Bounded, unreleased acceptance — 2026-09-14:** Independent review accepts the represented joint-law paired-difference report. It checked 200 additional affine-moment cases, private spine/invariant probes, and the existing exact fixtures. The audited implementation is unchanged from `24b81f7d33680bc78b3a0ecff39100f206d45385` through `03493e83bd842d2e9c0b41d0c0de4ab4380e4dc3`. The scope below remains binding; acceptance does not establish a release or a physical resource bound.
+
+Implemented in `markovian-continuous`, public module `Markovian.Continuous.Measure.Exact`, with private machinery in `Markovian.Continuous.Internal`. The independent moment oracle and admission tests are in `packages/markovian-continuous/test/PairedDifference.hs`; the [executable lesson](../book/src/paired-difference.md) demonstrates shared and independent noise. Acceptance remains separate from the accepted D-070 and D-079 fragments.
 
 ## Consumer and semantics
 

@@ -29,3 +29,5 @@ benchmark	markovian-continuous-numerical	markovian-continuous-numerical-bench	-
 benchmark	markovian-autodiff	markovian-autodiff-bench	-
 benchmark	markovian-tensor	markovian-tensor-bench	-
 benchmark	markovian-gpu	markovian-gpu-bench	-
+benchmark	Markovian	circuit-cache-bench	-
+benchmark	markovian-neural-bridge	dqn-trainer-bench	-

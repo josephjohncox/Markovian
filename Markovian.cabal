@@ -42,6 +42,7 @@ extra-doc-files:
   docs/evidence/D081-MATERIALIZATION/README.md
   docs/evidence/D081-MATERIALIZATION/SOURCE-PROOF.md
   docs/evidence/D081-TRANSPOSE-REVERSE-EQUIVALENCE.md
+  docs/evidence/D085-CIRCUIT-CACHE.csv
   docs/evidence/S6-ACYCLIC-OPEN-2026-08-27.md
   docs/evidence/TENSOR-SAFETENSORS-REPAIR.md
   docs/learning/*.txt
@@ -50,7 +51,10 @@ extra-doc-files:
   docs/plans/D080-CUMULATIVE-COMPILATION.md
   docs/plans/D081-AFFINE-VIEWS.md
   docs/plans/D081-MATERIALIZATION-ADDENDUM.md
+  docs/plans/D082-CUDA-GRAPHS.md
   docs/plans/D083-CE-CCE-SOLVERS.md
+  docs/plans/D084-DQN-TRAINER.md
+  docs/plans/D085-CIRCUIT-CACHE.md
   docs/plans/EL-03-PAIRED-DIFFERENCE.md
   docs/plans/EL-04-REWARD-JVP.md
   docs/plans/EL-05-AGGREGATION.md
@@ -112,6 +116,7 @@ extra-source-files:
   scripts/check-book
   scripts/check-book-links
   scripts/check-capabilities
+  scripts/check-circuit-cache
   scripts/check-circuit-purity
   scripts/check-correlated-solver
   scripts/check-feedback-boundary
@@ -150,6 +155,7 @@ extra-source-files:
   scripts/test_learning.py
   scripts/test_project_hls.py
   scripts/test_release_tool.py
+  test/CircuitCachePrivate.hs
   test/compile-fail/ActionRoles.hs
   test/compile-fail/AcyclicProofBoundary.hs
   test/compile-fail/AcyclicPurity.hs
@@ -157,6 +163,8 @@ extra-source-files:
   test/compile-fail/AggregationRoles.hs
   test/compile-fail/AggregationUpdate.hs
   test/compile-fail/AggregationWitnessUpdate.hs
+  test/compile-fail/CircuitCacheBoundary.hs
+  test/compile-fail/CircuitCachePrimitiveRole.hs
   test/compile-fail/CircuitPurity.hs
   test/compile-fail/CompiledStateRoles.hs
   test/compile-fail/CorrelatedSolverCoercion.hs
@@ -271,6 +279,7 @@ library
     Markovian.Category.Matrix.Stochastic.Internal
     Markovian.Feedback.Internal
     Markovian.Game.Correlated.Exact.Internal
+    Markovian.Open.Acyclic.Circuit.Cache.Internal
 
   build-depends:    base >=4.22.0.0 && <4.23
   hs-source-dirs:   src
@@ -305,6 +314,8 @@ test-suite Markovian-test
     AggregationExact
     AlgebraicFoundation
     BayesianExact
+    CircuitCache
+    CircuitCacheFixtures
     CircuitCostRewrite
     CorrelatedSolvers
     ExactBind
@@ -327,3 +338,16 @@ test-suite Markovian-test
 
   hs-source-dirs:   test docs/learning
   default-language: GHC2021
+
+benchmark circuit-cache-bench
+  import:           warnings
+  type:             exitcode-stdio-1.0
+  main-is:          CircuitCacheBench.hs
+  other-modules:    CircuitCacheFixtures
+  hs-source-dirs:   test
+  build-depends:
+    , base       >=4.22.0.0   && <4.23
+    , Markovian  ==2026.9.3.0
+
+  default-language: GHC2021
+  ghc-options:      -rtsopts -with-rtsopts=-T

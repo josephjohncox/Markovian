@@ -1,5 +1,6 @@
 module Main (main) where
 
+import DQNTrainer qualified
 import Data.List.NonEmpty qualified as NonEmpty
 import Markovian.Action (ActionId, actionId, actionValue)
 import Markovian.Backend.Neural (
@@ -69,6 +70,7 @@ main = do
     layoutAndCompilationChecks
     policyDifferentialChecks
     dqnDifferentialChecks
+    DQNTrainer.tests
     putStrLn "PASS: exact-support neural bridge"
 
 layoutAndCompilationChecks :: IO ()

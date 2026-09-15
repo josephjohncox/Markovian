@@ -38,12 +38,18 @@ class CapabilityTests(unittest.TestCase):
         record.update(changes)
         return document
 
+    def extension_status(self, decision):
+        text = (cap.ROOT / cap.PROPOSAL_CONTRACTS[decision]).read_text()
+        statuses = re.findall(r"(?m)^\*\*Status:\*\* ([^\n]+)$", text)
+        self.assertEqual(len(statuses), 1)
+        return statuses[0]
+
     def rejected(self, document, message):
         with self.assertRaisesRegex(cap.CapabilityError, message):
             cap.validate(cap.ROOT, document, self.current, self.released)
 
     def test_current_records_and_generated_presentation(self):
-        self.assertEqual(cap.check(cap.ROOT), 13)
+        self.assertEqual(cap.check(cap.ROOT), 16)
 
     def test_cuda_receipt_matches_accepted_decision(self):
         decisions = (cap.ROOT / "docs/DECISIONS.md").read_text()
@@ -70,12 +76,15 @@ class CapabilityTests(unittest.TestCase):
         for number in range(77, 82):
             self.assertEqual(statuses[f"D-{number:03}"], "Accepted")
         self.assertEqual(statuses["D-083"], "Accepted")
-        for number in (82, 84, 85):
-            self.assertEqual(statuses[f"D-{number:03}"], "Proposed")
+        for decision in ("D-082", "D-084", "D-085"):
+            record = next(r for r in self.document["capabilities"]
+                          if r["decision"] == decision)
+            self.assertEqual(record["decisionStatus"], statuses[decision])
+            self.assertEqual(record["availability"], "unreleased")
         for decision in ("EL-03", "EL-04", "EL-05"):
             record = next(r for r in self.document["capabilities"]
                           if r["decision"] == decision)
-            self.assertEqual(record["decisionStatus"], "Proposed")
+            self.assertEqual(record["decisionStatus"], self.extension_status(record["decision"]))
             self.assertEqual(record["availability"], "unreleased")
 
     def test_d079_d080_acceptance_does_not_create_released_membership(self):
@@ -113,20 +122,20 @@ class CapabilityTests(unittest.TestCase):
     def test_paired_proposal_implementation_transition(self):
         record = cap.validate(cap.ROOT, self.document, self.current, self.released)[6]
         self.assertEqual(record["availability"], "unreleased")
-        self.assertEqual(record["decisionStatus"], "Proposed")
+        self.assertEqual(record["decisionStatus"], self.extension_status(record["decision"]))
         self.assertEqual(record["evidenceScope"], "implementation-fixtures")
 
     def test_reward_jvp_proposal_implementation_transition(self):
         record = cap.validate(cap.ROOT, self.document, self.current, self.released)[7]
         self.assertEqual(record["availability"], "unreleased")
-        self.assertEqual(record["decisionStatus"], "Proposed")
+        self.assertEqual(record["decisionStatus"], self.extension_status(record["decision"]))
         self.assertEqual(record["evidence"], "test/FeedbackRewardJVP.hs")
         self.assertEqual(record["evidenceScope"], "implementation-fixtures")
 
     def test_aggregation_proposal_implementation_transition(self):
         record = cap.validate(cap.ROOT, self.document, self.current, self.released)[8]
         self.assertEqual(record["availability"], "unreleased")
-        self.assertEqual(record["decisionStatus"], "Proposed")
+        self.assertEqual(record["decisionStatus"], self.extension_status(record["decision"]))
         self.assertEqual(record["module"], "Markovian.Aggregation.Exact")
         self.assertEqual(record["evidence"], "test/AggregationExact.hs")
         self.assertEqual(record["evidenceScope"], "implementation-fixtures")
@@ -151,8 +160,31 @@ class CapabilityTests(unittest.TestCase):
         self.rejected(self.changed(6, availability="released", evidenceScope="bounded-release"),
                       "invalid proposal")
 
-    def test_implemented_proposal_cannot_claim_acceptance(self):
-        self.rejected(self.changed(6, decisionStatus="Accepted"), "invalid proposal")
+    def test_implemented_proposal_cannot_infer_acceptance(self):
+        status = self.extension_status("EL-03")
+        other = "Proposed" if status == "Accepted" else "Accepted"
+        self.rejected(self.changed(6, decisionStatus=other), "decision status mismatch")
+
+    def test_extension_acceptance_requires_matching_contract(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = self.fixture(directory)
+            contract = root / cap.PROPOSAL_CONTRACTS["EL-03"]
+            contract.write_text(re.sub(r"(?m)^\*\*Status:\*\* [^\n]+$",
+                                       "**Status:** Accepted", contract.read_text()))
+            records = cap.validate(root, self.changed(6, decisionStatus="Accepted"),
+                                   self.current, self.released)
+            self.assertEqual(records[6]["availability"], "unreleased")
+            with self.assertRaisesRegex(cap.CapabilityError, "decision status mismatch"):
+                cap.validate(root, self.changed(6, decisionStatus="Proposed"),
+                             self.current, self.released)
+
+    def test_duplicate_extension_status_is_rejected(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = self.fixture(directory)
+            contract = root / cap.PROPOSAL_CONTRACTS["EL-03"]
+            contract.write_text(contract.read_text() + "\n**Status:** Proposed\n")
+            with self.assertRaisesRegex(cap.CapabilityError, "decision status mismatch"):
+                cap.validate(root, self.document, self.current, self.released)
 
     def test_implemented_proposal_cannot_reuse_contract_evidence(self):
         self.rejected(self.changed(6, evidence=cap.PROPOSAL_CONTRACTS["EL-03"]),
@@ -180,7 +212,15 @@ class CapabilityTests(unittest.TestCase):
         self.rejected(self.reward_contract(evidenceScope="bounded-release"), "combination")
 
     def test_unimplemented_cannot_claim_accepted(self):
-        self.rejected(self.reward_contract(decisionStatus="Accepted"), "invalid proposal")
+        with tempfile.TemporaryDirectory() as directory:
+            root = self.fixture(directory)
+            contract = root / cap.PROPOSAL_CONTRACTS["EL-04"]
+            contract.write_text(re.sub(r"(?m)^\*\*Status:\*\* [^\n]+$",
+                                       "**Status:** Accepted", contract.read_text()))
+            with self.assertRaisesRegex(cap.CapabilityError,
+                                        "unimplemented capability cannot claim accepted"):
+                cap.validate(root, self.reward_contract(decisionStatus="Accepted"),
+                             self.current, self.released)
 
     def test_stale_decision_status(self):
         self.rejected(self.changed(decisionStatus="Proposed"), "status mismatch")
@@ -261,7 +301,7 @@ class CapabilityTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             root = self.fixture(directory)
             self.assertFalse((root / ".git").exists())
-            self.assertEqual(cap.check(root), 13)
+            self.assertEqual(cap.check(root), 16)
 
 
 if __name__ == "__main__":

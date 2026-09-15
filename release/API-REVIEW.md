@@ -4,6 +4,35 @@ This review approves the `2026.9.3.0` 16-package integration API, 18 test suites
 
 The files in `release/exposed-modules` are checked API snapshots. Each public API change needs a new review.
 
+## Unreleased backlog API review — 2026-09-14
+
+The implementation at `03493e83bd842d2e9c0b41d0c0de4ab4380e4dc3` adds two
+public modules and extends the existing acyclic exact consumer. The development
+manifest now has 16 packages, 18 test suites, and 13 benchmarks. Published
+membership and versions remain unchanged.
+
+- `Markovian.Backend.GPU.Graph` owns typed F64 input/view/multiply graphs,
+  cumulative preparation, and all-input VJPs. D-082 is Accepted after independent
+  CPU/source review and [verified protected GB10 execution](../docs/plans/D082-CUDA-GRAPHS.md#protected-validation--2026-09-14)
+  at `e9612a3ddfe1b14ff3a471bfceaedfabb4a54232`, including all four sanitizers.
+- `Markovian.Backend.Neural.Bridge.DQN.Trainer` owns positive fuel, explicit
+  generator state, replay/checkpoint composition, and resumable failures.
+  D-084 is Accepted after independent O0/O2 and constructor-mutation review.
+- `Markovian.Open.Acyclic.Circuit.Exact` adds the closed table interpreter and
+  opaque retained owner. D-085 is Accepted for local table admission/replay;
+  global frontier construction retains its existing contract.
+- `affineMapDescriptor` is a read-only tensor map observer used by graph
+  preparation. It exposes no constructor or mutable storage.
+- EL-03 through EL-06 are Accepted for their recorded bounded scopes. Their
+  implementation bytes are unchanged from `24b81f7d33680bc78b3a0ecff39100f206d45385`.
+
+The bridge adds bounded dependencies on the existing numerical and sampling
+packages. It is now tier 3. The neural package remains independent of the root
+and sampling packages, and the root remains base-only. The package manifest,
+public module snapshots, source archives, and dependency checks cover this graph.
+The contracts and capability inventory distinguish unreleased acceptance from
+publication and hardware evidence.
+
 ## D-061 boundary
 
 The D-061 package migration is accepted for the reviewed package graph below.

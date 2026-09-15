@@ -44,8 +44,7 @@ marginal variance baseline and a signed comparison. A single meter spans
 structural admission, all five moments and twelve derived work units; no partial
 report escapes failure. The [executable paired-difference lesson](paired-difference.md)
 checks both U versus U and U versus 1-U: common noise can worsen variance.
-This adds no coupling constructor or trajectory/policy comparison. EL-03 remains
-Proposed, separately from the accepted older continuous fragment.
+This adds no coupling constructor or trajectory/policy comparison. EL-03 is Accepted for this unreleased fragment.
 
 ## Kernels
 

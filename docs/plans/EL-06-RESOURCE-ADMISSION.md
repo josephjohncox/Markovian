@@ -1,8 +1,10 @@
 # EL-06 — Source-semantic admission policy
 
-**Status:** Proposed
+**Status:** Accepted
 
-EL-01 froze this policy for EL-06 teaching and D-085 design. EL-06 now supplies a checked, test-only accounting model and an actual checked-bind association contrast in `test/ResourceAdmission.hs`, with [executed teaching output](../book/src/resource-admission.md). This is not a cache implementation or benchmark. Full cache signatures/implementation remain future D-085 work. D-085 remains Proposed. No new package edges or publication authority follow.
+**Bounded, unreleased acceptance — 2026-09-14:** Independent review accepts the source-admission policy, closed accounting model, and checked-bind example. It checked the ordered-failure, cumulative-ledger, and literal checked-bind association fixtures. The audited implementation is unchanged from `24b81f7d33680bc78b3a0ecff39100f206d45385` through `03493e83bd842d2e9c0b41d0c0de4ab4380e4dc3`. The scope below remains binding; acceptance does not establish a release or a physical resource bound.
+
+This policy governs the checked accounting model and checked-bind association example in `test/ResourceAdmission.hs`, with [executed teaching output](../book/src/resource-admission.md). The model uses hypothetical replay costs. The concrete retained cache has a separate [D-085 contract](D085-CIRCUIT-CACHE.md) and measured costs.
 
 ## Four distinct contracts
 
@@ -25,7 +27,7 @@ The selected interpreter must supply pure, deterministic, terminating callbacks,
 
 ## Frozen EL-06 accounting-model surface
 
-This private test module exports only the test and lesson runners. It deliberately does not introduce a cache, stored table, user callbacks, matrix interpreter, public ownership witness or dependency edge. `runModel` takes `SemanticLimits`, `ExecutorLimits` and an ordered list of `(Path, Program)` occurrences, returning `Either Failure ([Rational], Account)`. `Left` contains only the first error, never partial values/account/entries. `Right` contains one final scalar per occurrence and one request-wide account. This closed last-write scalar denotation models accounting, not the future matrix denotation.
+This private test module exports only the test and lesson runners. It deliberately does not introduce a cache, stored table, user callbacks, matrix interpreter, public ownership witness or dependency edge. `runModel` takes `SemanticLimits`, `ExecutorLimits` and an ordered list of `(Path, Program)` occurrences, returning `Either Failure ([Rational], Account)`. `Left` contains only the first error, never partial values/account/entries. `Right` contains one final scalar per occurrence and one request-wide account. This closed last-write scalar denotation models accounting, not the separate matrix denotation.
 
 - `Program` is closed: `Hundred` writes exact 1 a hundred times; `CancelEarly` writes `[1/256,0,0]`; `CancelLate` writes `[0,1/256,0]`; `DiscardBoth` writes `[257/256,0,0]`. The temporary values are overwritten, not algebraically optimized away. Two refusal programs put a fixed primitive refusal at position one or two in a three-step plan. There is no closure evaluation or cached failure.
 - `Path` is `Reference`, `Construction`, or `HypotheticalHit`. All three actually execute the same ordered source checks in this test model. The declared executor reservation is respectively `n`, `n+2`, or **1**, where n is the closed program's step count. Construction's two infrastructure units and the hit's one inclusive lookup/replay unit are assumptions, not measurements of the running Haskell code. Real replay has nonzero cost; this model does not prove it can be compressed to one unit.
@@ -46,8 +48,8 @@ The same lesson calls existing `bindExactFiniteDistChecked` on a fair `[0,1]` so
 
 Those are separately budgeted **public operations**, not a reset-budget implementation of the model's request-wide meter. Inner work is not included in the outer receipt. The two expressions happen to have equal summed work 28, yet local admission differs. Source association therefore remains visible to D-085; this is no unrestricted Monad or universal optimizer law.
 
-## Evidence and future cache gate
+## Evidence and cache boundary
 
 `docs/learning/fences.json` registers the full runnable module and `--resource-admission` output. `scripts/check-learning --write` generates stdout/receipt by execution; `--run` checks compilation and freshness. Normal root tests exercise all model boundaries. Existing source CI and `scripts/check-learning-archive` consume the same manifest, compile the archived module and compare archived output.
 
-Freeze D-085's concrete cache and interpreter-evidence signatures only when its consumer can satisfy this source contract. Opaque nominal table ownership, exact layout checks, real callback evidence, deterministic insertion/lookup, trace compression proof, cache capacity and actual time/allocation/hit measurements remain future cache work, not requirements silently satisfied by this accounting experiment.
+D-085 separately checks table ownership, exact layouts, closed interpreter identity, deterministic lookup/insertion, capacity, and actual time, allocation, and hit measurements. The teaching model supplies none of that implementation evidence.

@@ -161,7 +161,9 @@ boundary_scripts=(
   scripts/check-game-core-boundary
   scripts/check-mixed-game-boundary
   scripts/check-correlated-solver
+  scripts/check-circuit-cache
   scripts/check-feedback-boundary
+  scripts/check-aggregation-boundary
   packages/markovian-reverse/scripts/check-reverse-boundary
   backends/markovian-neural/scripts/check-reverse-program-boundary
   backends/markovian-neural-bridge/scripts/check-exact-support-boundary
@@ -336,7 +338,7 @@ while IFS=$'\t' read -r package_name _package_dir version _dependency_tier; do
     if [[ -d scripts ]]; then
       while IFS= read -r boundary; do
         case "$(basename "${boundary}")" in
-          check-*boundary|check-*-purity|check-refinement-roles|check-root-topology|check-correlated-solver)
+          check-*boundary|check-*-purity|check-refinement-roles|check-root-topology|check-correlated-solver|check-circuit-cache)
             bash "${boundary}"
             ;;
         esac

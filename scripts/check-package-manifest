@@ -155,8 +155,8 @@ for cabal_file in "${package_cabals[@]}"; do
   done < <(awk '$1 == "test-suite" || $1 == "benchmark" { print $1, $2 }' "${cabal_file}")
 done
 
-if (( benchmark_count != 11 )); then
-  echo "expected 11 mandatory benchmarks, found ${benchmark_count}" >&2
+if (( benchmark_count != 13 )); then
+  echo "expected 13 mandatory benchmarks, found ${benchmark_count}" >&2
   exit 1
 fi
 

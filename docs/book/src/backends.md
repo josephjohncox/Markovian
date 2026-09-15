@@ -17,7 +17,7 @@ Use this backend as a reference for denotational differential tests and layout i
 
 ## CUDA backend
 
-The optional GPU package executes only prepared positive-size F64 matrix products and their matrix-product VJPs over checked `markovian-tensor` inputs:
+The optional GPU package executes prepared positive-size F64 matrix products and their VJPs over checked `markovian-tensor` inputs:
 
 ```haskell
 prepared <- prepareMatMul limits left right
@@ -28,6 +28,8 @@ result <- runPreparedMatMul session
 ```
 
 Preparation bounds dimensions, element products, transfer bytes, scalar work, and user launches before probing a device. CPU execution uses the tensor package's matrix primitive. CUDA admission selects a device by deterministic ordinal, explicit ordinal, or UUID; records capabilities, PTX target, hash, and kernel ABI; loads the committed module; and runs a known-answer self-test.
+
+`Markovian.Backend.GPU.Graph` combines these products into a closed typed DAG with explicit sharing and admitted affine views. `prepareGraph` and `prepareGraphVJP` reserve the complete forward or reverse schedule. A run uses one executor, materializes intermediates on the host, and returns a gradient for every declared input. Affine gathers, pullbacks, and cotangent sums execute on the host. The [D-082 contract](../../plans/D082-CUDA-GRAPHS.md) defines the resource units and operation order; this schedule makes no fusion or speedup claim.
 
 An admitted executor owns one private context, module, and non-default stream. Its rank-2 scope cannot escape `withCUDAExecutor`. Calls and teardown take the same lock, so close waits for in-flight FFI work before native destruction. A call uses heap-backed host buffers and returns only after stream synchronization and host copy-back. Primary, bounded action-exception, and bounded cleanup diagnostics are retained together.
 
@@ -61,6 +63,8 @@ It implements:
 - one atomic DQN batch update.
 
 It does not implement a tensor framework, autodiff, device execution, global randomness, an environment runner, or a complete training loop.
+
+The optional bridge supplies the bounded training loop in `Markovian.Backend.Neural.Bridge.DQN.Trainer`. Its state owns replay, the explicit generator, online and target parameters, environment state, and cumulative protocol counts. Each call takes positive transition fuel and returns a resumable state plus ordered step reports. Replay append precedes batch sampling; target synchronization follows a successful atomic online update. Terminal payoff is explicit, and fuel exhaustion preserves a continuing bootstrap. See the [D-084 contract](../../plans/D084-DQN-TRAINER.md) for callback failures and RNG advancement. The maintained `dqn-trainer-bench` measures complete runs separately from their semantic reports.
 
 ## Checked floating arithmetic
 

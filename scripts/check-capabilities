@@ -124,7 +124,7 @@ def validate(root: Path, document: dict, current: dict, released: dict) -> list[
             require(match is not None and match[1] == status,
                     f"decision status mismatch: {decision}")
         else:
-            require(availability in {"unimplemented", "unreleased"} and status == "Proposed"
+            require(availability in {"unimplemented", "unreleased"}
                     and decision in PROPOSAL_CONTRACTS, "invalid proposal decision")
             contract = local_file(root, PROPOSAL_CONTRACTS[decision])
             require(availability != "unimplemented" or evidence == contract,
@@ -132,8 +132,10 @@ def validate(root: Path, document: dict, current: dict, released: dict) -> list[
             require(availability != "unreleased" or evidence != contract,
                     "implemented proposal requires implementation evidence")
             text = contract.read_text()
-            require(text.startswith(f"# {decision} —") and "**Status:** Proposed" in text
+            require(text.startswith(f"# {decision} —")
                     and f"`{module}`" in text, "proposal contract/module mismatch")
+            statuses = re.findall(r"(?m)^\*\*Status:\*\* ([^\n]+)$", text)
+            require(statuses == [status], f"proposal decision status mismatch: {decision}")
         # These scope labels are not a universal status lattice. In particular,
         # implemented unreleased code may legitimately have a Proposed decision.
         require(availability != "unimplemented" or status == "Proposed",

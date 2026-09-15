@@ -4,10 +4,15 @@ set -euo pipefail
 package_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "${package_dir}"
 
+builddir_args=()
+if [[ -n "${CABAL_BUILDDIR:-}" ]]; then
+  builddir_args=(--builddir="${CABAL_BUILDDIR}")
+fi
+
 log_file="$(mktemp)"
 trap 'rm -f "${log_file}"' EXIT
 
-if cabal exec -- ghc \
+if cabal exec "${builddir_args[@]}" -- ghc \
   -fno-code \
   -fmax-errors=100 \
   -package Markovian \
@@ -21,7 +26,11 @@ for rejected_coercion in \
   breakActionId \
   breakFiniteActionIndex \
   breakActionOutputLayout \
-  breakExactSupportMask; do
+  breakExactSupportMask \
+  breakDQNTrainerState \
+  breakDQNEnvironmentStep \
+  breakDQNTrainerError \
+  breakDQNTrainerRun; do
   if ! grep -F "${rejected_coercion}" "${log_file}" >/dev/null; then
     cat "${log_file}" >&2
     echo "The expected ${rejected_coercion} role error was absent." >&2
@@ -35,4 +44,56 @@ if ! grep -F "Couldn't match type" "${log_file}" >/dev/null; then
   exit 1
 fi
 
-echo "PASS: exact action IDs, indexes, output layouts, and support masks reject relabelling"
+check_hidden_constructor() {
+  local opaque_type="$1"
+  local probe_file
+  local probe_log
+
+  probe_file="$(mktemp --suffix=.hs)"
+  probe_log="$(mktemp)"
+  cat >"${probe_file}" <<EOF
+module DQNTrainerOpacityProbe where
+
+import Markovian.Backend.Neural.Bridge.DQN.Trainer (${opaque_type} (${opaque_type}))
+
+observe value = case value of
+  ${opaque_type} {} -> ()
+EOF
+
+  if cabal exec "${builddir_args[@]}" -- ghc \
+    -fno-code \
+    -fmax-errors=100 \
+    -package Markovian \
+    -package markovian-neural-bridge \
+    "${probe_file}" >"${probe_log}" 2>&1; then
+    rm -f "${probe_file}" "${probe_log}"
+    echo "DQN trainer constructor escaped the public opacity boundary: ${opaque_type}." >&2
+    exit 1
+  fi
+
+  if ! grep -F "does not export" "${probe_log}" >/dev/null \
+    || ! grep -F "constructors called" "${probe_log}" >/dev/null \
+    || ! grep -F "${opaque_type}" "${probe_log}" >/dev/null; then
+    cat "${probe_log}" >&2
+    rm -f "${probe_file}" "${probe_log}"
+    echo "The ${opaque_type} opacity probe failed for an unexpected reason." >&2
+    exit 1
+  fi
+
+  rm -f "${probe_file}" "${probe_log}"
+}
+
+for opaque_type in \
+  DQNTrainerConfig \
+  DQNTrainerFuel \
+  DQNTrainerObservation \
+  DQNTrainerState \
+  DQNTrainerLimits \
+  DQNTrainerAccounting \
+  DQNTrainerStepReport \
+  DQNTrainerReport \
+  DQNTrainerRun; do
+  check_hidden_constructor "${opaque_type}"
+done
+
+echo "PASS: exact action witnesses and DQN trainer opacity/roles reject boundary violations"

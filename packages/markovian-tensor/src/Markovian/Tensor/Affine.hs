@@ -48,6 +48,7 @@ module Markovian.Tensor.Affine (
     tensorSessionLimitsWithAffine,
     affineBudget,
     affineBudgetUsage,
+    affineMapDescriptor,
     withAffineMap,
     permuteAffineMap,
     reverseAffineMap,

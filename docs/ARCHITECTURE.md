@@ -775,7 +775,7 @@ markovian-autodiff                closed typed language and bounded reverse lowe
 markovian-neural                  checked neural reference updates
 markovian-sampling                explicit generators and sampled finite interpreters
 markovian-gpu                     bounded optional CUDA tensor executor
-markovian-neural-bridge           exact action-layout adapter for neural heads
+markovian-neural-bridge           exact action layouts and sampled DQN training
 markovian-learning                tabular updates and bounded episodic runners
 ```
 
@@ -783,7 +783,7 @@ markovian-learning                tabular updates and bounded episodic runners
 
 The root, continuous, continuous numerical, reverse, and tensor libraries depend only on `base`. `markovian-tensor-reverse` depends on tensor and reverse. `markovian-safetensors` depends on tensor and `bytestring`; it does not create an edge into the exact root. `markovian-gpu` depends on tensor and its closed tape API but exposes no generic reverse-program resolver. Test-only integration edges are separate from public architecture.
 
-The numerical, dense exact, and exact benchmark libraries depend on the root. Autodiff and neural depend on reverse. Sampling depends on the root and numerical package. The neural bridge depends on root and neural. Learning depends on the root, numerical package, and sampling package.
+The numerical, dense exact, and exact benchmark libraries depend on the root. Autodiff and neural depend on reverse. Sampling depends on the root and numerical package. The neural bridge depends on root, neural, numerical, and sampling. Learning depends on the root, numerical package, and sampling package.
 
 D-061 and D-067 are `Accepted` for their bounded package-migration and reverse-execution scopes. The effect interpreter and bounded host adapter do not establish generic tensor or device lowering.
 
@@ -905,6 +905,8 @@ All game reports contain deterministic represented counts and exact values, not 
 `Markovian.Backend.Neural.Mask` stores a positive complete output width and nonempty ordered active indices. Boolean flags encode membership in global output order. Checked gathering occurs before softmax or argmax. The package does not multiply logits or Q-values by numeric masks and does not add negative infinity. Checked scattering uses positive `0.0` at unavailable positions.
 
 `markovian-neural-bridge` owns exact-to-neural support compilation. It binds a root `FiniteActionIndex` to the actual width of a linear policy or dense head, rejects reordered global layouts, preserves each continuing state's exact availability and tie order, and returns a distinct terminal branch. Complete compilation preflights explicit state, cumulative action-entry, and conservative traversal-work limits and returns no partial collection after exhaustion. It converts action indexes to machine indexes only after range checks. Nominal roles protect action IDs, finite indexes, output layouts, and support masks from representational relabelling. The bridge performs no rational-to-`Double` approximation and supplies no feature map. The root and neural packages remain independent; only this bridge depends on both.
+
+The bridge also owns the [D-084 reference trainer](plans/D084-DQN-TRAINER.md), which combines checked neural updates with the existing explicit generator and finite sampler. Its resumable state retains environment, generator, replay, online and target parameters, and cumulative protocol accounting. Positive fuel bounds attempted environment transitions. A failed update preserves the previous online and target parameters; a fuel cutoff retains a continuing successor for bootstrap and resumption. These sampling dependencies belong to the bridge, preserving the neural library's independence from the exact root. The two new sibling bounds use `^>=2026.9.3.0`; both packages are maintained in this repository under BSD-3-Clause and tested with the pinned GHC 9.14.1 toolchain.
 
 REINFORCE and actor-critic use masked linear categorical policies and linear scalar value functions. Unavailable parameter rows receive canonical positive-zero score derivatives. Their actor, baseline, and critic gradients use immutable pre-update snapshots. REINFORCE includes the outer discount power for the discounted start-return objective. Truncated episodes require an explicit boundary bootstrap.
 

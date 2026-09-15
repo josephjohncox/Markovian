@@ -69,7 +69,8 @@ EXPECTED_PUBLIC_SIBLING_DEPENDENCIES = {
     "markovian-safetensors": frozenset({"markovian-tensor"}),
     "markovian-sampling": frozenset({"markovian", "markovian-numerical"}),
     "markovian-gpu": frozenset({"markovian-tensor"}),
-    "markovian-neural-bridge": frozenset({"markovian", "markovian-neural"}),
+    "markovian-neural-bridge": frozenset({
+        "markovian", "markovian-neural", "markovian-numerical", "markovian-sampling"}),
     "markovian-learning": frozenset(
         {"markovian", "markovian-numerical", "markovian-sampling"}
     ),

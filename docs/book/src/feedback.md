@@ -138,10 +138,8 @@ holding probabilities, strict discount, routes and slots fixed. Its opaque resul
 owns base and derivative coefficients together, with one operation-wide ledger
 and eight literal equation families. The [runnable retry lesson](reward-jvp.md)
 separates reward derivative 4/3 from the symbolic probability derivative 8/9 and
-from finite-unrolling derivatives. This remains unreleased EL-04 Proposed
-implementation evidence with a separate implementation PASS. D-078's acceptance
-of the original coefficients does not accept this JVP contract, general autodiff,
-or probability sensitivity.
+from finite-unrolling derivatives. EL-04 separately accepts this unreleased reward JVP. General autodiff and
+probability sensitivity remain outside that contract.
 
 ## Evidence and nonclaims
 

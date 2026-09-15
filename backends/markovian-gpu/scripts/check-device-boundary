@@ -21,7 +21,7 @@ check_failure() {
   local log_file
   log_file="$(mktemp)"
   if cabal exec "${project_arguments[@]}" -- ghc \
-    -fno-code -fmax-errors=100 -package markovian-gpu \
+    -fno-code -fmax-errors=100 -package markovian-gpu -package markovian-tensor \
     "${fixture_prefix}${fixture}" >"${log_file}" 2>&1; then
     rm -f "${log_file}"
     echo "Device boundary fixture unexpectedly compiled: ${fixture}" >&2
@@ -45,5 +45,15 @@ check_failure test/compile-fail/DeviceBoundary.hs \
 
 check_failure test/compile-fail/DeviceRoles.hs \
   badVJPCoercion badExecutorScopeCoercion "Couldn't match type"
+
+check_failure test/compile-fail/GraphBoundary.hs \
+  badRefConstructor badGraphConstructor badPreparedConstructor badVJPConstructor \
+  badResultConstructor badGradientConstructor badEnvironment badGraphRegion \
+  badPreparedShape badResultShape badFreeVariable badMultiplyShape badAffineShape \
+  badSessionEscape "Couldn't match type"
+
+check_failure test/compile-fail/GraphResultUpdate.hs badResultUpdate graphResultValues 'record field'
+check_failure test/compile-fail/GraphVJPUpdate.hs badVJPUpdate graphVJPGradients 'record field'
+check_failure test/compile-fail/GraphGradientUpdate.hs badGradientUpdate graphGradientValues 'record field'
 
 echo "PASS: device plans, host results, executor resources, and endpoints remain protected"
