@@ -1,6 +1,6 @@
 # Release preparation
 
-Release `2026.9.3.0` passed D-061 through D-076 and the complete preparation, attestation, and protected CUDA evidence gates. These decisions are accepted only for their stated bounded scopes.
+Release `2026.9.15.1` is the latest published source release and records the accepted bounded D-077 through D-085 and EL-03 through EL-06 work. The earlier `2026.9.3.0` release passed D-061 through D-076 and remains an immutable historical revision. Neither release extends those decisions beyond their stated scopes.
 
 Release preparation creates checked local artifacts. It does not upload packages, create tags, or create releases.
 
@@ -36,13 +36,22 @@ The pinned independent `spdx-tools` validator checks every SBOM. The script writ
 
 ## Run local preparation
 
-Use a clean immutable revision:
+For a new release, first assign an unpublished coordinated version, update all
+package versions, exact sibling bounds, tag references, notes, and API review,
+then commit the candidate. Run this command only from that clean candidate
+checkout. The published-version registry rejects preparing a later commit while
+the packages still say `2026.9.15.1`.
 
 ```sh
 bash scripts/prepare-release \
   --revision "$(git rev-parse HEAD)" \
   --output ../markovian-release-artifacts
 ```
+
+To reproduce the published `2026.9.15.1` source, use a separate clean checkout
+at the exact `v2026.9.15.1` tag. Its historical registry snapshot and package
+metadata belong to that immutable revision; a later branch is not a replacement
+source for the published version.
 
 The repository scripts can have mode `0644` in a Cabal source archive. Run them with `bash scripts/...` after extraction.
 

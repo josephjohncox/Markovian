@@ -49,7 +49,7 @@ Floating modules need `markovian-numerical`. Sampling needs `markovian-sampling`
 | Execute explicit one-tick delayed state | `Markovian.Feedback.Delay.Exact` |
 | Close a proper finite first-exit channel | `Markovian.Feedback.Channel.Exact` |
 | Retain reward, duration, and exit jointly in a nilpotent loop | `Markovian.Feedback.Timed.Exact` |
-| Observe accepted but unreleased strict-discount affine value coefficients | `Markovian.Feedback.Value.Exact` |
+| Observe checked strict-discount affine value coefficients | `Markovian.Feedback.Value.Exact` |
 | Compose systems through boundaries | `Markovian.Open.StructuredCospan` |
 | Execute a validated finite DAG | `Markovian.Open.Acyclic.Circuit.Exact` |
 | Define a finite alternating protocol | `Markovian.Game.Arena` and `Markovian.Game.Strategy` |
@@ -83,6 +83,7 @@ Floating modules need `markovian-numerical`. Sampling needs `markovian-sampling`
 | Store explicit replay snapshots | `Markovian.Backend.Neural.Replay` |
 | Manage target-network synchronization | `Markovian.Backend.Neural.TargetNetwork` |
 | Evaluate or update one DQN batch | `Markovian.Backend.Neural.DQN` |
+| Run a bounded, resumable DQN reference trainer | `Markovian.Backend.Neural.Bridge.DQN.Trainer` in `markovian-neural-bridge` |
 
 ## Select the control family
 
@@ -90,7 +91,11 @@ Use exact control when you have a complete finite exact model. Value iteration g
 
 Use tabular learning for sampled transitions in a small discrete state-action space. The `markovian-learning` updates use a numerical MDP to validate terminal states and action support.
 
-Use the neural package for small function-approximation reference calculations. It has update primitives, but no environment runner or complete trainer.
+Use `markovian-neural` for small function-approximation reference calculations
+and DQN batch updates. The separate `markovian-neural-bridge` package supplies
+the bounded DQN reference trainer with a caller-provided pure environment step,
+explicit generator, and positive transition fuel. Neither is a production
+training system.
 
 Read [Control and learning taxonomy](control-learning-taxonomy.md) for the model-based, policy, and representation axes.
 

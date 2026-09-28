@@ -13,11 +13,18 @@ from pathlib import Path
 from release_tool import ReleaseError, exposed_modules, one_cabal_file, parse_manifest
 
 ROOT = Path(__file__).resolve().parent.parent
-RELEASE_REVISION = "fe6abb8db9b3def65ead6602168eef860a79527c"
-RELEASE_TAG = "v2026.9.3.0"
+RELEASE_REVISION = "5d996ec63922aebad57e1bd30a1ca9ebf5f5cfa9"
+RELEASE_TAG = "v2026.9.15.1"
 # Selected membership evidence copied from the immutable revision, not the
 # mutable release/exposed-modules directory. Changing it requires review.
-RELEASE_EVIDENCE_SHA256 = "22d1c36aea8f285830f585a1e1b4bd673fbe7e71c3bf9cb5e4054910966157b5"
+RELEASE_EVIDENCE_SHA256 = "a5d862195e7247d22e0c911f608709ee69c477b4cb4e648c2c0d5c4597691c8f"
+PUBLISHED_RELEASES = {
+    "2026.9.3.0": {
+        "sourceRevision": "fe6abb8db9b3def65ead6602168eef860a79527c",
+        "tag": "v2026.9.3.0",
+    },
+    "2026.9.15.1": {"sourceRevision": RELEASE_REVISION, "tag": RELEASE_TAG},
+}
 RECORDS = Path("docs/capabilities/current.json")
 RELEASE_EVIDENCE = Path("docs/capabilities/released-modules.json")
 OUTPUT = Path("docs/book/src/capabilities.md")
@@ -64,9 +71,9 @@ def surfaces(root: Path, verify_release: bool = False) -> tuple[dict, dict]:
     require(released["sourceRevision"] == RELEASE_REVISION
             and released["tag"] == RELEASE_TAG, "wrong released source")
     authority = json.loads((root / "release/published-releases.json").read_text())
-    require(authority["versions"]["2026.9.3.0"] == {
-        "sourceRevision": RELEASE_REVISION, "tag": RELEASE_TAG},
-        "published release authority changed")
+    require(all(authority["versions"].get(version) == record
+                for version, record in PUBLISHED_RELEASES.items()),
+            "published release authority changed")
     if verify_release:
         target = subprocess.check_output(
             ["git", "rev-parse", f"{RELEASE_TAG}^{{commit}}"], cwd=root, text=True).strip()
@@ -124,13 +131,12 @@ def validate(root: Path, document: dict, current: dict, released: dict) -> list[
             require(match is not None and match[1] == status,
                     f"decision status mismatch: {decision}")
         else:
-            require(availability in {"unimplemented", "unreleased"}
-                    and decision in PROPOSAL_CONTRACTS, "invalid proposal decision")
+            require(decision in PROPOSAL_CONTRACTS, "invalid proposal decision")
             contract = local_file(root, PROPOSAL_CONTRACTS[decision])
             require(availability != "unimplemented" or evidence == contract,
                     "contract-only evidence must name the proposal contract")
-            require(availability != "unreleased" or evidence != contract,
-                    "implemented proposal requires implementation evidence")
+            require(availability == "unimplemented" or evidence != contract,
+                    "implemented proposal requires evidence beyond its contract")
             text = contract.read_text()
             require(text.startswith(f"# {decision} —")
                     and f"`{module}`" in text, "proposal contract/module mismatch")
@@ -140,6 +146,8 @@ def validate(root: Path, document: dict, current: dict, released: dict) -> list[
         # implemented unreleased code may legitimately have a Proposed decision.
         require(availability != "unimplemented" or status == "Proposed",
                 "unimplemented capability cannot claim accepted evidence")
+        require(availability != "released" or status == "Accepted",
+                "released capability requires an accepted decision")
     return records
 
 
@@ -156,7 +164,7 @@ def render(records: list[dict]) -> str:
         lines.append(f"| {record['label']} | `{record['package']}: {module}`{planned} | "
                      f"{record['availability']} | {record['decision']} {record['decisionStatus']} | "
                      f"{record['evidenceScope']} (`{record['evidence']}`) | {record['boundary']} |")
-    lines.extend(["", "Repository evidence paths above name files, not promises that all their claims apply to this capability. Contract-only rows have no implementation evidence. See the [current module map](api-map.md) for navigation.", ""])
+    lines.extend(["", "Repository evidence paths above name files, not promises that all their claims apply to this capability. Earlier acceptance and implementation fixtures remain in the decision and plan records. Contract-only rows have no implementation evidence. See the [current module map](api-map.md) for navigation.", ""])
     return "\n".join(lines)
 
 

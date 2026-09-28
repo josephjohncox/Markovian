@@ -1,13 +1,15 @@
 {
   "schemaVersion": 1,
-  "sourceRevision": "fe6abb8db9b3def65ead6602168eef860a79527c",
-  "tag": "v2026.9.3.0",
+  "sourceRevision": "5d996ec63922aebad57e1bd30a1ca9ebf5f5cfa9",
+  "tag": "v2026.9.15.1",
   "scope": "Selected module-membership evidence, not a complete published API or signature snapshot",
   "modules": {
-    "Markovian": ["Markovian.Feedback.Channel.Exact"],
-    "markovian-autodiff": ["Markovian.Autodiff.Language"],
-    "markovian-continuous": ["Markovian.Continuous.Measure.Exact"],
+    "Markovian": ["Markovian.Aggregation.Exact", "Markovian.Feedback.Channel.Exact", "Markovian.Feedback.Value.Exact", "Markovian.Game.Correlated.Exact", "Markovian.Open.Acyclic.Circuit.Exact"],
+    "markovian-autodiff": ["Markovian.Autodiff.Language", "Markovian.Autodiff.Quote"],
+    "markovian-continuous": ["Markovian.Continuous.Kernel.JointAffine.Exact", "Markovian.Continuous.Measure.Exact"],
+    "markovian-gpu": ["Markovian.Backend.GPU.Graph"],
+    "markovian-neural-bridge": ["Markovian.Backend.Neural.Bridge.DQN.Trainer"],
     "markovian-reverse": ["Markovian.Reverse.Program.Effect"],
-    "markovian-tensor": ["Markovian.Tensor.Reverse"]
+    "markovian-tensor": ["Markovian.Tensor.Affine", "Markovian.Tensor.Reverse"]
   }
 }

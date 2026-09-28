@@ -1,6 +1,6 @@
 # Public module map
 
-This map describes the **current development** API. `release/exposed-modules` contains mutable, checked current package snapshots, not immutable published snapshots. The `v2026.9.3.0` API is the surface at its recorded source revision in `release/published-releases.json`; unchanged development versions do not imply release availability. See the [checked capability record](capabilities.md).
+This map describes the **current development** API. `release/exposed-modules` contains mutable, checked current package snapshots, not immutable published snapshots. The `v2026.9.15.1` API is the surface at its recorded source revision in `release/published-releases.json`; the earlier `v2026.9.3.0` record remains available for historical comparison. See the [checked capability record](capabilities.md).
 
 The accepted D-061 migration keeps the root on exact and exact-neutral structural modules. Optional packages own numerical, sampled, learning, dense, and benchmark modules.
 
@@ -51,7 +51,7 @@ D-061 is `Accepted` for the reviewed package graph. D-067 is accepted only for t
 | --- | --- |
 | `Markovian.Interpreter.Exact` | Exact traces and expected returns |
 | `Markovian.Compile.Exact` | Policy-free exact MDP compilation and separate policy closure |
-| `Markovian.Aggregation.Exact` | Unreleased [supplied-partition fixed-policy checker](aggregation.md): opaque owned quotient or bounded distinguishing witness; joint reward/next-block laws, observations and terminal payoffs; EL-05 Accepted |
+| `Markovian.Aggregation.Exact` | Bounded [supplied-partition fixed-policy checker](aggregation.md): opaque owned quotient or bounded distinguishing witness; joint reward/next-block laws, observations and terminal payoffs; EL-05 Accepted and released in `v2026.9.15.1` |
 | `Markovian.Interpreter.DynamicProgramming.Exact` | Finite-horizon policy evaluation |
 | `Markovian.Interpreter.Bellman.Exact` | Discounted contraction policy evaluation |
 | `Markovian.Interpreter.Control.Exact` | Exact value iteration, greedy extraction, and policy iteration |
@@ -110,9 +110,9 @@ The old `Markovian.Category.Finite.Exact` module is private regression code. No 
 | `Markovian.Feedback.Channel.Exact` | Proper first-exit coproduct routing with exact solve evidence |
 | `Markovian.Feedback.Delay.Exact` | Explicit seed and bounded one-tick delayed execution |
 | `Markovian.Feedback.Timed.Exact` | Nilpotent reward-, duration-, and output-preserving closure |
-| `Markovian.Feedback.Value.Exact` | Unreleased strict-discount affine `A`/`K` coefficients and `closeAffineFeedbackRewardJVP`: opaque jointly owned base and event-reward derivative, exact layout checks and one cumulative ledger; fixed probabilities/discount only; original D-078 coefficients Accepted, separate EL-04 JVP contract Accepted |
+| `Markovian.Feedback.Value.Exact` | Released strict-discount affine `A`/`K` coefficients and `closeAffineFeedbackRewardJVP`: opaque jointly owned base and event-reward derivative, exact layout checks and one cumulative ledger; fixed probabilities/discount only; original D-078 coefficients Accepted, separate EL-04 JVP contract Accepted |
 
-These modules provide no universal trace, instantaneous fixed-point operator, cyclic open-system black-boxing, or stationary-distribution selector. The value module returns no evaluator or normalized output channel. D-078 is `Accepted` only for its original coefficients and four exact equations, not EL-04's JVP contract; both remain unreleased.
+These modules provide no universal trace, instantaneous fixed-point operator, cyclic open-system black-boxing, or stationary-distribution selector. The value module returns no evaluator or normalized output channel. D-078 is `Accepted` only for its original coefficients and four exact equations, not EL-04's JVP contract; both entered `v2026.9.15.1` within their separate bounded scopes.
 
 ## Open systems
 
@@ -151,7 +151,7 @@ These modules do not import arena histories. They provide no generic mixed lifti
 | --- | --- |
 | `Markovian.Game.Profile.Finite` | Checked owner products, pure profiles, exact complete simplexes, and shared game limits |
 | `Markovian.Game.NormalForm.Exact` | Complete rational payoff tables, independent mixed profiles, exact expectation, and mixed-Nash candidate checks |
-| `Markovian.Game.Correlated.Exact` | Joint correlation devices, CE/CCE candidate reports, and unreleased first-witness solvers |
+| `Markovian.Game.Correlated.Exact` | Joint correlation devices, CE/CCE candidate reports, and bounded first-witness solvers |
 | `Markovian.Game.Outcome.Exact` | Complete exact joint outcome laws and reward/successor atoms |
 | `Markovian.Game.Stochastic.Exact` | Finite-horizon public-state Markov evaluation and Markov-perfect candidate checks |
 | `Markovian.Game.Harsanyi.Exact` | Correlated common priors, behavioral Bayes-Nash checks, and bounded strategic-normal conversion |
@@ -166,7 +166,7 @@ These are candidate semantics, not unrestricted solvers. They provide no equilib
 | `markovian-continuous: Markovian.Continuous.Space` | Closed finite, real, and product standard-Borel witnesses |
 | `markovian-continuous: Markovian.Continuous.Map` | Rational affine measurable real maps |
 | `markovian-continuous: Markovian.Continuous.Polynomial` | Bounded rational univariate and bivariate polynomials |
-| `markovian-continuous: Markovian.Continuous.Measure.Exact` | Affine-uniform laws, exact polynomial moments, shared-noise joints, and the unreleased [paired-difference report](paired-difference.md) |
+| `markovian-continuous: Markovian.Continuous.Measure.Exact` | Affine-uniform laws, exact polynomial moments, shared-noise joints, and the [paired-difference report](paired-difference.md) |
 | `markovian-continuous: Markovian.Continuous.Kernel.Exact` | Checked affine additive-uniform kernels and fallible composition |
 | `markovian-continuous: Markovian.Continuous.Condition.Exact` | Positive-evidence finite affine-likelihood conditioning |
 | `markovian-continuous-numerical: Markovian.Continuous.Numerical.Value` | Finite values and explicit rational rounding reports |
@@ -185,7 +185,7 @@ These are candidate semantics, not unrestricted solvers. They provide no equilib
 | `markovian-autodiff: Markovian.Autodiff.Compile` | Exact polynomial and checked-Double lowering to opaque reverse tapes |
 | `markovian-tensor: Markovian.Tensor.Shape` | Type-indexed scalar, vector, matrix, and higher-rank shape witnesses |
 | `markovian-tensor: Markovian.Tensor` | Region-scoped host F64 buffers, checked layouts, finite refinement, and deterministic reports |
-| `markovian-tensor: Markovian.Tensor.Affine` | Bounded, unreleased [signed affine views](tensor-runtime.md), materialization, and base-coordinate pullback. D-081 Accepted within this unreleased scope. |
+| `markovian-tensor: Markovian.Tensor.Affine` | Bounded [signed affine views](tensor-runtime.md), materialization, and base-coordinate pullback. D-081 is Accepted within this released scope. |
 | `markovian-tensor: Markovian.Tensor.Primitive` | Deterministic finite CPU elementwise, reduction, copy, and matrix primitives |
 | `markovian-tensor: Markovian.Tensor.Ownership` | Semantic owner keys separate from physical storage IDs |
 | `markovian-tensor: Markovian.Tensor.Reverse` | Opaque tapes and VJPs for the closed CPU primitive set, backed by a private allocator capability |
