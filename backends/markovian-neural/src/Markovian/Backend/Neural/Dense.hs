@@ -169,16 +169,22 @@ The constructor is private so a trace can only come from the forward path.
 -}
 data DenseTrace = DenseTrace
     { denseTraceLayers :: ![DenseLayerTrace]
+    -- ^ Hidden layers followed by the output layer.
     , denseTraceOutput :: ![Double]
+    -- ^ Final linear output vector.
     }
     deriving (Eq, Show)
 
 -- | Values at one layer; 'Nothing' marks the linear output head.
 data DenseLayerTrace = DenseLayerTrace
     { denseTraceLayerInput :: ![Double]
+    -- ^ Values entering this layer.
     , denseTraceLayerPreactivation :: ![Double]
+    -- ^ Weighted sums including biases.
     , denseTraceLayerPostactivation :: ![Double]
+    -- ^ Post-tanh hidden values, or unchanged preactivation at the linear output.
     , denseTraceLayerActivation :: !(Maybe HiddenActivation)
+    -- ^ Hidden activation, if any.
     }
     deriving (Eq, Show)
 
@@ -201,16 +207,27 @@ traceDense network inputs = do
 -- | A read-only report from one same-snapshot hidden-unit intervention.
 data DensePatchReport = DensePatchReport
     { densePatchRecipientInput :: ![Double]
+    -- ^ Recipient input vector.
     , densePatchDonorInput :: ![Double]
+    -- ^ Donor input vector.
     , densePatchHiddenLayer :: !Int
+    -- ^ Zero-based hidden layer index.
     , densePatchUnits :: ![Int]
+    -- ^ Selected zero-based unit indices in caller order.
     , densePatchReplacementValues :: ![Double]
+    -- ^ Donor values for selected units in caller order.
     , densePatchRecipientPostactivation :: ![Double]
+    -- ^ Original recipient values after the hidden activation.
     , densePatchEffectivePostactivation :: ![Double]
+    -- ^ Recipient values with selected units replaced.
     , densePatchRecipientOutput :: ![Double]
+    -- ^ Output for the unmodified recipient input.
     , densePatchDonorOutput :: ![Double]
+    -- ^ Output for the unmodified donor input.
     , densePatchPatchedOutput :: ![Double]
+    -- ^ Output after the hidden-unit replacement.
     , densePatchOutputDelta :: ![Double]
+    -- ^ Patched output minus recipient output.
     }
     deriving (Eq, Show)
 

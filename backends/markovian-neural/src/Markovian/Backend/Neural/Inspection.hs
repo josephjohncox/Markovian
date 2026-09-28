@@ -93,16 +93,26 @@ import Numeric.Natural (Natural)
 
 -- | Probe bounds, incompatible snapshots or masks, and checked evaluation failures.
 data InspectionError
-    = InvalidInspectionProbeLimit !Int
-    | EmptyInspectionProbes
-    | InspectionProbeLimitExceeded !Int
-    | DQNInspectionTopologyMismatch
-    | LinearPolicyInspectionShapeMismatch !Int !Int !Int !Int
-    | InspectionMaskWidthMismatch !Int !Int
-    | InspectionDenseFailure !DenseError
-    | InspectionMaskFailure !ActionMaskError
-    | InspectionPolicyFailure !NeuralPolicyError
-    | InspectionNumericFailure !NeuralNumericError
+    = -- | The probe limit is not positive.
+      InvalidInspectionProbeLimit !Int
+    | -- | No probes were supplied.
+      EmptyInspectionProbes
+    | -- | The probe count exceeds the supplied limit.
+      InspectionProbeLimitExceeded !Int
+    | -- | The DQN snapshots have incompatible network topologies.
+      DQNInspectionTopologyMismatch
+    | -- | Counts are before features, before actions, after features, after actions.
+      LinearPolicyInspectionShapeMismatch !Int !Int !Int !Int
+    | -- | Expected and supplied action-mask widths differ, in that order.
+      InspectionMaskWidthMismatch !Int !Int
+    | -- | Dense-network evaluation failed.
+      InspectionDenseFailure !DenseError
+    | -- | Applying an action mask failed.
+      InspectionMaskFailure !ActionMaskError
+    | -- | Policy inspection failed.
+      InspectionPolicyFailure !NeuralPolicyError
+    | -- | Checked numeric evaluation failed.
+      InspectionNumericFailure !NeuralNumericError
     deriving (Eq, Show)
 
 {- | One caller-identified observation and ordered action mask. The optional
@@ -110,9 +120,13 @@ replay ordinal is meaningful only within the caller's replay-buffer lineage.
 -}
 data InspectionProbe identifier = InspectionProbe
     { inspectionProbeId :: identifier
+    -- ^ Caller-supplied identifier for this probe.
     , inspectionProbeFeatures :: ![Double]
+    -- ^ Features passed to each snapshot.
     , inspectionProbeMask :: !ActionMask
+    -- ^ Ordered admissible actions shared by both snapshots.
     , inspectionProbeReplayId :: !(Maybe ReplayEntryId)
+    -- ^ Optional ordinal in the caller's replay-buffer lineage.
     }
     deriving (Eq, Show)
 
@@ -125,9 +139,13 @@ mkInspectionProbe = InspectionProbe
 -- | An admissible DQN action value in mask order at both checkpoints.
 data ActionValueComparison = ActionValueComparison
     { actionValueIndex :: !Int
+    -- ^ Numeric action index.
     , actionValueBefore :: !Double
+    -- ^ Value from the before snapshot.
     , actionValueAfter :: !Double
+    -- ^ Value from the after snapshot.
     , actionValueDelta :: !Double
+    -- ^ After value minus before value.
     }
     deriving (Eq, Show)
 
@@ -136,18 +154,26 @@ probe's mask order and contain every admissible action.
 -}
 data DQNProbeComparison identifier = DQNProbeComparison
     { dqnProbeInput :: !(InspectionProbe identifier)
+    -- ^ Shared input and provenance for this comparison.
     , dqnProbeOnline :: ![ActionValueComparison]
+    -- ^ Online-network action values in mask order.
     , dqnProbeTarget :: ![ActionValueComparison]
+    -- ^ Target-network action values in mask order.
     }
     deriving (Eq, Show)
 
 -- | A complete frozen DQN comparison, with target successful-update counters.
 data DQNAudit identifier = DQNAudit
     { dqnAuditBeforeLabel :: !String
+    -- ^ Caller-supplied label for the before state.
     , dqnAuditAfterLabel :: !String
+    -- ^ Caller-supplied label for the after state.
     , dqnAuditBeforeTargetUpdateCount :: !Natural
+    -- ^ Committed online updates observed by the before target state.
     , dqnAuditAfterTargetUpdateCount :: !Natural
+    -- ^ Committed online updates observed by the after target state.
     , dqnAuditProbes :: ![DQNProbeComparison identifier]
+    -- ^ Comparisons in supplied probe order.
     }
     deriving (Eq, Show)
 
@@ -203,27 +229,39 @@ compareDense probe before after = do
 -- | A masked policy action's probability and log-probability comparison.
 data ActionProbabilityComparison = ActionProbabilityComparison
     { actionProbabilityIndex :: !Int
+    -- ^ Numeric action index.
     , actionProbabilityBefore :: !Double
+    -- ^ Probability from the before policy.
     , actionProbabilityAfter :: !Double
+    -- ^ Probability from the after policy.
     , actionProbabilityDelta :: !Double
+    -- ^ After probability minus before probability.
     , actionLogProbabilityBefore :: !Double
+    -- ^ Log-probability from the before policy.
     , actionLogProbabilityAfter :: !Double
+    -- ^ Log-probability from the after policy.
     , actionLogProbabilityDelta :: !Double
+    -- ^ After log-probability minus before log-probability.
     }
     deriving (Eq, Show)
 
 -- | All admissible policy actions for one shared probe, in mask order.
 data LinearPolicyProbeComparison identifier = LinearPolicyProbeComparison
     { linearPolicyProbeInput :: !(InspectionProbe identifier)
+    -- ^ Shared input and provenance for this comparison.
     , linearPolicyProbeActions :: ![ActionProbabilityComparison]
+    -- ^ Admissible actions in mask order.
     }
     deriving (Eq, Show)
 
 -- | A complete comparison of two explicitly supplied linear policy snapshots.
 data LinearPolicyAudit identifier = LinearPolicyAudit
     { linearPolicyAuditBeforeLabel :: !String
+    -- ^ Caller-supplied label for the before policy.
     , linearPolicyAuditAfterLabel :: !String
+    -- ^ Caller-supplied label for the after policy.
     , linearPolicyAuditProbes :: ![LinearPolicyProbeComparison identifier]
+    -- ^ Comparisons in supplied probe order.
     }
     deriving (Eq, Show)
 

@@ -127,23 +127,31 @@ linearPolicyLogits policy@(LinearCategoricalPolicy actions features parameters) 
 -- | Checked terms and logit for one global action. Terms are not causal attributions.
 data LinearPolicyActionInspection = LinearPolicyActionInspection
     { linearPolicyInspectedAction :: !Int
+    -- ^ Global action index.
     , linearPolicyInspectedTerms :: ![Double]
+    -- ^ Checked products in feature order.
     , linearPolicyInspectedLogit :: !Double
+    -- ^ Sum of the checked terms.
     }
     deriving (Eq, Show)
 
 -- | One admissible action, in the caller's mask order.
 data LinearPolicyMaskedActionInspection = LinearPolicyMaskedActionInspection
     { linearPolicyMaskedAction :: !Int
+    -- ^ Admissible global action index.
     , linearPolicyMaskedLogProbability :: !Double
+    -- ^ Log probability among admissible actions.
     , linearPolicyMaskedProbability :: !Double
+    -- ^ Probability among admissible actions.
     }
     deriving (Eq, Show)
 
 -- | All global linear terms and the admissible categorical distribution.
 data LinearPolicyInspection = LinearPolicyInspection
     { linearPolicyInspectedActions :: ![LinearPolicyActionInspection]
+    -- ^ Every global action in index order.
     , linearPolicyInspectedMaskedActions :: ![LinearPolicyMaskedActionInspection]
+    -- ^ Admissible actions in mask order.
     }
     deriving (Eq, Show)
 
