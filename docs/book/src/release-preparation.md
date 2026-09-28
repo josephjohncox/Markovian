@@ -36,13 +36,22 @@ The pinned independent `spdx-tools` validator checks every SBOM. The script writ
 
 ## Run local preparation
 
-Use a clean immutable revision:
+For a new release, first assign an unpublished coordinated version, update all
+package versions, exact sibling bounds, tag references, notes, and API review,
+then commit the candidate. Run this command only from that clean candidate
+checkout. The published-version registry rejects preparing a later commit while
+the packages still say `2026.9.15.1`.
 
 ```sh
 bash scripts/prepare-release \
   --revision "$(git rev-parse HEAD)" \
   --output ../markovian-release-artifacts
 ```
+
+To reproduce the published `2026.9.15.1` source, use a separate clean checkout
+at the exact `v2026.9.15.1` tag. Its historical registry snapshot and package
+metadata belong to that immutable revision; a later branch is not a replacement
+source for the published version.
 
 The repository scripts can have mode `0644` in a Cabal source archive. Run them with `bash scripts/...` after extraction.
 

@@ -79,6 +79,7 @@ Floating modules need `markovian-numerical`. Sampling needs `markovian-sampling`
 | Store explicit replay snapshots | `Markovian.Backend.Neural.Replay` |
 | Manage target-network synchronization | `Markovian.Backend.Neural.TargetNetwork` |
 | Evaluate or update one DQN batch | `Markovian.Backend.Neural.DQN` |
+| Run a bounded, resumable DQN reference trainer | `Markovian.Backend.Neural.Bridge.DQN.Trainer` in `markovian-neural-bridge` |
 
 ## Select the control family
 
@@ -86,7 +87,11 @@ Use exact control when you have a complete finite exact model. Value iteration g
 
 Use tabular learning for sampled transitions in a small discrete state-action space. The `markovian-learning` updates use a numerical MDP to validate terminal states and action support.
 
-Use the neural package for small function-approximation reference calculations. It has update primitives, but no environment runner or complete trainer.
+Use `markovian-neural` for small function-approximation reference calculations
+and DQN batch updates. The separate `markovian-neural-bridge` package supplies
+the bounded DQN reference trainer with a caller-provided pure environment step,
+explicit generator, and positive transition fuel. Neither is a production
+training system.
 
 Read [Control and learning taxonomy](control-learning-taxonomy.md) for the model-based, policy, and representation axes.
 

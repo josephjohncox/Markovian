@@ -2,7 +2,13 @@
 
 **Decision status:** Accepted
 
-**Availability:** UNRELEASED
+**Availability at implementation acceptance:** UNRELEASED
+
+**Publication update — 2026-09-15:** The bounded D-081 implementation entered
+the `v2026.9.15.1` source release at
+`5d996ec63922aebad57e1bd30a1ca9ebf5f5cfa9`, as recorded in the
+[published-release registry](../../release/published-releases.json). The
+availability line above records the earlier review, not current publication.
 
 The implementation was accepted at `cc900878dbf6f7bdc33f95affa9c15d2ea6f97ad`
 for immutable host-F64 affine views in `markovian-tensor`.
@@ -52,5 +58,7 @@ synchronization, or prompt reclamation. Post-finalization use is unsupported.
 
 Arbitrary map composition, broadcasting, mutation, general dtypes, borrowed
 pointers, persistent devices, and generic device lowering remain outside this
-scope. D-082 remains Proposed and unimplemented. No package version or released
-module membership changes follow from D-081 acceptance.
+scope. At this implementation acceptance, D-082 remained Proposed and
+unimplemented; D-081 acceptance alone changed no package version or released
+module membership. The later `v2026.9.15.1` source release separately included
+bounded D-081 views and D-082 CUDA matrix graphs.
