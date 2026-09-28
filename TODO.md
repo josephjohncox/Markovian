@@ -5,7 +5,8 @@
 ## Open work
 
 The recorded backlog is complete. D-082 through D-085 and EL-03 through EL-06
-are Accepted within their documented unreleased scopes. The
+are Accepted within their documented bounded scopes and included in the
+`v2026.9.15.1` source release. The
 [CUDA graph contract](docs/plans/D082-CUDA-GRAPHS.md#protected-validation--2026-09-14)
 records the verified hardware evidence and its exact tested revision.
 

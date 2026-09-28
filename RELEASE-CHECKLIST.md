@@ -3,6 +3,10 @@
 Use this checklist for coordinated release `2026.9.15.1`. Record completed
 workflow runs and artifact verification in the GitHub release.
 
+The source release was published at `v2026.9.15.1`. The GitHub release records
+completed verification; unchecked prompts below are retained as the historical
+preparation checklist.
+
 Preparation has no publication credential. The mandatory published-release
 registry blocks reuse of a published version from another source revision.
 Version every package, pin sibling dependencies to that exact release, and

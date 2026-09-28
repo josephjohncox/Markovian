@@ -10,7 +10,7 @@ A model-free target reads an observed transition instead of summing over the tra
 
 The root learning APIs still receive an `MDP` for validation. They inspect terminal status and available actions. Thus, their targets are model-free in the usual algorithmic sense, but their interfaces are not environment-only.
 
-The episodic tabular runners sample the supplied `MDP`. The neural package has update functions and replay storage, but no environment runner or complete trainer.
+The episodic tabular runners sample the supplied `MDP`. The neural package owns update functions and replay storage. The separate `markovian-neural-bridge` package supplies a bounded, resumable DQN reference trainer driven by a caller-provided pure environment step, explicit generator state, and positive transition fuel. It does not train REINFORCE or actor-critic policies.
 
 ## On-policy and off-policy targets
 
@@ -69,4 +69,4 @@ Use exact policy evaluation when you know the policy and complete finite model. 
 
 Use tabular learning when states and actions form a small discrete set. Use the pure update functions for algebraic tests. Use the episodic runners for bounded seeded execution.
 
-Use the neural package for small framework-independent reference calculations. It is experimental and does not provide a production training system.
+Use the neural package for small framework-independent reference calculations and `markovian-neural-bridge` for the bounded DQN trainer. Neither provides a production training system.

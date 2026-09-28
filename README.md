@@ -26,12 +26,12 @@ setup, and builds without CUDA.
 
 ## Release status
 
-This source tree targets coordinated release `2026.9.15.1`. The
-[published-release registry](release/published-releases.json) records immutable
-published revisions; the [capability inventory](docs/book/src/capabilities.md)
-uses the latest recorded publication. Candidate metadata alone does not update it.
+The published `v2026.9.15.1` source release is recorded at its exact revision in
+the [published-release registry](release/published-releases.json). The
+[capability inventory](docs/book/src/capabilities.md) checks selected module
+membership against that revision.
 
-Additions since `2026.9.3.0` include strict-discount affine feedback,
+This release adds strict-discount affine feedback,
 joint-affine substitution, polynomial quotation with cumulative compilation
 budgets, host-F64 affine views, exact CE/CCE first-witness solvers, CUDA
 multiply-chain graphs, the reference DQN trainer, and retained exact circuit tables.

@@ -1,6 +1,6 @@
 # Release preparation
 
-Release `2026.9.3.0` passed D-061 through D-076 and the complete preparation, attestation, and protected CUDA evidence gates. These decisions are accepted only for their stated bounded scopes.
+Release `2026.9.15.1` is the latest published source release and records the accepted bounded D-077 through D-085 and EL-03 through EL-06 work. The earlier `2026.9.3.0` release passed D-061 through D-076 and remains an immutable historical revision. Neither release extends those decisions beyond their stated scopes.
 
 Release preparation creates checked local artifacts. It does not upload packages, create tags, or create releases.
 

@@ -8,22 +8,22 @@ See the [package map](../README.md#present-api-surfaces) and
 
 ## Current state
 
-The published `v2026.9.3.0` release is pinned in
-[`release/published-releases.json`](../release/published-releases.json).
-The next coordinated source release is `2026.9.15.1`. The registry and capability
-evidence remain pinned to the last publication until the new release is verified.
+The published `v2026.9.15.1` source release is pinned to
+`5d996ec63922aebad57e1bd30a1ca9ebf5f5cfa9` in
+[`release/published-releases.json`](../release/published-releases.json). The earlier
+`v2026.9.3.0` revision remains in that registry.
 
-- D-053 through D-076 are Accepted for their recorded release scopes.
-- D-077 through D-081 are Accepted and unreleased. They cover GPU evidence
-  policy, strict-discount affine feedback, joint-affine substitution,
-  cumulative quotation compilation, and host-F64 affine views.
-- EL-03 through EL-06 are Accepted and unreleased for paired differences,
-  reward derivatives, fixed-policy aggregation, and the resource-admission model.
-- D-083's exact CE/CCE first-witness solvers are Accepted and unreleased.
-- D-084's reference trainer and D-085's retained local circuit cache are Accepted
-  and unreleased.
-- D-082 CUDA graphs are Accepted and unreleased, with verified protected
-  hardware evidence at `e9612a3ddfe1b14ff3a471bfceaedfabb4a54232`.
+- D-053 through D-085 are Accepted for their recorded bounded scopes.
+  D-077 through D-085 entered the `v2026.9.15.1` source release, including
+  affine feedback, joint-affine substitution, quotation, host-F64 views, CUDA
+  matrix graphs, exact CE/CCE first-witness solvers, the reference DQN trainer,
+  and retained local circuit tables.
+- EL-03 through EL-06 are Accepted for paired differences, reward derivatives,
+  fixed-policy aggregation, and the resource-admission model. Their bounded
+  implementations and lesson entered the same source release.
+- D-082 protected hardware evidence was verified at
+  `e9612a3ddfe1b14ff3a471bfceaedfabb4a54232`. Deployment claims still
+  require the separate deployment-bound D-077 receipts.
 
 The [capability inventory](book/src/capabilities.md) checks selected status and
 module claims. [TODO.md](../TODO.md#open-work) tracks remaining work;
