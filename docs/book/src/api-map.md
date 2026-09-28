@@ -177,7 +177,7 @@ These are candidate semantics, not unrestricted solvers. They provide no equilib
 | `markovian-gpu: Markovian.Backend.GPU.Graph` | Closed matrix-input, affine-view, and multiply DAGs with declared-input VJPs and cumulative schedule reservations |
 | `markovian-neural: Markovian.Backend.Neural.Approximation` | Explicit precision, error, and observation boundary |
 | `markovian-neural: Markovian.Backend.Neural.Numeric` | Opaque finite scalars, checked floating arithmetic, and tolerances |
-| `markovian-neural: Markovian.Backend.Neural.Dense` | Dense networks and manual VJPs |
+| `markovian-neural: Markovian.Backend.Neural.Dense` | Dense networks, manual VJPs, layer traces, and same-snapshot hidden-unit patches |
 | `markovian-reverse: Markovian.Reverse` | Typed parametric VJP composition and finite cotangent-module metadata |
 | `markovian-reverse: Markovian.Reverse.Program` | Bounded owned reverse syntax with structural parameter ownership and opaque stored or recomputed tapes |
 | `markovian-autodiff: Markovian.Autodiff.Shape` | Closed unit, scalar, fixed-vector, product, and parameter-owner shapes |
@@ -195,15 +195,17 @@ These are candidate semantics, not unrestricted solvers. They provide no equilib
 | `markovian-neural: Markovian.Backend.Neural.Categorical` | Stable categorical values and analytic gradients |
 | `markovian-neural: Markovian.Backend.Neural.Information` | Checked entropy, cross entropy, KL divergence, mutual information, and logit gradients |
 | `markovian-neural: Markovian.Backend.Neural.Mask` | Sized structural masks, Boolean flags, ordered gather, and positive-zero scatter |
-| `markovian-neural: Markovian.Backend.Neural.Policy` | Linear categorical policies and scalar value functions |
+| `markovian-neural: Markovian.Backend.Neural.Policy` | Linear categorical policies, per-feature logit inspection, and scalar value functions |
 | `markovian-neural: Markovian.Backend.Neural.Reinforce` | Finite-episode linear REINFORCE updates |
 | `markovian-neural: Markovian.Backend.Neural.ActorCritic` | One-step linear actor-critic updates |
 | `markovian-neural: Markovian.Backend.Neural.Transition` | Immutable masked transition snapshots |
 | `markovian-neural: Markovian.Backend.Neural.Replay` | Bounded FIFO replay with stable IDs |
 | `markovian-neural: Markovian.Backend.Neural.TargetNetwork` | Hard, periodic, and Polyak synchronization |
 | `markovian-neural: Markovian.Backend.Neural.DQN` | Standard and Double-DQN batch updates |
+| `markovian-neural: Markovian.Backend.Neural.Inspection` | Bounded read-only comparisons of frozen DQN and linear-policy snapshots |
 | `markovian-neural: Markovian.Backend.Neural` | Small façade that re-exports the neural modules |
 | `markovian-neural-bridge: Markovian.Backend.Neural.Bridge.ExactSupportMask` | Bounded exact global action-layout and per-state availability compilation for neural heads |
 | `markovian-neural-bridge: Markovian.Backend.Neural.Bridge.DQN.Trainer` | Resumable reference DQN loop with explicit fuel, generator, replay, checkpoints, and cumulative protocol limits |
+| `markovian-neural-bridge: Markovian.Backend.Neural.Bridge.Inspection` | Exact action-name layout checks for frozen neural-model comparisons |
 
 Use Haddock for complete signatures and error constructors. Use this book for semantic selection and composition rules.

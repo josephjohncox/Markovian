@@ -1,5 +1,6 @@
 module Main (main) where
 
+import BridgeInspection qualified
 import DQNTrainer qualified
 import Data.List.NonEmpty qualified as NonEmpty
 import Markovian.Action (ActionId, actionId, actionValue)
@@ -71,6 +72,7 @@ main = do
     policyDifferentialChecks
     dqnDifferentialChecks
     DQNTrainer.tests
+    BridgeInspection.tests
     putStrLn "PASS: exact-support neural bridge"
 
 layoutAndCompilationChecks :: IO ()

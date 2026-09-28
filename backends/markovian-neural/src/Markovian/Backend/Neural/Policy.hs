@@ -12,6 +12,18 @@ module Markovian.Backend.Neural.Policy (
     linearPolicyFeatureCount,
     linearPolicyParameters,
     linearPolicyLogits,
+    LinearPolicyActionInspection,
+    linearPolicyInspectedAction,
+    linearPolicyInspectedTerms,
+    linearPolicyInspectedLogit,
+    LinearPolicyMaskedActionInspection,
+    linearPolicyMaskedAction,
+    linearPolicyMaskedLogProbability,
+    linearPolicyMaskedProbability,
+    LinearPolicyInspection,
+    linearPolicyInspectedActions,
+    linearPolicyInspectedMaskedActions,
+    inspectLinearPolicy,
     linearPolicySelectedLogProbability,
     linearPolicyScoreGradient,
     applyLinearPolicyAscent,
@@ -27,6 +39,7 @@ module Markovian.Backend.Neural.Policy (
 import Data.List (elemIndex)
 import Markovian.Backend.Neural.Categorical (
     NeuralCategoricalError,
+    logSoftmaxFromLogits,
     selectedActionLogProbability,
     selectedActionLogProbabilityGradient,
  )
@@ -103,13 +116,75 @@ linearPolicyParameters (LinearCategoricalPolicy _ _ parameters) = parameters
 linearPolicyLogits :: LinearCategoricalPolicy -> [Double] -> Either NeuralPolicyError [Double]
 linearPolicyLogits policy@(LinearCategoricalPolicy actions features parameters) inputs = do
     validatePolicyFeatures policy inputs
-    traverse dotRow [0 .. actions - 1]
+    traverse (fmap snd . dotRow) [0 .. actions - 1]
   where
     dotRow action =
-        checkedDot
+        checkedDotTerms
             "linear policy logit"
             (take features (drop (action * features) parameters))
             inputs
+
+-- | Checked terms and logit for one global action. Terms are not causal attributions.
+data LinearPolicyActionInspection = LinearPolicyActionInspection
+    { linearPolicyInspectedAction :: !Int
+    -- ^ Global action index.
+    , linearPolicyInspectedTerms :: ![Double]
+    -- ^ Checked products in feature order.
+    , linearPolicyInspectedLogit :: !Double
+    -- ^ Sum of the checked terms.
+    }
+    deriving (Eq, Show)
+
+-- | One admissible action, in the caller's mask order.
+data LinearPolicyMaskedActionInspection = LinearPolicyMaskedActionInspection
+    { linearPolicyMaskedAction :: !Int
+    -- ^ Admissible global action index.
+    , linearPolicyMaskedLogProbability :: !Double
+    -- ^ Log probability among admissible actions.
+    , linearPolicyMaskedProbability :: !Double
+    -- ^ Probability among admissible actions.
+    }
+    deriving (Eq, Show)
+
+-- | All global linear terms and the admissible categorical distribution.
+data LinearPolicyInspection = LinearPolicyInspection
+    { linearPolicyInspectedActions :: ![LinearPolicyActionInspection]
+    -- ^ Every global action in index order.
+    , linearPolicyInspectedMaskedActions :: ![LinearPolicyMaskedActionInspection]
+    -- ^ Admissible actions in mask order.
+    }
+    deriving (Eq, Show)
+
+{- | Inspect a frozen policy without updating it.
+
+All global logits are checked before masking, including unavailable actions.
+Terms follow row-major feature order. The probability entries follow the mask's
+caller-defined order and use the same stable categorical path as policy scores.
+-}
+inspectLinearPolicy :: LinearCategoricalPolicy -> [Double] -> ActionMask -> Either NeuralPolicyError LinearPolicyInspection
+inspectLinearPolicy policy@(LinearCategoricalPolicy actions features parameters) inputs mask
+    | actionMaskWidth mask /= actions =
+        Left (PolicyActionMaskWidthMismatch actions (actionMaskWidth mask))
+    | otherwise = do
+        validatePolicyFeatures policy inputs
+        inspected <- traverse inspectRow [0 .. actions - 1]
+        maskedLogits <- mapMask (gatherActionMask mask (fmap linearPolicyInspectedLogit inspected))
+        logProbabilities <- mapCategorical (logSoftmaxFromLogits maskedLogits)
+        let masked =
+                zipWith3
+                    LinearPolicyMaskedActionInspection
+                    (actionMaskIndices mask)
+                    logProbabilities
+                    (fmap exp logProbabilities)
+        Right (LinearPolicyInspection inspected masked)
+  where
+    inspectRow action = do
+        (terms, logit) <-
+            checkedDotTerms
+                "linear policy logit"
+                (take features (drop (action * features) parameters))
+                inputs
+        Right (LinearPolicyActionInspection action terms logit)
 
 -- | Evaluate a selected action log probability.
 linearPolicySelectedLogProbability :: LinearCategoricalPolicy -> [Double] -> ActionMask -> Int -> Either NeuralPolicyError Double
@@ -228,9 +303,13 @@ validateValueFeatures (LinearValueFunction expected _) features
     actual = length features
 
 checkedDot :: String -> [Double] -> [Double] -> Either NeuralPolicyError Double
-checkedDot label left right = do
+checkedDot label left right = snd <$> checkedDotTerms label left right
+
+checkedDotTerms :: String -> [Double] -> [Double] -> Either NeuralPolicyError ([Double], Double)
+checkedDotTerms label left right = do
     products <- traverse (mapNumeric . uncurry (checkedMultiply label)) (zip left right)
-    mapNumeric (checkedSum label products)
+    total <- mapNumeric (checkedSum label products)
+    Right (products, total)
 
 validateRate :: (Double -> NeuralPolicyError) -> Double -> Either NeuralPolicyError ()
 validateRate constructor rate

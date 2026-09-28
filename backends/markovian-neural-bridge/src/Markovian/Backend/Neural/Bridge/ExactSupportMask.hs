@@ -15,6 +15,7 @@ module Markovian.Backend.Neural.Bridge.ExactSupportMask (
     policyActionOutputLayout,
     denseActionOutputLayout,
     actionOutputLayoutWidth,
+    actionOutputLayoutActions,
     sameActionOutputSupport,
     sameActionOutputLayout,
     ExactSupportMask,
@@ -114,6 +115,10 @@ denseActionOutputLayout actions network =
 -- | Complete checked neural output width.
 actionOutputLayoutWidth :: ActionOutputLayout action -> Int
 actionOutputLayoutWidth (ActionOutputLayout _ width) = width
+
+-- | Global exact action IDs in neural output order.
+actionOutputLayoutActions :: ActionOutputLayout action -> [ActionId action]
+actionOutputLayoutActions (ActionOutputLayout actions _) = finiteActionIndexValues actions
 
 -- | Compare labelled global action support while ignoring represented order.
 sameActionOutputSupport :: (Eq action) => ActionOutputLayout action -> ActionOutputLayout action -> Bool

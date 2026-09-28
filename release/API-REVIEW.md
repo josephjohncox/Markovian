@@ -1,8 +1,23 @@
 # Public API review
 
-The current candidate is `2026.9.15.1`: 16 packages, 18 test suites, and 13 benchmarks. The original `2026.9.3.0` review is retained below.
+The latest published release is `2026.9.15.1`: 16 packages, 18 test suites, and 13 benchmarks. The original `2026.9.3.0` review is retained below.
 
 The files in `release/exposed-modules` are checked API snapshots. Each public API change needs a new review.
+
+## Unreleased neural interrogation API review — 2026-09-28
+
+The development snapshots add `Markovian.Backend.Neural.Inspection` and
+`Markovian.Backend.Neural.Bridge.Inspection`. Existing `Dense` and `Policy`
+modules gain read-only trace, patch, and inspection functions. Their existing
+function signatures and error constructors remain unchanged. New report
+constructors are private; the bridge also adds a read-only ordered-action
+accessor to `ActionOutputLayout`.
+
+The neural package retains its existing dependency boundary. The bridge checks
+equal caller-supplied exact action layouts and each head width; it cannot
+establish that model weights carry the asserted action meanings. Frozen audits
+do not update networks or trainers. These additions are development API only;
+source publication requires a new version and a fresh compatibility review.
 
 ## 2026.9.15.1 API and compatibility review
 
@@ -21,9 +36,9 @@ and need downstream review. The public dependency graph and module snapshots
 are unchanged from the merged implementation.
 
 D-061 through D-085 and EL-03 through EL-06 are Accepted within their
-recorded scopes. The candidate still requires fresh CI, archive preparation,
-provenance, and protected device evidence bound to the final source revision.
-The release page records those completed results after verification.
+recorded scopes. At review time, the candidate required fresh CI, archive
+preparation, provenance, and protected device evidence bound to the final
+source revision. The release page records their completion.
 
 ## Unreleased backlog API review — 2026-09-14
 
@@ -89,7 +104,7 @@ D-074 is `Accepted` for the owned dynamic CUDA 13 matrix/VJP fragment. The relea
 
 ## Version and bounds review
 
-The original review covered `2026.9.3.0` with public sibling dependencies at `^>=2026.9.3.0`. The current candidate uses exact coordinated bounds under the D-062 amendment above.
+The original review covered `2026.9.3.0` with public sibling dependencies at `^>=2026.9.3.0`. Release `2026.9.15.1` uses exact coordinated bounds under the D-062 amendment above.
 
 The historical release declared `base >=4.17.2.1 && <4.20`. The 2026-09-08 development toolchain amendment in `docs/DECISIONS.md` now requires `base >=4.22.0.0 && <4.23` and `bytestring >=0.12.2.0 && <0.13` with GHC 9.14.1 and Cabal 3.18.1.0. Fresh modern checks are required; this historical release review does not supply them.
 
