@@ -7,8 +7,12 @@ Both parameter and input vector-Jacobian products are computed manually.
 -}
 module Markovian.Backend.Neural.Dense (
     DenseError (..),
+    DensePatchError (..),
     HiddenActivation (..),
     DenseNetwork,
+    DenseTrace,
+    DenseLayerTrace,
+    DensePatchReport,
     mkDenseNetwork,
     denseInputSize,
     denseHiddenSizes,
@@ -19,10 +23,32 @@ module Markovian.Backend.Neural.Dense (
     replaceDenseParameters,
     sameDenseTopology,
     denseForward,
+    traceDense,
+    denseTraceLayers,
+    denseTraceOutput,
+    denseTraceLayerInput,
+    denseTraceLayerPreactivation,
+    denseTraceLayerPostactivation,
+    denseTraceLayerActivation,
+    patchDenseHidden,
+    densePatchRecipientInput,
+    densePatchDonorInput,
+    densePatchHiddenLayer,
+    densePatchUnits,
+    densePatchReplacementValues,
+    densePatchRecipientPostactivation,
+    densePatchEffectivePostactivation,
+    densePatchRecipientOutput,
+    densePatchDonorOutput,
+    densePatchPatchedOutput,
+    densePatchOutputDelta,
     denseParameterVJP,
     denseInputVJP,
     denseReverseCircuit,
 ) where
+
+import Control.Monad (foldM)
+import Data.List (sort)
 
 import Markovian.Backend.Neural.Numeric (
     NeuralNumericError,
@@ -57,6 +83,15 @@ data DenseError
     | DenseOutputCotangentShapeMismatch !Int !Int
     | DenseReverseDeclarationFailure !String
     | DenseNumericFailure !NeuralNumericError
+    deriving (Eq, Show)
+
+-- | Failures specific to a hidden-unit intervention.
+data DensePatchError
+    = DensePatchDenseFailure !DenseError
+    | DensePatchInvalidHiddenLayer !Int
+    | DensePatchEmptySelection
+    | DensePatchInvalidUnit !Int !Int
+    | DensePatchDuplicateUnit !Int
     deriving (Eq, Show)
 
 {- | A validated dense topology and finite parameter snapshot.
@@ -128,6 +163,124 @@ denseForward network inputs = do
     case reverse cache of
         [] -> Right inputs -- unreachable because every network has an output layer
         entry : _ -> Right (cacheOutput entry)
+
+{- | Checked values for every layer, including the linear output layer.
+The constructor is private so a trace can only come from the forward path.
+-}
+data DenseTrace = DenseTrace
+    { denseTraceLayers :: ![DenseLayerTrace]
+    , denseTraceOutput :: ![Double]
+    }
+    deriving (Eq, Show)
+
+-- | Values at one layer; 'Nothing' marks the linear output head.
+data DenseLayerTrace = DenseLayerTrace
+    { denseTraceLayerInput :: ![Double]
+    , denseTraceLayerPreactivation :: ![Double]
+    , denseTraceLayerPostactivation :: ![Double]
+    , denseTraceLayerActivation :: !(Maybe HiddenActivation)
+    }
+    deriving (Eq, Show)
+
+-- | Inspect the same checked forward evaluation used by 'denseForward'.
+traceDense :: DenseNetwork -> [Double] -> Either DenseError DenseTrace
+traceDense network inputs = do
+    entries <- forwardCache network inputs
+    let layers = fmap layerTrace entries
+    case reverse entries of
+        [] -> Right (DenseTrace layers inputs) -- unreachable: every network has an output head
+        entry : _ -> Right (DenseTrace layers (cacheOutput entry))
+  where
+    layerTrace entry =
+        DenseLayerTrace
+            (cacheInput entry)
+            (cachePreactivation entry)
+            (cacheOutput entry)
+            (case cacheLayer entry of Layer _ _ _ _ True -> Just Tanh; _ -> Nothing)
+
+-- | A read-only report from one same-snapshot hidden-unit intervention.
+data DensePatchReport = DensePatchReport
+    { densePatchRecipientInput :: ![Double]
+    , densePatchDonorInput :: ![Double]
+    , densePatchHiddenLayer :: !Int
+    , densePatchUnits :: ![Int]
+    , densePatchReplacementValues :: ![Double]
+    , densePatchRecipientPostactivation :: ![Double]
+    , densePatchEffectivePostactivation :: ![Double]
+    , densePatchRecipientOutput :: ![Double]
+    , densePatchDonorOutput :: ![Double]
+    , densePatchPatchedOutput :: ![Double]
+    , densePatchOutputDelta :: ![Double]
+    }
+    deriving (Eq, Show)
+
+{- | Replace selected post-@tanh@ values at one hidden layer with values from
+a donor input evaluated under the same network snapshot. The layer and unit
+indices are zero-based; unit order in the report follows the caller's selection.
+-}
+patchDenseHidden :: DenseNetwork -> [Double] -> [Double] -> Int -> [Int] -> Either DensePatchError DensePatchReport
+patchDenseHidden network recipient donor hiddenLayer units = do
+    validatePatchSite network hiddenLayer units
+    recipientEntries <- mapPatchDense (forwardCache network recipient)
+    donorEntries <- mapPatchDense (forwardCache network donor)
+    let recipientPost = cacheOutput (recipientEntries !! hiddenLayer)
+        donorPost = cacheOutput (donorEntries !! hiddenLayer)
+        effectivePost = zipWith (\unit value -> if unit `elem` units then donorPost !! unit else value) [0 ..] recipientPost
+        downstream = drop (hiddenLayer + 1) recipientEntries
+        recipientOutput = cacheOutput (last recipientEntries)
+        donorOutput = cacheOutput (last donorEntries)
+    patchedOutput <-
+        mapPatchDense $
+            foldM
+                (\values entry -> cacheOutput <$> evaluateStep (cacheLayer entry) values)
+                effectivePost
+                downstream
+    delta <-
+        mapPatchDense $
+            traverse
+                (mapNumeric . uncurry (checkedSubtract "dense patch output delta"))
+                (zip patchedOutput recipientOutput)
+    Right $
+        DensePatchReport
+            recipient
+            donor
+            hiddenLayer
+            units
+            (fmap (donorPost !!) units)
+            recipientPost
+            effectivePost
+            recipientOutput
+            donorOutput
+            patchedOutput
+            delta
+
+validatePatchSite :: DenseNetwork -> Int -> [Int] -> Either DensePatchError ()
+validatePatchSite network hiddenLayer units
+    | hiddenLayer < 0 || hiddenLayer >= length hiddenSizes = Left (DensePatchInvalidHiddenLayer hiddenLayer)
+    | null units = Left DensePatchEmptySelection
+    | Just unit <- firstInvalidUnit width units = Left (DensePatchInvalidUnit hiddenLayer unit)
+    | Just unit <- firstDuplicateUnit units = Left (DensePatchDuplicateUnit unit)
+    | otherwise = Right ()
+  where
+    hiddenSizes = denseHiddenSizes network
+    width = hiddenSizes !! hiddenLayer
+
+firstInvalidUnit :: Int -> [Int] -> Maybe Int
+firstInvalidUnit _ [] = Nothing
+firstInvalidUnit width (unit : remaining)
+    | unit < 0 || unit >= width = Just unit
+    | otherwise = firstInvalidUnit width remaining
+
+firstDuplicateUnit :: [Int] -> Maybe Int
+firstDuplicateUnit = adjacent . sort
+  where
+    adjacent (left : right : rest)
+        | left == right = Just left
+        | otherwise = adjacent (right : rest)
+    adjacent _ = Nothing
+
+mapPatchDense :: Either DenseError value -> Either DensePatchError value
+mapPatchDense = either (Left . DensePatchDenseFailure) Right
 
 -- | Compute @v^T (d output / d parameters)@ in parameter order.
 denseParameterVJP :: DenseNetwork -> [Double] -> [Double] -> Either DenseError [Double]
@@ -226,6 +379,7 @@ data Layer = Layer !Int !Int ![Double] ![Double] !Bool
 data CacheEntry = CacheEntry
     { cacheInput :: ![Double]
     , cacheLayer :: !Layer
+    , cachePreactivation :: ![Double]
     , cacheOutput :: ![Double]
     }
 
@@ -240,10 +394,14 @@ forwardCache network inputs
   where
     go _ [] reversedEntries = Right (reverse reversedEntries)
     go current (layer : remaining) reversedEntries = do
-        preactivation <- evaluateLayer layer current
-        output <- activate layer preactivation
-        let entry = CacheEntry current layer output
-        go output remaining (entry : reversedEntries)
+        entry <- evaluateStep layer current
+        go (cacheOutput entry) remaining (entry : reversedEntries)
+
+evaluateStep :: Layer -> [Double] -> Either DenseError CacheEntry
+evaluateStep layer inputs = do
+    preactivation <- evaluateLayer layer inputs
+    output <- activate layer preactivation
+    Right (CacheEntry inputs layer preactivation output)
 
 networkLayers :: DenseNetwork -> Either DenseError [Layer]
 networkLayers network = Right (build 0 dimensions (denseParameters network))

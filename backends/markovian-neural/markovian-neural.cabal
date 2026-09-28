@@ -54,6 +54,7 @@ library
     Markovian.Backend.Neural.Dense
     Markovian.Backend.Neural.DQN
     Markovian.Backend.Neural.Information
+    Markovian.Backend.Neural.Inspection
     Markovian.Backend.Neural.Mask
     Markovian.Backend.Neural.Numeric
     Markovian.Backend.Neural.Optimizer
@@ -78,11 +79,14 @@ test-suite markovian-neural-test
     ActionMask
     ActorCritic
     DenseFiniteDifference
+    DenseInspection
     DQN
+    FrozenInspection
     Information
     NeuralContexts
     ParametricReverse
     PolicyGradient
+    PolicyInspection
     Reinforce
     ReplayTarget
     ReverseProgram

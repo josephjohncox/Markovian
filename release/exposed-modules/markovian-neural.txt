@@ -5,6 +5,7 @@ Markovian.Backend.Neural.Categorical
 Markovian.Backend.Neural.Dense
 Markovian.Backend.Neural.DQN
 Markovian.Backend.Neural.Information
+Markovian.Backend.Neural.Inspection
 Markovian.Backend.Neural.Mask
 Markovian.Backend.Neural.Numeric
 Markovian.Backend.Neural.Optimizer

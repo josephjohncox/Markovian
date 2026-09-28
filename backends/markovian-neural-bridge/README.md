@@ -15,6 +15,12 @@ API.
 The exact-support adapter does not convert exact probabilities to floating
 values and does not invent a mask for a terminal state.
 
+`Markovian.Backend.Neural.Bridge.Inspection` requires matching caller-supplied
+exact action layouts and checks each layout's width against its frozen head
+before attaching action IDs to a numerical audit. The caller remains
+responsible for the models' action meanings. Replay entry IDs in probe reports
+are provenance within a caller-owned buffer lineage, not checkpoint identifiers.
+
 From the repository root:
 
 ```sh

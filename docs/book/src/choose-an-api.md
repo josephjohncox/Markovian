@@ -71,8 +71,12 @@ Floating modules need `markovian-numerical`. Sampling needs `markovian-sampling`
 | Lower an exact circuit to dense rows | `Markovian.Backend.CPU.Exact` |
 | Apply a dense matrix with CUDA | `Markovian.Backend.GPU` |
 | Evaluate a checked dense neural network | `Markovian.Backend.Neural.Dense` |
+| Trace or patch hidden units in one frozen dense network | `traceDense` or `patchDenseHidden` |
+| Inspect masked action terms and probabilities in a frozen linear policy | `inspectLinearPolicy` |
+| Compare frozen DQN or policy snapshots on bounded probes | `Markovian.Backend.Neural.Inspection` |
 | Construct or inspect a sized structural action mask | `Markovian.Backend.Neural.Mask` |
 | Compile exact action availability for a neural head | `Markovian.Backend.Neural.Bridge.ExactSupportMask` |
+| Bind a frozen comparison to exact action names | `Markovian.Backend.Neural.Bridge.Inspection` |
 | Compose typed primitive VJPs | `Markovian.Reverse` from `markovian-reverse` |
 | Apply a finite REINFORCE update | `Markovian.Backend.Neural.Reinforce` |
 | Apply a one-step actor-critic update | `Markovian.Backend.Neural.ActorCritic` |

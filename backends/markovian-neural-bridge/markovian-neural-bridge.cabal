@@ -43,6 +43,7 @@ library
   exposed-modules:
     Markovian.Backend.Neural.Bridge.DQN.Trainer
     Markovian.Backend.Neural.Bridge.ExactSupportMask
+    Markovian.Backend.Neural.Bridge.Inspection
 
   hs-source-dirs:   src
   build-depends:
@@ -58,7 +59,10 @@ library
 test-suite markovian-neural-bridge-test
   type:             exitcode-stdio-1.0
   main-is:          Main.hs
-  other-modules:    DQNTrainer
+  other-modules:
+    BridgeInspection
+    DQNTrainer
+
   hs-source-dirs:   test
   build-depends:
     , base                     >=4.22.0.0    && <4.23

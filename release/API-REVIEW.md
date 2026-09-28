@@ -4,6 +4,21 @@ The current candidate is `2026.9.15.1`: 16 packages, 18 test suites, and 13 benc
 
 The files in `release/exposed-modules` are checked API snapshots. Each public API change needs a new review.
 
+## Unreleased neural interrogation API review — 2026-09-28
+
+The development snapshots add `Markovian.Backend.Neural.Inspection` and
+`Markovian.Backend.Neural.Bridge.Inspection`. Existing `Dense` and `Policy`
+modules gain read-only trace, patch, and inspection functions. Their existing
+function signatures and error constructors remain unchanged. New report
+constructors are private; the bridge also adds a read-only ordered-action
+accessor to `ActionOutputLayout`.
+
+The neural package retains its existing dependency boundary. The bridge checks
+equal caller-supplied exact action layouts and each head width; it cannot
+establish that model weights carry the asserted action meanings. Frozen audits
+do not update networks or trainers. These additions are development API only;
+source publication requires a new version and a fresh compatibility review.
+
 ## 2026.9.15.1 API and compatibility review
 
 The review compared published source `fe6abb8db9b3def65ead6602168eef860a79527c`

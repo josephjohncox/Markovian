@@ -15,6 +15,7 @@ module Markovian.Backend.Neural (
     module Markovian.Backend.Neural.Dense,
     module Markovian.Backend.Neural.DQN,
     module Markovian.Backend.Neural.Information,
+    module Markovian.Backend.Neural.Inspection,
     module Markovian.Backend.Neural.Numeric,
     module Markovian.Backend.Neural.Optimizer,
     module Markovian.Backend.Neural.Policy,
@@ -30,6 +31,7 @@ import Markovian.Backend.Neural.Categorical
 import Markovian.Backend.Neural.Dense
 import Markovian.Backend.Neural.DQN
 import Markovian.Backend.Neural.Information
+import Markovian.Backend.Neural.Inspection
 import Markovian.Backend.Neural.Numeric
 import Markovian.Backend.Neural.Optimizer
 import Markovian.Backend.Neural.Policy

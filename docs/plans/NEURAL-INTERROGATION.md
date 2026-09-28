@@ -1,7 +1,7 @@
 # Frozen neural-model interrogation
 
-**Status:** Design approved for a review PR. This document specifies future APIs; it
-does not describe an implemented feature.
+**Status:** Implemented in the development branch; unreleased. This document
+records the contract and acceptance checks.
 
 ## Purpose and boundary
 
