@@ -11,6 +11,8 @@ logit terms and masked probabilities. `Markovian.Backend.Neural.Inspection`
 compares caller-supplied DQN or policy snapshots on one bounded probe set. The
 reports describe numerical behavior on those probes; they do not update models
 or assign semantic names to hidden units.
+The [interrogation contract](https://github.com/josephjohncox/Markovian/blob/main/docs/plans/NEURAL-INTERROGATION.md)
+defines the probe limits and acceptance checks.
 
 From the repository root:
 

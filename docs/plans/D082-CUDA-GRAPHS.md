@@ -1,5 +1,7 @@
 # D-082 CUDA multiply-chain graphs
 
+**Status:** Accepted; released in `v2026.9.15.1` within the bounded scope below.
+
 This contract implements the closed fragment recorded in
 [D-082](../DECISIONS.md#d-082-add-bounded-cuda-multiply-chain-graphs).
 D-077 supplies the unchanged device profile, numeric policy, executor ownership,
@@ -296,7 +298,8 @@ It produced no attested receipt. A later local diagnostic passed with the same
 binary, but the allocation failure's cause was not established. No records from
 attempt 1 or unsigned local runs were combined with attempt 2.
 
-Acceptance is bounded and unreleased. The implementation inputs match
+At the time of acceptance, the scope was bounded and unreleased. The
+implementation inputs match
 `03493e83bd842d2e9c0b41d0c0de4ab4380e4dc3`; changes through the protected tested
 revision are documentation. The subsequent acceptance edit changes only
 `README.md`, `TODO.md`, `docs/CONTEXT.md`, `docs/DECISIONS.md`,

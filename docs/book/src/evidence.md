@@ -12,7 +12,7 @@ The repository keeps durable command evidence for hardware-specific and proof-bo
 
 [D-081 prerequisite evidence](https://github.com/josephjohncox/Markovian/blob/main/docs/evidence/D081-TRANSPOSE-REVERSE-EQUIVALENCE.md) compares direct transpose-view execution with `contiguousCopy`-first execution. It covers every closed primitive primal and pullback. Independent finite differences check every logical coordinate. A rectangular matrix fixture checks dimension and stride reversal.
 
-The evidence does not define a pullback into base-storage coordinates. It does not implement the proposed affine-view API or accept D-081.
+That earlier evidence did not define a pullback into base-storage coordinates or accept D-081. The later [affine implementation record](https://github.com/josephjohncox/Markovian/blob/main/docs/evidence/D081-AFFINE-IMPLEMENTATION.md) covers the implemented API and acceptance checks; D-081 was released in `v2026.9.15.1` within its bounded host-F64 scope.
 
 ## CUDA evidence
 

@@ -1,6 +1,7 @@
 # D085: retained exact local circuit tables
 
-Status: implemented and locally verified; decision acceptance is tracked in D-085. Consumer: `Markovian.Open.Acyclic.Circuit.Exact`.
+Status: Accepted and released in `v2026.9.15.1` within its bounded scope.
+Consumer: `Markovian.Open.Acyclic.Circuit.Exact`.
 
 The existing `ExactPrimitiveInterpreter` accepts arbitrary callbacks and has no
 Rational/work meter. D085 therefore adds a closed table-primitive interpreter

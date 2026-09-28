@@ -59,6 +59,7 @@ extra-doc-files:
   docs/plans/EL-04-REWARD-JVP.md
   docs/plans/EL-05-AGGREGATION.md
   docs/plans/EL-06-RESOURCE-ADMISSION.md
+  docs/plans/NEURAL-INTERROGATION.md
   docs/WORKFLOWS.md
   MIGRATION.md
   README.md

@@ -30,6 +30,13 @@ jobs:
         with:
           persist-credentials: false
 
+      - name: Verify published capability membership
+        run: |
+          set -euo pipefail
+          git fetch --no-tags --depth=1 origin \
+            refs/tags/v2026.9.15.1:refs/tags/v2026.9.15.1
+          python3 scripts/check-capabilities --verify-release
+
       - name: Read pinned tool versions
         id: toolchain
         run: |
@@ -59,7 +66,6 @@ jobs:
           python3 scripts/test_check_haddock_install.py
           python3 scripts/test_project_hls.py
           python3 scripts/test_hls_selectors.py
-          python3 scripts/check-capabilities
           python3 scripts/test_capabilities.py
           python3 scripts/test_learning.py
           while IFS=$'\t' read -r package_name package_dir _dependency_tier; do

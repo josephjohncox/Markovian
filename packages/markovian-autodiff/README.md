@@ -33,7 +33,7 @@ The compiler receives derived structural capacities and the caller's rational-bi
 The returned quotation report includes those reservations; the target report is the actual compiler report.
 Standalone compilation, syntax preflight, lowering, and direct primal/JVP behavior are unchanged.
 The compiler coupons count cumulative logical reconstruction, including owner-list copies and represented zero coordinates, not bytes, peak residency, or physical allocator events.
-D-080 is `Accepted` within its bounded, unreleased scope through the [acceptance record](../../docs/DECISIONS.md#d-080-add-bounded-first-order-quotation-with-callback-free-let), following decision-specific review of implementation and private-probe evidence. Logical reservations are not physical allocation or peak-memory bounds; acceptance adds no arbitrary-Haskell/higher-order AD, control flow, effects, sampling, tensors, devices, nested differentiation, vector packing, performance or release claim.
+D-080 is `Accepted` within its bounded scope and was released in `v2026.9.15.1`. The [acceptance record](../../docs/DECISIONS.md#d-080-add-bounded-first-order-quotation-with-callback-free-let) covers the implementation and private-probe evidence. Logical reservations are not physical allocation or peak-memory bounds; acceptance adds no arbitrary-Haskell/higher-order AD, control flow, effects, sampling, tensors, devices, nested differentiation, vector packing, or performance claim.
 
 `interpretExactQuote` and `interpretExactQuoteJVP` recurse directly over quotation and source syntax.
 They do not call the reverse compiler or its primitive VJPs.
@@ -70,7 +70,7 @@ It has no effects, higher-order values, nested differentiation, or exact transce
 The multilayer fixture uses public closed-language combinators and distinct nominal parameter owners.
 It does not add a matrix primitive or an arbitrary callback.
 It does not provide matrix dagger, Bayesian inversion, payoff pullback, feedback, strategic duality, or disintegration.
-The package makes no release-readiness claim.
+The package makes no performance or unbounded resource claim.
 
 Run the focused evidence:
 

@@ -1,6 +1,6 @@
 # D081 materialization addendum
 
-D-081 is Accepted within its [unreleased host-F64 scope](../evidence/D081-AFFINE-IMPLEMENTATION.md).
+D-081 is Accepted and was released in `v2026.9.15.1` within its [bounded host-F64 scope](../evidence/D081-AFFINE-IMPLEMENTATION.md).
 This addendum replaces the resource, producer, failure, and fixture requirements
 in §§6–9 and 11 of the [affine contract](D081-AFFINE-VIEWS.md) where specified.
 Geometry, public signatures, roles, and other unaffected requirements retain
