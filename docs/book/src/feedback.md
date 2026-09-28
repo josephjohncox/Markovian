@@ -1,6 +1,6 @@
 # Checked finite feedback
 
-Markovian supports four accepted exact fragments; the strict-discount value fragment remains unreleased. It does not expose a universal stochastic trace.
+Markovian supports four accepted released exact fragments. It does not expose a universal stochastic trace.
 
 ## Why raw trace is not stochastic feedback
 
@@ -106,7 +106,7 @@ K=\\gamma E_X+\\gamma BQ.
 
 Construction checks these four equations literally over `Rational`. Public code receives only opaque nominal external and internal `AffineFeedbackCoefficients`. It can observe one `A` or `K` coefficient by a typed label. There is no continuation evaluator and no normalized output channel.
 
-A closed unit-reward loop at `gamma=1/2` has `A=2` and `K=0`. A half-exit, half-loop unit-reward channel has `A=4/3` and `K=1/3`. D-078 is `Accepted` only for these original coefficients and four literal Rational equations (2026-09-08); it remains unreleased.
+A closed unit-reward loop at `gamma=1/2` has `A=2` and `K=0`. A half-exit, half-loop unit-reward channel has `A=4/3` and `K=1/3`. D-078 is `Accepted` only for these original coefficients and four literal Rational equations (2026-09-08); it entered the `v2026.9.15.1` source release.
 
 ## Bounds and reports
 
@@ -138,14 +138,14 @@ holding probabilities, strict discount, routes and slots fixed. Its opaque resul
 owns base and derivative coefficients together, with one operation-wide ledger
 and eight literal equation families. The [runnable retry lesson](reward-jvp.md)
 separates reward derivative 4/3 from the symbolic probability derivative 8/9 and
-from finite-unrolling derivatives. EL-04 separately accepts this unreleased reward JVP. General autodiff and
+from finite-unrolling derivatives. EL-04 separately accepts this bounded released reward JVP. General autodiff and
 probability sensitivity remain outside that contract.
 
 ## Evidence and nonclaims
 
 `test/FeedbackExact.hs` checks equations, normalization, timing, correlations, limits, and rejected cycles. It includes an independent acyclic path enumerator and multi-output absorption. `test/FeedbackValueExact.hs` checks strict-discount hand solutions, infinite and partial exit, literal equations, a nilpotent timed differential, malformed channels, fixed exact and one-below ledgers, adversarial unmatched-event scans, and combined-invalid failure precedence. Its independent two-loop, two-output finite oracle records `N=4`, preflights a fixed 180-operation plan, and checks exact and one-below horizon, work, and rational limits.
 
-The accounting fixtures use separate operation-count and path oracles. They force discarded maxima above retained maxima for Gaussian, delayed, and timed execution. Each accepted D-069 interpreter has exact and one-below work and rational limits. `test/golden/feedback-accounting.txt` fixes the complete first-exit accounting report. The accepted but unreleased affine fragment adds `test/golden/affine-feedback-accounting.txt`, including fixed work, graph, phase, and rational maxima; its one-below rational fixture fails on a discarded Gaussian difference. Source-archive checks run the D-069 evidence with the pinned project compiler. `scripts/check-feedback-boundary` checks constructor opacity and nominal endpoint roles. D-078 is accepted in the development tree and remains outside the immutable `v2026.9.3.0` release.
+The accounting fixtures use separate operation-count and path oracles. They force discarded maxima above retained maxima for Gaussian, delayed, and timed execution. Each accepted D-069 interpreter has exact and one-below work and rational limits. `test/golden/feedback-accounting.txt` fixes the complete first-exit accounting report. The accepted affine fragment adds `test/golden/affine-feedback-accounting.txt`, including fixed work, graph, phase, and rational maxima; its one-below rational fixture fails on a discarded Gaussian difference. Source-archive checks run the D-069 evidence with the pinned project compiler. `scripts/check-feedback-boundary` checks constructor opacity and nominal endpoint roles. D-078 entered `v2026.9.15.1`; the older `v2026.9.3.0` release remains unchanged.
 
 This subsystem does not establish:
 
@@ -156,6 +156,5 @@ This subsystem does not establish:
 - finite support for rewardful cyclic transience;
 - continuous disintegration;
 - tensor, device, or numerical correctness;
-- release readiness for post-release D-078 work (the bounded D-069 fragments have release evidence).
 
 See [Law catalogue](laws-and-boundaries.md), [Public module map](api-map.md), and [References](references.md).

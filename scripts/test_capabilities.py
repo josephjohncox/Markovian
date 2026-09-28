@@ -60,16 +60,15 @@ class CapabilityTests(unittest.TestCase):
         self.assertEqual(re.findall(r"(?m)^\*\*Decision status:\*\* ([^\n]+)$", receipt),
                          [status[1]])
 
-    def test_accepted_affine_feedback_remains_unreleased(self):
+    def test_affine_feedback_has_published_membership(self):
         records = cap.validate(cap.ROOT, self.document, self.current, self.released)
         self.assertEqual(records[5]["decision"], "D-078")
-        self.assertEqual(records[5]["availability"], "unreleased")
+        self.assertEqual(records[5]["availability"], "released")
         self.assertEqual(records[5]["decisionStatus"], "Accepted")
-        self.assertEqual(records[5]["evidenceScope"], "implementation-fixtures")
-        self.rejected(self.changed(5, availability="released", evidenceScope="bounded-release"),
-                      "not in immutable released membership")
+        self.assertEqual(records[5]["evidenceScope"], "bounded-release")
+        self.assertIn(records[5]["module"], self.released["Markovian"])
 
-    def test_bounded_unreleased_acceptance_statuses(self):
+    def test_bounded_published_acceptance_statuses(self):
         decisions = (cap.ROOT / "docs/DECISIONS.md").read_text()
         statuses = dict(re.findall(
             r"(?ms)^### (D-\d+):.*?^\*\*Status:\*\* ([^\n]+)$", decisions))
@@ -80,35 +79,35 @@ class CapabilityTests(unittest.TestCase):
             record = next(r for r in self.document["capabilities"]
                           if r["decision"] == decision)
             self.assertEqual(record["decisionStatus"], statuses[decision])
-            self.assertEqual(record["availability"], "unreleased")
+            self.assertEqual(record["availability"], "released")
         for decision in ("EL-03", "EL-04", "EL-05"):
             record = next(r for r in self.document["capabilities"]
                           if r["decision"] == decision)
             self.assertEqual(record["decisionStatus"], self.extension_status(record["decision"]))
-            self.assertEqual(record["availability"], "unreleased")
+            self.assertEqual(record["availability"], "released")
 
-    def test_d079_d080_acceptance_does_not_create_released_membership(self):
+    def test_d079_d080_published_membership(self):
         for package, module in (
                 ("markovian-continuous", "Markovian.Continuous.Kernel.JointAffine.Exact"),
                 ("markovian-autodiff", "Markovian.Autodiff.Quote")):
             self.assertIn(module, self.current[package])
-            self.assertNotIn(module, self.released[package])
+            self.assertIn(module, self.released[package])
 
-    def test_d081_bounded_unreleased_acceptance_record(self):
+    def test_d081_bounded_published_acceptance_record(self):
         record = next(r for r in self.document["capabilities"] if r["decision"] == "D-081")
-        self.assertEqual(record["availability"], "unreleased")
+        self.assertEqual(record["availability"], "released")
         self.assertEqual(record["decisionStatus"], "Accepted")
-        self.assertEqual(record["evidenceScope"], "implementation-fixtures")
+        self.assertEqual(record["evidenceScope"], "bounded-release")
         module = "Markovian.Tensor.Affine"
         self.assertIn(module, self.current["markovian-tensor"])
-        self.assertNotIn(module, self.released["markovian-tensor"])
+        self.assertIn(module, self.released["markovian-tensor"])
 
-    def test_d083_acceptance_remains_unreleased(self):
+    def test_d083_published_scope(self):
         record = next(r for r in self.document["capabilities"] if r["decision"] == "D-083")
-        self.assertEqual(record["availability"], "unreleased")
+        self.assertEqual(record["availability"], "released")
         self.assertEqual(record["decisionStatus"], "Accepted")
-        self.assertEqual(record["evidenceScope"], "implementation-fixtures")
-        self.assertEqual(record["evidence"], "test/CorrelatedSolvers.hs")
+        self.assertEqual(record["evidenceScope"], "bounded-release")
+        self.assertEqual(record["evidence"], "RELEASE-NOTES.md")
         self.assertIn("Markovian.Game.Correlated.Exact", self.current["Markovian"])
 
     def test_d083_frozen_contract_is_packaged_as_documentation(self):
@@ -121,44 +120,57 @@ class CapabilityTests(unittest.TestCase):
 
     def test_paired_proposal_implementation_transition(self):
         record = cap.validate(cap.ROOT, self.document, self.current, self.released)[6]
-        self.assertEqual(record["availability"], "unreleased")
+        self.assertEqual(record["availability"], "released")
         self.assertEqual(record["decisionStatus"], self.extension_status(record["decision"]))
-        self.assertEqual(record["evidenceScope"], "implementation-fixtures")
+        self.assertEqual(record["evidenceScope"], "bounded-release")
 
     def test_reward_jvp_proposal_implementation_transition(self):
         record = cap.validate(cap.ROOT, self.document, self.current, self.released)[7]
-        self.assertEqual(record["availability"], "unreleased")
+        self.assertEqual(record["availability"], "released")
         self.assertEqual(record["decisionStatus"], self.extension_status(record["decision"]))
-        self.assertEqual(record["evidence"], "test/FeedbackRewardJVP.hs")
-        self.assertEqual(record["evidenceScope"], "implementation-fixtures")
+        self.assertEqual(record["evidence"], "RELEASE-NOTES.md")
+        self.assertEqual(record["evidenceScope"], "bounded-release")
 
     def test_aggregation_proposal_implementation_transition(self):
         record = cap.validate(cap.ROOT, self.document, self.current, self.released)[8]
-        self.assertEqual(record["availability"], "unreleased")
+        self.assertEqual(record["availability"], "released")
         self.assertEqual(record["decisionStatus"], self.extension_status(record["decision"]))
         self.assertEqual(record["module"], "Markovian.Aggregation.Exact")
-        self.assertEqual(record["evidence"], "test/AggregationExact.hs")
-        self.assertEqual(record["evidenceScope"], "implementation-fixtures")
+        self.assertEqual(record["evidence"], "RELEASE-NOTES.md")
+        self.assertEqual(record["evidenceScope"], "bounded-release")
 
-    def test_aggregation_cannot_claim_release(self):
-        self.rejected(self.changed(8, availability="released", evidenceScope="bounded-release"),
+    def test_released_module_claim_requires_immutable_membership(self):
+        self.assertIn("Markovian.Bayesian.Exact", self.current["Markovian"])
+        self.rejected(self.changed(8, module="Markovian.Bayesian.Exact"),
                       "not in immutable released membership")
 
     def test_aggregation_cannot_reuse_contract_evidence(self):
         self.rejected(self.changed(8, evidence=cap.PROPOSAL_CONTRACTS["EL-05"]),
-                      "requires implementation evidence")
+                      "requires evidence beyond its contract")
 
-    def test_reward_jvp_cannot_claim_release(self):
-        self.rejected(self.changed(7, availability="released", evidenceScope="bounded-release"),
-                      "not in immutable released membership")
+    def test_released_proposal_requires_accepted_contract(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = self.fixture(directory)
+            contract = root / cap.PROPOSAL_CONTRACTS["EL-04"]
+            contract.write_text(re.sub(r"(?m)^\*\*Status:\*\* [^\n]+$",
+                                       "**Status:** Proposed", contract.read_text()))
+            with self.assertRaisesRegex(cap.CapabilityError, "decision status mismatch"):
+                cap.check(root)
 
     def test_reward_jvp_cannot_reuse_contract_evidence(self):
         self.rejected(self.changed(7, evidence=cap.PROPOSAL_CONTRACTS["EL-04"]),
-                      "requires implementation evidence")
+                      "requires evidence beyond its contract")
 
-    def test_implemented_proposal_cannot_claim_release(self):
-        self.rejected(self.changed(6, availability="released", evidenceScope="bounded-release"),
-                      "invalid proposal")
+    def test_released_proposal_cannot_claim_proposed_decision(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = self.fixture(directory)
+            contract = root / cap.PROPOSAL_CONTRACTS["EL-03"]
+            contract.write_text(re.sub(r"(?m)^\*\*Status:\*\* [^\n]+$",
+                                       "**Status:** Proposed", contract.read_text()))
+            with self.assertRaisesRegex(cap.CapabilityError,
+                                        "released capability requires an accepted decision"):
+                cap.validate(root, self.changed(6, decisionStatus="Proposed"),
+                             self.current, self.released)
 
     def test_implemented_proposal_cannot_infer_acceptance(self):
         status = self.extension_status("EL-03")
@@ -173,7 +185,7 @@ class CapabilityTests(unittest.TestCase):
                                        "**Status:** Accepted", contract.read_text()))
             records = cap.validate(root, self.changed(6, decisionStatus="Accepted"),
                                    self.current, self.released)
-            self.assertEqual(records[6]["availability"], "unreleased")
+            self.assertEqual(records[6]["availability"], "released")
             with self.assertRaisesRegex(cap.CapabilityError, "decision status mismatch"):
                 cap.validate(root, self.changed(6, decisionStatus="Proposed"),
                              self.current, self.released)
@@ -188,11 +200,14 @@ class CapabilityTests(unittest.TestCase):
 
     def test_implemented_proposal_cannot_reuse_contract_evidence(self):
         self.rejected(self.changed(6, evidence=cap.PROPOSAL_CONTRACTS["EL-03"]),
-                      "requires implementation evidence")
+                      "requires evidence beyond its contract")
 
     def test_implemented_proposal_still_checks_contract_module(self):
-        self.rejected(self.changed(6, module="Markovian.Continuous.Space"),
-                      "contract/module mismatch")
+        released = copy.deepcopy(self.released)
+        released["markovian-continuous"].append("Markovian.Continuous.Space")
+        with self.assertRaisesRegex(cap.CapabilityError, "contract/module mismatch"):
+            cap.validate(cap.ROOT, self.changed(6, module="Markovian.Continuous.Space"),
+                         self.current, released)
 
     def test_contract_only_requires_contract_evidence(self):
         self.rejected(self.reward_contract(evidence="test/FeedbackValueExact.hs"),
@@ -235,12 +250,12 @@ class CapabilityTests(unittest.TestCase):
         self.rejected(self.changed(module="Markovian.NoSuchModule"), "not a current public module")
 
     def test_current_module_does_not_imply_released_module(self):
-        self.rejected(self.changed(5, availability="released", evidenceScope="bounded-release"),
+        self.rejected(self.changed(5, module="Markovian.Bayesian.Exact"),
                       "not in immutable released membership")
 
     def test_no_inference_from_unchanged_package_version(self):
-        self.assertIn("Markovian.Feedback.Value.Exact", self.current["Markovian"])
-        self.assertNotIn("Markovian.Feedback.Value.Exact", self.released["Markovian"])
+        self.assertIn("Markovian.Bayesian.Exact", self.current["Markovian"])
+        self.assertNotIn("Markovian.Bayesian.Exact", self.released["Markovian"])
 
     def test_missing_evidence(self):
         self.rejected(self.changed(evidence="test/missing.hs"), "missing or escaping")
@@ -296,6 +311,18 @@ class CapabilityTests(unittest.TestCase):
             (root / cap.RELEASE_EVIDENCE).write_text(json.dumps(evidence))
             with self.assertRaisesRegex(cap.CapabilityError, "immutable release membership evidence changed"):
                 cap.check(root)
+
+    def test_published_release_records_cannot_be_rewritten(self):
+        for version in ("2026.9.3.0", "2026.9.15.1"):
+            with self.subTest(version=version), tempfile.TemporaryDirectory() as directory:
+                root = self.fixture(directory)
+                registry = root / "release/published-releases.json"
+                authority = json.loads(registry.read_text())
+                authority["versions"][version]["sourceRevision"] = "a" * 40
+                registry.write_text(json.dumps(authority))
+                with self.assertRaisesRegex(cap.CapabilityError,
+                                            "published release authority changed"):
+                    cap.check(root)
 
     def test_archive_only_gate_needs_no_git(self):
         with tempfile.TemporaryDirectory() as directory:

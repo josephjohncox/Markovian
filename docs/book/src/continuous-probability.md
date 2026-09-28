@@ -36,7 +36,7 @@ E[U U]=1/3,\qquad E[U_1U_2]=1/4.
 
 A future dynamic adapter must construct one joint reward, successor, and post-transition observation. It must first inspect terminal status. It must pay terminal value once. A zero horizon must not draw noise. Each transition applies one reward and one discount. Lead time must remain explicit.
 
-### Exact paired differences (unreleased EL-03)
+### Exact paired differences (EL-03)
 
 `pairedDifferenceReport` consumes one existing joint law and retains exact means,
 variances, covariance, mean difference, difference variance, an independent
@@ -44,7 +44,7 @@ marginal variance baseline and a signed comparison. A single meter spans
 structural admission, all five moments and twelve derived work units; no partial
 report escapes failure. The [executable paired-difference lesson](paired-difference.md)
 checks both U versus U and U versus 1-U: common noise can worsen variance.
-This adds no coupling constructor or trajectory/policy comparison. EL-03 is Accepted for this unreleased fragment.
+This adds no coupling constructor or trajectory/policy comparison. EL-03 is Accepted for this bounded released fragment.
 
 ## Kernels
 
@@ -56,7 +56,7 @@ K(x)=a x+b+\sum_i c_iU_i.
 
 Composition checks owner collisions and declared budgets. Alpha-renaming rejects duplicate source mappings, duplicate targets, and collisions with an unmapped owner. Thus, the package does not supply an unrestricted `Category` instance.
 
-### Joint affine kernels and unreleased substitution
+### Joint affine kernels and bounded substitution
 
 `ExactJointAffineKernel` represents two closed coordinates over one real input:
 
@@ -73,9 +73,9 @@ Construction, same-scope renaming, scope transition, materialization, and suppor
 
 Measurability is an argued syntax-directed obligation. Each admitted input coordinate is a rational affine map, hence continuous and Borel measurable. Each source is a compact Borel uniform law. Finite products of the represented sources are standard Borel, and both outputs are finite affine projections. This argument covers every syntax constructor in Gate A. It does not establish measurability for an arbitrary Haskell function because no callback constructor exists.
 
-The unreleased `substituteLeftSuccessor` substitutes only the left successor into both right coordinates. Its result is the right reward and right successor, not an accumulated reward. Requests completely and injectively map every right declaration either to equal-interval left sources or to fresh numeric names disjoint from both full manifests. A single combined ledger admits the mapping spine without inspecting entries before all derived-table reservations. Private witnesses retain the actual admitted operands. Results retain zero declarations and original-name reservations, but expose no kernel, local owner, or chaining operation. Both projections separately budget work while admitting the complete historical rational maximum, including canceled intermediates and discarded left reward. See the [frozen D-079 contract](../../plans/D079-LEFT-SUCCESSOR-SUBSTITUTION.md) for the exact schedule and the `JointAffine` tests for independent multinomial and witnessed-source corner evidence.
+The released `substituteLeftSuccessor` substitutes only the left successor into both right coordinates. Its result is the right reward and right successor, not an accumulated reward. Requests completely and injectively map every right declaration either to equal-interval left sources or to fresh numeric names disjoint from both full manifests. A single combined ledger admits the mapping spine without inspecting entries before all derived-table reservations. Private witnesses retain the actual admitted operands. Results retain zero declarations and original-name reservations, but expose no kernel, local owner, or chaining operation. Both projections separately budget work while admitting the complete historical rational maximum, including canceled intermediates and discarded left reward. See the [frozen D-079 contract](../../plans/D079-LEFT-SUCCESSOR-SUBSTITUTION.md) for the exact schedule and the `JointAffine` tests for independent multinomial and witnessed-source corner evidence.
 
-D-079 is `Accepted` within its bounded, unreleased scope; the [separate acceptance record](../../DECISIONS.md#d-079-add-exact-joint-affine-continuous-kernels) preserves the historical freeze and excludes temporal reward accumulation, general composition/category laws, devices and performance claims. This adds no control package, regular conditional probability or disintegration, point conditioning, polynomial value function, multi-step control, or numerical certificate.
+D-079 is `Accepted` within its bounded released scope; the [separate acceptance record](../../DECISIONS.md#d-079-add-exact-joint-affine-continuous-kernels) preserves the historical freeze and excludes temporal reward accumulation, general composition/category laws, devices and performance claims. This adds no control package, regular conditional probability or disintegration, point conditioning, polynomial value function, multi-step control, or numerical certificate.
 
 ## Finite-observation conditioning
 
