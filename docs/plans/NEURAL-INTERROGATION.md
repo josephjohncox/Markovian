@@ -1,6 +1,6 @@
 # Frozen neural-model interrogation
 
-**Status:** Implemented in the development branch; unreleased. This document
+**Status:** Implemented in the repository; unreleased. This document
 records the contract and acceptance checks.
 
 ## Purpose and boundary
