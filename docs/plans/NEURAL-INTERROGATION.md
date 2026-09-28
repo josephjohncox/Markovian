@@ -160,7 +160,8 @@ transformer interface, or training update belongs in this first slice.
    Do not mark it released in the capability inventory. Regenerate the existing
    learning output receipt with `python3 scripts/check-learning --write` after source
    changes and review its diff.
-   Run the two neural test suites, the existing neural/bridge boundary checks,
+   Run the neural unit and integration suites and the bridge suite, the existing
+   neural/bridge boundary checks,
    package-manifest and source-archive checks, then the repository CI gates. The
    review criterion is stable output/error behavior and clear provenance, not a
    claimed semantic neuron label or training gain.
