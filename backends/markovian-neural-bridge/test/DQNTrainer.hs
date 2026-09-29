@@ -9,15 +9,29 @@ import Markovian.Backend.Neural (
     DQNTargetSelection (..),
     ReplayEntryId,
     TargetUpdateSchedule,
+    actionValueAfter,
+    actionValueBefore,
+    actionValueDelta,
+    actionValueIndex,
     appendReplay,
+    auditDQN,
     denseParameters,
+    dqnAuditAfterLabel,
+    dqnAuditAfterTargetUpdateCount,
+    dqnAuditBeforeLabel,
+    dqnAuditBeforeTargetUpdateCount,
+    dqnAuditProbes,
     dqnBatchTargets,
     dqnOnlineNetwork,
+    dqnProbeInput,
+    dqnProbeOnline,
+    dqnProbeTarget,
     dqnTargetNetwork,
     mkActionMask,
     mkDQNConfig,
     mkDQNState,
     mkDenseNetwork,
+    mkInspectionProbe,
     mkReplayBuffer,
     mkSGD,
     mkTerminalTransition,
@@ -45,6 +59,7 @@ tests = do
     fuelAndLimitChecks
     splitAndRngChecks
     replayAndTargetChecks
+    trainerAuditChecks
     targetRuleChecks
     terminalAndFailureChecks
     putStrLn "PASS: DQN trainer"
@@ -214,6 +229,56 @@ replayAndTargetChecks = do
     assert
         "Polyak checkpoint unexpectedly equals online"
         (denseParameters (dqnOnlineNetwork polyakDQN) /= denseParameters (targetNetworkSnapshot (dqnTargetNetwork polyakDQN)))
+
+trainerAuditChecks :: IO ()
+trainerAuditChecks = do
+    online <- requireRight "audit initial online" (mkDenseNetwork 1 [] 2 [0, 0, 0, 0])
+    target <- requireRight "audit initial target" (mkDenseNetwork 1 [] 2 [0, 0, 2, 0])
+    optimizer <- requireRight "audit optimizer" (mkSGD 0.1)
+    schedule <- requireRight "audit target schedule" (periodicHardTargetUpdates 1)
+    dqnConfig <- requireRight "audit DQN config" (mkDQNConfig 0.5 optimizer StandardDQN schedule)
+    initialDQN <- requireRight "audit initial DQN" (mkDQNState online target)
+    mask <- requireRight "audit training mask" (mkActionMask 2 [0, 1])
+    observation <- requireRight "audit training observation" (Trainer.mkDQNTrainerObservation [1] mask)
+    trainerConfig <- requireRight "audit trainer config" (Trainer.mkDQNTrainerConfig dqnConfig 0 1 1)
+    replay <- requireRight "audit replay" (mkReplayBuffer 1)
+    initial <- requireRight "audit trainer state" (Trainer.mkDQNTrainerState trainerConfig (0 :: Int) observation initialDQN replay (generatorFromSeed 3))
+    fuel <- requireRight "audit trainer fuel" (Trainer.mkDQNTrainerFuel 1)
+    let before = Trainer.dqnTrainerStateDQNState initial
+        run = Trainer.runDQNTrainer fuel (limits 9 9 9 9 9 20) continuing initial
+        finalState = Trainer.dqnTrainerRunState run
+        after = Trainer.dqnTrainerStateDQNState finalState
+        report = Trainer.dqnTrainerRunReport run
+    assert "audit trainer stop" (Trainer.dqnTrainerReportStop report == Trainer.DQNTrainerFuelExhausted)
+    assert "audit trainer fuel used" (Trainer.dqnTrainerReportFuelUsed report == 1)
+    assert "audit trainer checkpoint accounting" (Trainer.dqnTrainerCommittedCheckpointAdvances (Trainer.dqnTrainerStateAccounting finalState) == 1)
+    case Trainer.dqnTrainerReportSteps report of
+        [step] -> do
+            assert "audit trainer update" (Trainer.dqnTrainerStepStatus step == Trainer.DQNTrainerUpdated)
+            case Trainer.dqnTrainerStepReplayEntryId step of
+                Just replayId -> do
+                    assert "audit replay ID selected for update" (Trainer.dqnTrainerStepBatchEntryIds step == [replayId])
+                    let probe = mkInspectionProbe "training observation" [1] mask (Just replayId)
+                    audit <- requireRight "trainer frozen audit" (auditDQN 1 "before run" before "after run" after [probe])
+                    assert "trainer audit labels" (dqnAuditBeforeLabel audit == "before run" && dqnAuditAfterLabel audit == "after run")
+                    assert
+                        "trainer audit update counts"
+                        ( dqnAuditBeforeTargetUpdateCount audit == 0
+                            && dqnAuditAfterTargetUpdateCount audit
+                                == Trainer.dqnTrainerCommittedCheckpointAdvances (Trainer.dqnTrainerStateAccounting finalState)
+                        )
+                    case dqnAuditProbes audit of
+                        [comparison] -> do
+                            let onlineValues = dqnProbeOnline comparison
+                                targetValues = dqnProbeTarget comparison
+                            assert "trainer audit probe provenance" (dqnProbeInput comparison == probe)
+                            assert "trainer audit action order" (map actionValueIndex onlineValues == [0, 1] && map actionValueIndex targetValues == [0, 1])
+                            assert "trainer audit distinguishes initial target" (map actionValueBefore onlineValues /= map actionValueBefore targetValues)
+                            assert "trainer audit observes online update" (any (/= 0) (map actionValueDelta onlineValues))
+                            assert "trainer audit observes hard target sync" (map actionValueAfter onlineValues == map actionValueAfter targetValues)
+                        _ -> assert "expected one trainer audit probe" False
+                Nothing -> assert "trainer update omitted replay ID" False
+        _ -> assert "expected one trainer audit step" False
 
 targetRuleChecks :: IO ()
 targetRuleChecks = do

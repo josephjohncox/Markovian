@@ -76,15 +76,16 @@ online and target networks and include the count of successful online updates ob
 by each target-network state; they return all admissible action values in mask order
 and their `after - before` differences, not only a chosen action. Policy reports
 show masked `after - before` action-probability and log-probability differences.
-Each example keeps its caller-supplied identifier, feature vector, mask, and chosen
-scalar metric if one is used. The caller also supplies a snapshot label for each
-frozen model; the label and target-update count are provenance, not proof of
-snapshot identity. An optional
-replay entry ID is provenance only: ordinals are scoped to a replay-buffer lineage, and
-trainer reports do not themselves preserve a network snapshot or transition payload.
+Each probe retains its caller-supplied identifier, feature vector, ordered mask,
+and optional replay entry ID. The caller records any chosen scalar summary
+separately. The caller also supplies a snapshot label for each frozen model;
+the label and target-update count are provenance, not proof of snapshot identity.
+Replay entry IDs are lineage-scoped provenance only; trainer reports do not
+preserve a network snapshot or transition payload.
 
-Index-only comparisons require matching input/output dimensions, dense topology for
-unit-level comparison, and one ordered mask applied to both snapshots for each probe.
+`auditDQN` requires matching full dense topology across both snapshots and their
+online and target networks. `auditLinearPolicy` requires equal feature and action
+counts. Each probe uses one ordered mask at both snapshots.
 Equal output widths alone do not prove that action names agree; a named-action
 comparison needs the bridge's `sameActionOutputLayout` check on both supplied
 `ActionOutputLayout` witnesses. Matching support alone is insufficient. The caller
