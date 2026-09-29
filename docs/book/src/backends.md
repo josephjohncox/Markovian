@@ -297,6 +297,18 @@ L(\theta)=\frac{1}{B}\sum_{i=1}^{B}
 
 Target synchronization occurs only after the online update succeeds. This function is one update step, not a DQN trainer.
 
+## Frozen-model audits after training
+
+For a trainer run, retain `dqnTrainerStateDQNState initialState`, call
+`runDQNTrainer`, then read `dqnTrainerStateDQNState (dqnTrainerRunState run)`.
+Inspect `dqnTrainerReportStop` before comparing the two states with `auditDQN`
+on the same fixed probes and ordered masks. The report describes those supplied
+snapshots; a replay entry ID identifies an entry only within its buffer lineage.
+
+For a linear policy, use `reinforceUpdatedPolicy` or `actorCriticUpdatedPolicy`
+as the after snapshot in `auditLinearPolicy`, retaining the original policy as
+before. Record any scalar metric separately from the audit report.
+
 ## Approximation and claim boundaries
 
 The neural tests include hand-calculated examples, finite differences, failure atomicity, replay ordering, synchronization timing, and tabular Q-learning differentials for one-hot linear Q networks.

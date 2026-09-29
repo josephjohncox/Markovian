@@ -41,7 +41,14 @@ import Markovian.Backend.Neural.Inspection (
  )
 import Markovian.Backend.Neural.Mask (mkActionMask)
 import Markovian.Backend.Neural.Optimizer (mkSGD)
-import Markovian.Backend.Neural.Policy (mkLinearCategoricalPolicy)
+import Markovian.Backend.Neural.Policy (linearPolicyParameters, mkLinearCategoricalPolicy)
+import Markovian.Backend.Neural.Reinforce (
+    EpisodeBoundary (TerminalBoundary),
+    ReinforceStep (..),
+    mkReinforceConfig,
+    reinforceUpdatedPolicy,
+    updateReinforce,
+ )
 import Markovian.Backend.Neural.Replay (appendReplay, mkReplayBuffer)
 import Markovian.Backend.Neural.TargetNetwork (periodicHardTargetUpdates)
 import Markovian.Backend.Neural.Transition (mkTerminalTransition)
@@ -145,13 +152,18 @@ validationChecks = do
 policySnapshotChecks :: IO ()
 policySnapshotChecks = do
     before <- requireRight "before policy" (mkLinearCategoricalPolicy 2 1 [0, 0])
-    after <- requireRight "after policy" (mkLinearCategoricalPolicy 2 1 [0, log 3])
+    config <- requireRight "policy update config" (mkReinforceConfig 1 0 (log 3) 0)
+    trainingMask <- requireRight "policy training mask" (mkActionMask 2 [0, 1])
+    update <- requireRight "policy update" (updateReinforce config before Nothing [ReinforceStep [1] trainingMask 1 1] (TerminalBoundary 0))
+    let after = reinforceUpdatedPolicy update
     mask <- requireRight "policy reordered mask" (mkActionMask 2 [1, 0])
     single <- requireRight "policy single mask" (mkActionMask 2 [0])
     let firstProbe = mkInspectionProbe "policy first" [1] mask Nothing
         secondProbe = mkInspectionProbe "policy single" [1] single Nothing
     report <- requireRight "policy audit" (auditLinearPolicy 2 "pre" before "post" after [firstProbe, secondProbe])
     assert "policy labels" (linearPolicyAuditBeforeLabel report == "pre" && linearPolicyAuditAfterLabel report == "post")
+    assert "policy before snapshot unchanged" (linearPolicyParameters before == [0, 0])
+    assertVectorClose "policy update parameters" 1e-15 [-(log 3 / 2), log 3 / 2] (linearPolicyParameters after)
     case linearPolicyAuditProbes report of
         [first, second] -> do
             let actions = linearPolicyProbeActions first
