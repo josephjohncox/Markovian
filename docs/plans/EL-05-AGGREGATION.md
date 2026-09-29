@@ -2,6 +2,8 @@
 
 **Status:** Accepted
 
+Released in `v2026.9.15.1` within the bounded scope below.
+
 **Bounded, unreleased acceptance — 2026-09-14:** Independent review accepts supplied-partition checking for one closed fixed policy. It checked literal joint-law and trace fixtures plus 480 independent reservation comparisons. The audited implementation is unchanged from `24b81f7d33680bc78b3a0ecff39100f206d45385` through `03493e83bd842d2e9c0b41d0c0de4ab4380e4dc3`. The scope below remains binding; acceptance does not establish a release or a physical resource bound.
 
 Frozen declarations and algorithm retained after independent contract review.

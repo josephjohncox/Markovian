@@ -4,7 +4,7 @@
 
 Placement is approved in the existing base-only `Markovian` library. Both public operations belong in `Markovian.Game.Correlated.Exact`.
 
-D-083 is Accepted and unreleased. The [decision](../DECISIONS.md#d-083-add-exact-bounded-ce-and-cce-one-witness-solvers) pins the reviewed implementation; §11 maps its verification evidence.
+D-083 is Accepted and was released in `v2026.9.15.1` within its bounded scope. The [decision](../DECISIONS.md#d-083-add-exact-bounded-ce-and-cce-one-witness-solvers) pins the reviewed implementation; §11 maps its verification evidence.
 
 The active-set generator, constraint builder, elimination, and account live in the hidden `Markovian.Game.Correlated.Exact.Internal` module. The public module owns the solve pipeline and publication checks. Add no package, dependency edge, general LP interface, matrix callback, or pivot callback.
 

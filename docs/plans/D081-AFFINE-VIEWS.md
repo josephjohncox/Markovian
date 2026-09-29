@@ -1,6 +1,6 @@
 # D-081 affine-view contract
 
-D-081 is Accepted within its [unreleased host-F64 scope](../evidence/D081-AFFINE-IMPLEMENTATION.md).
+D-081 is Accepted and was released in `v2026.9.15.1` within its [bounded host-F64 scope](../evidence/D081-AFFINE-IMPLEMENTATION.md).
 This contract specifies geometry, ownership, error precedence, and validation.
 The [materialization addendum](D081-MATERIALIZATION-ADDENDUM.md) specifies the
 current resource model and overrides the requirements below where stated.

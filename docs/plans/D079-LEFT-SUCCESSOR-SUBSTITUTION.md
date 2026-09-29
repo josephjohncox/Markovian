@@ -1,6 +1,6 @@
 # D-079 left-successor substitution contract
 
-D-079 is Accepted within its unreleased scope. The
+D-079 is Accepted and was released in `v2026.9.15.1` within its bounded scope. The
 [decision record](../DECISIONS.md#d-079-add-exact-joint-affine-continuous-kernels)
 records implementation and acceptance evidence.
 

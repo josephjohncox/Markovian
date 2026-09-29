@@ -5,12 +5,13 @@ records the contract and acceptance checks.
 
 ## Purpose and boundary
 
-The first target is the checked `DenseNetwork` and `LinearCategoricalPolicy` in
-`markovian-neural`. The dense model has `tanh` hidden layers and a linear output head,
-but [Dense](../../backends/markovian-neural/src/Markovian/Backend/Neural/Dense.hs) exposes only
-outputs and endpoint VJPs. The linear policy has no hidden layers; it already exposes
-logits and selected-action log probabilities through
-[Policy](../../backends/markovian-neural/src/Markovian/Backend/Neural/Policy.hs).
+The probes cover the checked `DenseNetwork` and `LinearCategoricalPolicy` in
+`markovian-neural`. [Dense](../../backends/markovian-neural/src/Markovian/Backend/Neural/Dense.hs)
+has `tanh` hidden layers and a linear output head; `traceDense` exposes layer
+values and `patchDenseHidden` evaluates same-snapshot interventions.
+[Policy](../../backends/markovian-neural/src/Markovian/Backend/Neural/Policy.hs)
+has no hidden layers; `inspectLinearPolicy` exposes per-feature logit terms and
+masked probabilities.
 
 The first use is a **read-only audit of frozen checkpoints**. The caller supplies the
 models, a fixed nonempty bounded set of examples, action masks, and any feature or
@@ -61,9 +62,9 @@ normalization rule.
 
 The three entry points return typed `Either` failures for input shape, nonfinite
 arithmetic, invalid hidden layer or unit, duplicate or empty patch selection, and mask
-mismatch. The audit also rejects empty or over-limit probes and incompatible model
-shapes. No entry point partially publishes a report. Reuse existing numeric and mask
-validators where possible.
+mismatch. Patch-site errors have a distinct type rather than extending `DenseError`.
+Report constructors are private. The audit also rejects empty or over-limit
+probes and incompatible model shapes. No entry point partially publishes a report.
 
 ## Frozen-checkpoint audit
 
@@ -71,23 +72,25 @@ A small adapter compares **explicitly supplied** before/after `DQNState` values 
 linear policies on one immutable caller-supplied probe set. A positive caller-supplied
 probe limit rejects an empty or over-limit set before evaluating any model. Each
 probe's feature vector and mask are applied to both snapshots. DQN reports distinguish
-online and target networks and include the target successful-update count; they return
-all admissible
-action values in mask order and their `after - before` differences, not only a chosen
-action. Policy reports show masked `after - before` action-probability and
-log-probability differences. Each example
-keeps its caller-supplied identifier, feature vector, mask, and chosen scalar metric if
-one is used. The caller also supplies a snapshot label for each frozen model; the label
-and target-update count are provenance, not proof of snapshot identity. An optional
+online and target networks and include the count of successful online updates observed
+by each target-network state; they return all admissible action values in mask order
+and their `after - before` differences, not only a chosen action. Policy reports
+show masked `after - before` action-probability and log-probability differences.
+Each example keeps its caller-supplied identifier, feature vector, mask, and chosen
+scalar metric if one is used. The caller also supplies a snapshot label for each
+frozen model; the label and target-update count are provenance, not proof of
+snapshot identity. An optional
 replay entry ID is provenance only: ordinals are scoped to a replay-buffer lineage, and
 trainer reports do not themselves preserve a network snapshot or transition payload.
 
 Index-only comparisons require matching input/output dimensions, dense topology for
 unit-level comparison, and one ordered mask applied to both snapshots for each probe.
 Equal output widths alone do not prove that action names agree; a named-action
-comparison needs the bridge's matching `ActionOutputLayout` witnesses. The caller owns semantic
-feature names and must pin the same observations for both checkpoints; changing replay
-populations is not a before/after model comparison. The existing `DQNBatchEvaluation` is
+comparison needs the bridge's `sameActionOutputLayout` check on both supplied
+`ActionOutputLayout` witnesses. Matching support alone is insufficient. The caller
+owns semantic feature names and must pin the same observations for both checkpoints;
+changing replay populations is not a before/after model comparison. The existing
+`DQNBatchEvaluation` is
 pre-update evidence, and a later target-network synchronization can also change targets.
 The audit therefore reports model behavior at each supplied snapshot without attributing
 a change solely to an SGD step. It does not estimate reward, policy quality, or training
@@ -123,45 +126,7 @@ held-out intervention tests of its faithfulness, as in [causal abstraction](http
   example's mask to both snapshots, distinguishes online from target, and never uses a
   replay ID as checkpoint identity.
 
-Implementation should stay in `markovian-neural` for model probes and
-`markovian-neural-bridge` only where replay or exact-action layout types are required.
+Model probes stay in `markovian-neural`; the bridge owns the exact-action layout
+types needed for named comparisons.
 No new persisted receipt, command-line workflow, GPU tracing, exact-circuit tracing,
 transformer interface, or training update belongs in this first slice.
-
-## Implementation sequence
-
-1. Extend the private cache in `Dense.hs` to retain each checked preactivation. Add
-   read-only trace types and `traceDense` there, using the existing forward path. Keep
-   `denseForward`, both VJPs, and `denseReverseCircuit` behavior unchanged. Use
-   opaque public result types with accessors; do not add constructors to the existing
-   public `DenseError` sum.
-2. Add `patchDenseHidden` beside that cache. Validate recipient and donor vectors,
-   the hidden-layer address, and unique unit indices; run both inputs through the
-   same network; replace the selected cached postactivations; and resume through the
-   remaining `Layer`s. Use a new probe error type for invalid sites and wrapped
-   `DenseError`s. Test self-patch identity, full-layer donor equivalence, partial
-   patches, zero-hidden rejection, overflow, and unchanged network parameters.
-3. Add policy inspection in `Policy.hs`. Refactor its private dot helper so
-   `linearPolicyLogits` and the inspection share checked product and sum order. Compute
-   all global logits before gathering the caller-ordered mask; use the current stable
-   log-softmax semantics for
-   probabilities. Test against `linearPolicyLogits` and the categorical API, including
-   reordered masks, one active action, underflow, and an overflowing inactive logit.
-4. Add one small `markovian-neural` inspection module for read-only frozen comparisons.
-   It takes before/after model values, one probe set, snapshot labels, and the probe
-   limit; it evaluates every probe under both snapshots and reports online/target
-   DQN values or policy probabilities in mask order. The module never calls an update
-   function. Numeric indices remain the core result. A thin bridge wrapper for named
-   exact actions must accept before/after `ActionOutputLayout` witnesses and require
-   `sameActionOutputLayout`; matching support alone is insufficient. Add bridge tests
-   for that layout and replay-ID provenance without changing the trainer.
-5. Wire the new public module and tests into the neural and bridge Cabal manifests,
-   the neural umbrella module, current exposed-module snapshots, and package READMEs.
-   Do not mark it released in the capability inventory. Regenerate the existing
-   learning output receipt with `python3 scripts/check-learning --write` after source
-   changes and review its diff.
-   Run the neural unit and integration suites and the bridge suite, the existing
-   neural/bridge boundary checks,
-   package-manifest and source-archive checks, then the repository CI gates. The
-   review criterion is stable output/error behavior and clear provenance, not a
-   claimed semantic neuron label or training gain.

@@ -1,6 +1,6 @@
 # D-080 cumulative quotation compilation contract
 
-D-080 is Accepted within its unreleased scope. See the
+D-080 is Accepted and was released in `v2026.9.15.1` within its bounded scope. See the
 [decision record](../DECISIONS.md#d-080-add-bounded-first-order-quotation-with-callback-free-let)
 for implementation and acceptance evidence. The
 [original design record](https://github.com/josephjohncox/Markovian/blob/871f0eedf8a8f460b2b3a5906bec57a365d53e5d/docs/plans/D080-CUMULATIVE-COMPILATION.md)
