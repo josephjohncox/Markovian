@@ -274,7 +274,7 @@ trainerAuditChecks = do
                             assert "trainer audit probe provenance" (dqnProbeInput comparison == probe)
                             assert "trainer audit action order" (map actionValueIndex onlineValues == [0, 1] && map actionValueIndex targetValues == [0, 1])
                             assert "trainer audit distinguishes initial target" (map actionValueBefore onlineValues /= map actionValueBefore targetValues)
-                            assert "trainer audit observes online update" (any (/= 0) (map actionValueDelta onlineValues))
+                            assert "trainer audit observes online update" (any ((/= 0) . actionValueDelta) onlineValues)
                             assert "trainer audit observes hard target sync" (map actionValueAfter onlineValues == map actionValueAfter targetValues)
                         _ -> assert "expected one trainer audit probe" False
                 Nothing -> assert "trainer update omitted replay ID" False

@@ -163,7 +163,7 @@ policySnapshotChecks = do
     report <- requireRight "policy audit" (auditLinearPolicy 2 "pre" before "post" after [firstProbe, secondProbe])
     assert "policy labels" (linearPolicyAuditBeforeLabel report == "pre" && linearPolicyAuditAfterLabel report == "post")
     assert "policy before snapshot unchanged" (linearPolicyParameters before == [0, 0])
-    assertVectorClose "policy update parameters" 1e-15 [-(log 3) / 2, log 3 / 2] (linearPolicyParameters after)
+    assertVectorClose "policy update parameters" 1e-15 [-(log 3 / 2), log 3 / 2] (linearPolicyParameters after)
     case linearPolicyAuditProbes report of
         [first, second] -> do
             let actions = linearPolicyProbeActions first
